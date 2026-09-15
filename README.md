@@ -1,6 +1,6 @@
-# Dashboard
+# Dashmon
 
-Tableau de bord léger pour centraliser vos services self-hosted : accès rapide aux services, surveillance du statut des URL, métriques CPU/RAM des hôtes, thèmes et interface fr/en.
+Dashmon — dashboard self-hosted léger pour centraliser vos services self-hosted : accès rapide aux services, surveillance du statut des URL, métriques CPU/RAM des hôtes, thèmes et interface fr/en.
 
 Serveur Node.js / Express, modules ES natifs, aucune dépendance hors express.
 

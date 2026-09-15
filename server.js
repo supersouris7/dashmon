@@ -51,8 +51,8 @@ const TOKEN_ENV_ALLOWLIST = new Set([
 if (!DASHBOARD_PASSWORD) {
   const populated=[...TOKEN_ENV_ALLOWLIST].filter(name=>process.env[name]);
   if (populated.length) {
-    console.warn(`${ts()} ⚠ ATTENTION : le dashboard est lancé SANS mot de passe (DASHBOARD_PASSWORD vide) alors que des tokens sensibles sont chargés (${populated.join(", ")}).`);
-    console.warn(`${ts()} ⚠ N'\u00e9ditez pas la config depuis des machines non fiables, et exposez-le derrière un proxy HTTPS + mot de passe.`);
+    console.warn(`${ts()} ⚠ ATTENTION : Dashmon est lancé SANS mot de passe (DASHBOARD_PASSWORD vide) alors que des tokens sensibles sont chargés (${populated.join(", ")}).`);
+    console.warn(`${ts()} ⚠ N'\u00e9ditez pas la config depuis des machines non fiables, et exposez Dashmon derrière un proxy HTTPS + mot de passe.`);
   }
 }
 
@@ -164,7 +164,7 @@ if (DASHBOARD_PASSWORD) {
     const auth = req.get("Authorization") || "";
     const expected = "Basic " + Buffer.from("admin:" + DASHBOARD_PASSWORD).toString("base64");
     if (auth === expected) return next();
-    res.set("WWW-Authenticate", 'Basic realm="Dashboard"');
+    res.set("WWW-Authenticate", 'Basic realm="Dashmon"');
     res.status(401).json({ error: "Authentification requise" });
   });
 }
@@ -238,7 +238,7 @@ function readConfig(){
 }
 
 const DEFAULT_HOSTS = [
-  {name:"Dashboard",icon:"fa-solid fa-gauge-high",monitoring:{enabled:true,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}},
+  {name:"Dashmon",icon:"fa-solid fa-gauge-high",monitoring:{enabled:true,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}},
   {name:"Proxmox",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"proxmox",url:"https://proxmox.local",node:"pve",tokenEnv:"",tokenIdEnv:"PROXMOX_TOKEN_ID",tokenSecretEnv:"PROXMOX_TOKEN_SECRET"}},
   {name:"Linux",icon:"fa-brands fa-linux",monitoring:{enabled:true,type:"linux",url:"http://linux.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}},
   {name:"Serveur",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"linux",url:"http://serveur.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}}
@@ -671,7 +671,7 @@ function checkService(service){
       agent:false,
       family:4,
       headers:{
-        "User-Agent":"Dashboard-Status/1.0",
+        "User-Agent":"Dashmon-Status/1.0",
         "Connection":"close"
       }
     };
@@ -981,5 +981,5 @@ setTimeout(refreshStatuses,500);
 const statusTimer=setInterval(refreshStatuses,STATUS_INTERVAL);
 
 httpServer=app.listen(PORT,"0.0.0.0",()=>{
-  console.log(`${ts()} Dashboard : http://0.0.0.0:${PORT}`);
+  console.log(`${ts()} Dashmon : http://0.0.0.0:${PORT}`);
 });

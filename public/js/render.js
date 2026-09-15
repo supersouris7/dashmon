@@ -1,4 +1,4 @@
-// Rendu du dashboard (cartes, groupes, mode d'affichage) et état des boutons du menu.
+// Rendu de Dashmon (cartes, groupes, mode d'affichage) et état des boutons du menu.
 import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass } from "./state.js";
 import { t } from "./i18n.js";
 import { saveConfig } from "./api.js";

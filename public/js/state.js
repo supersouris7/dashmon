@@ -83,14 +83,14 @@ export const ICON_OPTIONS=[
 ];
 
 export const DEFAULT_HOSTS=[
-  {name:"Dashboard",icon:"fa-solid fa-gauge-high",monitoring:{enabled:true,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}},
+  {name:"Dashmon",icon:"fa-solid fa-gauge-high",monitoring:{enabled:true,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}},
   {name:"Proxmox",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"proxmox",url:"https://proxmox.local",node:"pve",tokenEnv:"",tokenIdEnv:"PROXMOX_TOKEN_ID",tokenSecretEnv:"PROXMOX_TOKEN_SECRET"}},
   {name:"Linux",icon:"fa-brands fa-linux",monitoring:{enabled:true,type:"linux",url:"http://linux.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}},
   {name:"Serveur",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"linux",url:"http://serveur.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}}
 ];
 
 export const DEFAULT_SERVICES = [
-  {name:"Portainer",host:"Dashboard",category:"Infrastructure",url:"https://portainer.local",icon:"icons/portainer.png",monitor:true},
+  {name:"Portainer",host:"Dashmon",category:"Infrastructure",url:"https://portainer.local",icon:"icons/portainer.png",monitor:true},
   {name:"Proxmox",host:"Proxmox",category:"Infrastructure",url:"https://proxmox.local",icon:"icons/proxmox.png",monitor:true},
   {name:"AdGuard Home",host:"Linux",category:"Infrastructure",url:"http://adguard.local",icon:"icons/adguard-home.png",monitor:true},
   {name:"Jellyfin",host:"Serveur",category:"Applications",url:"http://jellyfin.local",icon:"icons/jellyfin.png",monitor:true},

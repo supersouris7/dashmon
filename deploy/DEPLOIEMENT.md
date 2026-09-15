@@ -14,7 +14,7 @@ Le projet embarque tout : le serveur, l'interface, la config d'exemple et le mé
 
 ```bash
 cd /home/administrateur/Téléchargements/dashboard
-docker build -t dashboard .
+docker build -t dashmon .
 ```
 
 L'image se base sur `node:22-alpine`, installe uniquement express, copie `server.js`, `config.json`
@@ -24,11 +24,11 @@ et `public/`. Pas de `node_modules` hôte, pas de `data/` local (voir `.dockerig
 
 ```bash
 docker run -d \
-  --name dashboard \
+  --name dashmon \
   -p 8080:8080 \
-  -v dashboard-data:/app/data \
+  -v dashmon-data:/app/data \
   -e DASHBOARD_PASSWORD=change_me \
-  dashboard
+  dashmon
 ```
 
 → http://localhost:8080
@@ -43,7 +43,7 @@ $EDITOR .env   # mettez DASHBOARD_PASSWORD, TRUST_PROXY, tokens Proxmox…
 docker compose up -d --build
 ```
 
-Avant le premier démarrage, un volume nommé `dashboard-data` est créé et la config d'exemple
+Avant le premier démarrage, un volume nommé `dashmon-data` est créé et la config d'exemple
 (6 services, 2 catégories, 1 hôte, 4 liens web) y est recopiée si absente.
 
 Pour se connecter aux API : `http://localhost:8080` → l'éditeur demande le mot de passe
@@ -66,8 +66,8 @@ Voir `.env.example` (fourni avec le projet). Les plus importantes :
 
 ## 4. Volumes et données
 
-- Le volume `dashboard-data` (`/app/data`) persiste : config modifiée, images PNG importées, thèmes custom.
-- Pour sauvegarder : `docker cp dashboard:/app/data ./backup-data` (conteneur arrêté).
+- Le volume `dashmon-data` (`/app/data`) persiste : config modifiée, images PNG importées, thèmes custom.
+- Pour sauvegarder : `docker cp dashmon:/app/data ./backup-data` (conteneur arrêté).
 
 ## 5. Mode nginx (optionnel)
 
@@ -82,24 +82,24 @@ Si vous l'utilisez :
 ## 6. Publier sur Docker Hub
 
 ```bash
-docker tag dashboard votre_utilisateur/dashboard:latest
+docker tag dashmon votre_utilisateur/dashmon:latest
 docker login                       # identifiants Docker Hub
-docker push votre_utilisateur/dashboard:latest
+docker push votre_utilisateur/dashmon:latest
 ```
 
 Chez vous / vos serveurs :
 
 ```bash
-docker pull votre_utilisateur/dashboard
-docker run -d --name dashboard -p 8080:8080 \
-  -v dashboard-data:/app/data \
+docker pull votre_utilisateur/dashmon
+docker run -d --name dashmon -p 8080:8080 \
+  -v dashmon-data:/app/data \
   -e DASHBOARD_PASSWORD=change_me \
-  votre_utilisateur/dashboard
+  votre_utilisateur/dashmon
 ```
 
 ## 7. Vérifier que tout va bien
 
-- Santé : `docker inspect --format '{{.State.Health.Status}}' dashboard` → `healthy`
+- Santé : `docker inspect --format '{{.State.Health.Status}}' dashmon` → `healthy`
 - Endpoint de santé public : `curl http://localhost:8080/healthz` → `{"ok":true}`
 - Supériorité des services : `curl -u admin:$DASHBOARD_PASSWORD http://localhost:8080/api/status`
 
@@ -107,4 +107,4 @@ docker run -d --name dashboard -p 8080:8080 \
 
 - Il n'y a **aucun secret embarqué** dans l'image : `config.json` ne contient que des exemples publics
   et les tokens se référencent par nom de variable d'environnement (allowlist `DASHBOARD_TOKEN_ENVS`).
-- Les logs du conteneur : `docker logs dashboard`.
+- Les logs du conteneur : `docker logs dashmon`.

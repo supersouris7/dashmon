@@ -301,6 +301,20 @@ main{
   color:var(--muted);
 }
 
+.app-footer{
+  margin-top:44px;
+  text-align:center;
+  font-size:.72rem;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:var(--muted);
+  opacity:.6;
+}
+.app-footer .app-version{
+  color:var(--muted);
+  opacity:.6;
+}
+
 @media(max-width:800px){
   body{padding:18px}
 }

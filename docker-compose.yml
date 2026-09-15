@@ -1,7 +1,7 @@
 services:
-  dashboard:
+  dashmon:
     build: .
-    container_name: dashboard
+    container_name: dashmon
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -32,7 +32,7 @@ services:
       # Exemple facultatif pour un agent HTTP Linux
       LINUX_METRICS_TOKEN: ${LINUX_METRICS_TOKEN:-}
     volumes:
-      - dashboard-data:/app/data
+      - dashmon-data:/app/data
 
 volumes:
-  dashboard-data:
+  dashmon-data:

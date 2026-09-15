@@ -645,7 +645,7 @@ exportConfigBtn.addEventListener("click",async()=>{
     const url=URL.createObjectURL(blob);
     const link=document.createElement("a");
     link.href=url;
-    link.download="dashboard-config.json";
+    link.download="dashmon-config.json";
     document.body.appendChild(link);
     link.click();
     link.remove();

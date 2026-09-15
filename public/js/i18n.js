@@ -12,7 +12,7 @@ import {
 
 const UI_TEXT={
   fr:{
-    editDashboardTitle:"Modifier le dashboard",
+    editDashboardTitle:"Modifier Dashmon",
     tabApplications:"Applications",
     tabCategories:"Catégories",
     tabHosts:"Hôtes",
@@ -45,7 +45,7 @@ const UI_TEXT={
     monitorDisabled:"Supervision désactivée",
     chooseIcon:"Choisir une icône",
     noHost:"Sans hôte",
-    editDashboard:"Modifier le dashboard",
+    editDashboard:"Modifier Dashmon",
     editTheme:"Modifier le thème",
     theme:"Thème",
     language:"Langue",
@@ -106,7 +106,7 @@ const UI_TEXT={
     manageThemes:"Gestion des thèmes",
   },
   en:{
-    editDashboardTitle:"Edit dashboard",
+    editDashboardTitle:"Edit Dashmon",
     tabApplications:"Applications",
     tabCategories:"Categories",
     tabHosts:"Hosts",
@@ -139,7 +139,7 @@ const UI_TEXT={
     monitorDisabled:"Monitoring disabled",
     chooseIcon:"Choose an icon",
     noHost:"No host",
-    editDashboard:"Edit dashboard",
+    editDashboard:"Edit Dashmon",
     editTheme:"Appearance",
     theme:"Theme",
     language:"Language",
