@@ -1,0 +1,20 @@
+{
+  "id": "matrix",
+  "name": "Matrix",
+  "author": "native",
+  "description": "Thème vert Matrix",
+  "version": "1.0.0",
+  "variables": {
+    "bg": "#030704",
+    "surface": "#07100a",
+    "surface-2": "#0b180f",
+    "surface-3": "#102316",
+    "border": "#1f5f35",
+    "text": "#7cff9b",
+    "muted": "#45a962",
+    "accent": "#20ff6b",
+    "danger": "#ff5c75",
+    "shadow": "0 2px 8px rgba(0,0,0,.5)"
+  },
+  "css": "[data-theme=\"matrix\"] .service-status.up {\n  box-shadow: 0 0 0 1px rgba(32,255,107,.2);\n}"
+}

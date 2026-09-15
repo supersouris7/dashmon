@@ -1,0 +1,38 @@
+services:
+  dashboard:
+    build: .
+    container_name: dashboard
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    # Image autonome : utilisable directement sans nginx.
+    # Si tu placeras nginx devant :
+    #   - gardez ce port OU passez en `expose` (réseau Docker uniquement)
+    #   - définissez TRUST_PROXY=1 ci-dessous et forwardez X-Forwarded-*
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      DATA_DIR: /app/data
+      CONFIG_FILE: /app/data/config.json
+      ICONS_DIR: /app/data/icons
+      # Authentification des API /api/* (Fortement recommandé en ligne :
+      # définissez DASHBOARD_PASSWORD dans votre .env)
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-}
+      # Unique reverse proxy devant le conteneur : activez req.ip correct
+      # (rate limiter + HSTS derrière nginx). 0 par défaut = autonome.
+      TRUST_PROXY: ${TRUST_PROXY:-0}
+      # TLS strict : à 1 uniquement si vos hôtes surveillés utilisent des
+      # certificats auto-signés (le tunnel nginx, lui, reste en HTTPS).
+      DASHBOARD_INSECURE_TLS: ${DASHBOARD_INSECURE_TLS:-0}
+      # Allowlist des variables de token référençables (défaut : les 3 ci-dessous)
+      DASHBOARD_TOKEN_ENVS: ${DASHBOARD_TOKEN_ENVS:-}
+      # Token API Proxmox en lecture seule (laisser vide si non utilisé)
+      PROXMOX_TOKEN_ID: ${PROXMOX_TOKEN_ID:-}
+      PROXMOX_TOKEN_SECRET: ${PROXMOX_TOKEN_SECRET:-}
+      # Exemple facultatif pour un agent HTTP Linux
+      LINUX_METRICS_TOKEN: ${LINUX_METRICS_TOKEN:-}
+    volumes:
+      - dashboard-data:/app/data
+
+volumes:
+  dashboard-data:

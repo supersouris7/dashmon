@@ -1,0 +1,260 @@
+// Point d'entrée : initialisation, menu principal, modals (éditeur/apparence), événements globaux.
+import { state, normalizeConfig, isTypingTarget } from "./state.js";
+import { saveConfig } from "./api.js";
+import { render, updateViewButton, updateOpenModeMenu, updateGroupModeMenu,
+  updateSortModeMenu, setGroupMode, getCollapseAllState, updateCollapseAllButton } from "./render.js";
+import { applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater } from "./i18n.js";
+import {
+  loadThemes, applyTheme, setTheme, currentTheme, downloadTheme,
+  importThemeFile, deleteCustomTheme, applyThemeLabels
+} from "./themes.js";
+import { startStatusLoop, startHostMetricsLoop } from "./metrics.js";
+import { openEditor, closeEditor, renderServiceEditor, renderCategoryEditor,
+  renderHostEditor, renderWebLinksEditor } from "./editor.js";
+import { closeImageLibrary } from "./images.js";
+import {
+  searchInput, viewBtn, collapseAllBtn, moreBtn, topMenu,
+  sameTabBtn, newTabBtn, groupCategoryBtn, groupHostBtn,
+  sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuAppearanceBtn,
+  appearanceBackdrop, appearanceCloseBtn, appearanceDoneBtn, themeSelect,
+  languageSelect, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
+  themeImportInput, modalBackdrop, imageLibrary
+} from "./dom.js";
+
+setThemeLabelsUpdater(applyThemeLabels);
+setCollapseButtonUpdater(updateCollapseAllButton);
+
+async function loadConfig(){
+  try{
+    const response=await fetch("/api/config",{cache:"no-store"});
+    if(!response.ok) throw new Error("HTTP "+response.status);
+
+    const cfg=normalizeConfig(await response.json());
+    state.services=cfg.services;
+    state.categories=cfg.categories;
+    state.hosts=cfg.hosts;
+    state.collapsed=cfg.collapsed;
+    state.viewMode=cfg.viewMode;
+    state.openMode=cfg.openMode;
+    state.groupMode=cfg.groupMode;
+    state.theme=cfg.theme;
+    state.language=cfg.language;
+    state.sortMode=cfg.sortMode;
+    state.usageCounts=cfg.usageCounts;
+    state.webLinks=cfg.webLinks;
+    state.webLinksCollapsed=cfg.webLinksCollapsed;
+    state.webLinksSeedVersion=cfg.webLinksSeedVersion;
+  }catch(error){
+    console.error("Chargement de config.json impossible",error);
+  }
+
+  updateViewButton();
+  updateOpenModeMenu();
+  updateGroupModeMenu();
+  updateSortModeMenu();
+  applyTheme();
+  applyLanguage();
+  render();
+  startHostMetricsLoop();
+}
+
+function closeTopMenu(){
+  topMenu.classList.remove("show");
+  moreBtn.setAttribute("aria-expanded","false");
+}
+
+function setOpenMode(mode){
+  state.openMode=mode;
+  updateOpenModeMenu();
+  render();
+  saveConfig(true);
+  closeTopMenu();
+}
+
+function openAppearance(){
+  closeTopMenu();
+  if([...themeSelect.options].some(option=>option.value===state.theme)){
+    themeSelect.value=state.theme;
+  }
+  languageSelect.value=state.language;
+  updateThemeManageUI();
+  appearanceBackdrop.classList.add("show");
+  appearanceBackdrop.setAttribute("aria-hidden","false");
+}
+
+function closeAppearance(){
+  appearanceBackdrop.classList.remove("show");
+  appearanceBackdrop.setAttribute("aria-hidden","true");
+}
+
+function updateThemeManageUI(){
+  const theme=currentTheme();
+  const custom=Boolean(theme && !theme.native);
+  deleteThemeBtn.disabled=!custom;
+  exportThemeBtn.disabled=!theme;
+}
+
+moreBtn.addEventListener("click",e=>{
+  e.stopPropagation();
+  const open=topMenu.classList.toggle("show");
+  moreBtn.setAttribute("aria-expanded",open ? "true" : "false");
+});
+
+topMenu.addEventListener("click",e=>e.stopPropagation());
+sameTabBtn.addEventListener("click",()=>setOpenMode("same"));
+newTabBtn.addEventListener("click",()=>setOpenMode("new"));
+groupCategoryBtn.addEventListener("click",()=>setGroupMode("category"));
+groupHostBtn.addEventListener("click",()=>setGroupMode("host"));
+
+sortAlphabeticalBtn.addEventListener("click",()=>{
+  state.sortMode="alphabetical";
+  updateSortModeMenu();
+  render();
+  saveConfig(true);
+  closeTopMenu();
+});
+
+sortUsageBtn.addEventListener("click",()=>{
+  state.sortMode="usage";
+  updateSortModeMenu();
+  render();
+  saveConfig(true);
+  closeTopMenu();
+});
+
+viewBtn.addEventListener("click",()=>{
+  if(state.viewMode==="rows"){
+    state.viewMode="columns";
+  }else if(state.viewMode==="columns"){
+    state.viewMode="plain";
+  }else{
+    state.viewMode="rows";
+  }
+
+  updateViewButton();
+  render();
+  saveConfig(true);
+});
+
+collapseAllBtn.addEventListener("click",()=>{
+  const info=getCollapseAllState();
+  if(!info.entries.length) return;
+
+  const shouldCollapse=!info.majorityCollapsed;
+
+  info.entries.forEach(entry=>{
+    state.collapsed[entry.key]=shouldCollapse;
+    delete state.collapsed[entry.name];
+  });
+
+  render();
+  saveConfig(true);
+});
+
+menuEditBtn.addEventListener("click",()=>{
+  closeTopMenu();
+  openEditor();
+});
+
+menuAppearanceBtn.addEventListener("click",openAppearance);
+appearanceCloseBtn.addEventListener("click",closeAppearance);
+appearanceDoneBtn.addEventListener("click",closeAppearance);
+
+appearanceBackdrop.addEventListener("click",event=>{
+  if(event.target===appearanceBackdrop) closeAppearance();
+});
+
+themeSelect.addEventListener("change",()=>{
+  setTheme(themeSelect.value);
+  updateThemeManageUI();
+});
+
+languageSelect.addEventListener("change",()=>{
+  state.language=languageSelect.value==="en" ? "en" : "fr";
+  applyLanguage();
+  renderServiceEditor();
+  renderCategoryEditor();
+  renderHostEditor();
+  renderWebLinksEditor();
+  saveConfig(true);
+});
+
+resetUsageBtn.addEventListener("click",()=>{
+  state.usageCounts={};
+  render();
+  saveConfig(true);
+});
+
+importThemeBtn.addEventListener("click",()=>themeImportInput.click());
+
+themeImportInput.addEventListener("change",async()=>{
+  const file=themeImportInput.files?.[0];
+  themeImportInput.value="";
+  if(!file) return;
+  try{
+    const theme=await importThemeFile(file);
+    themeSelect.value=theme.id;
+    applyThemeLabels();
+    updateThemeManageUI();
+  }catch(error){
+    console.error(error);
+    alert("Import du thème impossible.");
+  }
+});
+
+exportThemeBtn.addEventListener("click",()=>{
+  const theme=currentTheme();
+  if(theme) downloadTheme(theme);
+});
+
+deleteThemeBtn.addEventListener("click",async()=>{
+  const theme=currentTheme();
+  if(!theme || theme.native) return;
+  if(!confirm(`Supprimer le thème « ${theme.name||theme.id} » ?`)) return;
+  try{
+    await deleteCustomTheme(theme.id);
+    applyThemeLabels();
+    updateThemeManageUI();
+  }catch(error){
+    console.error(error);
+    alert("Suppression du thème impossible.");
+  }
+});
+
+let renderTimer=null;
+searchInput.addEventListener("input",()=>{
+  clearTimeout(renderTimer);
+  renderTimer=setTimeout(render,150);
+});
+
+document.addEventListener("click",closeTopMenu);
+
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    closeTopMenu();
+    document.querySelectorAll(".icon-picker.open").forEach(p=>p.classList.remove("open"));
+    if(imageLibrary.classList.contains("show")){
+      closeImageLibrary();
+      return;
+    }
+    if(appearanceBackdrop.classList.contains("show")){
+      closeAppearance();
+      return;
+    }
+    if(modalBackdrop.classList.contains("show")) closeEditor();
+    return;
+  }
+
+  if(e.key==="/" && !isTypingTarget(document.activeElement) && !modalBackdrop.classList.contains("show")){
+    e.preventDefault();
+    searchInput.focus();
+  }
+});
+
+async function init(){
+  await loadThemes();
+  await loadConfig();
+  startStatusLoop();
+}
+
+init();

@@ -1,0 +1,20 @@
+{
+  "id": "dark",
+  "name": "Sombre",
+  "author": "native",
+  "description": "Thème sombre par défaut",
+  "version": "1.0.0",
+  "variables": {
+    "bg": "#101418",
+    "surface": "#1a2027",
+    "surface-2": "#222a33",
+    "surface-3": "#2a3440",
+    "border": "#33404d",
+    "text": "#f3f5f7",
+    "muted": "#98a4b1",
+    "accent": "#4f8f89",
+    "danger": "#b85c5c",
+    "shadow": "0 2px 6px rgba(0,0,0,.22)"
+  },
+  "css": "[data-theme=\"dark\"] .service-icon {\n  filter: none !important;\n  opacity: 1;\n}"
+}

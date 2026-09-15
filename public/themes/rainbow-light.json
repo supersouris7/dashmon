@@ -1,0 +1,20 @@
+{
+  "id": "rainbow-light",
+  "name": "Arc-en-ciel clair",
+  "author": "native",
+  "description": "Thème clair avec couleurs arc-en-ciel par section",
+  "version": "1.0.0",
+  "variables": {
+    "bg": "#f5f7fb",
+    "surface": "#ffffff",
+    "surface-2": "#f0f3f8",
+    "surface-3": "#e7ecf3",
+    "border": "#cbd4e0",
+    "text": "#202631",
+    "muted": "#657184",
+    "accent": "#336fd1",
+    "danger": "#c94363",
+    "shadow": "0 2px 7px rgba(30,45,70,.10)"
+  },
+  "css": "[data-theme=\"rainbow-light\"] .section:nth-of-type(5n+1) .category-icon,\n[data-theme=\"rainbow-light\"] .section:nth-of-type(5n+1) .category-name { color: #d83b58; }\n[data-theme=\"rainbow-light\"] .section:nth-of-type(5n+2) .category-icon,\n[data-theme=\"rainbow-light\"] .section:nth-of-type(5n+2) .category-name { color: #b96b00; }\n[data-theme=\"rainbow-light\"] .section:nth-of-type(5n+3) .category-icon,\n[data-theme=\"rainbow-light\"] .section:nth-of-type(5n+3) .category-name { color: #218a52; }\n[data-theme=\"rainbow-light\"] .section:nth-of-type(5n+4) .category-icon,\n[data-theme=\"rainbow-light\"] .section:nth-of-type(5n+4) .category-name { color: #2475b8; }\n[data-theme=\"rainbow-light\"] .section:nth-of-type(5n+5) .category-icon,\n[data-theme=\"rainbow-light\"] .section:nth-of-type(5n+5) .category-name { color: #8a4db5; }\n\n[data-theme=\"rainbow-light\"] .web-link:nth-child(5n+1) .web-link-icon { color: #d83b58; }\n[data-theme=\"rainbow-light\"] .web-link:nth-child(5n+2) .web-link-icon { color: #b96b00; }\n[data-theme=\"rainbow-light\"] .web-link:nth-child(5n+3) .web-link-icon { color: #218a52; }\n[data-theme=\"rainbow-light\"] .web-link:nth-child(5n+4) .web-link-icon { color: #2475b8; }\n[data-theme=\"rainbow-light\"] .web-link:nth-child(5n+5) .web-link-icon { color: #8a4db5; }\n\n[data-theme=\"rainbow-light\"] .service-icon {\n  background: #d8e0eb;\n  border: 1px solid #bcc7d5;\n  border-radius: 6px;\n  padding: 4px;\n  box-sizing: border-box;\n  filter: none !important;\n  opacity: 1;\n}\n[data-theme=\"rainbow-light\"] .service-icon img {\n  opacity: 1;\n  filter: drop-shadow(0 1px 1px rgba(0,0,0,.55)) drop-shadow(0 0 1px rgba(0,0,0,.35)) !important;\n}\n\n[data-theme=\"rainbow-light\"] .top-menu,\n[data-theme=\"rainbow-light\"] .top-menu-item,\n[data-theme=\"rainbow-light\"] .top-menu-item i,\n[data-theme=\"rainbow-light\"] .top-menu-label,\n[data-theme=\"rainbow-light\"] .menu-check {\n  color: var(--text) !important;\n}\n[data-theme=\"rainbow-light\"] .top-menu-item:hover {\n  color: var(--text) !important;\n}\n\n[data-theme=\"rainbow-light\"] .small-icon-btn:not(.delete-btn) {\n  color: var(--text) !important;\n}\n[data-theme=\"rainbow-light\"] .small-icon-btn:not(.delete-btn) i {\n  color: var(--text) !important;\n}\n\n[data-theme=\"rainbow-light\"] button.delete-btn i {\n  color: #ff6b6b !important;\n}\n[data-theme=\"rainbow-light\"] button.delete-btn:hover i {\n  color: #ff8a8a !important;\n}"
+}
