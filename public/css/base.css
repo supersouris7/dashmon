@@ -327,6 +327,14 @@ main{
   opacity:1;
   color:var(--accent);
 }
+.app-sponsor-heart{
+  color:#e25555;
+  opacity:.85;
+  transition:opacity .15s ease;
+}
+.app-footer a:hover .app-sponsor-heart{
+  opacity:1;
+}
 
 @media(max-width:800px){
   body{padding:18px}
