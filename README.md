@@ -1,76 +1,51 @@
 # Dashmon
 
-Dashmon — dashboard self-hosted léger pour centraliser vos services self-hosted : accès rapide aux services, surveillance du statut des URL, métriques CPU/RAM des hôtes, thèmes et interface fr/en.
+![Licence](https://img.shields.io/badge/licence-MIT-blue.svg)
+![Versions](https://img.shields.io/badge/docker-amd64%20%7C%20arm64-4f8f89.svg)
+
+Dashboard self-hosted léger pour centraliser vos services : accès rapide, surveillance du statut des URL, métriques CPU/RAM des hôtes, thèmes et interface fr/en.
 
 Serveur Node.js / Express, modules ES natifs, aucune dépendance hors express.
 
-## Démarrage
+## Installation
+
+```bash
+docker run -d --name dashmon -p 8080:8080 \
+  -v dashmon-data:/app/data \
+  supersouris7/dashmon
+```
+
+→ http://localhost:8080
+
+Docker Compose : voir [deploy/DEPLOIEMENT.md](deploy/DEPLOIEMENT.md).
+
+## Fonctionnalités
+
+- **Services** : cartes par catégorie ou hôte, recherche, modes (lignes/colonnes/plein)
+- **Surveillance** : statut des URL + métriques CPU/RAM (`local`, agent Linux `/metrics`, Proxmox)
+- **Thèmes** : natifs et custom, import/export, CSS personnalisé
+- **Interface** : fr/en, tri alphabétique ou par usage
+- **Docker** : image autonome multi-arch (amd64/arm64), versions `latest`, `unstable` et `vX.Y.Z`
+
+## Développement
 
 ```bash
 npm install
 npm start
 ```
 
-→ http://localhost:8080
+## Configuration
 
-Ou avec Docker :
-
-```bash
-docker compose up -d --build
-```
-
-Au premier lancement, `config.json` (exemples de services self-hosted) est copié dans `data/config.json` s'il n'existe pas.
-
-## Structure
-
-```
-server.js      Serveur + API
-config.json    Config d'exemple (seed initial)
-public/
-├── index.html
-├── css/       base, components, editor
-├── js/        app, state, render, editor, themes, i18n, metrics, images, icons, api, dom
-└── themes/    Thèmes natifs (lecture seule)
-data/          Données runtime (créées automatiquement)
-├── config.json
-├── icons/     Images PNG importées
-└── themes/    Thèmes custom
-```
-
-## Variables d'environnement
-
-| Variable | Défaut |
-| --- | --- |
-| `PORT` | `8080` |
-| `DATA_DIR` | `<racine>/data` |
-| `CONFIG_FILE` | `<DATA_DIR>/config.json` |
-| `ICONS_DIR` | `<DATA_DIR>/icons` |
-| `THEMES_CUSTOM_DIR` | `<DATA_DIR>/themes` |
-| `PROXMOX_TOKEN_ID` / `PROXMOX_TOKEN_SECRET` | vides |
-| `LINUX_METRICS_TOKEN` | vide |
-
-Modèle fourni dans `.env.example`.
-
-## Config
-
-Éditable depuis l'interface. Champs clés :
+Éditable depuis l'interface (`Modifier Dashmon`). Champs clés :
 
 - `services[]` : `name`, `url`, `icon`, `category`, `host`, `monitor`
 - `categories[]`, `hosts[]`, `webLinks[]`
-- `viewMode` : `rows` | `columns` | `plain`
-- `openMode` : `same` | `new`
-- `groupMode` : `category` | `host`
-- `sortMode` : `alphabetical` | `usage`
-- `theme`, `language` (`fr` | `en`)
+- `viewMode` (`rows`/`columns`/`plain`), `openMode`, `groupMode`, `sortMode`
+- `theme`, `language` (`fr`/`en`)
 
-Supervision des hôtes : `local`, `linux` (agent Prometheus `/metrics`, champ `url`) ou `proxmox` (token API lecture seule, champs `url`/`node`/`tokenIdEnv`/`tokenSecretEnv`).
+Surveillance : `local`, `linux` (agent Prometheus `/metrics`) ou `proxmox` (token API lecture seule).
 
-## Thèmes
-
-- Natifs : `public/themes/*.json` — non supprimables.
-- Custom : `data/themes/*.json` — import/export/suppression depuis l'interface.
-
-Format : `id`, `name`, `author`, `description`, `version`, `variables` (10 clés : `bg`, `surface`, `surface-2`, `surface-3`, `border`, `text`, `muted`, `accent`, `danger`, `shadow`), `css` (facultatif).
+Variables d'environnement : voir `.env.example`. Données runtime dans `data/` (volume `dashmon-data`).
 
 ## API
 
@@ -85,4 +60,12 @@ Format : `id`, `name`, `author`, `description`, `version`, `variables` (10 clés
 
 ## Licence
 
-[MIT](LICENSE).
+MIT — voir [LICENSE](LICENSE).
+
+---
+
+Dashmon est développé gratuitement pour mon homelab et mis à disposition en open source. Si vous l'utilisez et souhaitez soutenir son développement :
+
+<p align="center">
+  <a href="https://github.com/sponsors/supersouris7">♥ Soutenir le projet sur GitHub Sponsors</a>
+</p>

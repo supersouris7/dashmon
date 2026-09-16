@@ -309,6 +309,11 @@ main{
   margin-top:44px;
   text-align:center;
 }
+.app-footer-sep{
+  margin:0 10px;
+  color:var(--muted);
+  opacity:.4;
+}
 .app-footer a{
   font-size:.72rem;
   letter-spacing:.05em;
@@ -321,10 +326,6 @@ main{
 .app-footer a:hover{
   opacity:1;
   color:var(--accent);
-}
-.app-footer .app-version{
-  color:var(--muted);
-  opacity:.6;
 }
 
 @media(max-width:800px){
