@@ -380,7 +380,7 @@ app.put("/api/config",(req,res)=>{
       openMode:config.openMode==="new" ? "new" : "same",
       groupMode:config.groupMode==="host" ? "host" : "category",
       theme:typeof config.theme==="string" && config.theme.trim() ? config.theme.trim() : "dark",
-      language:config.language==="en" ? "en" : "fr",
+      language:config.language==="fr" ? "fr" : "en",
       sortMode:config.sortMode==="usage" ? "usage" : "alphabetical",
       usageCounts:config.usageCounts && typeof config.usageCounts==="object" && !Array.isArray(config.usageCounts)
         ? Object.fromEntries(

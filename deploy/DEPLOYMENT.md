@@ -1,0 +1,83 @@
+# Docker Deployment
+
+Build, run and (optionally) publish Dashmon on Docker Hub. The image is standalone: nginx is not required.
+
+## Prerequisites
+
+- Docker 20+
+- Docker Compose v2+ (optional, for `docker compose`)
+
+## 1. Build
+
+```bash
+cd /home/administrateur/Téléchargements/dashboard
+docker build -t dashmon .
+```
+
+## 2. Run
+
+With Compose:
+
+```bash
+cp .env.example .env
+$EDITOR .env   # DASHBOARD_PASSWORD, tokens… 
+docker compose up -d --build
+```
+
+Or directly:
+
+```bash
+docker run -d --name dashmon -p 8080:8080 \
+  -v dashmon-data:/app/data \
+  -e DASHBOARD_PASSWORD=change_me \
+  dashmon
+```
+
+→ http://localhost:8080
+
+On first start, `config.json` (sample services) is copied to `/app/data` if missing.
+
+## 3. Environment variables
+
+See `.env.example`. The most important:
+
+| Variable | Default | Role |
+| --- | --- | --- |
+| `PORT` | `8080` | Internal HTTP port |
+| `DASHBOARD_PASSWORD` | empty | HTTP Basic Auth for `/api/*` endpoints (recommended online) |
+| `TRUST_PROXY` | `0` | `1` only if nginx terminates HTTPS in front of the container |
+| `DASHBOARD_INSECURE_TLS` | empty | `1` if your hosts use self-signed certificates |
+| `PROXMOX_TOKEN_ID` / `PROXMOX_TOKEN_SECRET` | empty | Proxmox API tokens (read-only) |
+| `LINUX_METRICS_TOKEN` | empty | Token for the Linux `/metrics` HTTP agent |
+| `DASHBOARD_TOKEN_ENVS` | empty | Additional allowed token variable names |
+
+## 4. Data
+
+The `dashmon-data` volume (`/app/data`) persists config, PNG images and custom themes.
+Backup: `docker cp dashmon:/app/data ./backup-data` (container stopped).
+
+## 5. nginx (optional)
+
+A full example: `deploy/nginx.example.conf`. If you use it, set `TRUST_PROXY=1`
+and enable `client_max_body_size` in nginx for image imports.
+
+## 6. Publish to Docker Hub
+
+```bash
+docker tag dashmon your_user/dashmon:latest
+docker login
+docker push your_user/dashmon:latest
+```
+
+On your servers: `docker pull your_user/dashmon && docker run …` (same options as §2).
+
+## Verification
+
+- `docker inspect --format '{{.State.Health.Status}}' dashmon` → `healthy`
+- `curl http://localhost:8080/healthz` → `{"ok":true}`
+
+## Notes
+
+- No embedded secrets: `config.json` only contains public examples, tokens are referenced
+  by environment variable (allowlist `DASHBOARD_TOKEN_ENVS`).
+- Logs: `docker logs dashmon`.

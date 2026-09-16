@@ -114,7 +114,7 @@ export const state = {
   openMode: "same",
   groupMode: "category",
   theme: "dark",
-  language: "fr",
+  language: "en",
   sortMode: "alphabetical",
   usageCounts: {},
   webLinks: [],

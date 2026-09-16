@@ -1,13 +1,13 @@
 # Dashmon
 
-![Licence](https://img.shields.io/badge/licence-MIT-blue.svg)
-![Versions](https://img.shields.io/badge/docker-amd64%20%7C%20arm64-4f8f89.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Platforms](https://img.shields.io/badge/docker-amd64%20%7C%20arm64-4f8f89.svg)
 
-Dashboard self-hosted léger pour centraliser vos services : accès rapide, surveillance du statut des URL, métriques CPU/RAM des hôtes, thèmes et interface fr/en.
+A lightweight self-hosted dashboard to centralize your services: quick access, URL status monitoring, host CPU/RAM metrics, themes and a fr/en interface.
 
-Serveur Node.js / Express, modules ES natifs, aucune dépendance hors express.
+Node.js / Express server, native ES modules, no dependency besides express.
 
-## Installation
+## Quick start
 
 ```bash
 docker run -d --name dashmon -p 8080:8080 \
@@ -17,17 +17,17 @@ docker run -d --name dashmon -p 8080:8080 \
 
 → http://localhost:8080
 
-Docker Compose : voir [deploy/DEPLOIEMENT.md](deploy/DEPLOIEMENT.md).
+Docker Compose: see [deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md).
 
-## Fonctionnalités
+## Features
 
-- **Services** : cartes par catégorie ou hôte, recherche, modes (lignes/colonnes/plein)
-- **Surveillance** : statut des URL + métriques CPU/RAM (`local`, agent Linux `/metrics`, Proxmox)
-- **Thèmes** : natifs et custom, import/export, CSS personnalisé
-- **Interface** : fr/en, tri alphabétique ou par usage
-- **Docker** : image autonome multi-arch (amd64/arm64), versions `latest`, `unstable` et `vX.Y.Z`
+- **Services**: cards by category or host, search, view modes (rows/columns/full)
+- **Monitoring**: URL status + CPU/RAM metrics (`local`, Linux agent `/metrics`, Proxmox)
+- **Themes**: native and custom, import/export, custom CSS
+- **Interface**: en/fr, alphabetical or usage-based sorting
+- **Docker**: standalone multi-arch image (amd64/arm64), `latest`, `unstable` and `vX.Y.Z` tags
 
-## Développement
+## Development
 
 ```bash
 npm install
@@ -36,36 +36,36 @@ npm start
 
 ## Configuration
 
-Éditable depuis l'interface (`Modifier Dashmon`). Champs clés :
+Editable from the UI (`Edit Dashmon`). Key fields:
 
-- `services[]` : `name`, `url`, `icon`, `category`, `host`, `monitor`
+- `services[]`: `name`, `url`, `icon`, `category`, `host`, `monitor`
 - `categories[]`, `hosts[]`, `webLinks[]`
 - `viewMode` (`rows`/`columns`/`plain`), `openMode`, `groupMode`, `sortMode`
-- `theme`, `language` (`fr`/`en`)
+- `theme`, `language` (`en`/`fr`)
 
-Surveillance : `local`, `linux` (agent Prometheus `/metrics`) ou `proxmox` (token API lecture seule).
+Monitoring: `local`, `linux` (Prometheus `/metrics` agent) or `proxmox` (read-only API token).
 
-Variables d'environnement : voir `.env.example`. Données runtime dans `data/` (volume `dashmon-data`).
+Environment variables: see `.env.example`. Runtime data in `data/` (`dashmon-data` volume).
 
 ## API
 
-| Méthode | Route | Rôle |
+| Method | Route | Role |
 | --- | --- | --- |
-| `GET`/`PUT` | `/api/config` | Lire / enregistrer la config |
-| `GET`/`POST`/`DELETE` | `/api/icons` | Lister / importer / supprimer les images |
-| `GET`/`POST`/`DELETE` | `/api/themes` | Thèmes (lister / importer / supprimer) |
-| `GET` | `/api/themes/:id/export` | Exporter un thème |
-| `GET` | `/api/status` | Statut des services surveillés |
-| `GET` | `/api/host-metrics` | Métriques CPU/RAM des hôtes |
+| `GET`/`PUT` | `/api/config` | Read / save config |
+| `GET`/`POST`/`DELETE` | `/api/icons` | List / import / delete images |
+| `GET`/`POST`/`DELETE` | `/api/themes` | Themes (list / import / delete) |
+| `GET` | `/api/themes/:id/export` | Export a theme |
+| `GET` | `/api/status` | Status of monitored services |
+| `GET` | `/api/host-metrics` | Host CPU/RAM metrics |
 
-## Licence
+## License
 
-MIT — voir [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).
 
 ---
 
-Dashmon est développé gratuitement pour mon homelab et mis à disposition en open source. Si vous l'utilisez et souhaitez soutenir son développement :
+Dashmon is developed for my own homelab and released as open source. If you use it and would like to support its development:
 
 <p align="center">
-  <a href="https://github.com/sponsors/supersouris7">♥ Soutenir le projet sur GitHub Sponsors</a>
+  <a href="https://github.com/sponsors/supersouris7">♥ Support the project on GitHub Sponsors</a>
 </p>

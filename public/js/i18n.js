@@ -1,4 +1,4 @@
-// Traductions fr/en appliquées aux libellés ; hooks d'injection pour les modules dépendants.
+// fr/en UI translations with injection hooks for dependent modules.
 import { state } from "./state.js";
 import {
   menuEditBtn, menuAppearanceBtn, appearanceTitle, themeFieldLabel,
