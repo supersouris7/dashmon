@@ -56,8 +56,6 @@ if (!DASHBOARD_PASSWORD) {
   }
 }
 
-// --- Sécurité ---
-
 app.use((_req, res, next) => {
   res.set("X-Content-Type-Options", "nosniff");
   res.set("X-Frame-Options", "DENY");
@@ -504,7 +502,6 @@ app.delete("/api/icons/:file",(req,res)=>{
 
 app.use("/icons",express.static(ICONS_DIR,{dotfiles:"deny",index:false}));
 
-// ============ API Thèmes ============
 const THEME_REQUIRED_VARS=["bg","surface","surface-2","surface-3","border","text","muted","accent","danger","shadow"];
 
 function sanitizeThemeId(raw){
@@ -635,7 +632,6 @@ app.delete("/api/themes/:id",(req,res)=>{
   }
 });
 
-// ============ Frontend statique ============
 app.use(express.static(PUBLIC_DIR));
 
 app.get("/",(_req,res)=>res.sendFile(INDEX_FILE));
