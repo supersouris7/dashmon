@@ -28,6 +28,9 @@ const ICONS_DIR = process.env.ICONS_DIR || path.join(DATA_DIR, "icons");
 const THEMES_NATIVE_DIR = process.env.THEMES_NATIVE_DIR || path.join(PUBLIC_DIR, "themes");
 const THEMES_CUSTOM_DIR = process.env.THEMES_CUSTOM_DIR || path.join(DATA_DIR, "themes");
 
+const APP_VERSION = require("./package.json").version;
+const INDEX_HTML = fs.readFileSync(INDEX_FILE, "utf8").replace(/\{\{VERSION\}\}/g, APP_VERSION);
+
 app.disable("x-powered-by");
 app.use(express.json({limit:"1mb",strict:true}));
 
@@ -632,9 +635,8 @@ app.delete("/api/themes/:id",(req,res)=>{
   }
 });
 
+app.get("/",(_req,res)=>res.type("html").send(INDEX_HTML));
 app.use(express.static(PUBLIC_DIR));
-
-app.get("/",(_req,res)=>res.sendFile(INDEX_FILE));
 
 const statusCache = {};
 const STATUS_INTERVAL = 60000;
