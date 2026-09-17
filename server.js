@@ -444,11 +444,13 @@ function parsePngSize(buffer){
 app.post("/api/icons",pngBody,(req,res)=>{
   try{
     if(!Buffer.isBuffer(req.body) || req.body.length<8){
+      console.warn(`${ts()} Import image rejeté : corps vide ou trop court`);
       return res.status(400).json({error:"Image PNG invalide"});
     }
 
     const signature=Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]);
     if(!req.body.subarray(0,8).equals(signature)){
+      console.warn(`${ts()} Import image rejeté : signature PNG absente`);
       return res.status(400).json({error:"Le fichier n'est pas un PNG valide"});
     }
 
@@ -456,6 +458,7 @@ app.post("/api/icons",pngBody,(req,res)=>{
     const MAX_IMG_DIM=8192;
     const MAX_IMG_PIXELS=64*1024*1024;
     if(!width || !height || width>MAX_IMG_DIM || height>MAX_IMG_DIM || width*height>MAX_IMG_PIXELS){
+      console.warn(`${ts()} Import image rejeté : PNG trop grand (${width}×${height})`);
       return res.status(400).json({error:`Image trop grande (max ${MAX_IMG_DIM}×${MAX_IMG_DIM})`});
     }
 
@@ -474,6 +477,7 @@ app.post("/api/icons",pngBody,(req,res)=>{
     }
 
     fs.writeFileSync(path.join(ICONS_DIR,filename),req.body);
+    console.log(`${ts()} Image importée : ${filename} (${req.body.length} octets)`);
     res.status(201).json({ok:true,file:filename});
   }catch(error){
     console.error("Import image:",error);
@@ -496,6 +500,7 @@ app.delete("/api/icons/:file",(req,res)=>{
     }
 
     fs.unlinkSync(target);
+    console.log(`${ts()} Image supprimée : ${filename}`);
     res.json({ok:true,file:filename});
   }catch(error){
     console.error("Suppression image:",error);
@@ -592,20 +597,26 @@ app.get("/api/themes/:id/export",(req,res)=>{
 app.post("/api/themes/import",(req,res)=>{
   try{
     const normalized=normalizeThemeObject(req.body);
-    if(!normalized) return res.status(400).json({error:"Thème invalide : id et les 10 variables requises sont obligatoires"});
+    if(!normalized){
+      console.warn(`${ts()} Import thème rejeté : JSON invalide ou variables manquantes`);
+      return res.status(400).json({error:"Thème invalide : id et les 10 variables requises sont obligatoires"});
+    }
 
     if(normalized.css && normalized.css.length > 65536){
+      console.warn(`${ts()} Import thème rejeté : CSS trop volumineux (${normalized.css.length} octets)`);
       return res.status(400).json({error:"CSS trop volumineux (max 64 Ko)"});
     }
 
     const nativeConflict=fs.existsSync(path.join(THEMES_NATIVE_DIR,normalized.id+".json"));
     if(nativeConflict){
+      console.warn(`${ts()} Import thème rejeté : « ${normalized.id} » réservé par un thème natif`);
       return res.status(409).json({error:`L'identifiant « ${normalized.id} » est réservé par un thème natif`});
     }
 
     const target=path.join(THEMES_CUSTOM_DIR,normalized.id+".json");
     fs.writeFileSync(target,JSON.stringify(normalized,null,2)+"\n","utf8");
 
+    console.log(`${ts()} Thème importé : ${normalized.id}.json`);
     res.status(201).json({ok:true,file:`${normalized.id}.json`});
   }catch(error){
     console.error("Import thème:",error);
@@ -628,6 +639,7 @@ app.delete("/api/themes/:id",(req,res)=>{
     }
 
     fs.unlinkSync(target);
+    console.log(`${ts()} Thème supprimé : ${id}.json`);
     res.json({ok:true});
   }catch(error){
     console.error("Suppression thème:",error);

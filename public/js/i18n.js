@@ -25,6 +25,9 @@ const UI_TEXT={
     imagesSelected:"images sélectionnées",
     imagesLoadError:"Impossible de charger les images.",
     imagesUploadPartial:"{count} image(s) n’ont pas pu être ajoutée(s).",
+    imagesUploadFailed:"Import de l’image impossible.",
+    imagesFormatError:"Seules les images PNG sont acceptées.",
+    pngOnlyHint:"Format PNG uniquement",
     confirmDeleteImages:"Supprimer {count} image(s) ?",
     imagesDeletePartial:"{count} image(s) n’ont pas pu être supprimée(s).",
     importBtn:"Importer",
@@ -120,6 +123,9 @@ const UI_TEXT={
     imagesSelected:"images selected",
     imagesLoadError:"Unable to load images.",
     imagesUploadPartial:"{count} image(s) could not be added.",
+    imagesUploadFailed:"Image import failed.",
+    imagesFormatError:"Only PNG images are accepted.",
+    pngOnlyHint:"PNG only",
     confirmDeleteImages:"Delete {count} image(s)?",
     imagesDeletePartial:"{count} image(s) could not be deleted.",
     importBtn:"Import",
@@ -273,6 +279,9 @@ export function applyLanguage(){
     const el=document.getElementById(id);
     if(el) el.textContent=t(key);
   });
+
+  document.getElementById("manageUploadHint").textContent=t("pngOnlyHint");
+  document.getElementById("uploadPngHint").textContent=t("pngOnlyHint");
 
   cancelBtn.textContent=t("cancelBtn");
   saveBtn.textContent=t("saveBtn");

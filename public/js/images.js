@@ -173,7 +173,7 @@ pngUpload.addEventListener("change",async()=>{
   if(!file) return;
 
   if(file.type!=="image/png" && !file.name.toLowerCase().endsWith(".png")){
-    alert("Seules les images PNG sont acceptées.");
+    alert(t("imagesFormatError"));
     pngUpload.value="";
     return;
   }
@@ -189,7 +189,7 @@ pngUpload.addEventListener("change",async()=>{
     });
 
     const result=await response.json();
-    if(!response.ok) throw new Error(result.error||"Import impossible");
+    if(!response.ok) throw new Error(result.error||t("imagesUploadFailed"));
 
     if(activeIconSetter){
       activeIconSetter(`icons/${result.file}`);
@@ -198,7 +198,7 @@ pngUpload.addEventListener("change",async()=>{
     await renderImageLibrary();
   }catch(error){
     console.error(error);
-    alert("Import de l’image impossible.");
+    alert(error?.message||t("imagesUploadFailed"));
   }finally{
     pngUpload.value="";
   }
