@@ -138,6 +138,7 @@
     grid-template-areas:"search metrics view collapse more";
     gap:8px;
     position:static;
+    margin-bottom:28px;
     padding:0;
     background:transparent;
     box-shadow:none;
@@ -428,18 +429,19 @@ select,
 }
 
 .service-status{
-  width:9px;
-  height:9px;
   margin-left:auto;
   flex:0 0 auto;
-  border-radius:50%;
-  background:var(--muted);
-  box-shadow:0 0 0 2px var(--surface);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:12px;
+  line-height:1;
+  color:var(--muted);
 }
 
-.service-status.up{background:#4f9f68}
+.service-status.up{color:#4f9f68}
 
-.service-status.down{background:#b65c5c}
+.service-status.down{color:#b65c5c}
 
 .service-status.pending{opacity:.55}
 
@@ -522,10 +524,10 @@ select,
 
 .service-icon,
 .service-fallback{
-  width:64px;
-  height:64px;
-  min-width:64px;
-  flex:0 0 64px;
+  width:54px;
+  height:54px;
+  min-width:54px;
+  flex:0 0 54px;
 }
 
 .service-icon{
@@ -536,11 +538,11 @@ select,
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:32px;
+  font-size:27px;
 }
 
 .card{
-  min-height:86px;
+  min-height:82px;
 }
 
 .web-links-list{display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;min-height:30px}
@@ -602,9 +604,15 @@ select,
 .web-links-section{
   position:relative;
   padding-top:0;
-  margin:-8px 0 24px;
+  margin:-8px 0 20px;
   min-height:30px;
   height:30px;
+}
+
+@media(min-width:921px){
+  .web-links-section{
+    margin-top:-16px;
+  }
 }
 
 .web-links-header{

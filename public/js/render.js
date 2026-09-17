@@ -119,6 +119,12 @@ function createCard(service){
     status.title=!info ? "Vérification en attente"
       : info.state==="up" ? `Disponible · ${info.ms} ms`
       : `Indisponible · ${info.error||"aucune réponse"}`;
+    const icon=document.createElement("i");
+    icon.className=serviceState==="up"
+      ? "fa-solid fa-circle-check"
+      : serviceState==="down" ? "fa-solid fa-circle-xmark"
+      : "fa-regular fa-circle";
+    status.appendChild(icon);
     card.appendChild(status);
   }
 
@@ -331,7 +337,15 @@ export function updateStatusIndicators(){
   document.querySelectorAll(".service-status[data-url]").forEach(status=>{
     const info=state.serviceStatus[status.dataset.url];
     if(!info) return;
-    status.className=`service-status ${info.state||"pending"}`;
+    const serviceState=info.state||"pending";
+    status.className=`service-status ${serviceState}`;
+    const icon=status.querySelector("i");
+    if(icon){
+      icon.className=serviceState==="up"
+        ? "fa-solid fa-circle-check"
+        : serviceState==="down" ? "fa-solid fa-circle-xmark"
+        : "fa-regular fa-circle";
+    }
     status.title=info.state==="up"
       ? `Disponible · ${info.ms} ms`
       : `Indisponible · ${info.error||"aucune réponse"}`;

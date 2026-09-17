@@ -45,7 +45,6 @@ main{
   box-sizing:border-box;
   padding:10px max(26px,calc((100vw - 1280px)/2));
   background:var(--bg);
-  box-shadow:0 1px 0 var(--border),0 4px 16px rgba(0,0,0,.18);
 }
 
 @media(min-width:921px){
