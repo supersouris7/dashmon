@@ -73,8 +73,17 @@
   height:100%;
   width:0;
   border-radius:inherit;
+  background:#3ecf7a;
+  transition:width .3s ease,background .3s ease;
+}
+
+.host-metric-fill.critical{
+  background:#ff4d6d;
+}
+
+html[data-theme="matrix"] .host-metric-fill,
+html[data-theme="matrix"] .host-metric-fill.critical{
   background:var(--accent);
-  transition:width .3s ease;
 }
 
 .host-metric-value{
@@ -452,12 +461,12 @@ select,
 
 .service-status.up{
   color:#3cf59b;
-  filter:drop-shadow(0 0 3px rgba(60,245,155,.7));
+  filter:drop-shadow(0 0 1px rgba(60,245,155,.35));
 }
 
 .service-status.down{
   color:#ff4d6d;
-  filter:drop-shadow(0 0 3px rgba(255,77,109,.7));
+  filter:drop-shadow(0 0 1px rgba(255,77,109,.35));
 }
 
 .service-status.pending{opacity:.55}

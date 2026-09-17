@@ -84,6 +84,7 @@ function renderHostMetrics(){
       const numeric=Number(value);
       const pct=Number.isFinite(numeric) ? Math.max(0,Math.min(100,numeric)) : 0;
       fills[i].style.width=`${pct}%`;
+      fills[i].classList.toggle("critical",pct>=80);
       values[i].textContent=Number.isFinite(numeric) ? `${Math.round(numeric)}%` : "—";
     });
   });
