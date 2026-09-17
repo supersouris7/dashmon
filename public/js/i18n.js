@@ -13,6 +13,7 @@ import {
 const UI_TEXT={
   fr:{
     editDashboardTitle:"Modifier Dashmon",
+    support:"Soutenir",
     tabApplications:"Applications",
     tabCategories:"Catégories",
     tabHosts:"Hôtes",
@@ -107,6 +108,7 @@ const UI_TEXT={
   },
   en:{
     editDashboardTitle:"Edit Dashmon",
+    support:"Support",
     tabApplications:"Applications",
     tabCategories:"Categories",
     tabHosts:"Hosts",
@@ -222,6 +224,7 @@ export function applyLanguage(){
   appearanceDoneBtn.textContent=t("close");
   appearanceCloseBtn.title=t("close");
   searchInput.placeholder=t("search");
+  document.getElementById("supportLabel").textContent=t("support");
 
   const labels=[...topMenu.querySelectorAll(".top-menu-label")];
   if(labels[0]) labels[0].textContent=t("opening");
