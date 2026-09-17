@@ -361,14 +361,15 @@
 
 @media(max-width:800px){
   .modal-backdrop{
-    padding:8px;
+    padding:10px;
   }
   .modal{
     width:100%;
-    max-height:calc(100vh - 16px);
+    max-height:calc(100dvh - 20px);
+    border-radius:6px;
   }
   .image-library-panel{
-    max-height:calc(100vh - 16px);
+    max-height:calc(100dvh - 20px);
   }
   .edit-panel{
     padding:12px;
@@ -391,6 +392,29 @@
   }
   .edit-tab{
     padding:0 10px;
+  }
+  .modal-backdrop{
+    padding:6px;
+  }
+  .modal{
+    max-height:calc(100dvh - 12px);
+  }
+  .edit-panel{
+    padding:10px;
+  }
+  .edit-input,
+  .edit-select{
+    height:44px;
+    font-size:16px;
+  }
+  .host-row .drag-handle{
+    width:26px;
+  }
+  .host-row .icon-picker-current{
+    width:42px;
+  }
+  .edit-list{
+    gap:12px;
   }
 }
 

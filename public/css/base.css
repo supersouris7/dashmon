@@ -35,11 +35,19 @@ main{
   display:grid;
   grid-template-columns:minmax(240px,520px) 1fr 48px 48px 48px;
   grid-template-areas:"search metrics view collapse more";
-  gap:10px;
+  gap:8px;
   margin-bottom:28px;
   position:sticky;
-  top:14px;
+  top:10px;
   z-index:20;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  box-shadow:0 8px 28px rgba(0,0,0,.32);
+  background:rgba(16,20,24,.9);
+  background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
 }
 
 .search-box{

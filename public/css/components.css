@@ -610,27 +610,31 @@ select,
 
 .web-links-header{
   position:absolute;
-  top:0;
-  left:0;
+  top:1px;
   right:0;
-  width:100%;
-  min-width:28px;
+  left:auto;
+  width:36px;
   height:28px;
-  min-height:30px;
-  margin:0 0 4px auto;
-  padding:0 2px;
+  min-width:36px;
+  min-height:28px;
+  margin:0;
+  padding:0;
   display:flex;
   align-items:center;
-  justify-content:flex-end;
-  border:0;
-  background:transparent;
+  justify-content:center;
+  border:1px solid var(--border);
+  border-radius:3px;
+  background:var(--surface-2);
   color:var(--text);
   cursor:pointer;
-  z-index:1;
+  z-index:5;
   font:inherit;
 }
 
-.web-links-header:hover{color:var(--text)}
+.web-links-header:hover{
+  background:var(--surface-3);
+  border-color:var(--muted);
+}
 
 .web-links-section.collapsed .web-links-header{
   position:absolute;
@@ -652,7 +656,7 @@ select,
 
 .web-links-inner{
   position:absolute;
-  inset:0 auto auto 0;
+  inset:0 0 auto 0;
   min-width:0;
   overflow:visible;
   opacity:1;
@@ -670,12 +674,14 @@ select,
   gap:8px 18px;
   min-height:30px;
   white-space:nowrap;
-  width:max-content;
-  max-width:calc(100% - 34px);
+  width:auto;
+  box-sizing:border-box;
+  max-width:none;
   overflow-x:auto;
   scrollbar-width:none;
   position:relative;
-  z-index:3;
+  z-index:2;
+  padding-right:46px;
 }
 
 .web-links-list::-webkit-scrollbar{
@@ -762,6 +768,15 @@ select,
   .appearance-field{
     grid-template-columns:1fr;
     gap:7px;
+  }
+  .service-row,
+  .host-row,
+  .web-link-row{
+    gap:8px 6px;
+  }
+  .host-params,
+  .host-auth{
+    gap:6px;
   }
 }
 
