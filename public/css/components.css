@@ -134,11 +134,13 @@
 /* Étroit : la recherche reste sur la même ligne que les hôtes et boutons (comme PC), simplement non sticky */
 @media (max-width:920px){
   .toolbar{
-    grid-template-columns:minmax(150px,400px) minmax(0,1fr) 48px 48px 48px;
+    grid-template-columns:minmax(150px,1fr) minmax(0,1fr) 48px 48px 48px;
     grid-template-areas:"search metrics view collapse more";
+    gap:8px;
     position:static;
   }
   .host-metrics{
+    grid-area:metrics;
     justify-content:flex-start;
   }
   #viewBtn{
@@ -608,14 +610,14 @@ select,
   right:0;
   left:auto;
   width:auto;
-  min-width:28px;
+  min-width:0;
   height:28px;
   min-height:28px;
   margin:0;
-  padding:0 4px;
+  padding:0 2px 0 12px;
   display:flex;
   align-items:center;
-  justify-content:center;
+  justify-content:flex-end;
   border:0;
   background:transparent;
   color:var(--muted);
@@ -761,6 +763,10 @@ select,
 }
 
 @media (max-width:560px){
+  .toolbar{
+    grid-template-columns:minmax(110px,1fr) minmax(0,1fr) 48px 48px 48px;
+    gap:6px;
+  }
   .appearance-field{
     grid-template-columns:1fr;
     gap:7px;
