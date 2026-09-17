@@ -39,10 +39,7 @@ async function renderImageLibrary(){
       img.src=`icons/${encodeURIComponent(file)}`;
       img.alt="";
 
-      const label=document.createElement("span");
-      label.textContent=file;
-
-      button.append(img,label);
+      button.append(img);
       button.addEventListener("click",()=>{
         if(activeIconSetter){
           activeIconSetter(`icons/${file}`);
@@ -111,10 +108,6 @@ export async function renderImageManager(){
       img.src=`icons/${encodeURIComponent(file)}`;
       img.alt="";
 
-      const name=document.createElement("div");
-      name.className="image-manager-name";
-      name.textContent=file;
-
       const syncSelection=()=>{
         if(checkbox.checked){
           managedImageSelection.add(file);
@@ -127,7 +120,7 @@ export async function renderImageManager(){
       };
 
       checkbox.addEventListener("change",syncSelection);
-      item.append(checkbox,img,name);
+      item.append(checkbox,img);
       imageManagerGrid.appendChild(item);
     });
   }catch(error){

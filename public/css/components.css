@@ -803,25 +803,23 @@ button.delete-btn:hover{
 
 .image-manager-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-  gap:10px;
+  grid-template-columns:repeat(auto-fill,minmax(64px,1fr));
+  gap:8px;
 }
 
 .image-manager-item{
   position:relative;
   min-width:0;
-  min-height:132px;
-  padding:10px;
+  min-height:64px;
+  padding:8px;
   border:1px solid var(--border);
   border-radius:3px;
   background:var(--surface-2);
   color:var(--text);
   cursor:pointer;
   display:flex;
-  flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:8px;
 }
 
 .image-manager-item:hover{
@@ -844,19 +842,9 @@ button.delete-btn:hover{
 }
 
 .image-manager-item img{
-  width:64px;
-  height:64px;
+  width:48px;
+  height:48px;
   object-fit:contain;
-}
-
-.image-manager-name{
-  width:100%;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-  text-align:center;
-  font-size:12px;
-  color:var(--muted);
 }
 
 .image-manager-empty{
