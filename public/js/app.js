@@ -1,9 +1,10 @@
 // Point d'entrée : initialisation, menu principal, modals (éditeur/apparence), événements globaux.
-import { state, normalizeConfig, isTypingTarget } from "./state.js";
+import { state, normalizeConfig, isTypingTarget, sanitizeUrl, DEFAULT_BANNER_URL } from "./state.js";
 import { saveConfig } from "./api.js";
 import { render, updateViewButton, updateOpenModeMenu, updateGroupModeMenu,
-  updateSortModeMenu, setGroupMode, getCollapseAllState, updateCollapseAllButton } from "./render.js";
-import { applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater } from "./i18n.js";
+  updateSortModeMenu, setGroupMode, getCollapseAllState, updateCollapseAllButton,
+  applyBanner, applyFavicon } from "./render.js";
+import { applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater, t } from "./i18n.js";
 import {
   loadThemes, applyTheme, setTheme, currentTheme, downloadTheme,
   importThemeFile, deleteCustomTheme, applyThemeLabels
@@ -18,6 +19,7 @@ import {
   sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuAppearanceBtn,
   appearanceBackdrop, appearanceCloseBtn, appearanceDoneBtn, themeSelect,
   languageSelect, smallIconsSelect, hostsDisplaySelect, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
+  bannerIconSelect, bannerUrlInput, faviconInput, importFaviconBtn, resetFaviconBtn,
   themeImportInput, modalBackdrop, imageLibrary
 } from "./dom.js";
 
@@ -46,6 +48,9 @@ async function loadConfig(){
     state.webLinksSeedVersion=cfg.webLinksSeedVersion;
     state.smallIcons=cfg.smallIcons;
     state.hostsDisplay=cfg.hostsDisplay;
+    state.bannerIcon=cfg.bannerIcon;
+    state.bannerUrl=cfg.bannerUrl;
+    state.favicon=cfg.favicon;
   }catch(error){
     console.error("Chargement de config.json impossible",error);
   }
@@ -55,6 +60,8 @@ async function loadConfig(){
   updateGroupModeMenu();
   updateSortModeMenu();
   applyTheme();
+  applyBanner();
+  applyFavicon();
   applyLanguage();
   render();
   startHostMetricsLoop();
@@ -81,6 +88,9 @@ function openAppearance(){
   languageSelect.value=state.language;
   smallIconsSelect.value=state.smallIcons ? "1" : "0";
   hostsDisplaySelect.value=state.hostsDisplay==="icon" ? "icon" : "name";
+  bannerIconSelect.value=state.bannerIcon ? "1" : "0";
+  bannerUrlInput.value=state.bannerUrl;
+  bannerUrlInput.disabled=!state.bannerIcon;
   updateThemeManageUI();
   appearanceBackdrop.classList.add("show");
   appearanceBackdrop.setAttribute("aria-hidden","false");
@@ -192,6 +202,54 @@ smallIconsSelect.addEventListener("change",()=>{
 hostsDisplaySelect.addEventListener("change",()=>{
   state.hostsDisplay=hostsDisplaySelect.value==="icon" ? "icon" : "name";
   refreshHostMetrics();
+  saveConfig(true);
+});
+
+bannerIconSelect.addEventListener("change",()=>{
+  state.bannerIcon=bannerIconSelect.value==="1";
+  bannerUrlInput.disabled=!state.bannerIcon;
+  applyBanner();
+  saveConfig(true);
+});
+
+const commitBannerUrl=()=>{
+  const value=sanitizeUrl(bannerUrlInput.value) || DEFAULT_BANNER_URL;
+  state.bannerUrl=value;
+  bannerUrlInput.value=value;
+  applyBanner();
+  saveConfig(true);
+};
+bannerUrlInput.addEventListener("change",commitBannerUrl);
+
+importFaviconBtn.addEventListener("click",()=>faviconInput.click());
+
+faviconInput.addEventListener("change",()=>{
+  const file=faviconInput.files?.[0];
+  faviconInput.value="";
+  if(!file) return;
+  if(!/\.ico$/i.test(file.name)){
+    alert(t("faviconFormatError"));
+    return;
+  }
+  if(file.size>256*1024){
+    alert(t("faviconTooLarge"));
+    return;
+  }
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const result=String(reader.result||"");
+    const comma=result.indexOf(",");
+    if(comma<0) return;
+    state.favicon=`data:image/x-icon;base64,${result.slice(comma+1)}`;
+    applyFavicon();
+    saveConfig(true);
+  };
+  reader.readAsDataURL(file);
+});
+
+resetFaviconBtn.addEventListener("click",()=>{
+  state.favicon="";
+  applyFavicon();
   saveConfig(true);
 });
 

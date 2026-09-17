@@ -205,6 +205,12 @@ function sanitizeImagePath(p) {
   return m ? `icons/${m[1]}.png` : "";
 }
 
+function sanitizeFavicon(value) {
+  const s = String(value || "").trim();
+  if (!s || s.length > 350000) return "";
+  return /^data:image\/[a-z0-9.+-]+;base64,[a-z0-9+/=]+$/i.test(s) ? s : "";
+}
+
 function ensureDataFiles(){
   fs.mkdirSync(DATA_DIR,{recursive:true});
   fs.mkdirSync(ICONS_DIR,{recursive:true});
@@ -228,7 +234,10 @@ function ensureDataFiles(){
         webLinks:[],
         webLinksCollapsed:false,
         smallIcons:false,
-        hostsDisplay:"name"
+        hostsDisplay:"name",
+        bannerIcon:true,
+        bannerUrl:"https://github.com/supersouris7",
+        favicon:""
       },null,2)+"\n","utf8");
     }
   }
@@ -408,7 +417,10 @@ app.put("/api/config",(req,res)=>{
       webLinksSeedVersion:Number.isFinite(Number(config.webLinksSeedVersion))
         ? Number(config.webLinksSeedVersion) : 0,
       smallIcons:config.smallIcons===true,
-      hostsDisplay:config.hostsDisplay==="icon" ? "icon" : "name"
+      hostsDisplay:config.hostsDisplay==="icon" ? "icon" : "name",
+      bannerIcon:config.bannerIcon!==false,
+      bannerUrl:sanitizeUrl(config.bannerUrl||"") || "https://github.com/supersouris7",
+      favicon:sanitizeFavicon(config.favicon)
     };
 
     fs.writeFileSync(CONFIG_FILE,JSON.stringify(output,null,2)+"\n","utf8");

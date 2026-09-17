@@ -2,7 +2,7 @@
 import { state, clone, normalize, normalizeConfig, compareNames } from "./state.js";
 import { t } from "./i18n.js";
 import { saveConfig, putConfig, fetchConfig } from "./api.js";
-import { render, updateViewButton, updateOpenModeMenu, updateGroupModeMenu } from "./render.js";
+import { render, updateViewButton, updateOpenModeMenu, updateGroupModeMenu, applyBanner, applyFavicon } from "./render.js";
 import { applyTheme } from "./themes.js";
 import { refreshHostMetrics } from "./metrics.js";
 import { openImageLibrary, renderImageManager } from "./images.js";
@@ -621,12 +621,17 @@ configImportInput.addEventListener("change",async()=>{
     state.theme=imported.theme;
     state.smallIcons=imported.smallIcons;
     state.hostsDisplay=imported.hostsDisplay;
+    state.bannerIcon=imported.bannerIcon;
+    state.bannerUrl=imported.bannerUrl;
+    state.favicon=imported.favicon;
 
     state.editServices=clone(state.services);
     state.editCategories=clone(state.categories);
     state.editHosts=clone(state.hosts);
 
     applyTheme();
+    applyBanner();
+    applyFavicon();
     updateViewButton();
     updateOpenModeMenu();
     updateGroupModeMenu();

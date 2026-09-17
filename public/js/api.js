@@ -24,7 +24,10 @@ export function saveConfig(immediate=false){
       webLinksCollapsed:state.webLinksCollapsed,
       webLinksSeedVersion:state.webLinksSeedVersion,
       smallIcons:state.smallIcons,
-      hostsDisplay:state.hostsDisplay
+      hostsDisplay:state.hostsDisplay,
+      bannerIcon:state.bannerIcon,
+      bannerUrl:state.bannerUrl,
+      favicon:state.favicon
     });
     configSaveChain=configSaveChain
       .catch(()=>{})

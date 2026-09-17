@@ -1,12 +1,27 @@
 // Rendu de Dashmon (cartes, groupes, mode d'affichage) et état des boutons du menu.
-import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass } from "./state.js";
+import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, DEFAULT_BANNER_URL, DEFAULT_FAVICON } from "./state.js";
 import { t } from "./i18n.js";
 import { saveConfig } from "./api.js";
 import {
   dashboard, searchInput, webLinksSection, webLinksHeader, webLinksList,
   viewBtn, collapseAllBtn, sameTabBtn, newTabBtn, groupCategoryBtn,
-  groupHostBtn, sortAlphabeticalBtn, sortUsageBtn
+  groupHostBtn, sortAlphabeticalBtn, sortUsageBtn,
+  appLogoLink, faviconLink
 } from "./dom.js";
+
+export function applyBanner(){
+  const enabled=state.bannerIcon!==false;
+  document.documentElement.classList.toggle("banner-off",!enabled);
+  if(appLogoLink){
+    appLogoLink.href=sanitizeUrl(state.bannerUrl) || DEFAULT_BANNER_URL;
+  }
+}
+
+export function applyFavicon(){
+  if(faviconLink){
+    faviconLink.href=state.favicon || DEFAULT_FAVICON;
+  }
+}
 
 function safeHref(url){
   return /^https?:\/\//.test(url) ? url : "#";

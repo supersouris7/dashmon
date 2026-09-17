@@ -79,7 +79,43 @@ export const ICON_OPTIONS=[
   "fa-brands fa-youtube",
   "fa-solid fa-envelope",
   "fa-brands fa-google-drive",
-  "fa-brands fa-github"
+  "fa-brands fa-github",
+  "fa-brands fa-spotify",
+  "fa-brands fa-facebook-f",
+  "fa-brands fa-instagram",
+  "fa-brands fa-x-twitter",
+  "fa-brands fa-tiktok",
+  "fa-brands fa-linkedin-in",
+  "fa-brands fa-reddit-alien",
+  "fa-brands fa-discord",
+  "fa-brands fa-telegram",
+  "fa-brands fa-whatsapp",
+  "fa-brands fa-twitch",
+  "fa-brands fa-mastodon",
+  "fa-brands fa-pinterest-p",
+  "fa-brands fa-snapchat",
+  "fa-brands fa-bluesky",
+  "fa-brands fa-threads",
+  "fa-brands fa-gitlab",
+  "fa-brands fa-bitbucket",
+  "fa-brands fa-aws",
+  "fa-brands fa-digital-ocean",
+  "fa-brands fa-cloudflare",
+  "fa-brands fa-wordpress",
+  "fa-brands fa-joomla",
+  "fa-brands fa-drupal",
+  "fa-brands fa-magento",
+  "fa-brands fa-dropbox",
+  "fa-brands fa-python",
+  "fa-brands fa-node-js",
+  "fa-brands fa-php",
+  "fa-brands fa-golang",
+  "fa-brands fa-npm",
+  "fa-brands fa-android",
+  "fa-brands fa-apple",
+  "fa-brands fa-chrome",
+  "fa-brands fa-firefox",
+  "fa-brands fa-edge"
 ];
 
 export const DEFAULT_HOSTS=[
@@ -105,6 +141,9 @@ export const DEFAULT_WEB_LINKS=[
   {"name":"GitHub","url":"https://github.com","icon":"fa-brands fa-github"}
 ];
 
+export const DEFAULT_BANNER_URL="https://github.com/supersouris7";
+export const DEFAULT_FAVICON="/logo.png";
+
 export const state = {
   services: [],
   categories: [],
@@ -122,6 +161,9 @@ export const state = {
   webLinksSeedVersion: 0,
   smallIcons: false,
   hostsDisplay: "name",
+  bannerIcon: true,
+  bannerUrl: DEFAULT_BANNER_URL,
+  favicon: "",
   editServices: [],
   editCategories: [],
   editHosts: [],
@@ -182,6 +224,12 @@ function sanitizeImagePath(p) {
   return m ? `icons/${m[1]}.png` : "";
 }
 
+function sanitizeFavicon(value){
+  const s=String(value||"").trim();
+  if(!s || s.length>700000) return "";
+  return /^data:image\/[a-z0-9.+-]+;base64,[a-z0-9+/=]+$/i.test(s) ? s : "";
+}
+
 export function normalizeConfig(cfg={}){
   const normalizedServices=Array.isArray(cfg.services)
     ? clone(cfg.services)
@@ -238,7 +286,10 @@ export function normalizeConfig(cfg={}){
     webLinksCollapsed:cfg.webLinksCollapsed===true,
     webLinksSeedVersion:Number.isFinite(Number(cfg.webLinksSeedVersion)) ? Number(cfg.webLinksSeedVersion) : 0,
     smallIcons:cfg.smallIcons===true,
-    hostsDisplay:cfg.hostsDisplay==="icon" ? "icon" : "name"
+    hostsDisplay:cfg.hostsDisplay==="icon" ? "icon" : "name",
+    bannerIcon:cfg.bannerIcon!==false,
+    bannerUrl:sanitizeUrl(cfg.bannerUrl||"") || DEFAULT_BANNER_URL,
+    favicon:sanitizeFavicon(cfg.favicon)
   };
 }
 

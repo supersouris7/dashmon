@@ -84,5 +84,10 @@
   ],
   "webLinksCollapsed": false,
   "webLinksSeedVersion": 2,
-  "hostsSeedVersion": 1
+  "hostsSeedVersion": 1,
+  "smallIcons": false,
+  "hostsDisplay": "name",
+  "bannerIcon": true,
+  "bannerUrl": "https://github.com/supersouris7",
+  "favicon": ""
 }

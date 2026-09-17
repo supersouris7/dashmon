@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashmon</title>
+<link id="faviconLink" rel="icon" href="/logo.png">
 
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
@@ -16,7 +17,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 <body>
 <main>
   <div class="toolbar">
-    <img class="app-logo" src="/logo.png" alt="Dashmon" title="Dashmon">
+    <a id="appLogoLink" class="app-logo" href="https://github.com/supersouris7" target="_blank" rel="noopener" title="Dashmon">
+      <img id="appLogoImg" src="/logo.png" alt="Dashmon">
+    </a>
     <div class="search-box">
       <i class="fa-solid fa-magnifying-glass"></i>
       <input id="search" class="search" type="search" placeholder="Rechercher une application..." autocomplete="off">
@@ -241,8 +244,33 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
         <span id="hostsDisplayFieldLabel">Affichage des hôtes</span>
         <select id="hostsDisplaySelect" class="edit-select">
           <option value="name" id="hostsDisplayOptionName">Par intitulé</option>
-          <option value="icon" id="hostsDisplayOptionIcon">Par icône FontAwesome</option>
+          <option value="icon" id="hostsDisplayOptionIcon">Par icône</option>
         </select>
+      </div>
+
+      <div class="appearance-field">
+        <span id="bannerFieldLabel">Icône bannière (haut gauche)</span>
+        <select id="bannerIconSelect" class="edit-select">
+          <option value="1" id="bannerOptionOn">Activée</option>
+          <option value="0" id="bannerOptionOff">Désactivée</option>
+        </select>
+      </div>
+
+      <div class="appearance-field">
+        <span id="bannerUrlFieldLabel">URL de la bannière</span>
+        <input id="bannerUrlInput" class="edit-input" type="url" placeholder="https://github.com/supersouris7">
+      </div>
+
+      <div class="appearance-field">
+        <span id="faviconFieldLabel">Favicon de l’onglet (.ico)</span>
+        <div class="theme-manage">
+          <button id="importFaviconBtn" class="action-btn" type="button">
+            <i class="fa-solid fa-upload"></i>&nbsp; <span id="importFaviconLabel">Importer</span>
+          </button>
+          <button id="resetFaviconBtn" class="action-btn" type="button">
+            <i class="fa-solid fa-rotate-left"></i>&nbsp; <span id="resetFaviconLabel">Réinitialiser</span>
+          </button>
+        </div>
       </div>
 
       <div class="appearance-field">
@@ -280,6 +308,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 <input id="managePngUpload" type="file" accept="image/png,.png" multiple hidden>
 <input id="configImportInput" type="file" accept="application/json,.json" hidden>
 <input id="themeImportInput" type="file" accept="application/json,.json" hidden>
+<input id="faviconInput" type="file" accept=".ico,image/x-icon,image/vnd.microsoft.icon" hidden>
 
 <div id="imageLibrary" class="image-library" aria-hidden="true">
   <div class="image-library-panel" role="dialog" aria-modal="true" aria-labelledby="imageLibraryTitle">

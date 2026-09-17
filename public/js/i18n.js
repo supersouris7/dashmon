@@ -113,7 +113,16 @@ const UI_TEXT={
     smallIconsOptionOn:"Petites icônes",
     hostsDisplayFieldLabel:"Affichage des hôtes",
     hostsDisplayOptionName:"Par intitulé",
-    hostsDisplayOptionIcon:"Par icône FontAwesome",
+    hostsDisplayOptionIcon:"Par icône",
+    bannerFieldLabel:"Icône bannière (haut gauche)",
+    bannerOptionOn:"Activée",
+    bannerOptionOff:"Désactivée",
+    bannerUrlFieldLabel:"URL de la bannière",
+    faviconFieldLabel:"Favicon de l’onglet (.ico)",
+    importFaviconLabel:"Importer",
+    resetFaviconLabel:"Réinitialiser",
+    faviconFormatError:"Seuls les fichiers .ico sont acceptés.",
+    faviconTooLarge:"Favicon trop volumineux (max 256 Ko).",
   },
   en:{
     editDashboardTitle:"Edit Dashmon",
@@ -217,7 +226,16 @@ const UI_TEXT={
     smallIconsOptionOn:"Small icons",
     hostsDisplayFieldLabel:"Hosts display",
     hostsDisplayOptionName:"By name",
-    hostsDisplayOptionIcon:"By FontAwesome icon",
+    hostsDisplayOptionIcon:"By icon",
+    bannerFieldLabel:"Banner icon (top left)",
+    bannerOptionOn:"Enabled",
+    bannerOptionOff:"Disabled",
+    bannerUrlFieldLabel:"Banner URL",
+    faviconFieldLabel:"Tab favicon (.ico)",
+    importFaviconLabel:"Import",
+    resetFaviconLabel:"Reset",
+    faviconFormatError:"Only .ico files are accepted.",
+    faviconTooLarge:"Favicon too large (max 256 KB).",
   }
 };
 
@@ -321,7 +339,14 @@ export function applyLanguage(){
     ["smallIconsOptionOn","smallIconsOptionOn"],
     ["hostsDisplayFieldLabel","hostsDisplayFieldLabel"],
     ["hostsDisplayOptionName","hostsDisplayOptionName"],
-    ["hostsDisplayOptionIcon","hostsDisplayOptionIcon"]
+    ["hostsDisplayOptionIcon","hostsDisplayOptionIcon"],
+    ["bannerFieldLabel","bannerFieldLabel"],
+    ["bannerOptionOn","bannerOptionOn"],
+    ["bannerOptionOff","bannerOptionOff"],
+    ["bannerUrlFieldLabel","bannerUrlFieldLabel"],
+    ["faviconFieldLabel","faviconFieldLabel"],
+    ["importFaviconLabel","importFaviconLabel"],
+    ["resetFaviconLabel","resetFaviconLabel"]
   ];
   appearanceLabels.forEach(([id,key])=>{
     const el=document.getElementById(id);

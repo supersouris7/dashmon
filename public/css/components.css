@@ -150,6 +150,10 @@
     background:transparent;
     box-shadow:none;
   }
+  html.banner-off .toolbar{
+    grid-template-columns:minmax(150px,1fr) minmax(0,1fr) 48px 48px 48px;
+    grid-template-areas:"search metrics view collapse more";
+  }
   .host-metrics{
     grid-area:metrics;
     justify-content:flex-start;
@@ -560,18 +564,22 @@ select,
 
 #dashboard.small-icons .service-icon,
 #dashboard.small-icons .service-fallback{
-  width:38px;
-  height:38px;
-  min-width:38px;
-  flex-basis:38px;
+  width:20px;
+  height:20px;
+  min-width:20px;
+  flex-basis:20px;
 }
 
 #dashboard.small-icons .service-fallback{
-  font-size:19px;
+  font-size:16px;
+  background:transparent;
+  border:0;
 }
 
 #dashboard.small-icons .card{
-  min-height:66px;
+  min-height:54px;
+  padding:9px 11px;
+  gap:10px;
 }
 
 .web-links-list{display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;min-height:30px}
@@ -775,7 +783,8 @@ select,
 .appearance-modal{
   width:min(520px,calc(100vw - 28px));
   height:auto;
-  max-height:none;
+  max-height:calc(100vh - 28px);
+  overflow:auto;
 }
 
 .appearance-content{
@@ -806,6 +815,9 @@ select,
   .toolbar{
     grid-template-columns:32px minmax(96px,1fr) minmax(0,1fr) 48px 48px 48px;
     gap:6px;
+  }
+  html.banner-off .toolbar{
+    grid-template-columns:minmax(96px,1fr) minmax(0,1fr) 48px 48px 48px;
   }
   .app-logo{
     width:30px;
