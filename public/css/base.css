@@ -32,14 +32,24 @@ main{
 }
 
 .toolbar{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:20;
   display:grid;
   grid-template-columns:minmax(240px,520px) 1fr 48px 48px 48px;
   grid-template-areas:"search metrics view collapse more";
+  align-items:center;
   gap:10px;
-  margin-bottom:28px;
-  position:sticky;
-  top:14px;
-  z-index:20;
+  box-sizing:border-box;
+  padding:10px max(26px,calc((100vw - 1280px)/2));
+  background:var(--bg);
+  box-shadow:0 1px 0 var(--border),0 4px 16px rgba(0,0,0,.18);
+}
+
+@media(min-width:921px){
+  main{padding-top:68px}
 }
 
 .search-box{

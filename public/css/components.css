@@ -138,6 +138,9 @@
     grid-template-areas:"search metrics view collapse more";
     gap:8px;
     position:static;
+    padding:0;
+    background:transparent;
+    box-shadow:none;
   }
   .host-metrics{
     grid-area:metrics;
