@@ -139,6 +139,7 @@
       "search search search search"
       "metrics view collapse more";
     row-gap:6px;
+    position:static;
   }
   .search-box{
     grid-area:search;
