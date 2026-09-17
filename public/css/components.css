@@ -131,21 +131,14 @@
   }
 }
 
-/* Étroit : la recherche passe au-dessus, la barre hôtes + boutons dessous */
+/* Étroit : la recherche reste sur la même ligne que les hôtes et boutons (comme PC), simplement non sticky */
 @media (max-width:920px){
   .toolbar{
-    grid-template-columns:1fr 48px 48px 48px;
-    grid-template-areas:
-      "search search search search"
-      "metrics view collapse more";
-    row-gap:6px;
+    grid-template-columns:minmax(150px,400px) minmax(0,1fr) 48px 48px 48px;
+    grid-template-areas:"search metrics view collapse more";
     position:static;
   }
-  .search-box{
-    grid-area:search;
-  }
   .host-metrics{
-    grid-area:metrics;
     justify-content:flex-start;
   }
   #viewBtn{
@@ -614,27 +607,29 @@ select,
   top:1px;
   right:0;
   left:auto;
-  width:36px;
+  width:auto;
+  min-width:28px;
   height:28px;
-  min-width:36px;
   min-height:28px;
   margin:0;
-  padding:0;
+  padding:0 4px;
   display:flex;
   align-items:center;
   justify-content:center;
-  border:1px solid var(--border);
-  border-radius:3px;
-  background:var(--surface-2);
-  color:var(--text);
+  border:0;
+  background:transparent;
+  color:var(--muted);
   cursor:pointer;
   z-index:5;
   font:inherit;
 }
 
 .web-links-header:hover{
-  background:var(--surface-3);
-  border-color:var(--muted);
+  color:#fff;
+}
+
+.web-links-header:hover .chevron{
+  color:#fff;
 }
 
 .web-links-section.collapsed .web-links-header{
