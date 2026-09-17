@@ -357,6 +357,9 @@ html[data-theme="matrix"] .host-metric-fill.critical{
   .service-row .small-icon-btn{grid-area:remove}
 }
 
+body,
+.toolbar,
+.host-metric,
 button,
 input,
 select,
@@ -367,39 +370,45 @@ select,
 .image-library-panel,
 .icon-picker-menu{
   transition:
-    background-color .16s ease,
-    border-color .16s ease,
-    color .16s ease,
-    opacity .16s ease,
-    transform .16s ease,
-    filter .16s ease;
-}
-
-.card:hover{
-  filter:blur(.15px);
+    background-color .18s ease,
+    border-color .18s ease,
+    color .18s ease,
+    opacity .18s ease,
+    transform .18s cubic-bezier(.2,.7,.3,1);
 }
 
 .top-menu.show,
 .modal-backdrop.show .modal,
 .image-library.show .image-library-panel,
 .icon-picker.open .icon-picker-menu{
-  animation:softReveal .16s ease-out;
+  animation:softReveal .18s cubic-bezier(.2,.7,.3,1);
 }
 
 @keyframes softReveal{
   from{
     opacity:0;
-    transform:translateY(-3px) scale(.995);
-    filter:blur(2px);
+    transform:translateY(4px) scale(.998);
   }
   to{
     opacity:1;
     transform:translateY(0) scale(1);
-    filter:blur(0);
   }
 }
 
+.modal-backdrop.show,
+.image-library.show{
+  animation:backdropIn .18s ease;
+}
+
+@keyframes backdropIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+
 @media (prefers-reduced-motion:reduce){
+  body,
+  .toolbar,
+  .host-metric,
   button,
   input,
   select,
@@ -413,7 +422,9 @@ select,
   }
 
   .top-menu.show,
+  .modal-backdrop.show,
   .modal-backdrop.show .modal,
+  .image-library.show,
   .image-library.show .image-library-panel,
   .icon-picker.open .icon-picker-menu{
     animation:none;
@@ -424,11 +435,9 @@ select,
   display:grid;
   grid-template-rows:1fr;
   opacity:1;
-  filter:blur(0);
   transition:
-    grid-template-rows .18s ease,
-    opacity .18s ease,
-    filter .18s ease;
+    grid-template-rows .2s cubic-bezier(.2,.7,.3,1),
+    opacity .2s ease;
 }
 
 .section-body > .cards{
@@ -440,7 +449,6 @@ select,
   display:grid;
   grid-template-rows:0fr;
   opacity:0;
-  filter:blur(1.5px);
   pointer-events:none;
 }
 

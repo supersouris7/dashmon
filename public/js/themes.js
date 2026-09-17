@@ -97,6 +97,16 @@ export async function loadThemes(){
 
 export function applyTheme(){
   document.documentElement.dataset.theme=state.theme;
+  try{
+    const theme=currentTheme();
+    if(theme?.variables){
+      const vars=Object.entries(theme.variables)
+        .map(([key,value])=>`--${key}:${value};`)
+        .join("");
+      localStorage.setItem("dashmon.theme",state.theme);
+      localStorage.setItem("dashmon.themeVars",vars);
+    }
+  }catch(_error){}
 }
 
 export function setTheme(nextTheme){

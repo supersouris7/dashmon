@@ -326,9 +326,13 @@ document.addEventListener("keydown",e=>{
 });
 
 async function init(){
-  await loadThemes();
-  await loadConfig();
-  startStatusLoop();
+  try{
+    await loadThemes();
+    await loadConfig();
+    startStatusLoop();
+  }finally{
+    requestAnimationFrame(()=>document.body.classList.add("app-ready"));
+  }
 }
 
 init();
