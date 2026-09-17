@@ -1,12 +1,12 @@
 .host-metrics{
-  grid-column:2;
+  grid-area:metrics;
   min-width:0;
   min-height:46px;
   display:flex;
   align-items:center;
   justify-content:flex-end;
   gap:8px;
-  overflow:hidden;
+  overflow-x:auto;
 }
 
 .host-metric{
@@ -14,6 +14,7 @@
   max-width:210px;
   height:46px;
   min-height:46px;
+  flex:0 0 auto;
   box-sizing:border-box;
   padding:6px 8px;
   border:1px solid var(--border);
@@ -96,7 +97,10 @@
   height:38px;
 }
 
-@media(max-width:1200px){
+/* — Dégradation progressive toolbar + metrics hôtes — */
+
+/* Large : texte + barres + % */
+@media(max-width:1240px){
   .host-metric:nth-child(3){
     display:none;
   }
@@ -109,42 +113,83 @@
   .host-metric-name{
     max-width:62px;
   }
-}
-
-@media(max-width:1040px){
-  .host-metric:nth-child(2){
-    display:none;
+  .host-metric-line{
+    grid-template-columns:20px minmax(38px,1fr) 28px;
   }
 }
 
-@media(max-width:900px){
+/* Moyen : texte + barres seulement (le % est retiré, la barre reste lisible) */
+@media(max-width:1000px){
+  .host-metric-value{
+    display:none;
+  }
+  .host-metric-line{
+    grid-template-columns:20px minmax(38px,1fr);
+  }
+  .host-metric{
+    min-width:118px;
+  }
+}
+
+/* Étroit : la recherche passe au-dessus, la barre hôtes + boutons dessous */
+@media (max-width:920px){
+  .toolbar{
+    grid-template-columns:1fr 48px 48px 48px;
+    grid-template-areas:
+      "search search search search"
+      "metrics view collapse more";
+    row-gap:6px;
+  }
+  .search-box{
+    grid-area:search;
+  }
   .host-metrics{
-    display:none;
+    grid-area:metrics;
+    justify-content:flex-start;
   }
+  #viewBtn{
+    grid-area:view;
+  }
+  #collapseAllBtn{
+    grid-area:collapse;
+  }
+  .top-menu-wrap{
+    grid-area:more;
+  }
+}
+
+@media (max-width:1120px){
+  .host-row{
+    grid-template-columns:30px minmax(120px,180px) 44px 38px minmax(110px,150px) minmax(180px,1.3fr) minmax(220px,1.7fr) 38px;
+  }
+}
+
+@media (max-width:980px){
   .host-row{
     grid-template-columns:30px minmax(0,1fr) 44px 38px 38px;
+    grid-template-areas:
+      "drag name picker monitor remove"
+      "type type type type type"
+      "params params params params params"
+      "auth auth auth auth auth";
+    gap:4px 8px;
   }
-  .host-row .host-monitor-type,
-  .host-row .host-proxmox-only{
-    grid-column:2 / -1;
+  .host-row .drag-handle{grid-area:drag}
+  .host-row > .edit-input{grid-area:name}
+  .host-row .icon-picker{grid-area:picker}
+  .host-monitor-toggle{grid-area:monitor}
+  .host-row .host-monitor-type{grid-area:type}
+  .host-params{grid-area:params}
+  .host-auth{grid-area:auth}
+  .host-row .delete-btn{grid-area:remove;justify-self:end}
+  .host-row .host-monitor-type{
+    grid-column:auto;
   }
-}
-
-.toolbar > .search-box{grid-column:1}
-
-.toolbar > #viewBtn{grid-column:3}
-
-.toolbar > #collapseAllBtn{grid-column:4}
-
-.toolbar > .top-menu-wrap{grid-column:5}
-
-@media (max-width:800px){
-  .toolbar{
-    grid-template-columns:minmax(0,1fr) 48px 48px 48px;
+  .host-params,
+  .host-auth{
+    display:grid;
+    gap:4px;
   }
-  .toolbar > #viewBtn{grid-column:2}
-  .toolbar > #collapseAllBtn{grid-column:3}
-  .toolbar > .top-menu-wrap{grid-column:4}
 }
 
 .icon-btn,
@@ -211,7 +256,7 @@
 
 .edit-panel{
   min-height:0;
-  overflow-y:auto;
+  overflow:auto;
 }
 
 .edit-panel.active{
@@ -274,20 +319,21 @@
 
 .service-row .small-icon-btn{width:38px;min-width:38px}
 
-@media (max-width:760px){
+/* Tablette : 2 lignes, champs par paire, boutons sur la 1re ligne */
+@media (max-width:980px){
   .service-row{
-    grid-template-columns:minmax(0,1fr) 42px 38px;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) 38px 38px 38px;
     grid-template-areas:
-      "name icon remove"
-      "host host remove"
-      "category category remove"
-      "url url remove";
+      "name host icon monitor remove"
+      "category url . . .";
   }
+
   .service-row > .edit-input:nth-of-type(1){grid-area:name}
+  .service-row > .edit-input:nth-of-type(2){grid-area:url}
   .service-row > .edit-select:nth-of-type(1){grid-area:host}
   .service-row > .edit-select:nth-of-type(2){grid-area:category}
-  .service-row > .edit-input:nth-of-type(2){grid-area:url}
-  .service-row .image-field{grid-area:icon}
+  .service-row .icon-only-field{grid-area:icon}
+  .service-row .monitor-toggle{grid-area:monitor}
   .service-row .small-icon-btn{grid-area:remove}
 }
 
@@ -414,26 +460,23 @@ select,
 
 .monitor-toggle.active{color:var(--text)}
 
-@media (max-width:980px){
-  .service-row{
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr) 42px 42px 42px;
-  }
-
-  .service-row > .edit-input:first-child,
-  .service-row > .edit-input:nth-of-type(2){
-    grid-column:span 2;
-  }
-}
-
 @media (max-width:700px){
   .service-row{
-    grid-template-columns:minmax(0,1fr) 42px 42px 42px;
+    grid-template-columns:minmax(0,1fr) 38px 38px 38px;
+    grid-template-areas:
+      "name icon monitor remove"
+      "host . . ."
+      "category . . ."
+      "url . . .";
   }
 
-  .service-row > .edit-input,
-  .service-row > .edit-select{
-    grid-column:1 / -1;
-  }
+  .service-row > .edit-input:nth-of-type(1){grid-area:name}
+  .service-row > .edit-input:nth-of-type(2){grid-area:url}
+  .service-row > .edit-select:nth-of-type(1){grid-area:host}
+  .service-row > .edit-select:nth-of-type(2){grid-area:category}
+  .service-row .icon-only-field{grid-area:icon}
+  .service-row .monitor-toggle{grid-area:monitor}
+  .service-row .small-icon-btn{grid-area:remove}
 }
 
 .service-row > .icon-only-field,
@@ -629,8 +672,14 @@ select,
   white-space:nowrap;
   width:max-content;
   max-width:calc(100% - 34px);
+  overflow-x:auto;
+  scrollbar-width:none;
   position:relative;
   z-index:3;
+}
+
+.web-links-list::-webkit-scrollbar{
+  display:none;
 }
 
 .web-links-section:not(.collapsed),

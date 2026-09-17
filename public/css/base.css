@@ -34,6 +34,7 @@ main{
 .toolbar{
   display:grid;
   grid-template-columns:minmax(240px,520px) 1fr 48px 48px 48px;
+  grid-template-areas:"search metrics view collapse more";
   gap:10px;
   margin-bottom:28px;
   position:sticky;
@@ -337,9 +338,14 @@ main{
 }
 
 @media(max-width:800px){
-  body{padding:18px}
+  body{padding:14px}
+  main{padding-left:0;padding-right:0}
 }
 
 @media(max-width:560px){
+  body{padding:10px}
   .cards{grid-template-columns:1fr}
+  .toolbar{gap:8px}
+  .card{padding:12px;gap:10px}
+  .card-title{font-size:14px}
 }
