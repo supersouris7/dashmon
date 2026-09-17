@@ -942,6 +942,12 @@ app.use((_req,res)=>{
 });
 
 app.use((err,_req,res,_next)=>{
+  if(err?.type==="entity.parse.failed"){
+    return res.status(400).json({error:"Corps JSON invalide"});
+  }
+  if(err?.type==="entity.too.large"){
+    return res.status(413).json({error:"Fichier trop volumineux"});
+  }
   console.error("Erreur serveur:",err.message);
   res.status(500).json({error:"Erreur interne"});
 });
