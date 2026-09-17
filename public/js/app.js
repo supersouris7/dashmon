@@ -8,7 +8,7 @@ import {
   loadThemes, applyTheme, setTheme, currentTheme, downloadTheme,
   importThemeFile, deleteCustomTheme, applyThemeLabels
 } from "./themes.js";
-import { startStatusLoop, startHostMetricsLoop } from "./metrics.js";
+import { startStatusLoop, startHostMetricsLoop, refreshHostMetrics } from "./metrics.js";
 import { openEditor, closeEditor, renderServiceEditor, renderCategoryEditor,
   renderHostEditor, renderWebLinksEditor } from "./editor.js";
 import { closeImageLibrary } from "./images.js";
@@ -17,7 +17,7 @@ import {
   sameTabBtn, newTabBtn, groupCategoryBtn, groupHostBtn,
   sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuAppearanceBtn,
   appearanceBackdrop, appearanceCloseBtn, appearanceDoneBtn, themeSelect,
-  languageSelect, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
+  languageSelect, smallIconsSelect, hostsDisplaySelect, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
   themeImportInput, modalBackdrop, imageLibrary
 } from "./dom.js";
 
@@ -44,6 +44,8 @@ async function loadConfig(){
     state.webLinks=cfg.webLinks;
     state.webLinksCollapsed=cfg.webLinksCollapsed;
     state.webLinksSeedVersion=cfg.webLinksSeedVersion;
+    state.smallIcons=cfg.smallIcons;
+    state.hostsDisplay=cfg.hostsDisplay;
   }catch(error){
     console.error("Chargement de config.json impossible",error);
   }
@@ -77,6 +79,8 @@ function openAppearance(){
     themeSelect.value=state.theme;
   }
   languageSelect.value=state.language;
+  smallIconsSelect.value=state.smallIcons ? "1" : "0";
+  hostsDisplaySelect.value=state.hostsDisplay==="icon" ? "icon" : "name";
   updateThemeManageUI();
   appearanceBackdrop.classList.add("show");
   appearanceBackdrop.setAttribute("aria-hidden","false");
@@ -176,6 +180,18 @@ languageSelect.addEventListener("change",()=>{
   renderCategoryEditor();
   renderHostEditor();
   renderWebLinksEditor();
+  saveConfig(true);
+});
+
+smallIconsSelect.addEventListener("change",()=>{
+  state.smallIcons=smallIconsSelect.value==="1";
+  render();
+  saveConfig(true);
+});
+
+hostsDisplaySelect.addEventListener("change",()=>{
+  state.hostsDisplay=hostsDisplaySelect.value==="icon" ? "icon" : "name";
+  refreshHostMetrics();
   saveConfig(true);
 });
 

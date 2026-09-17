@@ -38,8 +38,8 @@ main{
   right:0;
   z-index:20;
   display:grid;
-  grid-template-columns:minmax(240px,520px) 1fr 48px 48px 48px;
-  grid-template-areas:"search metrics view collapse more";
+  grid-template-columns:auto minmax(240px,520px) 1fr 48px 48px 48px;
+  grid-template-areas:"logo search metrics view collapse more";
   align-items:center;
   gap:10px;
   box-sizing:border-box;
@@ -51,7 +51,20 @@ main{
   main{padding-top:68px}
 }
 
+.app-logo{
+  grid-area:logo;
+  width:34px;
+  height:34px;
+  min-width:34px;
+  object-fit:contain;
+  object-position:center;
+  align-self:center;
+  justify-self:center;
+  display:block;
+}
+
 .search-box{
+  grid-area:search;
   position:relative;
   min-width:0;
   height:40px;

@@ -16,6 +16,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 <body>
 <main>
   <div class="toolbar">
+    <img class="app-logo" src="/logo.png" alt="Dashmon" title="Dashmon">
     <div class="search-box">
       <i class="fa-solid fa-magnifying-glass"></i>
       <input id="search" class="search" type="search" placeholder="Rechercher une application..." autocomplete="off">
@@ -227,6 +228,22 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
           <option value="en">English</option>
         </select>
       </label>
+
+      <div class="appearance-field">
+        <span id="smallIconsFieldLabel">Mode petites icônes</span>
+        <select id="smallIconsSelect" class="edit-select">
+          <option value="0" id="smallIconsOptionOff">Grandes icônes</option>
+          <option value="1" id="smallIconsOptionOn">Petites icônes</option>
+        </select>
+      </div>
+
+      <div class="appearance-field">
+        <span id="hostsDisplayFieldLabel">Affichage des hôtes</span>
+        <select id="hostsDisplaySelect" class="edit-select">
+          <option value="name" id="hostsDisplayOptionName">Par intitulé</option>
+          <option value="icon" id="hostsDisplayOptionIcon">Par icône FontAwesome</option>
+        </select>
+      </div>
 
       <div class="appearance-field">
         <span id="themeManageLabel">Gestion des thèmes</span>

@@ -619,6 +619,8 @@ configImportInput.addEventListener("change",async()=>{
     state.openMode=imported.openMode;
     state.groupMode=imported.groupMode;
     state.theme=imported.theme;
+    state.smallIcons=imported.smallIcons;
+    state.hostsDisplay=imported.hostsDisplay;
 
     state.editServices=clone(state.services);
     state.editCategories=clone(state.categories);
@@ -632,6 +634,7 @@ configImportInput.addEventListener("change",async()=>{
     renderCategoryEditor();
     renderHostEditor();
     render();
+    refreshHostMetrics();
   }catch(error){
     console.error("Import de configuration impossible",error);
     alert("Fichier de configuration invalide.");

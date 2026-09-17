@@ -56,8 +56,16 @@ export function focusHostGroup(hostName){
     if(key.startsWith("category:")) delete state.collapsed[key];
   });
 
-  state.hosts.forEach(host=>{
-    state.collapsed[`host:${host.name}`]=host.name!==hostName;
+  const hostNames=new Set([
+    ...state.hosts.map(host=>host.name),
+    t("noHost")
+  ]);
+  state.services.forEach(service=>{
+    hostNames.add((service.host||"").trim() || t("noHost"));
+  });
+
+  hostNames.forEach(name=>{
+    state.collapsed[`host:${name}`]=name!==hostName;
   });
   state.collapsed[`host:${hostName}`]=false;
 
@@ -121,8 +129,8 @@ function createCard(service){
       : `Indisponible · ${info.error||"aucune réponse"}`;
     const icon=document.createElement("i");
     icon.className=serviceState==="up"
-      ? "fa-solid fa-circle-check"
-      : serviceState==="down" ? "fa-solid fa-circle-xmark"
+      ? "fa-regular fa-circle-check"
+      : serviceState==="down" ? "fa-regular fa-circle-xmark"
       : "fa-regular fa-circle";
     status.appendChild(icon);
     card.appendChild(status);
@@ -251,6 +259,7 @@ function sortGroupNames(names){
 export function render(){
   renderWebLinks();
   dashboard.dataset.view=state.viewMode;
+  dashboard.classList.toggle("small-icons",state.smallIcons);
   const query=normalize(searchInput.value);
 
   const filtered=state.services.filter(s=>{
@@ -342,8 +351,8 @@ export function updateStatusIndicators(){
     const icon=status.querySelector("i");
     if(icon){
       icon.className=serviceState==="up"
-        ? "fa-solid fa-circle-check"
-        : serviceState==="down" ? "fa-solid fa-circle-xmark"
+        ? "fa-regular fa-circle-check"
+        : serviceState==="down" ? "fa-regular fa-circle-xmark"
         : "fa-regular fa-circle";
     }
     status.title=info.state==="up"

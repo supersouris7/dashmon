@@ -1,5 +1,5 @@
 // Statut des services et métriques CPU/RAM des hôtes (boucles de rafraîchissement).
-import { state } from "./state.js";
+import { state, sanitizeIconClass } from "./state.js";
 import { render, focusHostGroup, updateStatusIndicators } from "./render.js";
 import { t } from "./i18n.js";
 import { hostMetrics } from "./dom.js";
@@ -71,10 +71,15 @@ function renderHostMetrics(){
 
     box.className=`host-metric ${metric?.ok===false ? "error" : ""}`;
     box.title=metric?.error || host.name;
-    box.querySelector(".host-metric-name").textContent=host.name;
 
     const fills=box.querySelectorAll(".host-metric-fill");
     const values=box.querySelectorAll(".host-metric-value");
+    const nameEl=box.querySelector(".host-metric-name");
+    if(state.hostsDisplay==="icon" && host.icon){
+      nameEl.innerHTML=`<i class="${sanitizeIconClass(host.icon)}"></i>`;
+    }else{
+      nameEl.textContent=host.name;
+    }
     [["CPU",metric?.cpu],["RAM",metric?.ram]].forEach(([label,value],i)=>{
       const numeric=Number(value);
       const pct=Number.isFinite(numeric) ? Math.max(0,Math.min(100,numeric)) : 0;

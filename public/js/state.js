@@ -120,6 +120,8 @@ export const state = {
   webLinks: [],
   webLinksCollapsed: false,
   webLinksSeedVersion: 0,
+  smallIcons: false,
+  hostsDisplay: "name",
   editServices: [],
   editCategories: [],
   editHosts: [],
@@ -234,7 +236,9 @@ export function normalizeConfig(cfg={}){
         icon:sanitizeIconClass(link.icon)
       })),
     webLinksCollapsed:cfg.webLinksCollapsed===true,
-    webLinksSeedVersion:Number.isFinite(Number(cfg.webLinksSeedVersion)) ? Number(cfg.webLinksSeedVersion) : 0
+    webLinksSeedVersion:Number.isFinite(Number(cfg.webLinksSeedVersion)) ? Number(cfg.webLinksSeedVersion) : 0,
+    smallIcons:cfg.smallIcons===true,
+    hostsDisplay:cfg.hostsDisplay==="icon" ? "icon" : "name"
   };
 }
 

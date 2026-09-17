@@ -108,6 +108,12 @@ const UI_TEXT={
     exportTheme:"Exporter",
     deleteTheme:"Supprimer le thème",
     manageThemes:"Gestion des thèmes",
+    smallIconsFieldLabel:"Mode petites icônes",
+    smallIconsOptionOff:"Grandes icônes",
+    smallIconsOptionOn:"Petites icônes",
+    hostsDisplayFieldLabel:"Affichage des hôtes",
+    hostsDisplayOptionName:"Par intitulé",
+    hostsDisplayOptionIcon:"Par icône FontAwesome",
   },
   en:{
     editDashboardTitle:"Edit Dashmon",
@@ -206,6 +212,12 @@ const UI_TEXT={
     exportTheme:"Export",
     deleteTheme:"Delete theme",
     manageThemes:"Theme management",
+    smallIconsFieldLabel:"Small icon mode",
+    smallIconsOptionOff:"Large icons",
+    smallIconsOptionOn:"Small icons",
+    hostsDisplayFieldLabel:"Hosts display",
+    hostsDisplayOptionName:"By name",
+    hostsDisplayOptionIcon:"By FontAwesome icon",
   }
 };
 
@@ -299,6 +311,19 @@ export function applyLanguage(){
     ["deleteThemeBtnLabel","deleteLabel"]
   ];
   manageLabels.forEach(([id,key])=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent=t(key);
+  });
+
+  const appearanceLabels=[
+    ["smallIconsFieldLabel","smallIconsFieldLabel"],
+    ["smallIconsOptionOff","smallIconsOptionOff"],
+    ["smallIconsOptionOn","smallIconsOptionOn"],
+    ["hostsDisplayFieldLabel","hostsDisplayFieldLabel"],
+    ["hostsDisplayOptionName","hostsDisplayOptionName"],
+    ["hostsDisplayOptionIcon","hostsDisplayOptionIcon"]
+  ];
+  appearanceLabels.forEach(([id,key])=>{
     const el=document.getElementById(id);
     if(el) el.textContent=t(key);
   });

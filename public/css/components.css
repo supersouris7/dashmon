@@ -44,6 +44,13 @@
   font-weight:700;
 }
 
+.host-metric-name i{
+  display:block;
+  font-size:16px;
+  line-height:1;
+  text-align:center;
+}
+
 .host-metric-line{
   display:grid;
   grid-template-columns:24px minmax(42px,1fr) 30px;
@@ -134,8 +141,8 @@
 /* Étroit : la recherche reste sur la même ligne que les hôtes et boutons (comme PC), simplement non sticky */
 @media (max-width:920px){
   .toolbar{
-    grid-template-columns:minmax(150px,1fr) minmax(0,1fr) 48px 48px 48px;
-    grid-template-areas:"search metrics view collapse more";
+    grid-template-columns:34px minmax(150px,1fr) minmax(0,1fr) 48px 48px 48px;
+    grid-template-areas:"logo search metrics view collapse more";
     gap:8px;
     position:static;
     margin-bottom:28px;
@@ -439,9 +446,15 @@ select,
   color:var(--muted);
 }
 
-.service-status.up{color:#4f9f68}
+.service-status.up{
+  color:#3cf59b;
+  filter:drop-shadow(0 0 3px rgba(60,245,155,.7));
+}
 
-.service-status.down{color:#b65c5c}
+.service-status.down{
+  color:#ff4d6d;
+  filter:drop-shadow(0 0 3px rgba(255,77,109,.7));
+}
 
 .service-status.pending{opacity:.55}
 
@@ -543,6 +556,22 @@ select,
 
 .card{
   min-height:82px;
+}
+
+#dashboard.small-icons .service-icon,
+#dashboard.small-icons .service-fallback{
+  width:38px;
+  height:38px;
+  min-width:38px;
+  flex-basis:38px;
+}
+
+#dashboard.small-icons .service-fallback{
+  font-size:19px;
+}
+
+#dashboard.small-icons .card{
+  min-height:66px;
 }
 
 .web-links-list{display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;min-height:30px}
@@ -775,8 +804,13 @@ select,
 
 @media (max-width:560px){
   .toolbar{
-    grid-template-columns:minmax(110px,1fr) minmax(0,1fr) 48px 48px 48px;
+    grid-template-columns:32px minmax(96px,1fr) minmax(0,1fr) 48px 48px 48px;
     gap:6px;
+  }
+  .app-logo{
+    width:30px;
+    height:30px;
+    min-width:30px;
   }
   .appearance-field{
     grid-template-columns:1fr;

@@ -22,7 +22,9 @@ export function saveConfig(immediate=false){
       usageCounts:state.usageCounts,
       webLinks:state.webLinks,
       webLinksCollapsed:state.webLinksCollapsed,
-      webLinksSeedVersion:state.webLinksSeedVersion
+      webLinksSeedVersion:state.webLinksSeedVersion,
+      smallIcons:state.smallIcons,
+      hostsDisplay:state.hostsDisplay
     });
     configSaveChain=configSaveChain
       .catch(()=>{})

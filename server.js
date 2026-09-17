@@ -226,7 +226,9 @@ function ensureDataFiles(){
         groupMode:"category",
         theme:"dark",
         webLinks:[],
-        webLinksCollapsed:false
+        webLinksCollapsed:false,
+        smallIcons:false,
+        hostsDisplay:"name"
       },null,2)+"\n","utf8");
     }
   }
@@ -404,7 +406,9 @@ app.put("/api/config",(req,res)=>{
         : [],
       webLinksCollapsed:config.webLinksCollapsed===true,
       webLinksSeedVersion:Number.isFinite(Number(config.webLinksSeedVersion))
-        ? Number(config.webLinksSeedVersion) : 0
+        ? Number(config.webLinksSeedVersion) : 0,
+      smallIcons:config.smallIcons===true,
+      hostsDisplay:config.hostsDisplay==="icon" ? "icon" : "name"
     };
 
     fs.writeFileSync(CONFIG_FILE,JSON.stringify(output,null,2)+"\n","utf8");
