@@ -61,6 +61,9 @@ publishing Docker images.
 Config, icons and themes are persisted in `dashmon-data` (`/app/data`) —
 backup that volume and you're done. `config.json` only contains public sample
 data; all API tokens are referenced by environment variable, see `.env.example`.
+For Proxmox you may instead paste the token ID/secret directly in the host
+editor — the value is then stored in `config.json` (keep your data volume
+private).
 
 Full customization guide (create your own themes, import icons):
 [CUSTOMIZATION.md](CUSTOMIZATION.md).

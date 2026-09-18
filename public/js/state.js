@@ -119,10 +119,10 @@ export const ICON_OPTIONS=[
 ];
 
 export const DEFAULT_HOSTS=[
-  {name:"Dashmon",icon:"fa-solid fa-gauge-high",monitoring:{enabled:true,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}},
-  {name:"Proxmox",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"proxmox",url:"https://proxmox.local",node:"pve",tokenEnv:"",tokenIdEnv:"PROXMOX_TOKEN_ID",tokenSecretEnv:"PROXMOX_TOKEN_SECRET"}},
-  {name:"Linux",icon:"fa-brands fa-linux",monitoring:{enabled:true,type:"linux",url:"http://linux.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}},
-  {name:"Serveur",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"linux",url:"http://serveur.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}}
+  {name:"Dashmon",icon:"fa-solid fa-gauge-high",monitoring:{enabled:true,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}},
+  {name:"Proxmox",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"proxmox",url:"https://proxmox.local",node:"pve",tokenEnv:"",tokenIdEnv:"PROXMOX_TOKEN_ID",tokenSecretEnv:"PROXMOX_TOKEN_SECRET",tokenId:"",tokenSecret:""}},
+  {name:"Linux",icon:"fa-brands fa-linux",monitoring:{enabled:true,type:"linux",url:"http://linux.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}},
+  {name:"Serveur",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"linux",url:"http://serveur.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}}
 ];
 
 export const DEFAULT_SERVICES = [
@@ -285,12 +285,14 @@ export function normalizeConfig(cfg={}){
             node:sanitizeText(host.monitoring?.node||"",50),
             tokenEnv:sanitizeText(host.monitoring?.tokenEnv||"",50),
             tokenIdEnv:sanitizeText(host.monitoring?.tokenIdEnv||"",50),
-            tokenSecretEnv:sanitizeText(host.monitoring?.tokenSecretEnv||"",50)
+            tokenSecretEnv:sanitizeText(host.monitoring?.tokenSecretEnv||"",50),
+            tokenId:sanitizeText(host.monitoring?.tokenId||"",2000),
+            tokenSecret:sanitizeText(host.monitoring?.tokenSecret||"",2000)
           }
         }))
       : (derivedHosts.length ? derivedHosts : clone(DEFAULT_HOSTS)).map(host=>({
           ...host,
-          monitoring:host.monitoring || {enabled:false,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}
+          monitoring:host.monitoring || {enabled:false,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}
         })),
     collapsed:normalizeCollapsed(cfg.collapsed),
     viewMode:["rows","columns","plain"].includes(cfg.viewMode) ? cfg.viewMode : "columns",

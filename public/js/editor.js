@@ -351,7 +351,7 @@ export function renderHostEditor(){
   state.editHosts.forEach((host,index)=>{
     host.monitoring=host.monitoring && typeof host.monitoring==="object"
       ? host.monitoring
-      : {enabled:false,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""};
+      : {enabled:false,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""};
 
     const row=document.createElement("div");
     row.className="host-row";
@@ -422,11 +422,11 @@ export function renderHostEditor(){
 
     const tokenIdEnv=document.createElement("input");
     tokenIdEnv.className="edit-input";
-    tokenIdEnv.value=host.monitoring.tokenIdEnv||"";
+    tokenIdEnv.value=host.monitoring.tokenId||host.monitoring.tokenIdEnv||"";
 
     const tokenSecretEnv=document.createElement("input");
     tokenSecretEnv.className="edit-input";
-    tokenSecretEnv.value=host.monitoring.tokenSecretEnv||"";
+    tokenSecretEnv.value=host.monitoring.tokenSecret||host.monitoring.tokenSecretEnv||"";
 
     const updateTypeFields=()=>{
       params.innerHTML="";
@@ -577,7 +577,7 @@ addWebLinkBtn.addEventListener("click",()=>{
 });
 
 addHostBtn.addEventListener("click",()=>{
-  const newHost={name:t("newHost"),icon:"fa-solid fa-server",monitoring:{enabled:true,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}};
+  const newHost={name:t("newHost"),icon:"fa-solid fa-server",monitoring:{enabled:true,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}};
   state.editHosts.push(newHost);
   renderHostEditor();
   renderServiceEditor();
@@ -694,8 +694,18 @@ saveBtn.addEventListener("click",async()=>{
     .map(c=>({name:(c.name||"").trim(),icon:c.icon||"fa-solid fa-folder"}))
     .filter(c=>c.name);
 
+  const splitToken=(value)=>{
+    const trimmed=String(value||"").trim();
+    return /^[A-Z_][A-Z0-9_]*$/.test(trimmed)
+      ? {alias:trimmed, literal:""}
+      : {alias:"", literal:trimmed};
+  };
+
   const cleanedHosts=state.editHosts
-    .map(h=>({
+    .map(h=>{
+      const tokenId=splitToken(h.monitoring?.tokenIdEnv);
+      const tokenSecret=splitToken(h.monitoring?.tokenSecretEnv);
+      return {
       name:(h.name||"").trim(),
       icon:h.icon||"fa-solid fa-server",
       monitoring:{
@@ -704,10 +714,13 @@ saveBtn.addEventListener("click",async()=>{
         url:(h.monitoring?.url||"").trim(),
         node:(h.monitoring?.node||"").trim(),
         tokenEnv:(h.monitoring?.tokenEnv||"").trim(),
-        tokenIdEnv:(h.monitoring?.tokenIdEnv||"").trim(),
-        tokenSecretEnv:(h.monitoring?.tokenSecretEnv||"").trim()
+        tokenIdEnv:tokenId.alias,
+        tokenSecretEnv:tokenSecret.alias,
+        tokenId:tokenId.literal,
+        tokenSecret:tokenSecret.literal
       }
-    }))
+    };
+    })
     .filter(h=>h.name);
 
   const validNames=new Set(cleanedCategories.map(c=>c.name));

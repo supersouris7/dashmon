@@ -251,10 +251,10 @@ function readConfig(){
 }
 
 const DEFAULT_HOSTS = [
-  {name:"Dashmon",icon:"fa-solid fa-gauge-high",monitoring:{enabled:true,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}},
-  {name:"Proxmox",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"proxmox",url:"https://proxmox.local",node:"pve",tokenEnv:"",tokenIdEnv:"PROXMOX_TOKEN_ID",tokenSecretEnv:"PROXMOX_TOKEN_SECRET"}},
-  {name:"Linux",icon:"fa-brands fa-linux",monitoring:{enabled:true,type:"linux",url:"http://linux.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}},
-  {name:"Serveur",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"linux",url:"http://serveur.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}}
+  {name:"Dashmon",icon:"fa-solid fa-gauge-high",monitoring:{enabled:true,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}},
+  {name:"Proxmox",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"proxmox",url:"https://proxmox.local",node:"pve",tokenEnv:"",tokenIdEnv:"PROXMOX_TOKEN_ID",tokenSecretEnv:"PROXMOX_TOKEN_SECRET",tokenId:"",tokenSecret:""}},
+  {name:"Linux",icon:"fa-brands fa-linux",monitoring:{enabled:true,type:"linux",url:"http://linux.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}},
+  {name:"Serveur",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"linux",url:"http://serveur.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}}
 ];
 const HOSTS_SEED_VERSION = 1;
 
@@ -270,15 +270,6 @@ function ensureHostExamplesSeeded(){
   if(currentVersion>=HOSTS_SEED_VERSION) return;
 
   if(!Array.isArray(config.hosts)) config.hosts=[];
-
-  // Corrige uniquement l'ancien exemple Proxmox connu.
-  const proxmox=config.hosts.find(host=>host?.name==="Proxmox");
-  if(proxmox?.monitoring){
-    const oldUrl=String(proxmox.monitoring.url||"");
-    if(!oldUrl || oldUrl==="https://proxmox.lan:8006" || oldUrl==="https://proxmox.local:8006"){
-      proxmox.monitoring.url="https://proxmox.local";
-    }
-  }
 
   // Ajoute uniquement les exemples absents, sans écraser les hôtes personnalisés.
   const existingNames=new Set(config.hosts.map(host=>host?.name).filter(Boolean));
@@ -376,7 +367,9 @@ function buildConfigOutput(config){
                 node:sanitizeText(host.monitoring?.node||"",50),
                 tokenEnv:TOKEN_ENV_ALLOWLIST.has(tokenEnv) ? tokenEnv : "",
                 tokenIdEnv:TOKEN_ENV_ALLOWLIST.has(tokenIdEnv) ? tokenIdEnv : "",
-                tokenSecretEnv:TOKEN_ENV_ALLOWLIST.has(tokenSecretEnv) ? tokenSecretEnv : ""
+                tokenSecretEnv:TOKEN_ENV_ALLOWLIST.has(tokenSecretEnv) ? tokenSecretEnv : "",
+                tokenId:sanitizeText(host.monitoring?.tokenId||"",2000),
+                tokenSecret:sanitizeText(host.monitoring?.tokenSecret||"",2000)
               }
             };
           })
@@ -921,8 +914,10 @@ function getProxmoxMetrics(host){
   return new Promise((resolve,reject)=>{
     const urlValue=(host.monitoring?.url||"").trim();
     const node=(host.monitoring?.node||"").trim();
-    const tokenId=getEnvValue(host.monitoring?.tokenIdEnv,"PROXMOX_TOKEN_ID");
-    const tokenSecret=getEnvValue(host.monitoring?.tokenSecretEnv,"PROXMOX_TOKEN_SECRET");
+    const tokenId=getEnvValue(host.monitoring?.tokenIdEnv,"PROXMOX_TOKEN_ID")
+      || String(host.monitoring?.tokenId||"").trim();
+    const tokenSecret=getEnvValue(host.monitoring?.tokenSecretEnv,"PROXMOX_TOKEN_SECRET")
+      || String(host.monitoring?.tokenSecret||"").trim();
 
     if(!urlValue) return reject(new Error("URL Proxmox manquante"));
     if(!node) return reject(new Error("Nœud Proxmox manquant"));
