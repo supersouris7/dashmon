@@ -953,7 +953,14 @@ function getProxmoxMetrics(host){
   });
 }
 
+const HOST_METRICS_TTL=8000;
+let hostMetricsCache={ts:0,payload:null};
+
 app.get("/api/host-metrics",async(_req,res)=>{
+  if(hostMetricsCache.payload && Date.now()-hostMetricsCache.ts < HOST_METRICS_TTL){
+    return res.set("Cache-Control","no-store").json(hostMetricsCache.payload);
+  }
+
   let config;
   try{
     config=readConfig();
@@ -999,6 +1006,7 @@ app.get("/api/host-metrics",async(_req,res)=>{
     }
   }));
 
+  hostMetricsCache={ts:Date.now(),payload:{hosts:results}};
   res.set("Cache-Control","no-store");
   res.json({hosts:results});
 });

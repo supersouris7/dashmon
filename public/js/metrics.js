@@ -120,13 +120,26 @@ async function refreshStatus(){
   }catch(_error){}
 }
 
+function pageHidden(){
+  return typeof document!=="undefined" && document.visibilityState==="hidden";
+}
+
 export function startStatusLoop(){
   refreshStatus();
-  state.statusTimer=setInterval(refreshStatus,60000);
+  state.statusTimer=setInterval(()=>{ if(!pageHidden()) refreshStatus(); },60000);
 }
 
 export function startHostMetricsLoop(){
   refreshHostMetrics();
   clearInterval(state.hostMetricsTimer);
-  state.hostMetricsTimer=setInterval(refreshHostMetrics,10000);
+  state.hostMetricsTimer=setInterval(()=>{ if(!pageHidden()) refreshHostMetrics(); },15000);
+}
+
+export function setupVisibilityPause(){
+  document.addEventListener("visibilitychange",()=>{
+    if(!pageHidden()){
+      refreshStatus();
+      refreshHostMetrics();
+    }
+  });
 }

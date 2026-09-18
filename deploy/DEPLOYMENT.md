@@ -81,3 +81,32 @@ On your servers: `docker pull your_user/dashmon && docker run …` (same options
 - No embedded secrets: `config.json` only contains public examples, tokens are referenced
   by environment variable (allowlist `DASHBOARD_TOKEN_ENVS`).
 - Logs: `docker logs dashmon`.
+
+## LAN domains (.lan, .local…) and status monitoring
+
+Status checks run *inside* the container. Docker's embedded DNS only forwards to
+the resolvers configured on the host, so names that exist only on your LAN DNS
+(`portainer.lan`, `proxmox.lan`…) often fail with `getaddrinfo ENOTFOUND`.
+
+If your monitored URLs use local names:
+
+1. Find your LAN DNS server (e.g. `nslookup machines.lan` on another machine).
+2. Point the container to it in `docker-compose.yml`:
+
+```yaml
+    dns:
+      - 192.168.1.16
+```
+
+3. `docker compose up -d` and check the pills turn green.
+
+Without a LAN DNS that knows the names, add explicit `extra_hosts` entries instead:
+
+```yaml
+    extra_hosts:
+      - "portainer.lan:192.168.1.104"
+      - "proxmox.lan:192.168.1.40"
+```
+
+Checks connect to your LAN directly (over the bridge network), so make sure the
+monitored machines answer on their LAN IP — reverse proxies included.

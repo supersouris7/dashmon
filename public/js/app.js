@@ -9,7 +9,7 @@ import {
   loadThemes, applyTheme, setTheme, currentTheme, downloadTheme,
   importThemeFile, deleteCustomTheme, applyThemeLabels
 } from "./themes.js";
-import { startStatusLoop, startHostMetricsLoop, refreshHostMetrics } from "./metrics.js";
+import { startStatusLoop, startHostMetricsLoop, refreshHostMetrics, setupVisibilityPause } from "./metrics.js";
 import { openEditor, closeEditor, renderServiceEditor, renderCategoryEditor,
   renderHostEditor, renderWebLinksEditor } from "./editor.js";
 import { closeImageLibrary } from "./images.js";
@@ -329,6 +329,7 @@ async function init(){
   try{
     await loadThemes();
     await loadConfig();
+    setupVisibilityPause();
     startStatusLoop();
   }finally{
     requestAnimationFrame(()=>document.body.classList.add("app-ready"));
