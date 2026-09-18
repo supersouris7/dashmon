@@ -28,6 +28,8 @@ imported from the UI and persisted in `/app/data/themes/`.
     "muted": "#98a4b1",
     "accent": "#4f8f89",
     "danger": "#b85c5c",
+    "success": "#3cf59b",
+    "error": "#ff4d6d",
     "shadow": "0 2px 6px rgba(0,0,0,.22)"
   },
   "css": "[data-theme=\"mytheme\"] .service-icon { filter: none !important; }"
@@ -39,10 +41,13 @@ imported from the UI and persisted in `/app/data/themes/`.
 - **`id`**: lowercase letters, digits, `-` and `_` (anything else is converted
   to `-`). It must not clash with the native ids (`dark`, `light`, `black`,
   `matrix`, `rainbow-dark`, `rainbow-light`).
-- **`variables`**: the 10 keys above are all **required** — the import is
+- **`variables`**: the 10 keys below are all **required** — the import is
   rejected if any is missing. They map to `--bg`, `--surface`, `--surface-2`,
   `--surface-3`, `--border`, `--text`, `--muted`, `--accent`, `--danger` and
   `--shadow`, used by every component.
+- **`success`/`error`** (optional): status colors — the availability dots and
+  the CPU/RAM bars (green/orange-red) use `--success` and `--error`. If absent,
+  the CSS defaults apply.
 - **`css`** (optional): any CSS, scoped under `[data-theme="<id>"]`. Max 64 KB.
 
 ### Variable reference
@@ -59,6 +64,8 @@ imported from the UI and persisted in `/app/data/themes/`.
 | `accent` | highlights, active elements |
 | `danger` | errors, offline status |
 | `shadow` | card box-shadow |
+| `success` (optional) | status "up" dots, metric bars |
+| `error` (optional) | status "down" dots, critical bars |
 
 ### Creating a theme
 

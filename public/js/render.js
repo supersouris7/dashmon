@@ -27,18 +27,24 @@ function safeHref(url){
   return /^https?:\/\//.test(url) ? url : "#";
 }
 
+function statusTitle(info){
+  if(!info) return t("statusPending");
+  if(info.state==="up") return `${t("statusUp")} · ${info.ms} ms`;
+  return `${t("statusDown")} · ${info.error||t("statusNoResponse")}`;
+}
+
 export function updateViewButton(){
   const icon=viewBtn.querySelector("i");
 
   if(state.viewMode==="rows"){
     icon.className="fa-solid fa-bars";
-    viewBtn.title="Affichage en lignes";
+    viewBtn.title=t("viewRows");
   }else if(state.viewMode==="columns"){
     icon.className="fa-solid fa-table-columns";
-    viewBtn.title="Affichage en colonnes";
+    viewBtn.title=t("viewColumns");
   }else{
     icon.className="fa-solid fa-border-all";
-    viewBtn.title="Affichage sans catégories";
+    viewBtn.title=t("viewPlain");
   }
 }
 
@@ -126,7 +132,7 @@ function createCard(service){
 
   const title=document.createElement("div");
   title.className="card-title";
-  title.textContent=service.name || "Sans nom";
+  title.textContent=service.name || t("unnamedService");
   card.appendChild(title);
 
   if(service.monitor!==false && service.url){
@@ -134,10 +140,7 @@ function createCard(service){
     const serviceState=state.serviceStatus[service.url]?.state || "pending";
     status.className=`service-status ${serviceState}`;
     status.dataset.url=service.url;
-    const info=state.serviceStatus[service.url];
-    status.title=!info ? "Vérification en attente"
-      : info.state==="up" ? `Disponible · ${info.ms} ms`
-      : `Indisponible · ${info.error||"aucune réponse"}`;
+    status.title=statusTitle(state.serviceStatus[service.url]);
     const icon=document.createElement("i");
     icon.className=serviceState==="up"
       ? "fa-regular fa-circle-check"
@@ -219,7 +222,7 @@ function renderWebLinks(){
 
     const name=document.createElement("span");
     name.className="web-link-name";
-    name.textContent=link.name||"Lien";
+    name.textContent=link.name||t("unnamedLink");
     a.appendChild(name);
     webLinksList.appendChild(a);
   });
@@ -370,8 +373,6 @@ export function updateStatusIndicators(){
         : serviceState==="down" ? "fa-regular fa-circle-xmark"
         : "fa-regular fa-circle";
     }
-    status.title=info.state==="up"
-      ? `Disponible · ${info.ms} ms`
-      : `Indisponible · ${info.error||"aucune réponse"}`;
+    status.title=statusTitle(state.serviceStatus[status.dataset.url]);
   });
 }

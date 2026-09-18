@@ -3,7 +3,7 @@ import { state, normalizeConfig, isTypingTarget, sanitizeUrl, DEFAULT_BANNER_URL
 import { saveConfig } from "./api.js";
 import { render, updateViewButton, updateOpenModeMenu, updateGroupModeMenu,
   updateSortModeMenu, setGroupMode, getCollapseAllState, updateCollapseAllButton,
-  applyBanner, applyFavicon } from "./render.js";
+  applyBanner, applyFavicon, updateStatusIndicators } from "./render.js";
 import { applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater, t } from "./i18n.js";
 import {
   loadThemes, applyTheme, setTheme, currentTheme, downloadTheme,
@@ -186,6 +186,8 @@ themeSelect.addEventListener("change",()=>{
 languageSelect.addEventListener("change",()=>{
   state.language=languageSelect.value==="en" ? "en" : "fr";
   applyLanguage();
+  updateViewButton();
+  updateStatusIndicators();
   renderServiceEditor();
   renderCategoryEditor();
   renderHostEditor();

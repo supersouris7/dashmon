@@ -549,6 +549,7 @@ app.delete("/api/icons/:file",(req,res)=>{
 app.use("/icons",express.static(ICONS_DIR,{dotfiles:"deny",index:false}));
 
 const THEME_REQUIRED_VARS=["bg","surface","surface-2","surface-3","border","text","muted","accent","danger","shadow"];
+const THEME_OPTIONAL_VARS=["success","error"];
 
 function sanitizeThemeId(raw){
   return String(raw||"").trim().toLowerCase()
@@ -568,6 +569,13 @@ function normalizeThemeObject(input){
     if(typeof value==="string" && value.trim()) clean[key]=value.trim();
   }
   if(Object.keys(clean).length!==THEME_REQUIRED_VARS.length) return null;
+
+  // Variables sémantiques optionnelles (couleurs de statut) : sinon le thème
+  // hérite des défauts CSS (--success/--error).
+  for(const key of THEME_OPTIONAL_VARS){
+    const value=variables[key];
+    if(typeof value==="string" && value.trim()) clean[key]=value.trim().slice(0,40);
+  }
 
   return {
     id,

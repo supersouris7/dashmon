@@ -8,6 +8,8 @@
   --muted:#98a4b1;
   --accent:#4f8f89;
   --danger:#b85c5c;
+  --success:#3cf59b;
+  --error:#ff4d6d;
   --shadow:0 2px 6px rgba(0,0,0,.22);
 }
 
@@ -157,15 +159,6 @@ html.banner-off .toolbar{
   z-index:1;
 }
 
-.cards{
-  overflow:visible;
-}
-
-.section-body{
-
-  overflow:visible;
-}
-
 .top-menu{
   display:none;
   position:absolute;
@@ -214,7 +207,7 @@ html.banner-off .toolbar{
 }
 
 .top-menu-item > i:first-child{
-  color:#fff;
+  color:var(--text);
   text-align:center;
 }
 
@@ -250,7 +243,7 @@ html.banner-off .toolbar{
 
 .section-header:hover{
   background:transparent;
-  color:#fff;
+  color:var(--text);
 }
 
 .section-header .category-icon{
@@ -267,18 +260,8 @@ html.banner-off .toolbar{
   text-transform:uppercase;
 }
 
-.section-header .chevron{
-
-  color:var(--muted);
-}
-
 .section.collapsed .chevron{
   transform:rotate(-90deg);
-}
-
-.section-body{
-  padding-top:10px;
-  overflow:visible;
 }
 
 .cards{
@@ -289,7 +272,7 @@ html.banner-off .toolbar{
 }
 
 .card{
-  min-height:74px;
+  min-height:82px;
   display:flex;
   align-items:center;
   gap:14px;
@@ -309,22 +292,24 @@ html.banner-off .toolbar{
   background:var(--surface-2);
 }
 
+.service-icon,
+.service-fallback{
+  width:54px;
+  height:54px;
+  min-width:54px;
+  flex:0 0 54px;
+}
+
 .service-icon{
-  width:64px;
-  height:64px;
-  min-width:64px;
   object-fit:contain;
 }
 
 .service-fallback{
-  width:42px;
-  height:42px;
-  min-width:42px;
   display:flex;
   align-items:center;
   justify-content:center;
-  color:#fff;
-  font-size:21px;
+  color:var(--text);
+  font-size:27px;
   background:var(--surface-3);
   border:1px solid var(--border);
   border-radius:3px;

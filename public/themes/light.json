@@ -14,6 +14,8 @@
     "muted": "#66707a",
     "accent": "#59636d",
     "danger": "#9f5151",
+    "success": "#1f9d61",
+    "error": "#c0334c",
     "shadow": "0 2px 6px rgba(0,0,0,.08)"
   },
   "css": "[data-theme=\"light\"] .card:hover,\n[data-theme=\"light\"] .top-menu-item:hover,\n[data-theme=\"light\"] .action-btn:hover {\n  background: var(--surface-2);\n}\n\n[data-theme=\"light\"] .service-icon {\n  filter: brightness(0);\n}\n\n[data-theme=\"light\"] .service-fallback {\n  color: #111;\n}\n\n[data-theme=\"light\"] .section-header > i,\n[data-theme=\"light\"] .top-menu i,\n[data-theme=\"light\"] .icon-btn i {\n  color: #111;\n}\n\n[data-theme=\"light\"] .service-icon {\n  filter: none !important;\n  opacity: 1;\n}\n\n[data-theme=\"light\"] .small-icon-btn:not(.delete-btn) {\n  color: var(--text) !important;\n}\n[data-theme=\"light\"] .small-icon-btn:not(.delete-btn) i {\n  color: var(--text) !important;\n}\n\n[data-theme=\"light\"] button.delete-btn i {\n  color: #ff6b6b !important;\n}\n[data-theme=\"light\"] button.delete-btn:hover i {\n  color: #ff8a8a !important;\n}"

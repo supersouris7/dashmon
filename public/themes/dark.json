@@ -14,6 +14,8 @@
     "muted": "#98a4b1",
     "accent": "#4f8f89",
     "danger": "#b85c5c",
+    "success": "#3cf59b",
+    "error": "#ff4d6d",
     "shadow": "0 2px 6px rgba(0,0,0,.22)"
   },
   "css": "[data-theme=\"dark\"] .service-icon {\n  filter: none !important;\n  opacity: 1;\n}"

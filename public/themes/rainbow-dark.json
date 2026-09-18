@@ -14,6 +14,8 @@
     "muted": "#98a4b1",
     "accent": "#4f8f89",
     "danger": "#b85c5c",
+    "success": "#3cf59b",
+    "error": "#ff4d6d",
     "shadow": "0 2px 6px rgba(0,0,0,.22)"
   },
   "css": "[data-theme=\"rainbow-dark\"] .section:nth-of-type(4n+1) .category-icon,\n[data-theme=\"rainbow-dark\"] .section:nth-of-type(4n+1) .category-name { color: #ff8fab; }\n[data-theme=\"rainbow-dark\"] .section:nth-of-type(4n+2) .category-icon,\n[data-theme=\"rainbow-dark\"] .section:nth-of-type(4n+2) .category-name { color: #ffd166; }\n[data-theme=\"rainbow-dark\"] .section:nth-of-type(4n+3) .category-icon,\n[data-theme=\"rainbow-dark\"] .section:nth-of-type(4n+3) .category-name { color: #80ed99; }\n[data-theme=\"rainbow-dark\"] .section:nth-of-type(4n+4) .category-icon,\n[data-theme=\"rainbow-dark\"] .section:nth-of-type(4n+4) .category-name { color: #8ec5ff; }\n\n[data-theme=\"rainbow-dark\"] .web-link:nth-child(5n+1) .web-link-icon { color: #ff8fab; }\n[data-theme=\"rainbow-dark\"] .web-link:nth-child(5n+2) .web-link-icon { color: #ffd166; }\n[data-theme=\"rainbow-dark\"] .web-link:nth-child(5n+3) .web-link-icon { color: #80ed99; }\n[data-theme=\"rainbow-dark\"] .web-link:nth-child(5n+4) .web-link-icon { color: #8ec5ff; }\n[data-theme=\"rainbow-dark\"] .web-link:nth-child(5n+5) .web-link-icon { color: #c8a2ff; }"

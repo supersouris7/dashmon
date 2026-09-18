@@ -181,6 +181,7 @@ function normalizeTheme(input){
 
   const variables=input.variables||{};
   const required=["bg","surface","surface-2","surface-3","border","text","muted","accent","danger","shadow"];
+  const optional=["success","error"];
   const clean={};
   for(const key of required){
     if(typeof variables[key]==="string" && variables[key].trim()){
@@ -189,6 +190,11 @@ function normalizeTheme(input){
   }
 
   if(Object.keys(clean).length!==required.length) return null;
+
+  for(const key of optional){
+    const value=variables[key];
+    if(typeof value==="string" && value.trim()) clean[key]=value.trim().slice(0,40);
+  }
 
   return {
     id,
