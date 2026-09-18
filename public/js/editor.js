@@ -475,8 +475,8 @@ export function renderHostEditor(){
     url.addEventListener("input",()=>state.editHosts[index].monitoring.url=url.value);
     node.addEventListener("input",()=>state.editHosts[index].monitoring.node=node.value);
     tokenEnv.addEventListener("input",()=>state.editHosts[index].monitoring.tokenEnv=tokenEnv.value);
-    tokenIdEnv.addEventListener("input",()=>state.editHosts[index].monitoring.tokenIdEnv=tokenIdEnv.value);
-    tokenSecretEnv.addEventListener("input",()=>state.editHosts[index].monitoring.tokenSecretEnv=tokenSecretEnv.value);
+    tokenIdEnv.addEventListener("input",()=>{state.editHosts[index].monitoring.tokenIdEnv=tokenIdEnv.value;state.editHosts[index].monitoring.tokenId="";});
+    tokenSecretEnv.addEventListener("input",()=>{state.editHosts[index].monitoring.tokenSecretEnv=tokenSecretEnv.value;state.editHosts[index].monitoring.tokenSecret="";});
 
     const remove=document.createElement("button");
     remove.className="small-icon-btn delete-btn";
@@ -701,8 +701,8 @@ saveBtn.addEventListener("click",async()=>{
 
   const cleanedHosts=state.editHosts
     .map(h=>{
-      const tokenId=splitToken(h.monitoring?.tokenIdEnv);
-      const tokenSecret=splitToken(h.monitoring?.tokenSecretEnv);
+      const tokenId=splitToken(h.monitoring?.tokenId||h.monitoring?.tokenIdEnv);
+      const tokenSecret=splitToken(h.monitoring?.tokenSecret||h.monitoring?.tokenSecretEnv);
       return {
       name:(h.name||"").trim(),
       icon:h.icon||"fa-solid fa-server",
