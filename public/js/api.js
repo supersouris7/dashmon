@@ -3,6 +3,7 @@ import { state } from "./state.js";
 
 let configSaveTimer;
 let configSaveChain=Promise.resolve();
+let configPatchTimer;
 
 export function saveConfig(immediate=false){
   clearTimeout(configSaveTimer);
@@ -45,6 +46,30 @@ export function saveConfig(immediate=false){
 
   if(immediate) return run();
   configSaveTimer=setTimeout(run,120);
+  return configSaveChain;
+}
+
+// Mise à jour partielle (PATCH) : pour les toggles/selects légers, évite
+// d'écrire tout le config.json à chaque clic.
+export function patchConfig(patch,immediate=false){
+  clearTimeout(configPatchTimer);
+  const run=()=>{
+    const payload=JSON.stringify(patch);
+    configSaveChain=configSaveChain
+      .catch(()=>{})
+      .then(async()=>{
+        const response=await fetch("/api/config",{
+          method:"PATCH",
+          headers:{"Content-Type":"application/json"},
+          body:payload
+        });
+        if(!response.ok) throw new Error("HTTP "+response.status);
+      })
+      .catch(error=>console.error("Mise à jour de config.json impossible",error));
+    return configSaveChain;
+  };
+  if(immediate) return run();
+  configPatchTimer=setTimeout(run,150);
   return configSaveChain;
 }
 

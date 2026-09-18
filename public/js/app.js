@@ -1,6 +1,6 @@
 // Point d'entrée : initialisation, menu principal, modals (éditeur/apparence), événements globaux.
 import { state, normalizeConfig, isTypingTarget, sanitizeUrl, DEFAULT_BANNER_URL } from "./state.js";
-import { saveConfig } from "./api.js";
+import { patchConfig } from "./api.js";
 import { render, updateViewButton, updateOpenModeMenu, updateGroupModeMenu,
   updateSortModeMenu, setGroupMode, getCollapseAllState, updateCollapseAllButton,
   applyBanner, applyFavicon, updateStatusIndicators } from "./render.js";
@@ -76,7 +76,7 @@ function setOpenMode(mode){
   state.openMode=mode;
   updateOpenModeMenu();
   render();
-  saveConfig(true);
+  patchConfig({openMode:mode});
   closeTopMenu();
 }
 
@@ -124,7 +124,7 @@ sortAlphabeticalBtn.addEventListener("click",()=>{
   state.sortMode="alphabetical";
   updateSortModeMenu();
   render();
-  saveConfig(true);
+  patchConfig({sortMode:"alphabetical"});
   closeTopMenu();
 });
 
@@ -132,7 +132,7 @@ sortUsageBtn.addEventListener("click",()=>{
   state.sortMode="usage";
   updateSortModeMenu();
   render();
-  saveConfig(true);
+  patchConfig({sortMode:"usage"});
   closeTopMenu();
 });
 
@@ -147,7 +147,7 @@ viewBtn.addEventListener("click",()=>{
 
   updateViewButton();
   render();
-  saveConfig(true);
+  patchConfig({viewMode:state.viewMode});
 });
 
 collapseAllBtn.addEventListener("click",()=>{
@@ -162,7 +162,7 @@ collapseAllBtn.addEventListener("click",()=>{
   });
 
   render();
-  saveConfig(true);
+  patchConfig({collapsed:state.collapsed});
 });
 
 menuEditBtn.addEventListener("click",()=>{
@@ -192,26 +192,26 @@ languageSelect.addEventListener("change",()=>{
   renderCategoryEditor();
   renderHostEditor();
   renderWebLinksEditor();
-  saveConfig(true);
+  patchConfig({language:state.language});
 });
 
 smallIconsSelect.addEventListener("change",()=>{
   state.smallIcons=smallIconsSelect.value==="1";
   render();
-  saveConfig(true);
+  patchConfig({smallIcons:state.smallIcons});
 });
 
 hostsDisplaySelect.addEventListener("change",()=>{
   state.hostsDisplay=hostsDisplaySelect.value==="icon" ? "icon" : "name";
   refreshHostMetrics();
-  saveConfig(true);
+  patchConfig({hostsDisplay:state.hostsDisplay});
 });
 
 bannerIconSelect.addEventListener("change",()=>{
   state.bannerIcon=bannerIconSelect.value==="1";
   bannerUrlInput.disabled=!state.bannerIcon;
   applyBanner();
-  saveConfig(true);
+  patchConfig({bannerIcon:state.bannerIcon});
 });
 
 const commitBannerUrl=()=>{
@@ -219,7 +219,7 @@ const commitBannerUrl=()=>{
   state.bannerUrl=value;
   bannerUrlInput.value=value;
   applyBanner();
-  saveConfig(true);
+  patchConfig({bannerUrl:value});
 };
 bannerUrlInput.addEventListener("change",commitBannerUrl);
 
@@ -244,7 +244,7 @@ faviconInput.addEventListener("change",()=>{
     if(comma<0) return;
     state.favicon=`data:image/x-icon;base64,${result.slice(comma+1)}`;
     applyFavicon();
-    saveConfig(true);
+    patchConfig({favicon:state.favicon});
   };
   reader.readAsDataURL(file);
 });
@@ -252,13 +252,13 @@ faviconInput.addEventListener("change",()=>{
 resetFaviconBtn.addEventListener("click",()=>{
   state.favicon="";
   applyFavicon();
-  saveConfig(true);
+  patchConfig({favicon:""});
 });
 
 resetUsageBtn.addEventListener("click",()=>{
   state.usageCounts={};
   render();
-  saveConfig(true);
+  patchConfig({usageCounts:{}});
 });
 
 importThemeBtn.addEventListener("click",()=>themeImportInput.click());

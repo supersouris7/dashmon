@@ -1,6 +1,7 @@
-// Agrandir le pool de threads avant tout usage async (DNS/fs) : évite la
-// saturation de libuv quand des résolutions DNS upstream sont lentes.
-process.env.UV_THREADPOOL_SIZE=process.env.UV_THREADPOOL_SIZE||"16";
+// Taille du pool libuv définie avant tout usage async (DNS/fs). 16 threads
+// étaient surdimensionnés : la majorité des requêtes attendent sur du réseau
+// sortant (pas de blocage du pool). 4 suffisent et réduisent le delta libuv.
+process.env.UV_THREADPOOL_SIZE=process.env.UV_THREADPOOL_SIZE||"4";
 
 const express = require("express");
 const fs = require("fs");
@@ -341,14 +342,8 @@ app.get("/api/config",(_req,res)=>{
   }
 });
 
-app.put("/api/config",(req,res)=>{
-  try{
-    const config=req.body;
-    if(!config || typeof config!=="object" || Array.isArray(config)){
-      return res.status(400).json({error:"Configuration invalide"});
-    }
-
-    const output={
+function buildConfigOutput(config){
+  return {
       services:Array.isArray(config.services)
         ? config.services.slice(0,200).map(svc=>({
             name:sanitizeText(svc.name,100),
@@ -421,12 +416,41 @@ app.put("/api/config",(req,res)=>{
       bannerIcon:config.bannerIcon!==false,
       bannerUrl:sanitizeUrl(config.bannerUrl||"") || "https://github.com/supersouris7",
       favicon:sanitizeFavicon(config.favicon)
-    };
+  };
+}
 
-    fs.writeFileSync(CONFIG_FILE,JSON.stringify(output,null,2)+"\n","utf8");
+function writeConfig(output){
+  fs.writeFileSync(CONFIG_FILE,JSON.stringify(output,null,2)+"\n","utf8");
+}
+
+app.put("/api/config",(req,res)=>{
+  try{
+    const config=req.body;
+    if(!config || typeof config!=="object" || Array.isArray(config)){
+      return res.status(400).json({error:"Configuration invalide"});
+    }
+    writeConfig(buildConfigOutput(config));
     res.json({ok:true});
   }catch(error){
     console.error("Écriture config:",error);
+    res.status(500).json({error:"Écriture de config.json impossible"});
+  }
+});
+
+app.patch("/api/config",(req,res)=>{
+  try{
+    const patch=req.body;
+    if(!patch || typeof patch!=="object" || Array.isArray(patch)){
+      return res.status(400).json({error:"Correctif de configuration invalide"});
+    }
+    const config=readConfig();
+    for(const key of Object.keys(patch)){
+      config[key]=patch[key];
+    }
+    writeConfig(buildConfigOutput(config));
+    res.json({ok:true});
+  }catch(error){
+    console.error("Écriture config (patch):",error);
     res.status(500).json({error:"Écriture de config.json impossible"});
   }
 });
@@ -546,7 +570,7 @@ app.delete("/api/icons/:file",(req,res)=>{
   }
 });
 
-app.use("/icons",express.static(ICONS_DIR,{dotfiles:"deny",index:false}));
+app.use("/icons",express.static(ICONS_DIR,{dotfiles:"deny",index:false,maxAge:"5m"}));
 
 const THEME_REQUIRED_VARS=["bg","surface","surface-2","surface-3","border","text","muted","accent","danger","shadow"];
 const THEME_OPTIONAL_VARS=["success","error"];
@@ -961,12 +985,24 @@ function getProxmoxMetrics(host){
   });
 }
 
-const HOST_METRICS_TTL=8000;
+const HOST_METRICS_TTL=10000;
 let hostMetricsCache={ts:0,payload:null};
+let hostMetricsInflight=null;
 
 app.get("/api/host-metrics",async(_req,res)=>{
   if(hostMetricsCache.payload && Date.now()-hostMetricsCache.ts < HOST_METRICS_TTL){
     return res.set("Cache-Control","no-store").json(hostMetricsCache.payload);
+  }
+
+  // Déduplication des requêtes simultanées : un seul refresh partagé,
+  // les navigateurs concurrents reçoivent la même promesse.
+  if(hostMetricsInflight){
+    try{
+      const payload=await hostMetricsInflight;
+      return res.set("Cache-Control","no-store").json(payload);
+    }catch(_error){
+      return res.status(500).json({error:"Lecture des métriques impossible"});
+    }
   }
 
   let config;
@@ -982,7 +1018,7 @@ app.get("/api/host-metrics",async(_req,res)=>{
 
   const localMetrics=getLocalMetrics();
 
-  const results=await Promise.all(hosts.map(async host=>{
+  const refresh=Promise.all(hosts.map(async host=>{
     try{
       const allowedTypes=["local","linux","proxmox"];
       const type=allowedTypes.includes(host.monitoring?.type) ? host.monitoring.type : "local";
@@ -1012,11 +1048,20 @@ app.get("/api/host-metrics",async(_req,res)=>{
         error:error.message
       };
     }
-  }));
+  })).then(results=>({hosts:results}));
 
-  hostMetricsCache={ts:Date.now(),payload:{hosts:results}};
-  res.set("Cache-Control","no-store");
-  res.json({hosts:results});
+  hostMetricsInflight=refresh;
+  try{
+    const payload=await refresh;
+    hostMetricsCache={ts:Date.now(),payload};
+    res.set("Cache-Control","no-store");
+    res.json(payload);
+  }catch(error){
+    console.error("Refresh métriques:",error);
+    res.status(500).json({error:"Lecture des métriques impossible"});
+  }finally{
+    if(hostMetricsInflight===refresh) hostMetricsInflight=null;
+  }
 });
 
 app.get("/api/status",(_req,res)=>{

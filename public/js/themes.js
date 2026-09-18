@@ -1,7 +1,7 @@
 // Thèmes : chargement natifs/custom, application, import/export/suppression, menu de sélection.
 import { state } from "./state.js";
 import { t } from "./i18n.js";
-import { saveConfig } from "./api.js";
+import { patchConfig } from "./api.js";
 import { themeSelect } from "./dom.js";
 
 const NATIVE_LABEL_KEY={
@@ -112,7 +112,7 @@ export function applyTheme(){
 export function setTheme(nextTheme){
   state.theme=nextTheme;
   applyTheme();
-  saveConfig(true);
+  patchConfig({theme:state.theme});
 }
 
 export function currentTheme(){
@@ -162,7 +162,7 @@ export async function deleteCustomTheme(themeId){
   if(state.theme===themeId) state.theme="dark";
   await reloadThemeState();
   applyTheme();
-  saveConfig(true);
+  patchConfig({theme:state.theme});
 }
 
 async function reloadThemeState(){

@@ -1,7 +1,7 @@
 // Rendu de Dashmon (cartes, groupes, mode d'affichage) et état des boutons du menu.
 import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, DEFAULT_BANNER_URL, DEFAULT_FAVICON, FALLBACK_HOST } from "./state.js";
 import { t } from "./i18n.js";
-import { saveConfig, bumpUsage } from "./api.js";
+import { patchConfig, bumpUsage } from "./api.js";
 import {
   dashboard, searchInput, webLinksSection, webLinksHeader, webLinksList,
   viewBtn, collapseAllBtn, sameTabBtn, newTabBtn, groupCategoryBtn,
@@ -67,7 +67,7 @@ export function setGroupMode(mode){
   state.groupMode=mode==="host" ? "host" : "category";
   updateGroupModeMenu();
   render();
-  saveConfig(true);
+  patchConfig({groupMode:state.groupMode});
 }
 
 export function focusHostGroup(hostName){
@@ -93,7 +93,7 @@ export function focusHostGroup(hostName){
   updateGroupModeMenu();
   render();
   updateCollapseAllButton();
-  saveConfig(true);
+  patchConfig({groupMode:"host",collapsed:state.collapsed});
 }
 
 function createCard(service){
@@ -177,7 +177,7 @@ function createSection(categoryName,categoryServices,groupType="category"){
     state.collapsed[collapseKey]=isCollapsed;
     delete state.collapsed[categoryName];
     updateCollapseAllButton();
-    saveConfig(true);
+    patchConfig({collapsed:state.collapsed});
   });
 
   const body=document.createElement("div");
@@ -231,7 +231,7 @@ function renderWebLinks(){
 webLinksHeader.addEventListener("click",()=>{
   state.webLinksCollapsed=!state.webLinksCollapsed;
   renderWebLinks();
-  saveConfig(true);
+  patchConfig({webLinksCollapsed:state.webLinksCollapsed});
 });
 
 webLinksSection.addEventListener("click",e=>{
@@ -239,7 +239,7 @@ webLinksSection.addEventListener("click",e=>{
   if(e.target.closest("#webLinksHeader")) return;
   state.webLinksCollapsed=!state.webLinksCollapsed;
   renderWebLinks();
-  saveConfig(true);
+  patchConfig({webLinksCollapsed:state.webLinksCollapsed});
 });
 
 function serviceMatchesQuery(service){
