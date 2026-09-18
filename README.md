@@ -18,6 +18,10 @@ in one page, keep an eye on their status, and watch the CPU/RAM of your hosts.
 Node.js / Express server, native ES modules, zero dependency besides Express.
 Runs anywhere Docker runs (amd64 & arm64).
 
+<p align="center">
+  <img src="screenshots/dashboard.png" alt="Dashmon dashboard screenshot" width="800">
+</p>
+
 ## Quick start
 
 ### Docker (recommended)
