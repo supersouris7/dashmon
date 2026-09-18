@@ -910,23 +910,11 @@ function requestJsonMetrics(urlValue,tokenEnv){
   });
 }
 
-function getProxmoxMetrics(host){
+function pveRequest(base,tokenId,tokenSecret,apiPath){
   return new Promise((resolve,reject)=>{
-    const urlValue=(host.monitoring?.url||"").trim();
-    const node=(host.monitoring?.node||"").trim();
-    const tokenId=getEnvValue(host.monitoring?.tokenIdEnv,"PROXMOX_TOKEN_ID")
-      || String(host.monitoring?.tokenId||"").trim();
-    const tokenSecret=getEnvValue(host.monitoring?.tokenSecretEnv,"PROXMOX_TOKEN_SECRET")
-      || String(host.monitoring?.tokenSecret||"").trim();
-
-    if(!urlValue) return reject(new Error("URL Proxmox manquante"));
-    if(!node) return reject(new Error("Nœud Proxmox manquant"));
-    if(!tokenId || !tokenSecret) return reject(new Error("Token Proxmox non configuré"));
-
     let target;
     try{
-      const base=urlValue.replace(/\/+$/,"");
-      target=new URL(`${base}/api2/json/nodes/${encodeURIComponent(node)}/status`);
+      target=new URL(`${base}${apiPath}`);
     }catch(_error){
       return reject(new Error("URL Proxmox invalide"));
     }
@@ -952,22 +940,7 @@ function getProxmoxMetrics(host){
           return reject(new Error(`Proxmox HTTP ${response.statusCode}`));
         }
         try{
-          const payload=JSON.parse(body);
-          const data=payload?.data||{};
-          const cpu=Number(data.cpu)*100;
-          const memory=data.memory||{};
-          const used=Number(memory.used);
-          const total=Number(memory.total);
-          const ram=total>0 ? (used/total)*100 : NaN;
-
-          if(!Number.isFinite(cpu) || !Number.isFinite(ram)){
-            return reject(new Error("Métriques Proxmox incomplètes"));
-          }
-
-          resolve({
-            cpu:Math.max(0,Math.min(100,cpu)),
-            ram:Math.max(0,Math.min(100,ram))
-          });
+          resolve(JSON.parse(body));
         }catch(_error){
           reject(new Error("Réponse Proxmox invalide"));
         }
@@ -978,6 +951,52 @@ function getProxmoxMetrics(host){
     req.on("error",reject);
     req.end();
   });
+}
+
+async function getProxmoxMetrics(host){
+  const urlValue=(host.monitoring?.url||"").trim();
+  let node=(host.monitoring?.node||"").trim();
+  const tokenId=getEnvValue(host.monitoring?.tokenIdEnv,"PROXMOX_TOKEN_ID")
+    || String(host.monitoring?.tokenId||"").trim();
+  const tokenSecret=getEnvValue(host.monitoring?.tokenSecretEnv,"PROXMOX_TOKEN_SECRET")
+    || String(host.monitoring?.tokenSecret||"").trim();
+
+  if(!urlValue) throw new Error("URL Proxmox manquante");
+  if(!tokenId || !tokenSecret) throw new Error("Token Proxmox non configuré");
+
+  const base=urlValue.replace(/\/+$/,"");
+
+  // Nœud auto-détecté : le champ n'est plus demandé dans l'éditeur. Premier
+  // nœud en ligne, repli sur "pve" si jamais la détection échoue.
+  if(!node){
+    try{
+      const list=await pveRequest(base,tokenId,tokenSecret,"/api2/json/nodes");
+      const online=(list?.data||[]).filter(entry=>entry?.status==="online");
+      node=online.length ? String(online[0].node||"").trim() : "";
+    }catch(_error){
+      node="";
+    }
+  }
+  if(!node) node="pve";
+
+  const payload=await pveRequest(base,tokenId,tokenSecret,
+    `/api2/json/nodes/${encodeURIComponent(node)}/status`);
+
+  const data=payload?.data||{};
+  const cpu=Number(data.cpu)*100;
+  const memory=data.memory||{};
+  const used=Number(memory.used);
+  const total=Number(memory.total);
+  const ram=total>0 ? (used/total)*100 : NaN;
+
+  if(!Number.isFinite(cpu) || !Number.isFinite(ram)){
+    throw new Error("Métriques Proxmox incomplètes");
+  }
+
+  return {
+    cpu:Math.max(0,Math.min(100,cpu)),
+    ram:Math.max(0,Math.min(100,ram))
+  };
 }
 
 const HOST_METRICS_TTL=10000;

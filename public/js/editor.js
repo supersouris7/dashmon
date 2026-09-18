@@ -449,13 +449,11 @@ export function renderHostEditor(){
       if(currentType==="proxmox"){
         url.placeholder=t("proxmoxUrl");
         url.title=t("proxmoxUrl");
-        node.placeholder=t("proxmoxNode");
-        node.title=t("proxmoxNode");
         tokenIdEnv.placeholder=t("proxmoxTokenIdEnv");
         tokenIdEnv.title=t("proxmoxTokenIdEnv");
         tokenSecretEnv.placeholder=t("proxmoxTokenSecretEnv");
         tokenSecretEnv.title=t("proxmoxTokenSecretEnv");
-        params.append(url,node);
+        params.appendChild(url);
         auth.append(tokenIdEnv,tokenSecretEnv);
         return;
       }
