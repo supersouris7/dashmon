@@ -465,17 +465,14 @@ select,
 
 .service-status.up{
   color:var(--success,#3cf59b);
-  filter:drop-shadow(0 0 1px rgba(60,245,155,.35));
 }
 
 .service-status.down{
   color:var(--error,#ff4d6d);
-  filter:drop-shadow(0 0 1px rgba(255,77,109,.35));
 }
 
 .service-status.soft{
   color:var(--warning,#f5c542);
-  filter:drop-shadow(0 0 1px rgba(245,197,66,.35));
 }
 
 .service-status.pending{opacity:.55}
@@ -495,7 +492,7 @@ select,
 }
 
 .monitor-toggle.active{color:var(--text)}
-.monitor-toggle.soft{color:var(--warning,#f5c542)}
+.monitor-toggle.soft{color:var(--text);opacity:.85}
 
 @media (max-width:700px){
   .service-row{

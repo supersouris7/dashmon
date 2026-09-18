@@ -221,7 +221,7 @@ export function renderServiceEditor(){
     monitor.title=service.monitor===false
       ? t("monitorDisabled")
       : service.monitor==="soft" ? t("monitorSoft") : t("monitorEnabled");
-    monitor.innerHTML='<i class="fa-solid fa-heart-pulse"></i>';
+    monitor.innerHTML='<i class="fa-solid fa-eye"></i>';
     monitor.addEventListener("click",()=>{
       const current=state.editServices[index].monitor;
       state.editServices[index].monitor=current===false ? true : current==="soft" ? false : "soft";
