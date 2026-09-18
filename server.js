@@ -431,6 +431,28 @@ app.put("/api/config",(req,res)=>{
   }
 });
 
+// Incrément du compteur d'utilisation depuis un clic. Route légère (petit corps)
+// compatible avec la navigation de page (sendBeacon/keepalive) ; écriture
+// synchrone pour rester atomique face aux PUT /api/config simultanés.
+app.post("/api/usage",(req,res)=>{
+  try{
+    const key=req.body && typeof req.body.key==="string" ? req.body.key.trim() : "";
+    if(!key || key.length>200) return res.status(400).json({error:"Clé invalide"});
+
+    const config=readConfig();
+    config.usageCounts=config.usageCounts && typeof config.usageCounts==="object" && !Array.isArray(config.usageCounts)
+      ? config.usageCounts : {};
+    const n=Number(config.usageCounts[key]);
+    config.usageCounts[key]=Number.isFinite(n)&&n>=0 ? Math.floor(n)+1 : 1;
+
+    fs.writeFileSync(CONFIG_FILE,JSON.stringify(config,null,2)+"\n","utf8");
+    res.json({ok:true});
+  }catch(error){
+    console.error("Incrément usage:",error);
+    res.status(500).json({error:"Incrément du compteur impossible"});
+  }
+});
+
 app.get("/api/icons",(_req,res)=>{
   try{
     fs.mkdirSync(ICONS_DIR,{recursive:true});
@@ -670,23 +692,8 @@ const statusCache = {};
 const STATUS_INTERVAL = 60000;
 const STATUS_TIMEOUT = 4000;
 
-function checkService(service){
+function makeProbe(target, identity){
   return new Promise(resolve=>{
-    if(!service.url || service.monitor===false) return resolve();
-
-    let target;
-    try{
-      target=new URL(service.url);
-    }catch(_error){
-      statusCache[service.url]={state:"down",ms:0,error:"URL invalide"};
-      return resolve();
-    }
-
-    if(target.protocol!=="http:" && target.protocol!=="https:"){
-      statusCache[target.href]={state:"down",ms:0,error:"Protocole non supporté"};
-      return resolve();
-    }
-
     const client=target.protocol==="https:" ? https : http;
     const started=Date.now();
 
@@ -698,32 +705,68 @@ function checkService(service){
       family:4,
       headers:{
         "User-Agent":"Dashmon-Status/1.0",
-        "Connection":"close"
+        "Connection":"close",
+        "Host":identity.host
       }
     };
+    if(target.protocol==="https:") options.servername=identity.hostname;
 
     const req=client.request(target,options,res=>{
       res.resume();
-      statusCache[target.href]={
-        state:"up",
-        ms:Date.now()-started,
-        code:res.statusCode
-      };
-      resolve();
+      resolve({ok:true,ms:Date.now()-started,code:res.statusCode});
     });
 
     req.on("timeout",()=>req.destroy(new Error("timeout")));
-    req.on("error",error=>{
-      statusCache[target.href]={
-        state:"down",
-        ms:Date.now()-started,
-        error:error.message==="timeout" ? "timeout" : error.message
-      };
-      resolve();
-    });
+    req.on("error",error=>
+      resolve({ok:false,ms:Date.now()-started,error:error.message==="timeout" ? "timeout" : error.message}));
 
     req.end();
   });
+}
+
+async function checkService(service){
+  if(!service.url || service.monitor===false) return;
+
+  let target;
+  try{
+    target=new URL(service.url);
+  }catch(_error){
+    statusCache[service.url]={state:"down",ms:0,error:"URL invalide"};
+    return;
+  }
+
+  if(target.protocol!=="http:" && target.protocol!=="https:"){
+    statusCache[target.href]={state:"down",ms:0,error:"Protocole non supporté"};
+    return;
+  }
+
+  const identity={host:target.host,hostname:target.hostname};
+  const first=await makeProbe(target,identity);
+
+  if(first.ok){
+    statusCache[target.href]={state:"up",ms:first.ms,code:first.code};
+    return;
+  }
+
+  // Repli loopback : contourne le hairpin NAT quand Dashmon et nginx sont sur
+  // la même machine (le check direct vers l'IP publique échoue côté serveur).
+  const hostname=target.hostname.toLowerCase();
+  if(hostname!=="localhost" && hostname!=="127.0.0.1" && hostname!=="::1"){
+    try{
+      const local=new URL(target.href);
+      local.hostname="127.0.0.1";
+      const retry=await makeProbe(local,identity);
+      if(retry.ok){
+        statusCache[target.href]={state:"up",ms:retry.ms,code:retry.code,via:"loopback"};
+        return;
+      }
+    }catch(_error){}
+  }
+
+  if(statusCache[target.href]?.state!=="down"){
+    console.warn(`${ts()} Status DOWN ${service.url} — ${first.error||"aucune réponse"}`);
+  }
+  statusCache[target.href]={state:"down",ms:first.ms,error:first.error};
 }
 
 async function refreshStatuses(){

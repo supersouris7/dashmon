@@ -62,3 +62,25 @@ export async function putConfig(body){
   });
   if(!response.ok) throw new Error("HTTP "+response.status);
 }
+
+// Compteur de clics : incrément local + persistance légère compatible
+// navigation de page (le gros PUT /api/config est interrompu au clic).
+export function bumpUsage(key){
+  if(!key) return;
+  state.usageCounts[key]=Number(state.usageCounts[key]||0)+1;
+  const payload=JSON.stringify({key});
+  try{
+    if(typeof navigator!=="undefined" && navigator.sendBeacon){
+      navigator.sendBeacon("/api/usage",new Blob([payload],{type:"application/json"}));
+    }else{
+      fetch("/api/usage",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:payload,
+        keepalive:true
+      }).catch(()=>{});
+    }
+  }catch(_error){
+    saveConfig(true);
+  }
+}

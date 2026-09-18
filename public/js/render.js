@@ -1,7 +1,7 @@
 // Rendu de Dashmon (cartes, groupes, mode d'affichage) et état des boutons du menu.
 import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, DEFAULT_BANNER_URL, DEFAULT_FAVICON } from "./state.js";
 import { t } from "./i18n.js";
-import { saveConfig } from "./api.js";
+import { saveConfig, bumpUsage } from "./api.js";
 import {
   dashboard, searchInput, webLinksSection, webLinksHeader, webLinksList,
   viewBtn, collapseAllBtn, sameTabBtn, newTabBtn, groupCategoryBtn,
@@ -97,11 +97,7 @@ function createCard(service){
   if(!service.url){
     card.addEventListener("click",e=>e.preventDefault());
   }else{
-    card.addEventListener("click",()=>{
-      const key=serviceUsageKey(service);
-      state.usageCounts[key]=Number(state.usageCounts[key]||0)+1;
-      saveConfig(true);
-    });
+    card.addEventListener("click",()=>bumpUsage(serviceUsageKey(service)));
   }
   if(state.openMode==="new"){
     card.target="_blank";
