@@ -1,6 +1,6 @@
 services:
   dashmon:
-    build: .
+    image: supersouris7/dashmon:latest
     container_name: dashmon
     restart: unless-stopped
     ports:

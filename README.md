@@ -47,6 +47,9 @@ npm install
 npm start
 ```
 
+Maintainers: see [deploy/MAINTAINER.md](deploy/MAINTAINER.md) for building and
+publishing Docker images.
+
 ## First steps
 
 1. Open the dashboard, click **Edit Dashmon** to add your own services
