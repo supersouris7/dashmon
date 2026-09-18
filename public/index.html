@@ -17,7 +17,14 @@
 </style>
 
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
+<script>
+(function(){
+  var link=document.createElement("link");
+  link.rel="stylesheet";
+  link.href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css";
+  document.head.appendChild(link);
+})();
+</script>
 <noscript>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 </noscript>
