@@ -131,7 +131,7 @@ export const DEFAULT_SERVICES = [
   {name:"AdGuard Home",host:"Linux",category:"Infrastructure",url:"http://adguard.local",icon:"icons/adguard-home.png",monitor:true},
   {name:"Jellyfin",host:"Serveur",category:"Applications",url:"http://jellyfin.local",icon:"icons/jellyfin.png",monitor:true},
   {name:"Home Assistant",host:"Serveur",category:"Applications",url:"http://homeassistant.local",icon:"icons/home-assistant.png",monitor:true},
-  {name:"Routeur",host:"",category:"Administration",url:"http://192.168.1.1",icon:"icons/router.png",monitor:true}
+  {name:"Routeur",host:"",category:"Administration",url:"http://router.local",icon:"icons/router.png",monitor:true}
 ];
 
 export const DEFAULT_WEB_LINKS=[
@@ -267,7 +267,7 @@ export function normalizeConfig(cfg={}){
       category:sanitizeText(svc.category,100),
       url:sanitizeUrl(svc.url),
       icon:sanitizeImagePath(svc.icon),
-      monitor:svc.monitor===false ? false : true
+      monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true
     })),
     categories:(Array.isArray(cfg.categories) ? clone(cfg.categories) : clone(DEFAULT_CATEGORIES))
       .map(cat=>({

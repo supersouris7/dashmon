@@ -27,9 +27,23 @@ function safeHref(url){
   return /^https?:\/\//.test(url) ? url : "#";
 }
 
-function statusTitle(info){
+function effectiveStatus(monitor, info){
+  const state=(info&&info.state)||"pending";
+  return monitor==="soft" && state==="down" ? "soft" : state;
+}
+
+function statusIcon(state){
+  if(state==="up") return "fa-regular fa-circle-check";
+  if(state==="soft") return "fa-solid fa-circle-exclamation";
+  if(state==="down") return "fa-regular fa-circle-xmark";
+  return "fa-regular fa-circle";
+}
+
+function statusTitle(monitor, info){
   if(!info) return t("statusPending");
-  if(info.state==="up") return `${t("statusUp")} · ${info.ms} ms`;
+  const state=effectiveStatus(monitor, info);
+  if(state==="up") return `${t("statusUp")} · ${info.ms} ms`;
+  if(state==="soft") return `${t("statusSoftDown")} · ${info.error||t("statusNoResponse")}`;
   return `${t("statusDown")} · ${info.error||t("statusNoResponse")}`;
 }
 
@@ -137,15 +151,13 @@ function createCard(service){
 
   if(service.monitor!==false && service.url){
     const status=document.createElement("span");
-    const serviceState=state.serviceStatus[service.url]?.state || "pending";
+    const serviceState=effectiveStatus(service.monitor, state.serviceStatus[service.url]);
     status.className=`service-status ${serviceState}`;
     status.dataset.url=service.url;
-    status.title=statusTitle(state.serviceStatus[service.url]);
+    if(service.monitor==="soft") status.dataset.soft="1";
+    status.title=statusTitle(service.monitor, state.serviceStatus[service.url]);
     const icon=document.createElement("i");
-    icon.className=serviceState==="up"
-      ? "fa-regular fa-circle-check"
-      : serviceState==="down" ? "fa-regular fa-circle-xmark"
-      : "fa-regular fa-circle";
+    icon.className=statusIcon(serviceState);
     status.appendChild(icon);
     card.appendChild(status);
   }
@@ -364,15 +376,11 @@ export function updateStatusIndicators(){
   document.querySelectorAll(".service-status[data-url]").forEach(status=>{
     const info=state.serviceStatus[status.dataset.url];
     if(!info) return;
-    const serviceState=info.state||"pending";
+    const monitor=status.dataset.soft==="1" ? "soft" : "full";
+    const serviceState=effectiveStatus(monitor, info);
     status.className=`service-status ${serviceState}`;
     const icon=status.querySelector("i");
-    if(icon){
-      icon.className=serviceState==="up"
-        ? "fa-regular fa-circle-check"
-        : serviceState==="down" ? "fa-regular fa-circle-xmark"
-        : "fa-regular fa-circle";
-    }
-    status.title=statusTitle(state.serviceStatus[status.dataset.url]);
+    if(icon) icon.className=statusIcon(serviceState);
+    status.title=statusTitle(monitor, info);
   });
 }

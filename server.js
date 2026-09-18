@@ -342,7 +342,7 @@ function buildConfigOutput(config){
             category:sanitizeText(svc.category,100),
             url:sanitizeUrl(svc.url),
             icon:sanitizeImagePath(svc.icon),
-            monitor:svc.monitor===false ? false : true
+            monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true
           }))
         : [],
       categories:Array.isArray(config.categories)

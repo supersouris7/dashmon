@@ -216,12 +216,15 @@ export function renderServiceEditor(){
     iconField.append(chooseIcon);
 
     const monitor=document.createElement("button");
-    monitor.className=`monitor-toggle ${service.monitor!==false ? "active" : ""}`;
+    monitor.className=`monitor-toggle ${service.monitor!==false ? "active" : ""} ${service.monitor==="soft" ? "soft" : ""}`;
     monitor.type="button";
-    monitor.title=service.monitor!==false ? t("monitorEnabled") : t("monitorDisabled");
+    monitor.title=service.monitor===false
+      ? t("monitorDisabled")
+      : service.monitor==="soft" ? t("monitorSoft") : t("monitorEnabled");
     monitor.innerHTML='<i class="fa-solid fa-heart-pulse"></i>';
     monitor.addEventListener("click",()=>{
-      state.editServices[index].monitor=state.editServices[index].monitor===false;
+      const current=state.editServices[index].monitor;
+      state.editServices[index].monitor=current===false ? true : current==="soft" ? false : "soft";
       renderServiceEditor();
     });
 
@@ -731,7 +734,7 @@ saveBtn.addEventListener("click",async()=>{
       category:validNames.has(service.category) ? service.category : (cleanedCategories[0]?.name||"Autres"),
       url:(service.url||"").trim(),
       icon:(service.icon||"").trim(),
-      monitor:service.monitor!==false
+      monitor:service.monitor===false ? false : service.monitor==="soft" ? "soft" : true
     }))
     .filter(service=>service.name);
 

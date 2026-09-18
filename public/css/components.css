@@ -473,6 +473,11 @@ select,
   filter:drop-shadow(0 0 1px rgba(255,77,109,.35));
 }
 
+.service-status.soft{
+  color:var(--warning,#f5c542);
+  filter:drop-shadow(0 0 1px rgba(245,197,66,.35));
+}
+
 .service-status.pending{opacity:.55}
 
 .monitor-toggle{
@@ -490,6 +495,7 @@ select,
 }
 
 .monitor-toggle.active{color:var(--text)}
+.monitor-toggle.soft{color:var(--warning,#f5c542)}
 
 @media (max-width:700px){
   .service-row{
