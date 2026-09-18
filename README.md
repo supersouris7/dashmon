@@ -62,6 +62,9 @@ Config, icons and themes are persisted in `dashmon-data` (`/app/data`) —
 backup that volume and you're done. `config.json` only contains public sample
 data; all API tokens are referenced by environment variable, see `.env.example`.
 
+Full customization guide (create your own themes, import icons):
+[CUSTOMIZATION.md](CUSTOMIZATION.md).
+
 > Monitoring URLs that use LAN names (`portainer.lan`, …): Docker's DNS does
 > not know your LAN DNS by default. Give the container your resolver or hosts —
 > see the [DNS section](deploy/DEPLOYMENT.md#lan-domains-lan-local-and-status-monitoring).
