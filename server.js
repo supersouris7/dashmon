@@ -966,18 +966,25 @@ async function getProxmoxMetrics(host){
 
   const base=urlValue.replace(/\/+$/,"");
 
-  // Nœud auto-détecté : le champ n'est plus demandé dans l'éditeur. Premier
-  // nœud en ligne, repli sur "pve" si jamais la détection échoue.
-  if(!node){
+  const listProxmoxNodes=async()=>{
     try{
       const list=await pveRequest(base,tokenId,tokenSecret,"/api2/json/nodes");
-      const online=(list?.data||[]).filter(entry=>entry?.status==="online");
-      node=online.length ? String(online[0].node||"").trim() : "";
+      return list?.data||[];
     }catch(_error){
-      node="";
+      return null;
     }
-  }
-  if(!node) node="pve";
+  };
+
+  // Nœud auto-détecté : le champ n'est plus demandé dans l'éditeur. Premier
+  // nœud en ligne (repli sur "pve") ; un nœud configuré d'anciennes versions
+  // qui n'existe plus (renommé/supprimé) est ignoré au profit du premier en ligne.
+  const nodes=await listProxmoxNodes();
+  const online=(nodes||[]).filter(entry=>entry?.status==="online");
+  const configured=node && (nodes||[]).some(entry=>String(entry.node||"")===node)
+    ? node : "";
+  node=configured
+    || (online.length ? String(online[0].node||"").trim() : "")
+    || "pve";
 
   const payload=await pveRequest(base,tokenId,tokenSecret,
     `/api2/json/nodes/${encodeURIComponent(node)}/status`);
