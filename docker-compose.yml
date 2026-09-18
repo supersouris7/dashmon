@@ -27,7 +27,7 @@ services:
     # Si vos services ne sont pas joignables par nom depuis le conteneur
     # (Docker ne connaît pas votre DNS LAN), pointez vers votre résolveur :
     #   dns:
-    #     - 192.168.1.16
+    #     - 192.168.1.254
 
 volumes:
   dashmon-data:

@@ -62,26 +62,25 @@ and enable `client_max_body_size` in nginx for image imports.
 
 Status checks run *inside* the container. Docker's embedded DNS only forwards to
 the resolvers configured on the host, so names that exist only on your LAN DNS
-(`portainer.lan`, `proxmox.lan`…) often fail with `getaddrinfo ENOTFOUND`.
+(e.g. `service.lan`) often fail with `getaddrinfo ENOTFOUND`.
 
 If your monitored URLs use local names:
 
-1. Find your LAN DNS server (e.g. `nslookup machines.lan` on another machine).
-2. Point the container to it in `docker-compose.yml`:
+1. Find your LAN DNS server (e.g. `nslookup mymachine.lan` on another machine).
+2. Point the container DNS to it in `docker-compose.yml`:
 
 ```yaml
     dns:
-      - 192.168.1.16
+      - 192.168.1.254
 ```
 
-3. `docker compose up -d` and check the status pills turn green.
+3. Restart (`docker compose up -d`) and check the status pills turn green.
 
 Without a LAN DNS that knows the names, add explicit `extra_hosts` entries instead:
 
 ```yaml
     extra_hosts:
-      - "portainer.lan:192.168.1.104"
-      - "proxmox.lan:192.168.1.40"
+      - "app.lan:192.168.1.10"
 ```
 
 Checks connect to your LAN directly (over the bridge network), so make sure the

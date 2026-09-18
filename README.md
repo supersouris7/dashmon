@@ -68,7 +68,7 @@ private).
 Full customization guide (create your own themes, import icons):
 [CUSTOMIZATION.md](CUSTOMIZATION.md).
 
-> Monitoring URLs that use LAN names (`portainer.lan`, …): Docker's DNS does
+> Monitoring URLs that use LAN names (e.g. `service.lan`): Docker's DNS does
 > not know your LAN DNS by default. Give the container your resolver or hosts —
 > see the [DNS section](deploy/DEPLOYMENT.md#lan-domains-lan-local-and-status-monitoring).
 
