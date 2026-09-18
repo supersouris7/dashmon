@@ -1,5 +1,5 @@
 // Rendu de Dashmon (cartes, groupes, mode d'affichage) et état des boutons du menu.
-import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, DEFAULT_BANNER_URL, DEFAULT_FAVICON } from "./state.js";
+import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, DEFAULT_BANNER_URL, DEFAULT_FAVICON, FALLBACK_HOST } from "./state.js";
 import { t } from "./i18n.js";
 import { saveConfig, bumpUsage } from "./api.js";
 import {
@@ -73,10 +73,10 @@ export function focusHostGroup(hostName){
 
   const hostNames=new Set([
     ...state.hosts.map(host=>host.name),
-    t("noHost")
+    FALLBACK_HOST
   ]);
   state.services.forEach(service=>{
-    hostNames.add((service.host||"").trim() || t("noHost"));
+    hostNames.add((service.host||"").trim() || FALLBACK_HOST);
   });
 
   hostNames.forEach(name=>{
@@ -167,7 +167,7 @@ function createSection(categoryName,categoryServices,groupType="category"){
     <span class="category-name"></span>
     <i class="fa-solid fa-chevron-down chevron"></i>
   `;
-  header.querySelector(".category-name").textContent=categoryName;
+  header.querySelector(".category-name").textContent=groupLabel(categoryName);
 
   header.addEventListener("click",()=>{
     const isCollapsed=section.classList.toggle("collapsed");
@@ -244,7 +244,11 @@ function serviceMatchesQuery(service){
 }
 
 function groupFallbackName(){
-  return state.groupMode==="host" ? t("noHost") : "Autres";
+  return state.groupMode==="host" ? FALLBACK_HOST : "Autres";
+}
+
+function groupLabel(name){
+  return state.groupMode==="host" && name===FALLBACK_HOST ? t("noHost") : name;
 }
 
 function getVisibleGroupNames(){
@@ -301,7 +305,7 @@ export function render(){
 
   if(state.groupMode==="host"){
     sortGroupNames(getVisibleGroupNames()).forEach(hostName=>{
-      const items=filtered.filter(s=>((s.host||"").trim()||t("noHost"))===hostName);
+      const items=filtered.filter(s=>((s.host||"").trim()||FALLBACK_HOST)===hostName);
       dashboard.appendChild(createSection(hostName,items,"host"));
     });
   }else{

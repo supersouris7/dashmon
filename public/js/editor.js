@@ -1,8 +1,8 @@
 // Éditeur de configuration : services, catégories, hôtes, liens web, import/export config.
 import { state, clone, normalize, normalizeConfig, compareNames } from "./state.js";
-import { t } from "./i18n.js";
+import { t, applyLanguage } from "./i18n.js";
 import { saveConfig, putConfig, fetchConfig } from "./api.js";
-import { render, updateViewButton, updateOpenModeMenu, updateGroupModeMenu, applyBanner, applyFavicon } from "./render.js";
+import { render, updateViewButton, updateOpenModeMenu, updateGroupModeMenu, updateSortModeMenu, applyBanner, applyFavicon } from "./render.js";
 import { applyTheme } from "./themes.js";
 import { refreshHostMetrics } from "./metrics.js";
 import { openImageLibrary, renderImageManager } from "./images.js";
@@ -619,6 +619,11 @@ configImportInput.addEventListener("change",async()=>{
     state.openMode=imported.openMode;
     state.groupMode=imported.groupMode;
     state.theme=imported.theme;
+    state.language=imported.language;
+    state.sortMode=imported.sortMode;
+    state.usageCounts={...imported.usageCounts};
+    state.webLinks=clone(imported.webLinks);
+    state.webLinksCollapsed=imported.webLinksCollapsed;
     state.smallIcons=imported.smallIcons;
     state.hostsDisplay=imported.hostsDisplay;
     state.bannerIcon=imported.bannerIcon;
@@ -628,16 +633,20 @@ configImportInput.addEventListener("change",async()=>{
     state.editServices=clone(state.services);
     state.editCategories=clone(state.categories);
     state.editHosts=clone(state.hosts);
+    state.editWebLinks=clone(state.webLinks);
 
     applyTheme();
     applyBanner();
     applyFavicon();
+    applyLanguage();
     updateViewButton();
     updateOpenModeMenu();
     updateGroupModeMenu();
+    updateSortModeMenu();
     renderServiceEditor();
     renderCategoryEditor();
     renderHostEditor();
+    renderWebLinksEditor();
     render();
     refreshHostMetrics();
   }catch(error){

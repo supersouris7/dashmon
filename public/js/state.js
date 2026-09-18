@@ -144,6 +144,10 @@ export const DEFAULT_WEB_LINKS=[
 export const DEFAULT_BANNER_URL="https://github.com/supersouris7";
 export const DEFAULT_FAVICON="/logo.png";
 
+// Libellé stable (indépendant de la langue) pour le groupe des services sans
+// hôte : les clefs collapsed reposent dessus. Affiché via t("noHost").
+export const FALLBACK_HOST="Sans hôte";
+
 export const state = {
   services: [],
   categories: [],
@@ -224,10 +228,29 @@ function sanitizeImagePath(p) {
   return m ? `icons/${m[1]}.png` : "";
 }
 
+// Doit rester identique à server.js (sanitizeFavicon) pour éviter des
+// divergences à l'enregistrement (le serveur écraserait sinon le champ).
+export const MAX_FAVICON_BYTES=350000;
+
 function sanitizeFavicon(value){
   const s=String(value||"").trim();
-  if(!s || s.length>700000) return "";
+  if(!s || s.length>MAX_FAVICON_BYTES) return "";
   return /^data:image\/[a-z0-9.+-]+;base64,[a-z0-9+/=]+$/i.test(s) ? s : "";
+}
+
+function normalizeCollapsed(collapsed){
+  if(!collapsed || typeof collapsed!=="object" || Array.isArray(collapsed)) return {};
+  const out={...collapsed};
+  // Nettoyage legacy : les clefs sans préfixe (category:X, host:X tels quels)
+  // sont dupliquées par les clefs préfixées qui priment ; on les retire.
+  for(const key of Object.keys(out)){
+    if(!key.startsWith("category:") && !key.startsWith("host:")){
+      if(out[`category:${key}`]!==undefined || out[`host:${key}`]!==undefined){
+        delete out[key];
+      }
+    }
+  }
+  return out;
 }
 
 export function normalizeConfig(cfg={}){
@@ -269,7 +292,7 @@ export function normalizeConfig(cfg={}){
           ...host,
           monitoring:host.monitoring || {enabled:false,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""}
         })),
-    collapsed:cfg.collapsed && typeof cfg.collapsed==="object" && !Array.isArray(cfg.collapsed) ? cfg.collapsed : {},
+    collapsed:normalizeCollapsed(cfg.collapsed),
     viewMode:["rows","columns","plain"].includes(cfg.viewMode) ? cfg.viewMode : "columns",
     openMode:cfg.openMode==="new" ? "new" : "same",
     groupMode:cfg.groupMode==="host" ? "host" : "category",
