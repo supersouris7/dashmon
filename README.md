@@ -108,5 +108,5 @@ purposes, provided you keep the copyright notice.
 If you use Dashmon and would like to support its development:
 
 <p align="center">
-  <a href="https://github.com/sponsors/supersouris7">♥ Support the project on GitHub Sponsors</a>
+  <a href="https://ko-fi.com/dashmon">♥ Support the project on Ko-fi</a>
 </p>
