@@ -327,8 +327,7 @@ document.addEventListener("keydown",e=>{
 
 async function init(){
   try{
-    await loadThemes();
-    await loadConfig();
+    await Promise.all([loadThemes(),loadConfig()]);
     setupVisibilityPause();
     startStatusLoop();
   }finally{
