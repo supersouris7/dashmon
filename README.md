@@ -70,7 +70,7 @@ Full customization guide (create your own themes, import icons):
 
 > Monitoring URLs that use LAN names (e.g. `service.lan`): Docker's DNS does
 > not know your LAN DNS by default. Give the container your resolver or hosts —
-> see the [DNS section](deploy/DEPLOYMENT.md#lan-domains-lan-local-and-status-monitoring).
+> see the [DNS section](deploy/DEPLOYMENT.md#6-monitoring-lan-domains-lan-local).
 
 ## Icons
 

@@ -214,7 +214,7 @@ const UI_TEXT={
     hostTypeLocal:"Local",
     hostTypeLinux:"Linux",
     hostTypeProxmox:"Proxmox",
-    proxmoxUrl:"Proxmox URL (e.g. https://proxmox.lan:8006)",
+    proxmoxUrl:"Proxmox URL (e.g. https://pve.example.com:8006)",
     metricsUrl:"Linux JSON metrics URL (e.g. http://linux.local/metrics)",
     bearerTokenEnv:"Bearer token environment variable (optional)",
     proxmoxTokenIdEnv:"Token ID: paste the value or env. var name (default PROXMOX_TOKEN_ID)",

@@ -71,7 +71,7 @@ If your monitored URLs use local names:
 
 ```yaml
     dns:
-      - 192.168.1.254
+      - 192.0.2.53
 ```
 
 3. Restart (`docker compose up -d`) and check the status pills turn green.
@@ -80,7 +80,7 @@ Without a LAN DNS that knows the names, add explicit `extra_hosts` entries inste
 
 ```yaml
     extra_hosts:
-      - "app.lan:192.168.1.10"
+      - "app.lan:192.0.2.10"
 ```
 
 Checks connect to your LAN directly (over the bridge network), so make sure the
