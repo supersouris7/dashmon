@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashmon</title>
+<link id="faviconLink" rel="icon" href="/logo.png">
+<noscript><style>body{opacity:1 !important}</style></noscript>
+
+<style>
+  html{background:#101418}
+  body{opacity:0}
+  body.app-ready{opacity:1;animation:appFade .18s ease}
+  @keyframes appFade{from{opacity:0}to{opacity:1}}
+  .modal-backdrop,.image-library{display:none}
+  @media (prefers-reduced-motion:reduce){body.app-ready{animation:none}}
+</style>
+
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/editor.css">
+<link rel="stylesheet" href="css/components.css">
+
+<script>
+(function(){
+  var docEl=document.documentElement;
+  try{
+    var theme=localStorage.getItem("dashmon.theme");
+    if(theme) docEl.setAttribute("data-theme",theme);
+    var vars=localStorage.getItem("dashmon.themeVars");
+    if(vars){
+      var preload=document.createElement("style");
+      preload.textContent=":root{"+vars+"}";
+      document.head.appendChild(preload);
+    }
+  }catch(e){}
+  function reveal(){if(document.body) document.body.classList.add("app-ready")}
+  window.addEventListener("error",reveal);
+  setTimeout(reveal,4000);
+})();
+</script>
+</head>
+
+<body>
+<main>
+  <div class="toolbar">
+    <a id="appLogoLink" class="app-logo" href="https://github.com/supersouris7" target="_blank" rel="noopener" title="Dashmon">
+      <img id="appLogoImg" src="/logo.png" alt="Dashmon">
+    </a>
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input id="search" class="search" type="search" placeholder="Rechercher une application..." autocomplete="off">
+    </div>
+
+    <div id="hostMetrics" class="host-metrics" aria-live="polite"></div>
+
+    <button id="viewBtn" class="icon-btn" type="button" title="Affichage en lignes">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <button id="collapseAllBtn" class="icon-btn" type="button" title="Tout plier" aria-label="Tout plier">
+      <i class="fa-solid fa-angles-up"></i>
+    </button>
+
+    <div class="top-menu-wrap">
+      <button id="moreBtn" class="icon-btn" type="button" title="Plus d’options" aria-expanded="false" aria-haspopup="menu" aria-controls="topMenu">
+        <i class="fa-solid fa-ellipsis-vertical"></i>
+      </button>
+
+      <div id="topMenu" class="top-menu" role="menu">
+        <div class="top-menu-label">Ouverture des liens</div>
+        <button class="top-menu-item" id="sameTabBtn" type="button">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+          <span>Même onglet</span>
+          <i class="fa-solid fa-check menu-check"></i>
+        </button>
+        <button class="top-menu-item" id="newTabBtn" type="button">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          <span>Nouvel onglet</span>
+          <i class="fa-solid fa-check menu-check"></i>
+        </button>
+        <div class="top-menu-separator"></div>
+        <div class="top-menu-label">Regrouper par</div>
+        <button class="top-menu-item" id="groupCategoryBtn" type="button">
+          <i class="fa-solid fa-folder-tree"></i><span>Catégorie</span><i class="fa-solid fa-check menu-check"></i>
+        </button>
+        <button class="top-menu-item" id="groupHostBtn" type="button">
+          <i class="fa-solid fa-server"></i><span>Hôte</span><i class="fa-solid fa-check menu-check"></i>
+        </button>
+        <div class="top-menu-separator"></div>
+        <div class="top-menu-label" id="sortMenuLabel">Tri</div>
+        <button class="top-menu-item" id="sortAlphabeticalBtn" type="button">
+          <i class="fa-solid fa-arrow-down-a-z"></i><span>Alphabétique</span><i class="fa-solid fa-check menu-check"></i>
+        </button>
+        <button class="top-menu-item" id="sortUsageBtn" type="button">
+          <i class="fa-solid fa-arrow-trend-up"></i><span>Par utilisation</span><i class="fa-solid fa-check menu-check"></i>
+        </button>
+
+        <div class="top-menu-separator"></div>
+        <button class="top-menu-item" id="menuEditBtn" type="button">
+          <i class="fa-solid fa-pen"></i>
+          <span>Modifier Dashmon</span>
+          <span></span>
+        </button>
+        <button class="top-menu-item" id="menuAppearanceBtn" type="button">
+          <i class="fa-solid fa-palette"></i>
+          <span>Modifier le thème</span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <section id="webLinksSection" class="web-links-section">
+  <button id="webLinksHeader" class="web-links-header" type="button" title="Replier les liens" aria-label="Replier les liens"><i class="fa-solid fa-chevron-down chevron"></i></button>
+  <div class="web-links-body">
+    <div class="web-links-inner">
+      <div id="webLinksList" class="web-links-list"></div>
+    </div>
+  </div>
+</section>
+
+<div id="dashboard" data-view="columns"></div>
+</main>
+
+<div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
+    <div class="modal-header">
+      <div id="editorTitle" class="modal-title">Modifier Dashmon</div>
+      <button id="closeBtn" class="modal-close" type="button" title="Fermer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="edit-tabs">
+      <button class="edit-tab active" type="button" data-panel="servicesPanel">
+        <i class="fa-solid fa-cubes"></i>&nbsp; <span id="editorTabApplications">Applications</span>
+      </button>
+      <button class="edit-tab" type="button" data-panel="categoriesPanel">
+        <i class="fa-solid fa-folder-tree"></i>&nbsp; <span id="editorTabCategories">Catégories</span>
+      </button>
+      <button class="edit-tab" type="button" data-panel="hostsPanel">
+        <i class="fa-solid fa-server"></i>&nbsp; <span id="editorTabHosts">Hôtes</span>
+      </button>
+      <button class="edit-tab" type="button" data-panel="webLinksPanel">
+        <i class="fa-solid fa-globe"></i>&nbsp; <span id="editorTabWebLinks">Liens web</span>
+      </button>
+      <button class="edit-tab" type="button" data-panel="imagesPanel">
+        <i class="fa-regular fa-images"></i>&nbsp; <span id="editorTabImages">Images</span>
+      </button>
+    </div>
+
+    <div id="servicesPanel" class="edit-panel active">
+      <div class="editor-filterbar">
+        <div class="editor-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input id="editorSearch" class="edit-input" type="search" placeholder="Rechercher une application..." autocomplete="off">
+        </div>
+        <select id="editorCategoryFilter" class="edit-select">
+          <option value="">Toutes les catégories</option>
+        </select>
+        <select id="editorHostFilter" class="edit-select">
+          <option value="">Tous les hôtes</option>
+        </select>
+      </div>
+      <div id="serviceEditor" class="edit-list"></div>
+      <div class="editor-actions">
+        <button id="addServiceBtn" class="action-btn" type="button">
+          <i class="fa-solid fa-plus"></i>&nbsp; <span id="addServiceLabel">Application</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="categoriesPanel" class="edit-panel">
+      <div id="categoryEditor" class="edit-list"></div>
+      <div class="editor-actions">
+        <button id="addCategoryBtn" class="action-btn" type="button">
+          <i class="fa-solid fa-plus"></i>&nbsp; <span id="addCategoryLabel">Catégorie</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="hostsPanel" class="edit-panel">
+      <div id="hostEditor" class="edit-list"></div>
+      <div class="editor-actions">
+        <button id="addHostBtn" class="action-btn" type="button">
+          <i class="fa-solid fa-plus"></i>&nbsp; <span id="addHostLabel">Hôte</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="webLinksPanel" class="edit-panel">
+      <div id="webLinksEditor" class="edit-list"></div>
+      <div class="editor-actions">
+        <button id="addWebLinkBtn" class="action-btn" type="button">
+          <i class="fa-solid fa-plus"></i>&nbsp; <span id="addWebLinkLabel">Lien web</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="imagesPanel" class="edit-panel">
+      <div class="image-manager-toolbar">
+        <button id="manageUploadBtn" class="action-btn" type="button">
+          <i class="fa-solid fa-plus"></i>&nbsp; <span id="manageUploadLabel">Ajouter des images</span>
+        </button>
+        <button id="manageDeleteBtn" class="action-btn delete-selection-btn" type="button" disabled>
+          <i class="fa-solid fa-trash"></i>&nbsp; <span id="manageDeleteLabel">Supprimer la sélection</span>
+        </button>
+        <span id="manageSelectionCount" class="image-selection-count"></span>
+      </div>
+      <p id="manageUploadHint" class="upload-hint">Format PNG uniquement</p>
+      <div id="imageManagerGrid" class="image-manager-grid"></div>
+    </div>
+
+    <div class="modal-header editor-footer">
+      <div class="footer-left-actions">
+        <button id="importConfigBtn" class="action-btn" type="button">
+          <i class="fa-solid fa-upload"></i>&nbsp; <span id="importConfigLabel">Importer</span>
+        </button>
+        <button id="exportConfigBtn" class="action-btn" type="button">
+          <i class="fa-solid fa-download"></i>&nbsp; <span id="exportConfigLabel">Exporter</span>
+        </button>
+      </div>
+      <div class="action-group">
+        <button id="cancelBtn" class="action-btn" type="button">Annuler</button>
+        <button id="saveBtn" class="action-btn primary" type="button">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="appearanceBackdrop" class="modal-backdrop" aria-hidden="true">
+  <div class="modal appearance-modal" role="dialog" aria-modal="true" aria-labelledby="appearanceTitle">
+    <div class="modal-header">
+      <div id="appearanceTitle" class="modal-title">Modifier le thème</div>
+      <button id="appearanceCloseBtn" class="modal-close" type="button" title="Fermer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="appearance-content">
+      <label class="appearance-field">
+        <span id="themeFieldLabel">Thème</span>
+        <select id="themeSelect" class="edit-select">
+          <option value="dark">Sombre</option>
+          <option value="light">Clair</option>
+          <option value="black">Noir</option>
+          <option value="matrix">Matrix</option>
+          <option value="rainbow-dark">Arc-en-ciel sombre</option>
+          <option value="rainbow-light">Arc-en-ciel clair</option>
+        </select>
+      </label>
+
+      <div class="appearance-field">
+        <span id="themeManageLabel">Gestion des thèmes</span>
+        <div class="theme-manage">
+          <button id="importThemeBtn" class="action-btn" type="button">
+            <i class="fa-solid fa-upload"></i>&nbsp; <span id="importThemeBtnLabel">Importer</span>
+          </button>
+          <button id="exportThemeBtn" class="action-btn" type="button">
+            <i class="fa-solid fa-download"></i>&nbsp; <span id="exportThemeBtnLabel">Exporter</span>
+          </button>
+          <button id="deleteThemeBtn" class="action-btn danger" type="button" disabled>
+            <i class="fa-solid fa-trash"></i>&nbsp; <span id="deleteThemeBtnLabel">Supprimer</span>
+          </button>
+        </div>
+      </div>
+
+      <label class="appearance-field">
+        <span id="languageFieldLabel">Langue</span>
+        <select id="languageSelect" class="edit-select">
+          <option value="fr">Français</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+
+      <div class="appearance-field">
+        <span id="smallIconsFieldLabel">Mode petites icônes</span>
+        <select id="smallIconsSelect" class="edit-select">
+          <option value="0" id="smallIconsOptionOff">Grandes icônes</option>
+          <option value="1" id="smallIconsOptionOn">Petites icônes</option>
+        </select>
+      </div>
+
+      <div class="appearance-field">
+        <span id="hostsDisplayFieldLabel">Affichage des hôtes</span>
+        <select id="hostsDisplaySelect" class="edit-select">
+          <option value="name" id="hostsDisplayOptionName">Par intitulé</option>
+          <option value="icon" id="hostsDisplayOptionIcon">Par icône</option>
+        </select>
+      </div>
+
+      <div class="appearance-field">
+        <span id="bannerFieldLabel">Icône bannière (haut gauche)</span>
+        <select id="bannerIconSelect" class="edit-select">
+          <option value="1" id="bannerOptionOn">Activée</option>
+          <option value="0" id="bannerOptionOff">Désactivée</option>
+        </select>
+      </div>
+
+      <div class="appearance-field">
+        <span id="bannerUrlFieldLabel">URL de la bannière</span>
+        <input id="bannerUrlInput" class="edit-input" type="url" placeholder="https://github.com/supersouris7">
+      </div>
+
+      <div class="appearance-field">
+        <span id="faviconFieldLabel">Favicon de l’onglet (.ico)</span>
+        <div class="theme-manage">
+          <button id="importFaviconBtn" class="action-btn" type="button">
+            <i class="fa-solid fa-upload"></i>&nbsp; <span id="importFaviconLabel">Importer</span>
+          </button>
+          <button id="resetFaviconBtn" class="action-btn" type="button">
+            <i class="fa-solid fa-rotate-left"></i>&nbsp; <span id="resetFaviconLabel">Réinitialiser</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="appearance-field">
+        <span id="usageFieldLabel">Compteurs d’utilisation</span>
+        <button id="resetUsageBtn" class="action-btn" type="button">
+          <i class="fa-solid fa-rotate-left"></i>&nbsp; <span>Réinitialiser</span>
+        </button>
+      </div>
+
+    </div>
+
+    <div class="modal-header appearance-footer">
+      <span></span>
+      <button id="appearanceDoneBtn" class="action-btn primary" type="button">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<input id="pngUpload" type="file" accept="image/png" hidden>
+<input id="managePngUpload" type="file" accept="image/png,.png" multiple hidden>
+<input id="configImportInput" type="file" accept="application/json,.json" hidden>
+<input id="themeImportInput" type="file" accept="application/json,.json" hidden>
+<input id="faviconInput" type="file" accept=".ico,image/x-icon,image/vnd.microsoft.icon" hidden>
+
+<div id="imageLibrary" class="image-library" aria-hidden="true">
+  <div class="image-library-panel" role="dialog" aria-modal="true" aria-labelledby="imageLibraryTitle">
+    <div class="image-library-header">
+      <div id="imageLibraryTitle" class="image-library-title">Images PNG</div>
+      <button id="uploadPngBtn" class="action-btn" type="button">
+        <i class="fa-solid fa-upload"></i>&nbsp; <span id="uploadPngLabel">Importer</span>
+      </button>
+      <button id="closeImageLibraryBtn" class="modal-close" type="button" title="Fermer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <p id="uploadPngHint" class="upload-hint">Format PNG uniquement</p>
+    <div id="imageGrid" class="image-grid"></div>
+  </div>
+</div>
+
+<footer class="app-footer">
+  <a href="https://github.com/supersouris7/dashmon" target="_blank" rel="noopener" title="Voir le code source sur GitHub">Dashmon <span class="app-version">v{{VERSION}}</span></a>
+  <span class="app-footer-sep" aria-hidden="true">·</span>
+  <a href="https://ko-fi.com/dashmon" target="_blank" rel="noopener" title="Soutenir le développement"><i class="fa-regular fa-heart app-sponsor-heart"></i> <span id="supportLabel">Soutenir</span></a>
+</footer>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

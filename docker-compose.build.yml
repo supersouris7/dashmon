@@ -1,0 +1,7 @@
+# Maintainer/dev override: build the image locally instead of pulling from Docker Hub.
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
+services:
+  dashmon:
+    image: supersouris7/dashmon:unstable
+    build: .

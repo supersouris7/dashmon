@@ -1,0 +1,93 @@
+{
+  "services": [
+    {
+      "name": "GitHub",
+      "category": "Outils",
+      "url": "https://github.com",
+      "icon": "",
+      "monitor": true,
+      "host": "Serveur"
+    },
+    {
+      "name": "Docker Hub",
+      "category": "Outils",
+      "url": "https://hub.docker.com",
+      "icon": "icons/docker-moby.png",
+      "monitor": true,
+      "host": "Serveur"
+    },
+    {
+      "name": "Wikipedia",
+      "category": "Sites",
+      "url": "https://www.wikipedia.org",
+      "icon": "",
+      "monitor": true,
+      "host": "Serveur"
+    },
+    {
+      "name": "DuckDuckGo",
+      "category": "Sites",
+      "url": "https://duckduckgo.com",
+      "icon": "",
+      "monitor": true,
+      "host": "Serveur"
+    },
+    {
+      "name": "Framasoft",
+      "category": "Sites",
+      "url": "https://framasoft.org",
+      "icon": "",
+      "monitor": true,
+      "host": "Serveur"
+    },
+    {
+      "name": "Qwant",
+      "category": "Sites",
+      "url": "https://www.qwant.com",
+      "icon": "",
+      "monitor": true,
+      "host": "Serveur"
+    }
+  ],
+  "categories": [
+    { "name": "Outils", "icon": "fa-solid fa-toolbox" },
+    { "name": "Sites",  "icon": "fa-solid fa-globe" }
+  ],
+  "hosts": [
+    {
+      "name": "Serveur",
+      "icon": "fa-solid fa-server",
+      "monitoring": {
+        "enabled": true,
+        "type": "local",
+        "url": "",
+        "node": "",
+        "tokenEnv": "",
+        "tokenIdEnv": "",
+        "tokenSecretEnv": ""
+      }
+    }
+  ],
+  "groupMode": "category",
+  "viewMode": "columns",
+  "openMode": "same",
+  "theme": "dark",
+  "language": "en",
+  "sortMode": "alphabetical",
+  "collapsed": {},
+  "usageCounts": {},
+  "webLinks": [
+    { "name": "YouTube",       "url": "https://www.youtube.com",     "icon": "fa-brands fa-youtube" },
+    { "name": "Outlook",       "url": "https://outlook.office.com",  "icon": "fa-solid fa-envelope" },
+    { "name": "Google Drive",  "url": "https://drive.google.com",    "icon": "fa-brands fa-google-drive" },
+    { "name": "GitHub",        "url": "https://github.com",          "icon": "fa-brands fa-github" }
+  ],
+  "webLinksCollapsed": false,
+  "webLinksSeedVersion": 2,
+  "hostsSeedVersion": 1,
+  "smallIcons": false,
+  "hostsDisplay": "name",
+  "bannerIcon": true,
+  "bannerUrl": "https://github.com/supersouris7",
+  "favicon": ""
+}

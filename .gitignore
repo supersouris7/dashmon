@@ -1,0 +1,19 @@
+node_modules/
+*.log
+npm-debug.log*
+
+# Données runtime (config, icônes importées, thèmes custom)
+data/
+
+# Secrets
+.env
+.env.local
+
+# Système / éditeurs
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Outils locaux de maintenance (scripts de déploiement personnels, IP internes…)
+.opencode/
