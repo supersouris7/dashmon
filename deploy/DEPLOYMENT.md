@@ -48,6 +48,11 @@ See `.env.example`. The most important:
 The `dashmon-data` volume (`/app/data`) persists config, images and custom themes.
 Backup: `docker cp dashmon:/app/data ./backup-data` (container stopped).
 
+> **Mise à jour d'une ancienne installation** : l'image officielle tourne
+> maintenant sous l'utilisateur non-root `node` (uid 1000). Si votre volume a
+> été créé par une version antérieure, corrigez son propriétaire une fois :
+> `docker run --rm -v dashmon-data:/d alpine chown -R 1000:1000 /d`
+
 ## 4. nginx (optional)
 
 A full example: `deploy/nginx.example.conf`. If you use it, set `TRUST_PROXY=1`
