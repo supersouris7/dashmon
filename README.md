@@ -78,7 +78,7 @@ Full customization guide (create your own themes, import icons):
 
 ## Icons
 
-Dashmon uses [Font Awesome 6 (Free)](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css)
+Dashmon uses [Font Awesome 6 (Free)](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css)
 for service and category icons. Pick any free solid/brand class, e.g.
 `fa-solid fa-folder`. Requests for additional icons — within the free set — are
 welcome.
