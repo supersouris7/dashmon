@@ -4,6 +4,7 @@
 process.env.UV_THREADPOOL_SIZE=process.env.UV_THREADPOOL_SIZE||"4";
 
 const express = require("express");
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const http = require("http");
@@ -163,9 +164,12 @@ app.use("/api/status", rateLimitGet);
 
 if (DASHBOARD_PASSWORD) {
   app.use("/api", (req, res, next) => {
-    const auth = req.get("Authorization") || "";
     const expected = "Basic " + Buffer.from("admin:" + DASHBOARD_PASSWORD).toString("base64");
-    if (auth === expected) return next();
+    const received = Buffer.from(req.get("Authorization") || "");
+    const ok = received.length === Buffer.byteLength(expected)
+      && received.length > 0
+      && crypto.timingSafeEqual(received, Buffer.from(expected));
+    if (ok) return next();
     res.set("WWW-Authenticate", 'Basic realm="Dashmon"');
     res.status(401).json({ error: "Authentification requise" });
   });
