@@ -184,11 +184,21 @@ function createSection(categoryName,categoryServices,groupType="category"){
   header.querySelector(".category-name").textContent=groupLabel(categoryName);
 
   header.addEventListener("click",()=>{
-    const isCollapsed=section.classList.toggle("collapsed");
-    state.collapsed[collapseKey]=isCollapsed;
+    const collapsing=!section.classList.contains("collapsed");
+    state.collapsed[collapseKey]=collapsing;
     delete state.collapsed[categoryName];
     updateCollapseAllButton();
     patchConfig({collapsed:state.collapsed});
+
+    if(collapsing){
+      reorderDashboardSections(true,null,()=>{
+        section.classList.add("collapsed");
+      },section);
+    }else{
+      reorderDashboardSections(true,section,()=>{
+        section.classList.remove("collapsed");
+      });
+    }
   });
 
   const body=document.createElement("div");
@@ -204,6 +214,75 @@ function createSection(categoryName,categoryServices,groupType="category"){
   body.appendChild(cards);
   section.append(header,body);
   return section;
+}
+
+function prefersReducedMotion(){
+  return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function sectionHomeRank(section){
+  const rank=Number(section.dataset.rank);
+  return Number.isFinite(rank) ? rank : 0;
+}
+
+function getDashboardSections(){
+  return [...dashboard.children].filter(node=>node&&node.classList&&node.classList.contains("section"));
+}
+
+function reorderDashboardSections(animate=false, forceExpand=null, onDone=null, forceCollapse=null){
+  const sections=getDashboardSections();
+  if(sections.length<2){
+    if(onDone) onDone();
+    return;
+  }
+
+  const ordered=[...sections].sort((a,b)=>{
+    const ac=(a.classList.contains("collapsed") || a===forceCollapse) && a!==forceExpand;
+    const bc=(b.classList.contains("collapsed") || b===forceCollapse) && b!==forceExpand;
+    if(ac!==bc) return ac?1:-1;
+    return sectionHomeRank(a)-sectionHomeRank(b);
+  });
+
+  const alreadyOrdered=ordered.every((s,i)=>s===sections[i]);
+  if(alreadyOrdered){
+    if(onDone) onDone();
+    return;
+  }
+
+  if(!animate || prefersReducedMotion()){
+    sections.forEach(s=>s.remove());
+    ordered.forEach(s=>dashboard.appendChild(s));
+    if(onDone) onDone();
+    return;
+  }
+
+  const first=new Map(ordered.map(s=>[s,s.getBoundingClientRect()]));
+  sections.forEach(s=>s.remove());
+  ordered.forEach(s=>dashboard.appendChild(s));
+  const last=new Map(ordered.map(s=>[s,s.getBoundingClientRect()]));
+
+  ordered.forEach(s=>{
+    const f=first.get(s);
+    const l=last.get(s);
+    s.style.transition="none";
+    s.style.transform=`translate(${f.left-l.left}px, ${f.top-l.top}px)`;
+  });
+
+  void dashboard.offsetHeight;
+
+  requestAnimationFrame(()=>{
+    ordered.forEach(s=>{
+      s.style.transition="transform 360ms cubic-bezier(0.22, 0.61, 0.36, 1)";
+      s.style.transform="";
+    });
+    setTimeout(()=>{
+      ordered.forEach(s=>{
+        s.style.transition="";
+        s.style.transform="";
+      });
+      if(onDone) onDone();
+    },400);
+  });
 }
 
 function renderWebLinks(){
@@ -318,17 +397,22 @@ export function render(){
   }
 
   if(state.groupMode==="host"){
-    sortGroupNames(getVisibleGroupNames()).forEach(hostName=>{
+    sortGroupNames(getVisibleGroupNames()).forEach((hostName,index)=>{
       const items=filtered.filter(s=>((s.host||"").trim()||FALLBACK_HOST)===hostName);
-      dashboard.appendChild(createSection(hostName,items,"host"));
+      const section=createSection(hostName,items,"host");
+      section.dataset.rank=String(index);
+      dashboard.appendChild(section);
     });
   }else{
-    sortGroupNames(getVisibleGroupNames()).forEach(categoryName=>{
+    sortGroupNames(getVisibleGroupNames()).forEach((categoryName,index)=>{
       const items=filtered.filter(s=>(s.category||"Autres")===categoryName);
-      dashboard.appendChild(createSection(categoryName,items,"category"));
+      const section=createSection(categoryName,items,"category");
+      section.dataset.rank=String(index);
+      dashboard.appendChild(section);
     });
   }
 
+  reorderDashboardSections(false);
   updateCollapseAllButton();
 }
 
