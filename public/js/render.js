@@ -34,7 +34,7 @@ function effectiveStatus(monitor, info){
 
 function statusIcon(state){
   if(state==="up") return "fa-solid fa-circle-check";
-  if(state==="soft") return "fa-solid fa-circle-exclamation";
+  if(state==="soft") return "fa-solid fa-circle-xmark";
   if(state==="down") return "fa-solid fa-circle-xmark";
   return "fa-regular fa-circle";
 }
