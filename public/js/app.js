@@ -15,7 +15,7 @@ import { openEditor, closeEditor, renderServiceEditor, renderCategoryEditor,
 import { closeImageLibrary } from "./images.js";
 import {
   searchInput, viewBtn, collapseAllBtn, moreBtn, topMenu,
-  sameTabBtn, newTabBtn, groupCategoryBtn, groupHostBtn,
+  openModeSelect, groupCategoryBtn, groupHostBtn,
   sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuAppearanceBtn,
   appearanceBackdrop, appearanceCloseBtn, appearanceDoneBtn, themeSelect,
   languageSelect, smallIconsSelect, hostsDisplaySelect, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
@@ -75,9 +75,9 @@ function closeTopMenu(){
 function setOpenMode(mode){
   state.openMode=mode;
   updateOpenModeMenu();
+  openModeSelect.value=mode;
   render();
-  patchConfig({openMode:mode});
-  closeTopMenu();
+  patchConfig({openMode:mode},true);
 }
 
 function openAppearance(){
@@ -88,6 +88,7 @@ function openAppearance(){
   languageSelect.value=state.language;
   smallIconsSelect.value=state.smallIcons ? "1" : "0";
   hostsDisplaySelect.value=state.hostsDisplay==="icon" ? "icon" : "name";
+  openModeSelect.value=state.openMode==="new" ? "new" : "same";
   bannerIconSelect.value=state.bannerIcon ? "1" : "0";
   bannerUrlInput.value=state.bannerUrl;
   bannerUrlInput.disabled=!state.bannerIcon;
@@ -115,8 +116,6 @@ moreBtn.addEventListener("click",e=>{
 });
 
 topMenu.addEventListener("click",e=>e.stopPropagation());
-sameTabBtn.addEventListener("click",()=>setOpenMode("same"));
-newTabBtn.addEventListener("click",()=>setOpenMode("new"));
 groupCategoryBtn.addEventListener("click",()=>setGroupMode("category"));
 groupHostBtn.addEventListener("click",()=>setGroupMode("host"));
 
@@ -206,6 +205,8 @@ hostsDisplaySelect.addEventListener("change",()=>{
   refreshHostMetrics();
   patchConfig({hostsDisplay:state.hostsDisplay});
 });
+
+openModeSelect.addEventListener("change",()=>setOpenMode(openModeSelect.value));
 
 bannerIconSelect.addEventListener("change",()=>{
   state.bannerIcon=bannerIconSelect.value==="1";

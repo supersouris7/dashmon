@@ -3,8 +3,8 @@ import { state } from "./state.js";
 import {
   menuEditBtn, menuAppearanceBtn, appearanceTitle, themeFieldLabel,
   languageFieldLabel, usageFieldLabel, resetUsageBtn, appearanceDoneBtn,
-  appearanceCloseBtn, searchInput, topMenu, sameTabBtn,
-  newTabBtn, groupCategoryBtn, groupHostBtn, sortMenuLabel,
+  appearanceCloseBtn, searchInput, topMenu,
+  groupCategoryBtn, groupHostBtn, sortMenuLabel,
   sortAlphabeticalBtn, sortUsageBtn, editorTitle, closeBtn, editorSearch,
   cancelBtn, saveBtn, imageLibraryTitle, closeImageLibraryBtn, webLinksHeader,
   webLinksSection
@@ -67,6 +67,7 @@ const UI_TEXT={
     focusHost:"Afficher uniquement cet hôte",
     sameTab:"Même onglet",
     newTab:"Nouvel onglet",
+    openModeFieldLabel:"Ouverture des liens",
     groupBy:"Regrouper par",
     category:"Catégorie",
     host:"Hôte",
@@ -190,6 +191,7 @@ const UI_TEXT={
     focusHost:"Show only this host",
     sameTab:"Same tab",
     newTab:"New tab",
+    openModeFieldLabel:"Link opening",
     groupBy:"Group by",
     category:"Category",
     host:"Host",
@@ -283,12 +285,9 @@ export function applyLanguage(){
   document.getElementById("supportLabel").textContent=t("support");
 
   const labels=[...topMenu.querySelectorAll(".top-menu-label")];
-  if(labels[0]) labels[0].textContent=t("opening");
-  if(labels[1]) labels[1].textContent=t("groupBy");
+  if(labels[0]) labels[0].textContent=t("groupBy");
 
   const menuSpans=[
-    [sameTabBtn,"sameTab"],
-    [newTabBtn,"newTab"],
     [groupCategoryBtn,"category"],
     [groupHostBtn,"host"],
     [sortAlphabeticalBtn,"alphabetical"],
@@ -354,6 +353,9 @@ export function applyLanguage(){
   });
 
   const appearanceLabels=[
+    ["openModeFieldLabel","openModeFieldLabel"],
+    ["openModeOptionSame","sameTab"],
+    ["openModeOptionNew","newTab"],
     ["smallIconsFieldLabel","smallIconsFieldLabel"],
     ["smallIconsOptionOff","smallIconsOptionOff"],
     ["smallIconsOptionOn","smallIconsOptionOn"],

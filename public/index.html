@@ -70,18 +70,6 @@
       </button>
 
       <div id="topMenu" class="top-menu" role="menu">
-        <div class="top-menu-label">Ouverture des liens</div>
-        <button class="top-menu-item" id="sameTabBtn" type="button">
-          <i class="fa-solid fa-arrow-right-to-bracket"></i>
-          <span>Même onglet</span>
-          <i class="fa-solid fa-check menu-check"></i>
-        </button>
-        <button class="top-menu-item" id="newTabBtn" type="button">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i>
-          <span>Nouvel onglet</span>
-          <i class="fa-solid fa-check menu-check"></i>
-        </button>
-        <div class="top-menu-separator"></div>
         <div class="top-menu-label">Regrouper par</div>
         <button class="top-menu-item" id="groupCategoryBtn" type="button">
           <i class="fa-solid fa-folder-tree"></i><span>Catégorie</span><i class="fa-solid fa-check menu-check"></i>
@@ -289,6 +277,14 @@
         <select id="hostsDisplaySelect" class="edit-select">
           <option value="name" id="hostsDisplayOptionName">Par intitulé</option>
           <option value="icon" id="hostsDisplayOptionIcon">Par icône</option>
+        </select>
+      </div>
+
+      <div class="appearance-field">
+        <span id="openModeFieldLabel">Ouverture des liens</span>
+        <select id="openModeSelect" class="edit-select">
+          <option value="same" id="openModeOptionSame">Même onglet</option>
+          <option value="new" id="openModeOptionNew">Nouvel onglet</option>
         </select>
       </div>
 

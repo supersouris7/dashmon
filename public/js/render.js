@@ -4,7 +4,7 @@ import { t } from "./i18n.js";
 import { patchConfig, bumpUsage } from "./api.js";
 import {
   dashboard, searchInput, webLinksSection, webLinksHeader, webLinksList,
-  viewBtn, collapseAllBtn, sameTabBtn, newTabBtn, groupCategoryBtn,
+  viewBtn, collapseAllBtn, openModeSelect, groupCategoryBtn,
   groupHostBtn, sortAlphabeticalBtn, sortUsageBtn,
   appLogoLink, faviconLink
 } from "./dom.js";
@@ -63,8 +63,7 @@ export function updateViewButton(){
 }
 
 export function updateOpenModeMenu(){
-  sameTabBtn.classList.toggle("active",state.openMode==="same");
-  newTabBtn.classList.toggle("active",state.openMode==="new");
+  openModeSelect.value=state.openMode==="new" ? "new" : "same";
 }
 
 export function updateGroupModeMenu(){
