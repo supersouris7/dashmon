@@ -7,35 +7,43 @@
 .modal-backdrop{
   display:none;
   position:fixed;
-  inset:0;
+  top:var(--toolbar-h,66px);
+  left:0;
+  right:0;
+  bottom:0;
   z-index:1000;
-  padding:24px;
-  background:rgba(0,0,0,.68);
-  align-items:center;
-  justify-content:center;
+  padding:0;
+  background:var(--bg);
+  overflow-y:auto;
 }
 
 .modal-backdrop.show{
-  display:flex;
+  display:block;
 }
 
 .modal{
-  width:min(1380px,calc(100vw - 24px));
-  max-height:calc(100vh - 48px);
-  overflow:auto;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:4px;
-  box-shadow:0 18px 60px rgba(0,0,0,.45);
+  width:100%;
+  max-width:none;
+  margin:0;
+  max-height:none;
+  overflow:visible;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
 }
 
 .modal-header{
   min-height:58px;
-  padding:0 18px;
+  padding:0 max(26px,calc((100vw - 1280px)/2));
   display:flex;
   align-items:center;
   gap:12px;
   border-bottom:1px solid var(--border);
+  position:sticky;
+  top:0;
+  z-index:5;
+  background:var(--bg);
 }
 
 .modal-title{
@@ -65,7 +73,7 @@
   display:flex;
   flex-wrap:nowrap;
   gap:2px;
-  padding:12px 16px 0;
+  padding:12px max(16px,calc((100vw - 1280px)/2)) 0;
   overflow-x:auto;
   scrollbar-width:thin;
 }
@@ -92,7 +100,7 @@
 
 .edit-panel{
   display:none;
-  padding:16px;
+  padding:16px max(16px,calc((100vw - 1280px)/2));
 }
 
 .edit-panel.active{
@@ -361,15 +369,18 @@
 
 @media(max-width:800px){
   .modal-backdrop{
-    padding:10px;
+    padding:0;
   }
   .modal{
     width:100%;
-    max-height:calc(100dvh - 20px);
-    border-radius:6px;
+    max-height:none;
+    border-radius:0;
   }
   .image-library-panel{
     max-height:calc(100dvh - 20px);
+  }
+  .modal-header{
+    padding:0 14px;
   }
   .edit-panel{
     padding:12px;
@@ -394,10 +405,13 @@
     padding:0 10px;
   }
   .modal-backdrop{
-    padding:6px;
+    padding:0;
   }
   .modal{
-    max-height:calc(100dvh - 12px);
+    max-height:none;
+  }
+  .modal-header{
+    padding:0 10px;
   }
   .edit-panel{
     padding:10px;

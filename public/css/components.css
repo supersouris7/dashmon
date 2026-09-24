@@ -262,11 +262,17 @@
 .modal{
   display:flex;
   flex-direction:column;
-  overflow:hidden;
+  overflow:visible;
 }
 
 .edit-tabs{
   flex:0 0 auto;
+  position:sticky;
+  top:58px;
+  z-index:4;
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
+  padding-bottom:12px;
 }
 
 .edit-panel{
@@ -280,11 +286,24 @@
 
 .editor-footer{
   flex:0 0 auto;
-  position:relative;
+  position:sticky;
+  top:auto;
+  bottom:0;
   z-index:2;
-  background:var(--surface);
+  background:var(--bg);
   border-top:1px solid var(--border);
   border-bottom:0;
+}
+
+.appearance-footer{
+  border-top:1px solid var(--border);
+  border-bottom:0;
+  justify-content:space-between;
+  position:sticky;
+  top:auto;
+  bottom:0;
+  z-index:2;
+  background:var(--bg);
 }
 
 .icon-only-field{
@@ -377,6 +396,11 @@ select,
 .image-library.show .image-library-panel,
 .icon-picker.open .icon-picker-menu{
   animation:softReveal .18s cubic-bezier(.2,.7,.3,1);
+}
+
+body .modal-backdrop.show .modal{
+  background:transparent;
+  border-color:var(--border);
 }
 
 @keyframes softReveal{
@@ -797,14 +821,23 @@ select,
 }
 
 .appearance-modal{
-  width:min(520px,calc(100vw - 28px));
+  width:100%;
+  max-width:none;
+  margin:0;
   height:auto;
-  max-height:calc(100vh - 28px);
-  overflow:auto;
+  max-height:none;
+  overflow:visible;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
 }
 
 .appearance-content{
+  width:100%;
   padding:20px;
+  max-width:760px;
+  margin:0 auto;
   display:grid;
   gap:18px;
 }
@@ -819,12 +852,6 @@ select,
 
 .appearance-field > span{
   font-weight:600;
-}
-
-.appearance-footer{
-  border-top:1px solid var(--border);
-  border-bottom:0;
-  justify-content:space-between;
 }
 
 @media (max-width:560px){

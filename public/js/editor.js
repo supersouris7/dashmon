@@ -509,6 +509,8 @@ export function renderHostEditor(){
 }
 
 export function openEditor(){
+  const rect=document.querySelector(".toolbar").getBoundingClientRect();
+  document.documentElement.style.setProperty("--toolbar-h",Math.max(0,rect.bottom)+"px");
   state.editServices=clone(state.services);
   state.editCategories=clone(state.categories);
   state.editHosts=clone(state.hosts);

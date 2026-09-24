@@ -80,7 +80,13 @@ function setOpenMode(mode){
   patchConfig({openMode:mode},true);
 }
 
+function setToolbarHeight(){
+  const rect=document.querySelector(".toolbar").getBoundingClientRect();
+  document.documentElement.style.setProperty("--toolbar-h",Math.max(0,rect.bottom)+"px");
+}
+
 function openAppearance(){
+  setToolbarHeight();
   closeTopMenu();
   if([...themeSelect.options].some(option=>option.value===state.theme)){
     themeSelect.value=state.theme;
