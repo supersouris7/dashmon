@@ -181,7 +181,7 @@
 
 @media (max-width:980px){
   .host-row{
-    grid-template-columns:30px minmax(0,1fr) 44px 38px 38px;
+    grid-template-columns:30px minmax(0,280px) 44px 38px 38px;
     grid-template-areas:
       "drag name picker monitor remove"
       "type type type type type"
