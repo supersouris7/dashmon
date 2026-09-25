@@ -35,10 +35,10 @@ function injectThemeStyles(theme){
 
   const vars=theme.variables||{};
   const cssVars=Object.entries(vars)
-    .map(([key,value])=>`  --${key}:${value};`)
+    .map(([key,value])=>`  --${key}:${sanitizeVarValue(value)};`)
     .join("\n");
 
-  style.textContent=`[data-theme="${theme.id}"]{\n${cssVars}\n}\n\n${theme.css||""}`;
+  style.textContent=`[data-theme="${theme.id}"]{\n${cssVars}\n}\n\n${sanitizeThemeCss(theme.css||"")}`;
 }
 
 function buildThemeSelect(){
@@ -169,6 +169,25 @@ async function reloadThemeState(){
   await loadThemes();
 }
 
+function sanitizeVarValue(value){
+  return String(value||"").trim()
+    .replace(/[\{\}\;\n\r\"\'\<\>\\]/g,"")
+    .slice(0,200);
+}
+
+// Doit rester identique à server.js (sanitizeThemeCss) pour éviter des
+// divergences à l'enregistrement d'un thème.
+const MAX_THEME_CSS_BYTES=65536;
+
+function sanitizeThemeCss(css){
+  const s=String(css||"").slice(0,MAX_THEME_CSS_BYTES);
+  let out=s.replace(/<\s*\/?style/gi,"");
+  out=out.replace(/@(import|charset|font-face)\b/gi,"");
+  out=out.replace(/url\s*\(/gi,"none");
+  out=out.replace(/(expression\s*\(|javascript\s*:|vbscript\s*:|-moz-binding|behavior\s*:)/gi,"");
+  return out;
+}
+
 function normalizeTheme(input){
   if(!input || typeof input!=="object" || Array.isArray(input)) return null;
 
@@ -185,7 +204,7 @@ function normalizeTheme(input){
   const clean={};
   for(const key of required){
     if(typeof variables[key]==="string" && variables[key].trim()){
-      clean[key]=variables[key].trim();
+      clean[key]=sanitizeVarValue(variables[key]);
     }
   }
 
@@ -193,7 +212,7 @@ function normalizeTheme(input){
 
   for(const key of optional){
     const value=variables[key];
-    if(typeof value==="string" && value.trim()) clean[key]=value.trim().slice(0,40);
+    if(typeof value==="string" && value.trim()) clean[key]=sanitizeVarValue(value).slice(0,40);
   }
 
   return {
@@ -203,6 +222,6 @@ function normalizeTheme(input){
     description:String(input.description||"").trim().slice(0,300),
     version:String(input.version||"1.0.0").trim().slice(0,20),
     variables:clean,
-    css:typeof input.css==="string" ? input.css : ""
+    css:sanitizeThemeCss(typeof input.css==="string" ? input.css : "")
   };
 }

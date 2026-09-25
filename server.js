@@ -629,6 +629,24 @@ function sanitizeThemeId(raw){
     .replace(/^-+|-+$/g,"");
 }
 
+// Doit rester identique à public/js/themes.js (sanitizeVarValue) : sans blocage
+// identique, une valeur comme `red} body{display:none` casserait la règle
+// [data-theme] injectée et s'appliquerait à tous les visiteurs.
+function sanitizeVarValue(value){
+  return String(value||"").trim()
+    .replace(/[\{\}\;\n\r\"\'\<\>\\]/g,"")
+    .slice(0,200);
+}
+
+function sanitizeThemeCss(css){
+  const s=String(css||"").slice(0,65536);
+  let out=s.replace(/<\s*\/?style/gi,"");
+  out=out.replace(/@(import|charset|font-face)\b/gi,"");
+  out=out.replace(/url\s*\(/gi,"none");
+  out=out.replace(/(expression\s*\(|javascript\s*:|vbscript\s*:|-moz-binding|behavior\s*:)/gi,"");
+  return out;
+}
+
 function normalizeThemeObject(input){
   if(!input || typeof input!=="object" || Array.isArray(input)) return null;
   const id=sanitizeThemeId(input.id||input.name);
@@ -638,7 +656,7 @@ function normalizeThemeObject(input){
   const clean={};
   for(const key of THEME_REQUIRED_VARS){
     const value=variables[key];
-    if(typeof value==="string" && value.trim()) clean[key]=value.trim();
+    if(typeof value==="string" && value.trim()) clean[key]=sanitizeVarValue(value);
   }
   if(Object.keys(clean).length!==THEME_REQUIRED_VARS.length) return null;
 
@@ -646,7 +664,7 @@ function normalizeThemeObject(input){
   // hérite des défauts CSS (--success/--error).
   for(const key of THEME_OPTIONAL_VARS){
     const value=variables[key];
-    if(typeof value==="string" && value.trim()) clean[key]=value.trim().slice(0,40);
+    if(typeof value==="string" && value.trim()) clean[key]=sanitizeVarValue(value).slice(0,40);
   }
 
   return {
@@ -656,7 +674,7 @@ function normalizeThemeObject(input){
     description:String(input.description||"").trim().slice(0,300),
     version:String(input.version||"1.0.0").trim().slice(0,20),
     variables:clean,
-    css:typeof input.css==="string" ? input.css : ""
+    css:sanitizeThemeCss(typeof input.css==="string" ? input.css : "")
   };
 }
 

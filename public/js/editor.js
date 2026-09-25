@@ -912,6 +912,10 @@ saveBtn.addEventListener("click",async()=>{
   closeEditor();
 });
 
-editorSearch.addEventListener("input",renderServiceEditor);
+let editorSearchTimer=null;
+editorSearch.addEventListener("input",()=>{
+  clearTimeout(editorSearchTimer);
+  editorSearchTimer=setTimeout(renderServiceEditor,150);
+});
 editorCategoryFilter.addEventListener("change",renderServiceEditor);
 editorHostFilter.addEventListener("change",renderServiceEditor);

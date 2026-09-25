@@ -16,8 +16,6 @@
 
 *{box-sizing:border-box}
 
-html{background:var(--bg)}
-
 body{
   margin:0;
   min-height:100vh;
@@ -248,13 +246,13 @@ html.banner-off .toolbar{
 }
 
 .menu-check{
-  visibility:hidden;
+  opacity:0;
   color:var(--text);
   font-size:12px;
 }
 
 .top-menu-item.active .menu-check{
-  visibility:visible;
+  opacity:1;
 }
 
 .section{
@@ -294,10 +292,6 @@ html.banner-off .toolbar{
   font-weight:700;
   letter-spacing:.03em;
   text-transform:uppercase;
-}
-
-.section.collapsed .chevron{
-  transform:rotate(-90deg);
 }
 
 .cards{
