@@ -243,6 +243,11 @@ export function renderServiceEditor(){
     const widgetWrap=document.createElement("div");
     widgetWrap.className="service-widget";
 
+    const widgetLabel=document.createElement("span");
+    widgetLabel.className="widget-editor-label";
+    widgetLabel.textContent=t("widgetLabel");
+    widgetWrap.appendChild(widgetLabel);
+
     const widgetType=document.createElement("select");
     widgetType.className="edit-select";
     widgetType.title=t("widgetLabel");

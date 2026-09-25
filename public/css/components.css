@@ -329,17 +329,20 @@
   display:grid;
   grid-template-columns:
     minmax(150px,1.1fr)
-    minmax(110px,.8fr)
-    minmax(120px,.85fr)
-    minmax(190px,1.35fr)
-    38px 38px 38px
-    minmax(240px,1.1fr);
-  gap:8px;
+    minmax(115px,.8fr)
+    minmax(125px,.85fr)
+    minmax(200px,1.35fr)
+    38px 38px 38px;
+  gap:8px 10px;
   align-items:center;
   width:100%;
   min-width:0;
   box-sizing:border-box;
+  padding:12px 0;
+  border-bottom:1px solid var(--border);
 }
+
+.service-row:last-child{border-bottom:none}
 
 .service-row > *{min-width:0}
 
@@ -355,22 +358,35 @@
 .service-row .small-icon-btn{width:38px;min-width:38px}
 
 .service-widget{
+  grid-column:1/-1;
   display:flex;
+  flex-wrap:wrap;
   align-items:center;
-  gap:6px;
+  gap:8px 10px;
   min-width:0;
+  padding-top:10px;
+  margin-top:2px;
+  border-top:1px dashed var(--border);
+}
+
+.service-widget .widget-editor-label{
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:var(--muted);
 }
 
 .service-widget .edit-select{
   width:auto;
-  flex:0 0 118px;
+  flex:0 0 130px;
   min-width:0;
 }
 
 .service-widget .edit-input{
   width:auto;
-  flex:1 1 130px;
-  min-width:0;
+  flex:1 1 240px;
+  min-width:170px;
 }
 
 /* Tablette : 2 lignes, champs par paire, boutons sur la 1re ligne */
@@ -379,7 +395,7 @@
     grid-template-columns:minmax(0,1fr) minmax(0,1fr) 38px 38px 38px;
     grid-template-areas:
       "name host icon monitor remove"
-      "category url widget . .";
+      "category url . . .";
   }
 
   .service-row > .edit-input:nth-of-type(1){grid-area:name}
@@ -389,7 +405,7 @@
   .service-row .icon-only-field{grid-area:icon}
   .service-row .monitor-toggle{grid-area:monitor}
   .service-row .small-icon-btn{grid-area:remove}
-  .service-row .service-widget{grid-area:widget}
+  .service-row .service-widget{grid-column:1/-1}
 }
 
 body,
@@ -593,8 +609,7 @@ body .modal-backdrop.show .modal{
       "name icon monitor remove"
       "host . . ."
       "category . . ."
-      "url . . ."
-      "widget . . .";
+      "url . . .";
   }
 
   .service-row > .edit-input:nth-of-type(1){grid-area:name}
@@ -604,7 +619,7 @@ body .modal-backdrop.show .modal{
   .service-row .icon-only-field{grid-area:icon}
   .service-row .monitor-toggle{grid-area:monitor}
   .service-row .small-icon-btn{grid-area:remove}
-  .service-row .service-widget{grid-area:widget}
+  .service-row .service-widget{grid-column:1/-1}
 }
 
 .service-row > .icon-only-field,
