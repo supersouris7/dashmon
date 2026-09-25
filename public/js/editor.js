@@ -296,6 +296,24 @@ export function renderServiceEditor(){
         }
       });
       widgetWrap.appendChild(username);
+
+      const variant=document.createElement("select");
+      variant.className="edit-select widget-variant";
+      variant.title=t("widgetLichessVariant");
+      [["",t("widgetLichessAuto")],["classical",t("widgetLichessClassical")],
+       ["rapid",t("widgetLichessRapid")],["blitz",t("widgetLichessBlitz")]].forEach(([value,label])=>{
+        const option=document.createElement("option");
+        option.value=value;
+        option.textContent=label;
+        variant.appendChild(option);
+      });
+      variant.value=service.widget.variant||"";
+      variant.addEventListener("change",()=>{
+        if(state.editServices[index].widget){
+          state.editServices[index].widget.variant=variant.value;
+        }
+      });
+      widgetWrap.appendChild(variant);
     }
 
     row.append(name,host,category,url,iconField,monitor,remove,widgetWrap);
@@ -804,7 +822,8 @@ saveBtn.addEventListener("click",async()=>{
       widget:service.widget&&service.widget.type==="duplicati"
         ? {type:"duplicati",password:String(service.widget.password||"").slice(0,2000)}
         : service.widget&&service.widget.type==="lichess"
-          ? {type:"lichess",username:String(service.widget.username||"").slice(0,200)}
+          ? {type:"lichess",username:String(service.widget.username||"").slice(0,200),
+             variant:String(service.widget.variant||"").slice(0,50)}
           : null
     }))
     .filter(service=>service.name);

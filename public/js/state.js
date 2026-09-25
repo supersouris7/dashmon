@@ -426,7 +426,8 @@ export function normalizeConfig(cfg={}){
       widget:svc.widget?.type==="duplicati"
         ? {type:"duplicati",password:String(svc.widget?.password||"").slice(0,2000)}
         : svc.widget?.type==="lichess"
-          ? {type:"lichess",username:String(svc.widget?.username||"").slice(0,200)}
+          ? {type:"lichess",username:String(svc.widget?.username||"").slice(0,200),
+             variant:String(svc.widget?.variant||"").slice(0,50)}
           : null
     })),
     categories:(Array.isArray(cfg.categories) ? clone(cfg.categories) : clone(DEFAULT_CATEGORIES))

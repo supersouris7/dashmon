@@ -394,7 +394,8 @@ function buildConfigOutput(config){
                   ? String(svc.widget?.password||"").slice(0,2000)
                   : encryptSecret(svc.widget?.password)}
               : svc.widget?.type==="lichess"
-                ? {type:"lichess",username:String(svc.widget?.username||"").slice(0,200)}
+                ? {type:"lichess",username:String(svc.widget?.username||"").slice(0,200),
+                   variant:String(svc.widget?.variant||"").slice(0,50)}
                 : null
           }))
         : [],
@@ -1035,9 +1036,23 @@ async function checkLichess(service){
     return;
   }
   const started=Date.now();
+  const variant=String(service.widget?.variant||"").trim();
   try{
     const user=await apiRequest("https://lichess.org","/api/user/"+encodeURIComponent(username),{});
     const perfs=user?.perfs||{};
+    if(variant){
+      const rating=perfs[variant]?.rating;
+      if(Number.isFinite(rating) && rating>0){
+        out.elo=rating;
+        out.variant=variant;
+        out.ok=true;
+        out.ms=Date.now()-started;
+      }else{
+        out.error="Aucun ELO pour cette variante";
+        out.ms=Date.now()-started;
+      }
+      return;
+    }
     const candidates=[
       ["bullet",perfs.bullet?.rating],
       ["blitz",perfs.blitz?.rating],
