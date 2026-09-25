@@ -223,7 +223,7 @@
 
 .editor-filterbar{
   display:grid;
-  grid-template-columns:minmax(240px,1fr) minmax(160px,220px) minmax(160px,220px);
+  grid-template-columns:minmax(180px,260px) minmax(160px,1fr) minmax(160px,1fr);
   gap:10px;
   margin-bottom:14px;
 }
@@ -327,11 +327,10 @@
 
 .service-row{
   display:grid;
-  grid-template-columns:auto auto auto;
+  grid-template-columns:minmax(150px,2fr) minmax(130px,2fr) minmax(280px,3fr);
   grid-template-areas:
     "name category actions"
     "url host widget";
-  justify-content:start;
   gap:8px 12px;
   align-items:center;
   width:100%;
@@ -342,10 +341,14 @@
 
 .service-row > *{min-width:0}
 
-.service-row > .edit-input:nth-of-type(1):not(.service-widget .edit-input){width:220px}
-.service-row > .edit-input:nth-of-type(2){width:340px}
-.service-row > .edit-select:nth-of-type(1){width:150px}
-.service-row > .edit-select:nth-of-type(2){width:180px}
+.service-row > .edit-input,
+.service-row > .edit-select{
+  width:100%;
+  height:36px;
+  min-width:0;
+  box-sizing:border-box;
+  padding:0 10px;
+}
 
 .service-row > .edit-input:nth-of-type(1){grid-area:name}
 .service-row > .edit-input:nth-of-type(2){grid-area:url}
@@ -357,7 +360,24 @@
   display:flex;
   flex-direction:row;
   gap:6px;
+  justify-content:flex-end;
   align-self:center;
+}
+
+.service-row .service-actions .icon-only-field,
+.service-row .service-actions .monitor-toggle,
+.service-row .service-actions .small-icon-btn{
+  width:36px;
+  min-width:36px;
+  height:36px;
+  min-height:36px;
+  margin:0;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  flex:0 0 36px;
 }
 
 .service-widget{
@@ -365,39 +385,27 @@
   display:flex;
   flex-wrap:wrap;
   align-items:center;
-  justify-content:flex-end;
-  gap:8px 10px;
+  gap:8px 8px;
   min-width:0;
+  justify-content:flex-start;
+  align-content:center;
 }
 
-.service-row .edit-input,
-.service-row .edit-select{
-  width:100%;
-  min-width:0;
-  box-sizing:border-box;
+.service-row .service-actions .icon-only-field .image-library-btn,
+.service-row .service-actions .icon-only-field .editor-icon-preview{
+  width:36px;
+  min-width:36px;
+  height:36px;
+  min-height:36px;
+  padding:0;
 }
 
-.service-row > .edit-input:nth-of-type(1){grid-area:name}
-.service-row > .edit-input:nth-of-type(2){grid-area:url}
-.service-row > .edit-select:nth-of-type(1){grid-area:host}
-.service-row > .edit-select:nth-of-type(2){grid-area:category}
-
-.service-actions{
-  grid-area:actions;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  align-self:center;
-}
-
-.service-widget{
-  grid-column:1/-1;
-  display:flex;
-  flex-wrap:wrap;
-  align-items:center;
-  gap:8px 10px;
-  min-width:0;
-  padding-top:8px;
+.service-row .service-actions .icon-only-field .editor-icon-preview{
+  width:20px;
+  height:20px;
+  min-width:20px;
+  min-height:20px;
+  object-fit:contain;
 }
 
 .service-widget .widget-editor-label{
@@ -406,18 +414,27 @@
   letter-spacing:.05em;
   text-transform:uppercase;
   color:var(--muted);
+  white-space:nowrap;
 }
 
 .service-widget .edit-select{
   width:auto;
-  flex:0 0 130px;
+  height:36px;
+  flex:0 0 118px;
   min-width:0;
+  font-size:13px;
 }
 
 .service-widget .edit-input{
   width:auto;
-  flex:0 1 220px;
-  min-width:150px;
+  height:36px;
+  flex:1 1 130px;
+  min-width:90px;
+  font-size:13px;
+}
+
+.service-widget .widget-variant{
+  flex:0 0 110px;
 }
 
 /* Mobile : widget pleine largeur, champs empilés */
@@ -633,48 +650,6 @@ body .modal-backdrop.show .modal{
 
 .monitor-toggle.active{color:var(--text)}
 .monitor-toggle.soft{color:var(--text);opacity:.85}
-
-.service-row > .icon-only-field,
-.service-row > .monitor-toggle,
-.service-row > .small-icon-btn{
-  width:38px;
-  min-width:38px;
-  height:38px;
-  min-height:38px;
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  align-self:center;
-  justify-self:center;
-}
-
-.service-row > .icon-only-field{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.service-row > .icon-only-field .image-library-btn,
-.service-row > .monitor-toggle,
-.service-row > .small-icon-btn{
-  width:38px;
-  min-width:38px;
-  height:38px;
-  min-height:38px;
-  margin:0;
-  padding:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-sizing:border-box;
-  border-radius:3px;
-}
-
-.service-row > .icon-only-field .editor-icon-preview{
-  width:22px;
-  height:22px;
-  object-fit:contain;
-}
 
 .service-icon,
 .service-fallback{
