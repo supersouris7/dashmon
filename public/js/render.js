@@ -326,6 +326,9 @@ function reorderDashboardSections(animate=false, forceExpand=null, onDone=null, 
   }
 
   const ordered=[...sections].sort((a,b)=>{
+    if(dashboard.dataset.view==="columns"){
+      return sectionHomeRank(a)-sectionHomeRank(b);
+    }
     const ac=(a.classList.contains("collapsed") || a===forceCollapse) && a!==forceExpand;
     const bc=(b.classList.contains("collapsed") || b===forceCollapse) && b!==forceExpand;
     if(ac!==bc) return ac?1:-1;
