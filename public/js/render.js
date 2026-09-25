@@ -131,7 +131,7 @@ function applyWidgetStatus(wrap,service,info){
   }
   if(info.error){
     badge.className="widget-badge nok";
-    badge.textContent="sauvegarde NOK";
+    badge.textContent=t("widgetBadgeNok");
     time.textContent="—";
     wrap.title=`${t("widgetError")} : ${String(info.error).slice(0,120)}`;
     return;
@@ -144,7 +144,7 @@ function applyWidgetStatus(wrap,service,info){
     return;
   }
   badge.className=info.ok ? "widget-badge ok" : "widget-badge nok";
-  badge.textContent=info.ok ? "sauvegarde OK" : "sauvegarde NOK";
+  badge.textContent=info.ok ? t("widgetBadgeOk") : t("widgetBadgeNok");
   time.textContent=formatDateTime(info.lastAttemptAt);
   wrap.title=info.ok
     ? t("widgetOk")
