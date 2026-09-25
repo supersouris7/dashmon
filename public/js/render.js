@@ -55,8 +55,7 @@ function formatDateTime(ms){
   try{
     const locale=state.language==="en" ? "en-GB" : "fr-FR";
     return new Intl.DateTimeFormat(locale,{
-      day:"2-digit",month:"2-digit",year:"numeric",
-      hour:"2-digit",minute:"2-digit"
+      day:"2-digit",month:"2-digit",year:"numeric"
     }).format(new Date(ms));
   }catch(_error){
     return "";
@@ -75,7 +74,7 @@ function applyWidgetStatus(wrap,service,info){
   }
   if(info.error){
     badge.className="widget-badge nok";
-    badge.textContent="NOK";
+    badge.textContent="sauvegarde NOK";
     time.textContent="—";
     wrap.title=`${t("widgetError")} : ${String(info.error).slice(0,120)}`;
     return;
@@ -88,7 +87,7 @@ function applyWidgetStatus(wrap,service,info){
     return;
   }
   badge.className=info.ok ? "widget-badge ok" : "widget-badge nok";
-  badge.textContent=info.ok ? "OK" : "NOK";
+  badge.textContent=info.ok ? "sauvegarde OK" : "sauvegarde NOK";
   time.textContent=formatDateTime(info.lastAttemptAt);
   wrap.title=info.ok
     ? t("widgetOk")

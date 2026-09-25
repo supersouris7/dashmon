@@ -536,11 +536,6 @@ body .modal-backdrop.show .modal{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  min-width:38px;
-  padding:2px 8px;
-  border-radius:3px;
-  border:1px solid var(--border);
-  background:var(--surface-2);
   font-size:11px;
   font-weight:700;
   letter-spacing:.05em;
@@ -550,12 +545,10 @@ body .modal-backdrop.show .modal{
 
 .widget-badge.ok{
   color:var(--success,#3cf59b);
-  border-color:var(--success,#3cf59b);
 }
 
 .widget-badge.nok{
   color:var(--error,#ff4d6d);
-  border-color:var(--error,#ff4d6d);
 }
 
 .widget-badge.pending{opacity:.6}
@@ -574,7 +567,7 @@ body .modal-backdrop.show .modal{
 
 #dashboard.small-icons .widget-time{display:none}
 
-#dashboard.small-icons .widget-badge{min-width:30px;padding:1px 6px;font-size:10px}
+#dashboard.small-icons .widget-badge{font-size:10px}
 
 .monitor-toggle{
   width:34px;
