@@ -422,7 +422,10 @@ export function normalizeConfig(cfg={}){
       category:sanitizeText(svc.category,100),
       url:sanitizeUrl(svc.url),
       icon:sanitizeImagePath(svc.icon),
-      monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true
+      monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true,
+      widget:svc.widget?.type==="duplicati"
+        ? {type:"duplicati",password:String(svc.widget?.password||"").slice(0,2000)}
+        : null
     })),
     categories:(Array.isArray(cfg.categories) ? clone(cfg.categories) : clone(DEFAULT_CATEGORIES))
       .map(cat=>({

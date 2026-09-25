@@ -240,7 +240,44 @@ export function renderServiceEditor(){
       renderServiceEditor();
     });
 
-    row.append(name,host,category,url,iconField,monitor,remove);
+    const widgetWrap=document.createElement("div");
+    widgetWrap.className="service-widget";
+
+    const widgetType=document.createElement("select");
+    widgetType.className="edit-select";
+    widgetType.title=t("widgetLabel");
+    [["",t("widgetStandard")],["duplicati",t("widgetDuplicati")]].forEach(([value,label])=>{
+      const option=document.createElement("option");
+      option.value=value;
+      option.textContent=label;
+      widgetType.appendChild(option);
+    });
+    widgetType.value=(service.widget&&service.widget.type==="duplicati") ? "duplicati" : "";
+    widgetType.addEventListener("change",()=>{
+      state.editServices[index].widget=widgetType.value==="duplicati"
+        ? {type:"duplicati",password:(service.widget&&service.widget.password)||""}
+        : null;
+      renderServiceEditor();
+    });
+    widgetWrap.appendChild(widgetType);
+
+    if(service.widget&&service.widget.type==="duplicati"){
+      const password=document.createElement("input");
+      password.className="edit-input widget-password";
+      password.type="password";
+      password.autocomplete="new-password";
+      password.placeholder=t("duplicatiPasswordPlaceholder");
+      password.title=t("widgetDuplicatiPassword");
+      password.value=service.widget.password||"";
+      password.addEventListener("input",()=>{
+        if(state.editServices[index].widget){
+          state.editServices[index].widget.password=password.value;
+        }
+      });
+      widgetWrap.appendChild(password);
+    }
+
+    row.append(name,host,category,url,iconField,monitor,remove,widgetWrap);
     serviceEditor.appendChild(row);
   });
 }
@@ -541,7 +578,8 @@ addServiceBtn.addEventListener("click",()=>{
     category:state.editCategories[0]?.name||"Autres",
     url:"",
     icon:"",
-    monitor:true
+    monitor:true,
+    widget:null
   };
   state.editServices.push(newService);
   renderServiceEditor();
@@ -741,7 +779,10 @@ saveBtn.addEventListener("click",async()=>{
       category:validNames.has(service.category) ? service.category : (cleanedCategories[0]?.name||"Autres"),
       url:(service.url||"").trim(),
       icon:(service.icon||"").trim(),
-      monitor:service.monitor===false ? false : service.monitor==="soft" ? "soft" : true
+      monitor:service.monitor===false ? false : service.monitor==="soft" ? "soft" : true,
+      widget:service.widget&&service.widget.type==="duplicati"
+        ? {type:"duplicati",password:String(service.widget.password||"").slice(0,2000)}
+        : null
     }))
     .filter(service=>service.name);
 

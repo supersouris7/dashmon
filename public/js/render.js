@@ -51,6 +51,50 @@ function statusTitle(monitor, info){
   return `${t("statusDown")} · ${info.error||t("statusNoResponse")}`;
 }
 
+function formatDateTime(ms){
+  try{
+    const locale=state.language==="en" ? "en-GB" : "fr-FR";
+    return new Intl.DateTimeFormat(locale,{
+      day:"2-digit",month:"2-digit",year:"numeric",
+      hour:"2-digit",minute:"2-digit"
+    }).format(new Date(ms));
+  }catch(_error){
+    return "";
+  }
+}
+
+function applyWidgetStatus(wrap,service,info){
+  const badge=wrap.querySelector(".widget-badge");
+  const time=wrap.querySelector(".widget-time");
+  if(!info){
+    badge.className="widget-badge pending";
+    badge.textContent="—";
+    time.textContent="";
+    wrap.title=t("widgetPending");
+    return;
+  }
+  if(info.error){
+    badge.className="widget-badge nok";
+    badge.textContent="NOK";
+    time.textContent="—";
+    wrap.title=`${t("widgetError")} : ${String(info.error).slice(0,120)}`;
+    return;
+  }
+  if(info.ok===null || info.lastAttemptAt==null){
+    badge.className="widget-badge pending";
+    badge.textContent="—";
+    time.textContent="—";
+    wrap.title=t("widgetNever");
+    return;
+  }
+  badge.className=info.ok ? "widget-badge ok" : "widget-badge nok";
+  badge.textContent=info.ok ? "OK" : "NOK";
+  time.textContent=formatDateTime(info.lastAttemptAt);
+  wrap.title=info.ok
+    ? t("widgetOk")
+    : `${t("widgetNok")} · ${formatDateTime(info.lastAttemptAt)}`;
+}
+
 export function updateViewButton(){
   const icon=viewBtn.querySelector("i");
 
@@ -152,7 +196,18 @@ function createCard(service){
   title.textContent=service.name || t("unnamedService");
   card.appendChild(title);
 
-  if(service.monitor!==false && service.url){
+  if(service.widget&&service.widget.type==="duplicati"){
+    const wrap=document.createElement("div");
+    wrap.className="widget-status widget-duplicati";
+    wrap.dataset.url=service.url;
+    const badge=document.createElement("span");
+    badge.className="widget-badge pending";
+    const time=document.createElement("span");
+    time.className="widget-time";
+    wrap.append(badge,time);
+    applyWidgetStatus(wrap,service,state.serviceStatus[service.url]);
+    card.appendChild(wrap);
+  }else if(service.monitor!==false && service.url){
     const status=document.createElement("span");
     const serviceState=effectiveStatus(service.monitor, state.serviceStatus[service.url]);
     status.className=`service-status ${serviceState}`;
@@ -473,5 +528,11 @@ export function updateStatusIndicators(){
     const icon=status.querySelector("i");
     if(icon) icon.className=statusIcon(serviceState);
     status.title=statusTitle(monitor, info);
+  });
+  document.querySelectorAll(".widget-status[data-url]").forEach(wrap=>{
+    const info=state.serviceStatus[wrap.dataset.url];
+    if(!info) return;
+    const service=state.services.find(s=>s.url===wrap.dataset.url);
+    applyWidgetStatus(wrap,service,info);
   });
 }

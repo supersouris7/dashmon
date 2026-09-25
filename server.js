@@ -210,6 +210,10 @@ function sanitizeImagePath(p) {
   return m ? `icons/${m[1]}.png` : "";
 }
 
+function sanitizeSecret(value) {
+  return String(value || "").slice(0, 2000);
+}
+
 function sanitizeFavicon(value) {
   const s = String(value || "").trim();
   if (!s || s.length > 350000) return "";
@@ -346,7 +350,10 @@ function buildConfigOutput(config){
             category:sanitizeText(svc.category,100),
             url:sanitizeUrl(svc.url),
             icon:sanitizeImagePath(svc.icon),
-            monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true
+            monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true,
+            widget:svc.widget?.type==="duplicati"
+              ? {type:"duplicati",password:sanitizeSecret(svc.widget?.password)}
+              : null
           }))
         : [],
       categories:Array.isArray(config.categories)
@@ -766,6 +773,10 @@ function makeProbe(target, identity){
 }
 
 async function checkService(service){
+  if(service.widget?.type==="duplicati"){
+    await checkDuplicati(service);
+    return;
+  }
   if(!service.url || service.monitor===false) return;
 
   let target;
@@ -810,6 +821,161 @@ async function checkService(service){
   statusCache[target.href]={state:"down",ms:first.ms,error:first.error};
 }
 
+function duplicatiRequest(baseUrl, apiPath, options){
+  return new Promise((resolve,reject)=>{
+    let target;
+    try{
+      target=new URL(`${baseUrl}${apiPath}`);
+    }catch(_error){
+      return reject(new Error("URL Duplicati invalide"));
+    }
+    const method=options.method||"GET";
+    const headers=Object.assign({Accept:"application/json"},options.headers||{});
+    if(options.token) headers.Authorization=`Bearer ${options.token}`;
+
+    const client=target.protocol==="http:" ? http : https;
+    const req=client.request(target,{
+      method,
+      headers,
+      rejectUnauthorized:!INSECURE_TLS,
+      timeout:STATUS_TIMEOUT
+    },response=>{
+      let body="";
+      response.setEncoding("utf8");
+      response.on("data",chunk=>{
+        body+=chunk;
+        if(body.length>2*1024*1024) req.destroy(new Error("Réponse trop volumineuse"));
+      });
+      response.on("end",()=>{
+        let parsed=null;
+        try{
+          parsed=body ? JSON.parse(body) : null;
+        }catch(_error){}
+        if(response.statusCode<200 || response.statusCode>=300){
+          const message=parsed && (parsed.message||parsed.Message||parsed.error||parsed.Error)
+            ? String(parsed.message||parsed.Message||parsed.error||parsed.Error).slice(0,200)
+            : "";
+          const error=new Error(message || `HTTP ${response.statusCode}`,{cause:`HTTP ${response.statusCode}`});
+          error.status=response.statusCode;
+          return reject(error);
+        }
+        resolve(parsed);
+      });
+    });
+    req.on("timeout",()=>req.destroy(new Error("timeout")));
+    req.on("error",reject);
+    if(options.body!==undefined) req.write(typeof options.body==="string" ? options.body : JSON.stringify(options.body));
+    req.end();
+  });
+}
+
+// Caches mémoire des tokens par URL de serveur Duplicati : on ne s'identifie
+// qu'une fois par cycle, les re-logins sont réservés aux réponses 401.
+const duplicatiTokens=new Map();
+
+async function duplicatiLogin(baseUrl,password){
+  const response=await duplicatiRequest(baseUrl,"/api/v1/auth/login",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:{Password:password,RememberMe:false}
+  });
+  const token=response?.AccessToken || response?.accessToken;
+  if(!token || typeof token!=="string" || !token.length){
+    throw new Error("Connexion Duplicati : token manquant");
+  }
+  return token;
+}
+
+async function duplicatiBackups(baseUrl,token){
+  const data=await duplicatiRequest(baseUrl,"/api/v1/backups",{token});
+  if(Array.isArray(data)) return data;
+  if(Array.isArray(data?.Backups)) return data.Backups;
+  if(Array.isArray(data?.backups)) return data.backups;
+  throw new Error("Réponse Duplicati inattendue");
+}
+
+// Formule Duplicati ("yyyyMMdd'T'HHmmssK", UTC) : 20260925T153045Z
+function parseDuplicatiDate(value){
+  if(!value) return null;
+  const match=String(value).trim().match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z|[+-]\d{2}:?\d{2})?$/);
+  if(!match) return null;
+  const zone=match[7] || "Z";
+  const iso=`${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:${match[6]}${zone}`;
+  const ms=Date.parse(iso);
+  return Number.isFinite(ms) ? ms : null;
+}
+
+function computeDuplicatiStatus(backups){
+  let total=0, okCount=0, errCount=0, lastAttemptAt=null, lastErrorAt=null;
+  for(const backup of Array.isArray(backups) ? backups : []){
+    const metadata=backup?.Metadata || backup?.metadata || {};
+    const lastB=parseDuplicatiDate(metadata.LastBackupFinished)
+      ?? parseDuplicatiDate(metadata.LastBackupDate);
+    const lastE=parseDuplicatiDate(metadata.LastErrorDate);
+    if(!lastB && !lastE) continue;
+
+    total++;
+    const failed=lastE && (!lastB || lastE>=lastB);
+    if(failed) errCount++; else okCount++;
+
+    const attempt=Math.max(lastB ?? -Infinity,lastE ?? -Infinity);
+    if(lastAttemptAt===null || attempt>lastAttemptAt) lastAttemptAt=attempt;
+    if(failed && (lastErrorAt===null || lastE>lastErrorAt)) lastErrorAt=lastE;
+  }
+
+  if(total===0){
+    return {ok:null,lastAttemptAt:null,lastErrorAt:null,total:0,okCount:0,errCount:0};
+  }
+  const latestError=lastAttemptAt!==null && lastErrorAt!==null && lastErrorAt>=lastAttemptAt;
+  return {ok:!latestError,lastAttemptAt,lastErrorAt,total,okCount,errCount};
+}
+
+async function checkDuplicati(service){
+  const url=sanitizeUrl(service.url);
+  const out={state:"duplicati",ok:false,lastAttemptAt:null,total:0,okCount:0,errCount:0,lastErrorAt:null,ms:0};
+  statusCache[url || service.url]=out;
+
+  if(!url){
+    out.error="URL Duplicati invalide";
+    return;
+  }
+  const baseUrl=url.replace(/\/+$/,"");
+  const started=Date.now();
+
+  try{
+    const token=duplicatiTokens.get(baseUrl) || await duplicatiLogin(baseUrl,service.widget?.password);
+    if(!duplicatiTokens.has(baseUrl)) duplicatiTokens.set(baseUrl,token);
+
+    let backups;
+    try{
+      backups=await duplicatiBackups(baseUrl,token);
+    }catch(error){
+      // Token expiré/révoqué : un seul re-login puis on réessaie.
+      if(error.status===401 || /401|Unauthorized/i.test(String(error.message||""))){
+        duplicatiTokens.delete(baseUrl);
+        const fresh=await duplicatiLogin(baseUrl,service.widget?.password);
+        duplicatiTokens.set(baseUrl,fresh);
+        backups=await duplicatiBackups(baseUrl,fresh);
+      }else{
+        throw error;
+      }
+    }
+
+    const status=computeDuplicatiStatus(backups);
+    out.ok=status.ok;
+    out.lastAttemptAt=status.lastAttemptAt;
+    out.lastErrorAt=status.lastErrorAt;
+    out.total=status.total;
+    out.okCount=status.okCount;
+    out.errCount=status.errCount;
+    out.ms=Date.now()-started;
+  }catch(error){
+    duplicatiTokens.delete(baseUrl);
+    out.error=String(error?.message||"Erreur Duplicati").slice(0,200);
+    out.ms=Date.now()-started;
+  }
+}
+
 async function refreshStatuses(){
   let config;
   try{
@@ -825,6 +991,16 @@ async function refreshStatuses(){
     if(!active.has(key) && !active.has(key.replace(/\/$/,""))){
       delete statusCache[key];
     }
+  }
+  // Purge les tokens Duplicati dont l'URL n'a plus de widget actif.
+  const widgetActive=new Set(
+    services
+      .filter(s=>s.widget?.type==="duplicati")
+      .map(s=>sanitizeUrl(s.url).replace(/\/+$/,""))
+      .filter(Boolean)
+  );
+  for(const key of duplicatiTokens.keys()){
+    if(!widgetActive.has(key)) duplicatiTokens.delete(key);
   }
   // Checks par lots de 3 espacés : évite les rafales de connexions en gardant
   // un cycle de rafraîchissement raisonnable.
