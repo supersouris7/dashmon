@@ -330,7 +330,7 @@
   grid-template-columns:auto auto auto;
   grid-template-areas:
     "name category actions"
-    "url host actions";
+    "url host widget";
   justify-content:start;
   gap:8px 12px;
   align-items:center;
@@ -346,6 +346,29 @@
 .service-row > .edit-input:nth-of-type(2){width:340px}
 .service-row > .edit-select:nth-of-type(1){width:150px}
 .service-row > .edit-select:nth-of-type(2){width:180px}
+
+.service-row > .edit-input:nth-of-type(1){grid-area:name}
+.service-row > .edit-input:nth-of-type(2){grid-area:url}
+.service-row > .edit-select:nth-of-type(1){grid-area:host}
+.service-row > .edit-select:nth-of-type(2){grid-area:category}
+
+.service-actions{
+  grid-area:actions;
+  display:flex;
+  flex-direction:row;
+  gap:6px;
+  align-self:center;
+}
+
+.service-widget{
+  grid-area:widget;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px 10px;
+  min-width:0;
+}
 
 .service-row .edit-input,
 .service-row .edit-select{
@@ -403,17 +426,18 @@
     grid-template-columns:minmax(0,1fr) auto;
     grid-template-areas:
       "name actions"
-      "url actions"
+      "host ."
       "category ."
-      "host .";
-    gap:8px 10px;
+      "url ."
+      "widget .";
+    gap:8px 12px;
   }
 
   .service-row > .edit-input:nth-of-type(1){width:100%}
   .service-row > .edit-input:nth-of-type(2){width:100%}
   .service-row > .edit-select:nth-of-type(1){width:100%}
   .service-row > .edit-select:nth-of-type(2){width:100%}
-  .service-row .service-widget{grid-column:1/-1}
+  .service-widget{justify-content:flex-start}
 }
 
 body,
@@ -610,9 +634,9 @@ body .modal-backdrop.show .modal{
 .monitor-toggle.active{color:var(--text)}
 .monitor-toggle.soft{color:var(--text);opacity:.85}
 
-.service-actions > .icon-only-field,
-.service-actions > .monitor-toggle,
-.service-actions > .small-icon-btn{
+.service-row > .icon-only-field,
+.service-row > .monitor-toggle,
+.service-row > .small-icon-btn{
   width:38px;
   min-width:38px;
   height:38px;
@@ -624,15 +648,15 @@ body .modal-backdrop.show .modal{
   justify-self:center;
 }
 
-.service-actions > .icon-only-field{
+.service-row > .icon-only-field{
   display:flex;
   align-items:center;
   justify-content:center;
 }
 
-.service-actions > .icon-only-field .image-library-btn,
-.service-actions > .monitor-toggle,
-.service-actions > .small-icon-btn{
+.service-row > .icon-only-field .image-library-btn,
+.service-row > .monitor-toggle,
+.service-row > .small-icon-btn{
   width:38px;
   min-width:38px;
   height:38px;
@@ -646,7 +670,7 @@ body .modal-backdrop.show .modal{
   border-radius:3px;
 }
 
-.service-actions > .icon-only-field .editor-icon-preview{
+.service-row > .icon-only-field .editor-icon-preview{
   width:22px;
   height:22px;
   object-fit:contain;
