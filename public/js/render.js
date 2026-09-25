@@ -73,12 +73,12 @@ function formatCompactNumber(n){
   }
 }
 
-function formatPercent(ratio){
+function formatNumber(n){
   const locale=state.language==="en" ? "en-GB" : "fr-FR";
   try{
-    return new Intl.NumberFormat(locale,{maximumFractionDigits:1}).format(Number(ratio)||0);
+    return new Intl.NumberFormat(locale).format(Number(n)||0);
   }catch(_error){
-    return String(ratio);
+    return String(n);
   }
 }
 
@@ -120,10 +120,10 @@ function applyWidgetStatus(wrap,service,info){
       wrap.title=`${t("widgetAdGuardError")} : ${String(info.error).slice(0,120)}`;
     }else{
       const queries=Number(info.queries)||0;
-      const pct=formatPercent(info.ratio);
+      const pct=Math.round(Number(info.ratio)||0);
       badge.className="widget-badge ok";
-      badge.textContent=`${pct} %`;
-      time.textContent=formatCompactNumber(queries);
+      badge.textContent=`${t("widgetAdGuardBlocked")} ${pct} %`;
+      time.textContent=`${t("widgetAdGuardQueries")} ${formatNumber(queries)}`;
       const avg=info.avgMs!=null ? ` · ${info.avgMs} ms` : "";
       wrap.title=`${t("widgetAdGuard")} · ${formatCompactNumber(queries)} ${t("widgetAdGuardQueries")} · ${pct} % ${t("widgetAdGuardBlocked")}${avg}`;
     }
