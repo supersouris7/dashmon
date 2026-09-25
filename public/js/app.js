@@ -316,6 +316,7 @@ deleteThemeBtn.addEventListener("click",async()=>{
 
 let renderTimer=null;
 searchInput.addEventListener("input",()=>{
+  searchInput.closest(".search-box").classList.toggle("has-value",searchInput.value.length>0);
   clearTimeout(renderTimer);
   renderTimer=setTimeout(render,150);
 });
