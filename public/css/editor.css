@@ -530,6 +530,16 @@ body.modal-open{
   margin-bottom:0;
 }
 
+#dashboard[data-view="columns"] .section.collapsed{
+  grid-column:1 / -1;
+  max-width:100%;
+  margin-bottom:2px;
+}
+
+#dashboard[data-view="columns"] .section.collapsed .section-header{
+  min-height:34px;
+}
+
 #dashboard[data-view="columns"] .cards{
   grid-template-columns:1fr;
 }
