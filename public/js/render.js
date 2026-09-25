@@ -94,7 +94,7 @@ function applyWidgetStatus(wrap,service,info){
   }
   if(service?.widget?.type==="lichess"){
     if(info.error){
-      badge.className="widget-badge nok";
+      badge.className="widget-badge pending";
       badge.textContent="ELO —";
       time.textContent="—";
       wrap.title=`${t("widgetError")} : ${String(info.error).slice(0,120)}`;
