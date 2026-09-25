@@ -97,6 +97,8 @@ export async function refreshHostMetrics(){
     return;
   }
 
+  renderHostMetrics();
+
   try{
     const response=await fetch("/api/host-metrics",{cache:"no-store"});
     if(!response.ok) throw new Error("HTTP "+response.status);
