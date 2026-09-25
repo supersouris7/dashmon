@@ -327,16 +327,17 @@
 
 .service-row{
   display:grid;
-  grid-template-columns:minmax(150px,1fr) 150px auto;
+  grid-template-columns:240px 140px auto;
   grid-template-areas:
     "name category actions"
     "url host widget";
+  justify-content:start;
   gap:8px 12px;
   align-items:center;
   width:100%;
   min-width:0;
   box-sizing:border-box;
-  padding:10px 0;
+  padding:8px 0;
 }
 
 .service-row > *{min-width:0}
@@ -344,10 +345,11 @@
 .service-row > .edit-input,
 .service-row > .edit-select{
   width:100%;
-  height:36px;
+  height:34px;
   min-width:0;
   box-sizing:border-box;
-  padding:0 10px;
+  padding:0 8px;
+  font-size:13px;
 }
 
 .service-row > .edit-input:nth-of-type(1){grid-area:name}
@@ -367,17 +369,17 @@
 .service-row .service-actions .icon-only-field,
 .service-row .service-actions .monitor-toggle,
 .service-row .service-actions .small-icon-btn{
-  width:36px;
-  min-width:36px;
-  height:36px;
-  min-height:36px;
+  width:34px;
+  min-width:34px;
+  height:34px;
+  min-height:34px;
   margin:0;
   padding:0;
   display:flex;
   align-items:center;
   justify-content:center;
   box-sizing:border-box;
-  flex:0 0 36px;
+  flex:0 0 34px;
 }
 
 .service-row .service-actions .icon-only-field{
@@ -388,10 +390,10 @@
 
 .service-row .service-actions .icon-only-field .image-library-btn,
 .service-row .service-actions .icon-only-field .editor-icon-preview{
-  width:36px;
-  min-width:36px;
-  height:36px;
-  min-height:36px;
+  width:34px;
+  min-width:34px;
+  height:34px;
+  min-height:34px;
   padding:0;
 }
 
@@ -421,17 +423,17 @@
 
 .service-widget .widget-type{
   width:auto;
-  height:36px;
-  flex:0 0 128px;
+  height:34px;
+  flex:0 0 120px;
   min-width:0;
   font-size:13px;
   padding:0 8px;
 }
 
 .service-widget .widget-config-btn{
-  width:36px;
-  height:36px;
-  flex:0 0 36px;
+  width:34px;
+  height:34px;
+  flex:0 0 34px;
   display:flex;
   align-items:center;
   justify-content:center;
