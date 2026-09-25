@@ -6,7 +6,7 @@ import {
   appearanceCloseBtn, searchInput, topMenu,
   groupCategoryBtn, groupHostBtn, sortMenuLabel,
   sortAlphabeticalBtn, sortUsageBtn, editorTitle, closeBtn, editorSearch,
-  cancelBtn, saveBtn, imageLibraryTitle, closeImageLibraryBtn, webLinksHeader,
+  cancelBtn, saveBtn, imageLibraryTitle, widgetConfigTitle, closeImageLibraryBtn, webLinksHeader,
   webLinksSection
 } from "./dom.js";
 
@@ -126,9 +126,13 @@ const UI_TEXT={
     widgetAdGuard:"AdGuard",
     widgetAdGuardUsername:"Utilisateur AdGuard",
     widgetAdGuardPassword:"Mot de passe AdGuard",
+    widgetAdGuardProtocol:"Protocole",
+    widgetAdGuardUrl:"Adresse / IP AdGuard",
+    widgetAdGuardUrlPlaceholder:"ex. adguard.lan ou 192.168.1.20:3000",
     widgetAdGuardBlocked:"bloquées",
     widgetAdGuardQueries:"requêtes",
     widgetAdGuardError:"AdGuard",
+    widgetConfigSaveLabel:"Valider",
     widgetOk:"Dernière sauvegarde OK",
     widgetNok:"Dernière sauvegarde en échec",
     widgetNever:"Aucune sauvegarde enregistrée",
@@ -278,9 +282,13 @@ const UI_TEXT={
     widgetAdGuard:"AdGuard",
     widgetAdGuardUsername:"AdGuard username",
     widgetAdGuardPassword:"AdGuard password",
+    widgetAdGuardProtocol:"Protocol",
+    widgetAdGuardUrl:"AdGuard URL or IP",
+    widgetAdGuardUrlPlaceholder:"e.g. adguard.lan or 192.168.1.20:3000",
     widgetAdGuardBlocked:"blocked",
     widgetAdGuardQueries:"queries",
     widgetAdGuardError:"AdGuard",
+    widgetConfigSaveLabel:"Apply",
     widgetOk:"Last backup OK",
     widgetNok:"Last backup failed",
     widgetNever:"No backup recorded yet",
@@ -378,7 +386,8 @@ export function applyLanguage(){
     ["exportConfigLabel","exportBtn"],
     ["uploadPngLabel","importBtn"],
     ["manageUploadLabel","addImages"],
-    ["manageDeleteLabel","deleteSelection"]
+    ["manageDeleteLabel","deleteSelection"],
+    ["widgetConfigSaveLabel","widgetConfigSaveLabel"]
   ];
   editorLabels.forEach(([id,key])=>{
     const el=document.getElementById(id);
@@ -391,6 +400,7 @@ export function applyLanguage(){
   cancelBtn.textContent=t("cancelBtn");
   saveBtn.textContent=t("saveBtn");
   imageLibraryTitle.textContent=t("imageLibraryTitle");
+  widgetConfigTitle.textContent=t("widgetConfigTitle");
   closeImageLibraryBtn.title=t("close");
 
   const webLinksToggleText=state.webLinksCollapsed ? t("expandWebLinks") : t("collapseWebLinks");

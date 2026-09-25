@@ -13,7 +13,7 @@ import {
   modalBackdrop, closeBtn, cancelBtn, saveBtn,
   addServiceBtn, addCategoryBtn, addWebLinkBtn, addHostBtn,
   exportConfigBtn, importConfigBtn, configImportInput,
-  widgetConfig, widgetConfigBody, widgetConfigCloseBtn
+  widgetConfig, widgetConfigBody, widgetConfigCloseBtn, widgetConfigSaveBtn
 } from "./dom.js";
 
 function moveItem(list,fromIndex,toIndex){
@@ -266,6 +266,8 @@ export function renderServiceEditor(){
           ? {type:"lichess",username:(service.widget&&service.widget.username)||""}
           : widgetType.value==="adguard"
             ? {type:"adguard",
+               protocol:(service.widget&&service.widget.protocol==="http")?"http":"https",
+               url:(service.widget&&service.widget.url)||"",
                username:(service.widget&&service.widget.username)||"",
                password:(service.widget&&service.widget.password)||""}
             : null;
@@ -291,9 +293,12 @@ export function renderServiceEditor(){
 }
 
 let widgetConfigIndex=-1;
+let widgetDraft=null;
 
 export function openWidgetConfig(index){
   widgetConfigIndex=index;
+  const svc=state.editServices[index];
+  widgetDraft=svc&&svc.widget ? Object.assign({},svc.widget) : null;
   renderWidgetConfig();
   widgetConfig.classList.add("show");
   widgetConfig.setAttribute("aria-hidden","false");
@@ -304,13 +309,46 @@ export function closeWidgetConfig(){
   widgetConfig.classList.remove("show");
   widgetConfig.setAttribute("aria-hidden","true");
   widgetConfigIndex=-1;
+  widgetDraft=null;
   document.body.classList.remove("modal-open");
+}
+
+function commitWidgetConfig(){
+  const svc=state.editServices[widgetConfigIndex];
+  if(!svc||!svc.widget||!widgetDraft) return;
+  const d=widgetDraft;
+
+  if(svc.widget.type==="duplicati"){
+    const password=d.password&&!String(d.password).startsWith("aes1.")
+      ? String(d.password).slice(0,2000) : svc.widget.password||"";
+    svc.widget={type:"duplicati",password};
+    return;
+  }
+
+  if(svc.widget.type==="lichess"){
+    svc.widget={type:"lichess",
+      username:String(d.username||"").trim().slice(0,200),
+      variant:String(d.variant||"").trim().slice(0,50)};
+    return;
+  }
+
+  if(svc.widget.type==="adguard"){
+    const password=d.password&&!String(d.password).startsWith("aes1.")
+      ? String(d.password).slice(0,2000) : svc.widget.password||"";
+    svc.widget={type:"adguard",
+      protocol:d.protocol==="http" ? "http" : "https",
+      url:String(d.url||"").trim().slice(0,200),
+      username:String(d.username||"").trim().slice(0,200),
+      password};
+  }
 }
 
 function renderWidgetConfig(){
   widgetConfigBody.innerHTML="";
   const service=state.editServices[widgetConfigIndex];
   if(!service||!service.widget) return;
+  const draft=widgetDraft;
+  if(!draft) return;
 
   if(service.widget.type==="duplicati"){
     const helper=document.createElement("label");
@@ -322,13 +360,12 @@ function renderWidgetConfig(){
     password.className="edit-input";
     password.type="password";
     password.autocomplete="new-password";
-    const secret=service.widget.password||"";
-    const secured=secret.startsWith("aes1.");
+    const secured=String(draft.password||"").startsWith("aes1.");
     password.placeholder=secured ? t("passwordConfigured") : t("duplicatiPasswordPlaceholder");
-    password.value=secured ? "" : secret;
+    password.value=secured ? "" : draft.password||"";
     password.addEventListener("input",()=>{
-      if(state.editServices[widgetConfigIndex]?.widget && password.value){
-        state.editServices[widgetConfigIndex].widget.password=password.value;
+      if(password.value){
+        draft.password=password.value;
       }
     });
     helper.appendChild(password);
@@ -347,11 +384,9 @@ function renderWidgetConfig(){
     username.type="text";
     username.autocomplete="off";
     username.placeholder=t("widgetLichessPlaceholder");
-    username.value=service.widget.username||"";
+    username.value=draft.username||"";
     username.addEventListener("input",()=>{
-      if(state.editServices[widgetConfigIndex]?.widget){
-        state.editServices[widgetConfigIndex].widget.username=username.value;
-      }
+      draft.username=username.value;
     });
     helper.appendChild(username);
 
@@ -369,11 +404,9 @@ function renderWidgetConfig(){
       option.textContent=label;
       variant.appendChild(option);
     });
-    variant.value=service.widget.variant||"";
+    variant.value=draft.variant||"";
     variant.addEventListener("change",()=>{
-      if(state.editServices[widgetConfigIndex]?.widget){
-        state.editServices[widgetConfigIndex].widget.variant=variant.value;
-      }
+      draft.variant=variant.value;
     });
     variantWrap.appendChild(variant);
     widgetConfigBody.append(helper,variantWrap);
@@ -381,6 +414,43 @@ function renderWidgetConfig(){
   }
 
   if(service.widget.type==="adguard"){
+    const protocolField=document.createElement("label");
+    protocolField.className="widget-cfg-field";
+    const protocolLabel=document.createElement("span");
+    protocolLabel.textContent=t("widgetAdGuardProtocol");
+    protocolField.appendChild(protocolLabel);
+    const protocol=document.createElement("select");
+    protocol.className="edit-select";
+    [["https","HTTPS"],["http","HTTP"]].forEach(([value,label])=>{
+      const option=document.createElement("option");
+      option.value=value;
+      option.textContent=label;
+      protocol.appendChild(option);
+    });
+    protocol.value=draft.protocol==="http" ? "http" : "https";
+    protocol.addEventListener("change",()=>{
+      draft.protocol=protocol.value;
+    });
+    protocolField.appendChild(protocol);
+    widgetConfigBody.appendChild(protocolField);
+
+    const urlField=document.createElement("label");
+    urlField.className="widget-cfg-field";
+    const urlLabel=document.createElement("span");
+    urlLabel.textContent=t("widgetAdGuardUrl");
+    urlField.appendChild(urlLabel);
+    const url=document.createElement("input");
+    url.className="edit-input";
+    url.type="text";
+    url.autocomplete="off";
+    url.placeholder=t("widgetAdGuardUrlPlaceholder");
+    url.value=draft.url||"";
+    url.addEventListener("input",()=>{
+      draft.url=url.value;
+    });
+    urlField.appendChild(url);
+    widgetConfigBody.appendChild(urlField);
+
     const userField=document.createElement("label");
     userField.className="widget-cfg-field";
     const userLabel=document.createElement("span");
@@ -391,13 +461,12 @@ function renderWidgetConfig(){
     username.type="text";
     username.autocomplete="off";
     username.placeholder=t("widgetAdGuardUsername");
-    username.value=service.widget.username||"";
+    username.value=draft.username||"";
     username.addEventListener("input",()=>{
-      if(state.editServices[widgetConfigIndex]?.widget){
-        state.editServices[widgetConfigIndex].widget.username=username.value;
-      }
+      draft.username=username.value;
     });
     userField.appendChild(username);
+    widgetConfigBody.appendChild(userField);
 
     const passField=document.createElement("label");
     passField.className="widget-cfg-field";
@@ -408,19 +477,16 @@ function renderWidgetConfig(){
     password.className="edit-input";
     password.type="password";
     password.autocomplete="new-password";
-    const secret=service.widget.password||"";
-    const secured=secret.startsWith("aes1.");
+    const secured=String(draft.password||"").startsWith("aes1.");
     password.placeholder=secured ? t("passwordConfigured") : t("duplicatiPasswordPlaceholder");
-    password.value=secured ? "" : secret;
+    password.value=secured ? "" : draft.password||"";
     password.addEventListener("input",()=>{
-      if(state.editServices[widgetConfigIndex]?.widget && password.value){
-        state.editServices[widgetConfigIndex].widget.password=password.value;
+      if(password.value){
+        draft.password=password.value;
       }
     });
     passField.appendChild(password);
-
-    widgetConfigBody.append(userField,passField);
-    return;
+    widgetConfigBody.appendChild(passField);
   }
 }
 
@@ -715,6 +781,12 @@ export function closeEditor(){
 }
 
 widgetConfigCloseBtn.addEventListener("click",closeWidgetConfig);
+widgetConfigSaveBtn.addEventListener("click",()=>{
+  if(widgetConfigIndex>=0){
+    commitWidgetConfig();
+    closeWidgetConfig();
+  }
+});
 widgetConfig.addEventListener("click",e=>{
   if(e.target===widgetConfig) closeWidgetConfig();
 });
@@ -935,6 +1007,8 @@ saveBtn.addEventListener("click",async()=>{
              variant:String(service.widget.variant||"").slice(0,50)}
           : service.widget&&service.widget.type==="adguard"
             ? {type:"adguard",
+               protocol:service.widget.protocol==="http" ? "http" : "https",
+               url:String(service.widget.url||"").trim().slice(0,200),
                username:String(service.widget.username||"").slice(0,200),
                password:String(service.widget.password||"").slice(0,2000)}
             : null

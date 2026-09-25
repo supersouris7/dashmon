@@ -398,6 +398,8 @@ function buildConfigOutput(config){
                    variant:String(svc.widget?.variant||"").slice(0,50)}
                 : svc.widget?.type==="adguard"
                   ? {type:"adguard",
+                     protocol:svc.widget?.protocol==="http" ? "http" : "https",
+                     url:String(svc.widget?.url||"").trim().slice(0,200),
                      username:String(svc.widget?.username||"").slice(0,200),
                      password:isEncryptedSecret(svc.widget?.password)
                        ? String(svc.widget?.password||"").slice(0,2000)
@@ -1106,16 +1108,21 @@ async function checkLichess(service){
 }
 
 async function checkAdGuard(service){
-  const url=sanitizeUrl(service.url);
+  const serviceUrl=sanitizeUrl(service.url);
+  const widget=service.widget||{};
+  const rawTarget=String(widget.url||"").trim().replace(/^https?:\/\//i,"");
+  const target=rawTarget
+    ? sanitizeUrl((widget.protocol==="http" ? "http" : "https")+"://"+rawTarget)
+    : serviceUrl;
   const out={state:"adguard",ok:false,queries:0,blocked:0,ratio:null,avgMs:null,ms:0};
-  statusCache[url || service.url]=out;
-  if(!url){
+  statusCache[serviceUrl || service.url]=out;
+  const baseUrl=target.replace(/\/+$/,"");
+  if(!baseUrl){
     out.error="URL AdGuard invalide";
     return;
   }
-  const baseUrl=url.replace(/\/+$/,"");
-  const username=String(service.widget?.username||"").trim();
-  const password=decryptSecret(service.widget?.password);
+  const username=String(widget.username||"").trim();
+  const password=decryptSecret(widget.password);
   const started=Date.now();
   try{
     const stats=await apiRequest(baseUrl,"/control/stats",

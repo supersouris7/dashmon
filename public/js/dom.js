@@ -62,6 +62,7 @@ export const imageGrid=document.getElementById("imageGrid");
 export const uploadPngBtn=document.getElementById("uploadPngBtn");
 export const closeImageLibraryBtn=document.getElementById("closeImageLibraryBtn");
 export const widgetConfig=document.getElementById("widgetConfig");
+export const widgetConfigTitle=document.getElementById("widgetConfigTitle");
 export const widgetConfigBody=document.getElementById("widgetConfigBody");
 export const widgetConfigCloseBtn=document.getElementById("widgetConfigCloseBtn");
 export const managePngUpload=document.getElementById("managePngUpload");

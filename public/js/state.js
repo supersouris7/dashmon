@@ -430,6 +430,8 @@ export function normalizeConfig(cfg={}){
              variant:String(svc.widget?.variant||"").slice(0,50)}
           : svc.widget?.type==="adguard"
             ? {type:"adguard",
+               protocol:svc.widget?.protocol==="http" ? "http" : "https",
+               url:String(svc.widget?.url||"").trim().slice(0,200),
                username:String(svc.widget?.username||"").slice(0,200),
                password:String(svc.widget?.password||"").slice(0,2000)}
             : null
