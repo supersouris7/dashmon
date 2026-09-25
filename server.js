@@ -210,8 +210,46 @@ function sanitizeImagePath(p) {
   return m ? `icons/${m[1]}.png` : "";
 }
 
-function sanitizeSecret(value) {
-  return String(value || "").slice(0, 2000);
+// Secrets de widget chiffrés au repos : clé maîtresse en DASHMON_MASTER_KEY.
+// Sans clé, repli sur le stockage en clair (warning au démarrage) pour rester
+// utilisable sans configuration.
+const MASTER_KEY=String(process.env.DASHMON_MASTER_KEY||"");
+const MASTER_KEY_DERIVED=MASTER_KEY
+  ? crypto.createHash("sha256").update(MASTER_KEY,"utf8").digest()
+  : null;
+const SECRET_PREFIX="aes1.";
+if(!MASTER_KEY){
+  console.warn(`${ts()} ⚠ DASHMON_MASTER_KEY absente : les mots de passe des widgets sont stockés EN CLAIR dans config.json.`);
+}
+
+function isEncryptedSecret(value){
+  return typeof value==="string" && value.startsWith(SECRET_PREFIX);
+}
+
+function encryptSecret(value){
+  if(MASTER_KEY_DERIVED===null) return String(value||"");
+  const iv=crypto.randomBytes(12);
+  const cipher=crypto.createCipheriv("aes-256-gcm",MASTER_KEY_DERIVED,iv);
+  const enc=Buffer.concat([cipher.update(String(value||""),"utf8"),cipher.final()]);
+  const tag=cipher.getAuthTag();
+  return `${SECRET_PREFIX}${iv.toString("base64")}.${tag.toString("base64")}.${enc.toString("base64")}`;
+}
+
+function decryptSecret(value){
+  if(!isEncryptedSecret(value)) return String(value||"");
+  if(MASTER_KEY_DERIVED===null) return "";
+  try{
+    const parts=value.slice(SECRET_PREFIX.length).split(".");
+    if(parts.length!==3) return "";
+    const iv=Buffer.from(parts[0],"base64");
+    const tag=Buffer.from(parts[1],"base64");
+    const data=Buffer.from(parts[2],"base64");
+    const decipher=crypto.createDecipheriv("aes-256-gcm",MASTER_KEY_DERIVED,iv);
+    decipher.setAuthTag(tag);
+    return Buffer.concat([decipher.update(data),decipher.final()]).toString("utf8");
+  }catch(_error){
+    return "";
+  }
 }
 
 function sanitizeFavicon(value) {
@@ -352,7 +390,9 @@ function buildConfigOutput(config){
             icon:sanitizeImagePath(svc.icon),
             monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true,
             widget:svc.widget?.type==="duplicati"
-              ? {type:"duplicati",password:sanitizeSecret(svc.widget?.password)}
+              ? {type:"duplicati",password:isEncryptedSecret(svc.widget?.password)
+                  ? String(svc.widget?.password||"").slice(0,2000)
+                  : encryptSecret(svc.widget?.password)}
               : null
           }))
         : [],
@@ -943,9 +983,10 @@ async function checkDuplicati(service){
   }
   const baseUrl=url.replace(/\/+$/,"");
   const started=Date.now();
+  const password=decryptSecret(service.widget?.password);
 
   try{
-    const token=duplicatiTokens.get(baseUrl) || await duplicatiLogin(baseUrl,service.widget?.password);
+    const token=duplicatiTokens.get(baseUrl) || await duplicatiLogin(baseUrl,password);
     if(!duplicatiTokens.has(baseUrl)) duplicatiTokens.set(baseUrl,token);
 
     let backups;
@@ -955,7 +996,7 @@ async function checkDuplicati(service){
       // Token expiré/révoqué : un seul re-login puis on réessaie.
       if(error.status===401 || /401|Unauthorized/i.test(String(error.message||""))){
         duplicatiTokens.delete(baseUrl);
-        const fresh=await duplicatiLogin(baseUrl,service.widget?.password);
+        const fresh=await duplicatiLogin(baseUrl,password);
         duplicatiTokens.set(baseUrl,fresh);
         backups=await duplicatiBackups(baseUrl,fresh);
       }else{

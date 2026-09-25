@@ -266,11 +266,13 @@ export function renderServiceEditor(){
       password.className="edit-input widget-password";
       password.type="password";
       password.autocomplete="new-password";
-      password.placeholder=t("duplicatiPasswordPlaceholder");
+      const secret=service.widget.password||"";
+      const secured=secret.startsWith("aes1.");
+      password.placeholder=secured ? t("passwordConfigured") : t("duplicatiPasswordPlaceholder");
       password.title=t("widgetDuplicatiPassword");
-      password.value=service.widget.password||"";
+      password.value=secured ? "" : secret;
       password.addEventListener("input",()=>{
-        if(state.editServices[index].widget){
+        if(state.editServices[index].widget && password.value){
           state.editServices[index].widget.password=password.value;
         }
       });
