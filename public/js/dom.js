@@ -65,6 +65,7 @@ export const widgetConfig=document.getElementById("widgetConfig");
 export const widgetConfigTitle=document.getElementById("widgetConfigTitle");
 export const widgetConfigBody=document.getElementById("widgetConfigBody");
 export const widgetConfigCloseBtn=document.getElementById("widgetConfigCloseBtn");
+export const widgetConfigSaveBtn=document.getElementById("widgetConfigSaveBtn");
 export const managePngUpload=document.getElementById("managePngUpload");
 export const manageUploadBtn=document.getElementById("manageUploadBtn");
 export const manageDeleteBtn=document.getElementById("manageDeleteBtn");
