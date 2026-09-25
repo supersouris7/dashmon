@@ -907,7 +907,9 @@ function parseDuplicatiDate(value){
 
 function computeDuplicatiStatus(backups){
   let total=0, okCount=0, errCount=0, lastAttemptAt=null, lastErrorAt=null;
-  for(const backup of Array.isArray(backups) ? backups : []){
+  for(const entry of Array.isArray(backups) ? backups : []){
+    // /api/v1/backups retourne des entrées enveloppées {"Backup":{...},"Schedule":{...}}.
+    const backup=entry?.Backup || entry?.backup || entry;
     const metadata=backup?.Metadata || backup?.metadata || {};
     const lastB=parseDuplicatiDate(metadata.LastBackupFinished)
       ?? parseDuplicatiDate(metadata.LastBackupDate);
