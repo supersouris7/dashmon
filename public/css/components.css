@@ -327,10 +327,10 @@
 
 .service-row{
   display:grid;
-  grid-template-columns:minmax(150px,2fr) minmax(130px,2fr) minmax(280px,3fr);
+  grid-template-columns:minmax(150px,2fr) 150px auto minmax(180px,1fr);
   grid-template-areas:
-    "name category actions"
-    "url host widget";
+    "name category actions ."
+    "url host . widget";
   gap:8px 12px;
   align-items:center;
   width:100%;
@@ -360,7 +360,7 @@
   display:flex;
   flex-direction:row;
   gap:6px;
-  justify-content:flex-end;
+  justify-content:flex-start;
   align-self:center;
 }
 
@@ -380,15 +380,10 @@
   flex:0 0 36px;
 }
 
-.service-widget{
-  grid-area:widget;
+.service-row .service-actions .icon-only-field{
   display:flex;
-  flex-wrap:wrap;
   align-items:center;
-  gap:8px 8px;
-  min-width:0;
-  justify-content:flex-start;
-  align-content:center;
+  justify-content:center;
 }
 
 .service-row .service-actions .icon-only-field .image-library-btn,
@@ -400,12 +395,29 @@
   padding:0;
 }
 
+.service-row .service-actions .icon-only-field .image-library-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
 .service-row .service-actions .icon-only-field .editor-icon-preview{
   width:20px;
   height:20px;
   min-width:20px;
   min-height:20px;
   object-fit:contain;
+}
+
+.service-widget{
+  grid-area:widget;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px 8px;
+  min-width:0;
+  justify-content:flex-start;
+  align-content:center;
 }
 
 .service-widget .widget-editor-label{
@@ -443,9 +455,9 @@
     grid-template-columns:minmax(0,1fr) auto;
     grid-template-areas:
       "name actions"
+      "url ."
       "host ."
       "category ."
-      "url ."
       "widget .";
     gap:8px 12px;
   }
