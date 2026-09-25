@@ -168,6 +168,7 @@ export const state = {
   bannerIcon: true,
   bannerUrl: DEFAULT_BANNER_URL,
   favicon: "",
+  faviconEnabled: true,
   editServices: [],
   editCategories: [],
   editHosts: [],
@@ -314,7 +315,8 @@ export function normalizeConfig(cfg={}){
     hostsDisplay:cfg.hostsDisplay==="icon" ? "icon" : "name",
     bannerIcon:cfg.bannerIcon!==false,
     bannerUrl:sanitizeUrl(cfg.bannerUrl||"") || DEFAULT_BANNER_URL,
-    favicon:sanitizeFavicon(cfg.favicon)
+    favicon:sanitizeFavicon(cfg.favicon),
+    faviconEnabled:cfg.faviconEnabled!==false
   };
 }
 

@@ -89,5 +89,6 @@
   "hostsDisplay": "name",
   "bannerIcon": true,
   "bannerUrl": "https://github.com/supersouris7",
-  "favicon": ""
+  "favicon": "",
+  "faviconEnabled": true
 }

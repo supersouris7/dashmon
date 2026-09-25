@@ -19,7 +19,7 @@ import {
   sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuAppearanceBtn,
   appearanceBackdrop, appearanceCloseBtn, appearanceDoneBtn, themeSelect,
   languageSelect, smallIconsSelect, hostsDisplaySelect, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
-  bannerIconSelect, bannerUrlInput, faviconInput, importFaviconBtn, resetFaviconBtn,
+  bannerEnabledCheckbox, bannerUrlInput, faviconInput, importFaviconBtn, resetFaviconBtn, faviconEnabledCheckbox,
   themeImportInput, modalBackdrop, imageLibrary
 } from "./dom.js";
 
@@ -51,6 +51,7 @@ async function loadConfig(){
     state.bannerIcon=cfg.bannerIcon;
     state.bannerUrl=cfg.bannerUrl;
     state.favicon=cfg.favicon;
+    state.faviconEnabled=cfg.faviconEnabled;
   }catch(error){
     console.error("Chargement de config.json impossible",error);
   }
@@ -95,17 +96,20 @@ function openAppearance(){
   smallIconsSelect.value=state.smallIcons ? "1" : "0";
   hostsDisplaySelect.value=state.hostsDisplay==="icon" ? "icon" : "name";
   openModeSelect.value=state.openMode==="new" ? "new" : "same";
-  bannerIconSelect.value=state.bannerIcon ? "1" : "0";
+  bannerEnabledCheckbox.checked=state.bannerIcon;
   bannerUrlInput.value=state.bannerUrl;
   bannerUrlInput.disabled=!state.bannerIcon;
+  faviconEnabledCheckbox.checked=state.faviconEnabled!==false;
   updateThemeManageUI();
   appearanceBackdrop.classList.add("show");
   appearanceBackdrop.setAttribute("aria-hidden","false");
+  document.body.classList.add("modal-open");
 }
 
 function closeAppearance(){
   appearanceBackdrop.classList.remove("show");
   appearanceBackdrop.setAttribute("aria-hidden","true");
+  document.body.classList.remove("modal-open");
 }
 
 function updateThemeManageUI(){
@@ -214,8 +218,8 @@ hostsDisplaySelect.addEventListener("change",()=>{
 
 openModeSelect.addEventListener("change",()=>setOpenMode(openModeSelect.value));
 
-bannerIconSelect.addEventListener("change",()=>{
-  state.bannerIcon=bannerIconSelect.value==="1";
+bannerEnabledCheckbox.addEventListener("change",()=>{
+  state.bannerIcon=bannerEnabledCheckbox.checked;
   bannerUrlInput.disabled=!state.bannerIcon;
   applyBanner();
   patchConfig({bannerIcon:state.bannerIcon});
@@ -260,6 +264,12 @@ resetFaviconBtn.addEventListener("click",()=>{
   state.favicon="";
   applyFavicon();
   patchConfig({favicon:""});
+});
+
+faviconEnabledCheckbox.addEventListener("change",()=>{
+  state.faviconEnabled=faviconEnabledCheckbox.checked;
+  applyFavicon();
+  patchConfig({faviconEnabled:state.faviconEnabled});
 });
 
 resetUsageBtn.addEventListener("click",()=>{

@@ -28,7 +28,8 @@ export function saveConfig(immediate=false){
       hostsDisplay:state.hostsDisplay,
       bannerIcon:state.bannerIcon,
       bannerUrl:state.bannerUrl,
-      favicon:state.favicon
+      favicon:state.favicon,
+      faviconEnabled:state.faviconEnabled
     });
     configSaveChain=configSaveChain
       .catch(()=>{})

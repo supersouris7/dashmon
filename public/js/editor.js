@@ -524,11 +524,13 @@ export function openEditor(){
   renderWebLinksEditor();
   modalBackdrop.classList.add("show");
   modalBackdrop.setAttribute("aria-hidden","false");
+  document.body.classList.add("modal-open");
 }
 
 export function closeEditor(){
   modalBackdrop.classList.remove("show");
   modalBackdrop.setAttribute("aria-hidden","true");
+  document.body.classList.remove("modal-open");
   document.querySelectorAll(".icon-picker.open").forEach(p=>p.classList.remove("open"));
 }
 
@@ -634,6 +636,7 @@ configImportInput.addEventListener("change",async()=>{
     state.bannerIcon=imported.bannerIcon;
     state.bannerUrl=imported.bannerUrl;
     state.favicon=imported.favicon;
+    state.faviconEnabled=imported.faviconEnabled!==false;
 
     state.editServices=clone(state.services);
     state.editCategories=clone(state.categories);

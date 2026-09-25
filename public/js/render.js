@@ -18,9 +18,14 @@ export function applyBanner(){
 }
 
 export function applyFavicon(){
-  if(faviconLink){
-    faviconLink.href=state.favicon || DEFAULT_FAVICON;
+  if(!faviconLink) return;
+  const enabled=state.faviconEnabled!==false;
+  if(!enabled){
+    if(faviconLink.parentNode) faviconLink.parentNode.removeChild(faviconLink);
+    return;
   }
+  if(!faviconLink.parentNode) document.head.appendChild(faviconLink);
+  faviconLink.href=state.favicon || DEFAULT_FAVICON;
 }
 
 function safeHref(url){

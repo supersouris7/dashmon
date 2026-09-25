@@ -412,7 +412,8 @@ function buildConfigOutput(config){
       hostsDisplay:config.hostsDisplay==="icon" ? "icon" : "name",
       bannerIcon:config.bannerIcon!==false,
       bannerUrl:sanitizeUrl(config.bannerUrl||"") || "https://github.com/supersouris7",
-      favicon:sanitizeFavicon(config.favicon)
+      favicon:sanitizeFavicon(config.favicon),
+      faviconEnabled:config.faviconEnabled!==false
   };
 }
 
