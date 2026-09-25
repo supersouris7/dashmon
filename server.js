@@ -715,7 +715,18 @@ app.delete("/api/themes/:id",(req,res)=>{
   }
 });
 
-app.get("/",(_req,res)=>res.type("html").send(INDEX_HTML));
+app.get("/",(_req,res)=>{
+  let faviconHref="/logo.png";
+  try{
+    const cfg=readConfig();
+    if(cfg.faviconEnabled!==false){
+      faviconHref=sanitizeFavicon(cfg.favicon) || "/logo.png";
+    }else{
+      faviconHref="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'/>";
+    }
+  }catch(_error){}
+  res.type("html").send(INDEX_HTML.replace("{{FAVICON_HREF}}",faviconHref));
+});
 app.use(express.static(PUBLIC_DIR));
 
 const statusCache = {};
