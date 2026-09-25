@@ -132,7 +132,7 @@ html.banner-off .toolbar{
   width:100%;
   height:40px;
   min-height:40px;
-  padding:0 38px 0 40px;
+  padding:0 10px 0 36px;
   border:1px solid var(--border);
   border-radius:3px;
   outline:none;
@@ -140,6 +140,15 @@ html.banner-off .toolbar{
   color:var(--text);
   box-shadow:var(--shadow);
   font:inherit;
+}
+
+.search::-webkit-search-cancel-button,
+.search::-webkit-search-decoration,
+.search::-webkit-search-results-button,
+.search::-webkit-search-results-decoration{
+  -webkit-appearance:none;
+  appearance:none;
+  display:none;
 }
 
 .search::placeholder{
