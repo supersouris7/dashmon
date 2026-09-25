@@ -333,7 +333,14 @@ webLinksSection.addEventListener("click",e=>{
 });
 
 function serviceMatchesQuery(service){
-  return normalize(service.name).includes(normalize(searchInput.value));
+  const query=normalize(searchInput.value);
+  if(!query) return true;
+  return [
+    service.name,
+    service.category,
+    service.host,
+    service.url
+  ].some(value=>normalize(value).includes(query));
 }
 
 function groupFallbackName(){
@@ -368,11 +375,8 @@ export function render(){
   renderWebLinks();
   dashboard.dataset.view=state.viewMode;
   dashboard.classList.toggle("small-icons",state.smallIcons);
-  const query=normalize(searchInput.value);
 
-  const filtered=state.services.filter(s=>{
-    return normalize(s.name).includes(query);
-  });
+  const filtered=state.services.filter(serviceMatchesQuery);
 
   dashboard.innerHTML="";
 
