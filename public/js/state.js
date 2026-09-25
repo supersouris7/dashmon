@@ -425,7 +425,9 @@ export function normalizeConfig(cfg={}){
       monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true,
       widget:svc.widget?.type==="duplicati"
         ? {type:"duplicati",password:String(svc.widget?.password||"").slice(0,2000)}
-        : null
+        : svc.widget?.type==="lichess"
+          ? {type:"lichess",username:String(svc.widget?.username||"").slice(0,200)}
+          : null
     })),
     categories:(Array.isArray(cfg.categories) ? clone(cfg.categories) : clone(DEFAULT_CATEGORIES))
       .map(cat=>({

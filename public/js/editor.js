@@ -246,17 +246,20 @@ export function renderServiceEditor(){
     const widgetType=document.createElement("select");
     widgetType.className="edit-select";
     widgetType.title=t("widgetLabel");
-    [["",t("widgetStandard")],["duplicati",t("widgetDuplicati")]].forEach(([value,label])=>{
+    [["",t("widgetStandard")],["duplicati",t("widgetDuplicati")],["lichess",t("widgetLichess")]].forEach(([value,label])=>{
       const option=document.createElement("option");
       option.value=value;
       option.textContent=label;
       widgetType.appendChild(option);
     });
-    widgetType.value=(service.widget&&service.widget.type==="duplicati") ? "duplicati" : "";
+    widgetType.value=service.widget?.type==="duplicati" ? "duplicati"
+      : service.widget?.type==="lichess" ? "lichess" : "";
     widgetType.addEventListener("change",()=>{
       state.editServices[index].widget=widgetType.value==="duplicati"
         ? {type:"duplicati",password:(service.widget&&service.widget.password)||""}
-        : null;
+        : widgetType.value==="lichess"
+          ? {type:"lichess",username:(service.widget&&service.widget.username)||""}
+          : null;
       renderServiceEditor();
     });
     widgetWrap.appendChild(widgetType);
@@ -277,6 +280,22 @@ export function renderServiceEditor(){
         }
       });
       widgetWrap.appendChild(password);
+    }
+
+    if(service.widget&&service.widget.type==="lichess"){
+      const username=document.createElement("input");
+      username.className="edit-input widget-username";
+      username.type="text";
+      username.autocomplete="off";
+      username.placeholder=t("widgetLichessPlaceholder");
+      username.title=t("widgetLichess");
+      username.value=service.widget.username||"";
+      username.addEventListener("input",()=>{
+        if(state.editServices[index].widget){
+          state.editServices[index].widget.username=username.value;
+        }
+      });
+      widgetWrap.appendChild(username);
     }
 
     row.append(name,host,category,url,iconField,monitor,remove,widgetWrap);
@@ -784,7 +803,9 @@ saveBtn.addEventListener("click",async()=>{
       monitor:service.monitor===false ? false : service.monitor==="soft" ? "soft" : true,
       widget:service.widget&&service.widget.type==="duplicati"
         ? {type:"duplicati",password:String(service.widget.password||"").slice(0,2000)}
-        : null
+        : service.widget&&service.widget.type==="lichess"
+          ? {type:"lichess",username:String(service.widget.username||"").slice(0,200)}
+          : null
     }))
     .filter(service=>service.name);
 

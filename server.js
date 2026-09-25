@@ -393,7 +393,9 @@ function buildConfigOutput(config){
               ? {type:"duplicati",password:isEncryptedSecret(svc.widget?.password)
                   ? String(svc.widget?.password||"").slice(0,2000)
                   : encryptSecret(svc.widget?.password)}
-              : null
+              : svc.widget?.type==="lichess"
+                ? {type:"lichess",username:String(svc.widget?.username||"").slice(0,200)}
+                : null
           }))
         : [],
       categories:Array.isArray(config.categories)
@@ -817,6 +819,10 @@ async function checkService(service){
     await checkDuplicati(service);
     return;
   }
+  if(service.widget?.type==="lichess"){
+    await checkLichess(service);
+    return;
+  }
   if(!service.url || service.monitor===false) return;
 
   let target;
@@ -861,7 +867,7 @@ async function checkService(service){
   statusCache[target.href]={state:"down",ms:first.ms,error:first.error};
 }
 
-function duplicatiRequest(baseUrl, apiPath, options){
+function apiRequest(baseUrl, apiPath, options){
   return new Promise((resolve,reject)=>{
     let target;
     try{
@@ -914,7 +920,7 @@ function duplicatiRequest(baseUrl, apiPath, options){
 const duplicatiTokens=new Map();
 
 async function duplicatiLogin(baseUrl,password){
-  const response=await duplicatiRequest(baseUrl,"/api/v1/auth/login",{
+  const response=await apiRequest(baseUrl,"/api/v1/auth/login",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:{Password:password,RememberMe:false}
@@ -927,7 +933,7 @@ async function duplicatiLogin(baseUrl,password){
 }
 
 async function duplicatiBackups(baseUrl,token){
-  const data=await duplicatiRequest(baseUrl,"/api/v1/backups",{token});
+  const data=await apiRequest(baseUrl,"/api/v1/backups",{token});
   if(Array.isArray(data)) return data;
   if(Array.isArray(data?.Backups)) return data.Backups;
   if(Array.isArray(data?.backups)) return data.backups;
@@ -1015,6 +1021,41 @@ async function checkDuplicati(service){
   }catch(error){
     duplicatiTokens.delete(baseUrl);
     out.error=String(error?.message||"Erreur Duplicati").slice(0,200);
+    out.ms=Date.now()-started;
+  }
+}
+
+async function checkLichess(service){
+  const url=sanitizeUrl(service.url);
+  const out={state:"lichess",ok:false,elo:null,variant:"",ms:0};
+  statusCache[url || service.url]=out;
+  const username=String(service.widget?.username||"").trim();
+  if(!url || !username){
+    out.error="Pseudo Lichess manquant";
+    return;
+  }
+  const started=Date.now();
+  try{
+    const user=await apiRequest("https://lichess.org","/api/user/"+encodeURIComponent(username),{});
+    const perfs=user?.perfs||{};
+    const candidates=[
+      ["bullet",perfs.bullet?.rating],
+      ["blitz",perfs.blitz?.rating],
+      ["rapid",perfs.rapid?.rating],
+      ["classical",perfs.classical?.rating]
+    ].filter(e=>Number.isFinite(e[1]) && e[1]>0);
+    if(!candidates.length){
+      out.error="Aucun ELO enregistré";
+      out.ms=Date.now()-started;
+      return;
+    }
+    candidates.sort((a,b)=>b[1]-a[1]);
+    out.elo=candidates[0][1];
+    out.variant=candidates[0][0];
+    out.ok=true;
+    out.ms=Date.now()-started;
+  }catch(error){
+    out.error=String(error?.message||"Erreur Lichess").slice(0,200);
     out.ms=Date.now()-started;
   }
 }
