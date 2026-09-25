@@ -428,7 +428,11 @@ export function normalizeConfig(cfg={}){
         : svc.widget?.type==="lichess"
           ? {type:"lichess",username:String(svc.widget?.username||"").slice(0,200),
              variant:String(svc.widget?.variant||"").slice(0,50)}
-          : null
+          : svc.widget?.type==="adguard"
+            ? {type:"adguard",
+               username:String(svc.widget?.username||"").slice(0,200),
+               password:String(svc.widget?.password||"").slice(0,2000)}
+            : null
     })),
     categories:(Array.isArray(cfg.categories) ? clone(cfg.categories) : clone(DEFAULT_CATEGORIES))
       .map(cat=>({

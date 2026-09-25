@@ -396,7 +396,13 @@ function buildConfigOutput(config){
               : svc.widget?.type==="lichess"
                 ? {type:"lichess",username:String(svc.widget?.username||"").slice(0,200),
                    variant:String(svc.widget?.variant||"").slice(0,50)}
-                : null
+                : svc.widget?.type==="adguard"
+                  ? {type:"adguard",
+                     username:String(svc.widget?.username||"").slice(0,200),
+                     password:isEncryptedSecret(svc.widget?.password)
+                       ? String(svc.widget?.password||"").slice(0,2000)
+                       : encryptSecret(svc.widget?.password)}
+                  : null
           }))
         : [],
       categories:Array.isArray(config.categories)
@@ -842,6 +848,10 @@ async function checkService(service){
     await checkLichess(service);
     return;
   }
+  if(service.widget?.type==="adguard"){
+    await checkAdGuard(service);
+    return;
+  }
   if(!service.url || service.monitor===false) return;
 
   let target;
@@ -897,6 +907,8 @@ function apiRequest(baseUrl, apiPath, options){
     const method=options.method||"GET";
     const headers=Object.assign({Accept:"application/json"},options.headers||{});
     if(options.token) headers.Authorization=`Bearer ${options.token}`;
+    if(options.basic) headers.Authorization="Basic "+Buffer.from(
+      String(options.basic.user||"")+":"+String(options.basic.password||""),"utf8").toString("base64");
 
     const client=target.protocol==="http:" ? http : https;
     const req=client.request(target,{
@@ -1089,6 +1101,39 @@ async function checkLichess(service){
     out.ms=Date.now()-started;
   }catch(error){
     out.error=String(error?.message||"Erreur Lichess").slice(0,200);
+    out.ms=Date.now()-started;
+  }
+}
+
+async function checkAdGuard(service){
+  const url=sanitizeUrl(service.url);
+  const out={state:"adguard",ok:false,queries:0,blocked:0,ratio:null,avgMs:null,ms:0};
+  statusCache[url || service.url]=out;
+  if(!url){
+    out.error="URL AdGuard invalide";
+    return;
+  }
+  const baseUrl=url.replace(/\/+$/,"");
+  const username=String(service.widget?.username||"").trim();
+  const password=decryptSecret(service.widget?.password);
+  const started=Date.now();
+  try{
+    const stats=await apiRequest(baseUrl,"/control/stats",
+      username||password ? {basic:{user:username,password}} : {});
+    const queries=Number(stats?.num_dns_queries)||0;
+    const blocked=(Number(stats?.num_blocked_filtering)||0)
+      +(Number(stats?.num_replaced_safebrowsing)||0)
+      +(Number(stats?.num_replaced_parental)||0)
+      +(Number(stats?.num_replaced_safesearch)||0);
+    out.queries=queries;
+    out.blocked=blocked;
+    out.ratio=queries>0 ? Math.round((blocked/queries)*1000)/10 : 0;
+    out.avgMs=Number.isFinite(stats?.avg_processing_time)
+      ? Math.round(stats.avg_processing_time*1000) : null;
+    out.ok=true;
+    out.ms=Date.now()-started;
+  }catch(error){
+    out.error=String(error?.message||"Erreur AdGuard").slice(0,200);
     out.ms=Date.now()-started;
   }
 }

@@ -251,20 +251,24 @@ export function renderServiceEditor(){
     const widgetType=document.createElement("select");
     widgetType.className="edit-select widget-type";
     widgetType.title=t("widgetLabel");
-    [["",t("widgetStandard")],["duplicati",t("widgetDuplicati")],["lichess",t("widgetLichess")]].forEach(([value,label])=>{
+    [["",t("widgetStandard")],["duplicati",t("widgetDuplicati")],["lichess",t("widgetLichess")],["adguard",t("widgetAdGuard")]].forEach(([value,label])=>{
       const option=document.createElement("option");
       option.value=value;
       option.textContent=label;
       widgetType.appendChild(option);
     });
     widgetType.value=service.widget?.type==="duplicati" ? "duplicati"
-      : service.widget?.type==="lichess" ? "lichess" : "";
+      : service.widget?.type==="lichess" ? "lichess" : service.widget?.type==="adguard" ? "adguard" : "";
     widgetType.addEventListener("change",()=>{
       state.editServices[index].widget=widgetType.value==="duplicati"
         ? {type:"duplicati",password:(service.widget&&service.widget.password)||""}
         : widgetType.value==="lichess"
           ? {type:"lichess",username:(service.widget&&service.widget.username)||""}
-          : null;
+          : widgetType.value==="adguard"
+            ? {type:"adguard",
+               username:(service.widget&&service.widget.username)||"",
+               password:(service.widget&&service.widget.password)||""}
+            : null;
       renderServiceEditor();
     });
     widgetWrap.appendChild(widgetType);
@@ -308,13 +312,12 @@ function renderWidgetConfig(){
   const service=state.editServices[widgetConfigIndex];
   if(!service||!service.widget) return;
 
-  const helper=document.createElement("label");
-  helper.className="widget-cfg-field";
-  const helperLabel=document.createElement("span");
-  helperLabel.textContent=t(service.widget.type==="duplicati" ? "widgetDuplicatiPassword" : "widgetLichess");
-  helper.appendChild(helperLabel);
-
   if(service.widget.type==="duplicati"){
+    const helper=document.createElement("label");
+    helper.className="widget-cfg-field";
+    const helperLabel=document.createElement("span");
+    helperLabel.textContent=t("widgetDuplicatiPassword");
+    helper.appendChild(helperLabel);
     const password=document.createElement("input");
     password.className="edit-input";
     password.type="password";
@@ -329,7 +332,16 @@ function renderWidgetConfig(){
       }
     });
     helper.appendChild(password);
-  }else{
+    widgetConfigBody.appendChild(helper);
+    return;
+  }
+
+  if(service.widget.type==="lichess"){
+    const helper=document.createElement("label");
+    helper.className="widget-cfg-field";
+    const helperLabel=document.createElement("span");
+    helperLabel.textContent=t("widgetLichess");
+    helper.appendChild(helperLabel);
     const username=document.createElement("input");
     username.className="edit-input";
     username.type="text";
@@ -368,7 +380,48 @@ function renderWidgetConfig(){
     return;
   }
 
-  widgetConfigBody.appendChild(helper);
+  if(service.widget.type==="adguard"){
+    const userField=document.createElement("label");
+    userField.className="widget-cfg-field";
+    const userLabel=document.createElement("span");
+    userLabel.textContent=t("widgetAdGuardUsername");
+    userField.appendChild(userLabel);
+    const username=document.createElement("input");
+    username.className="edit-input";
+    username.type="text";
+    username.autocomplete="off";
+    username.placeholder=t("widgetAdGuardUsername");
+    username.value=service.widget.username||"";
+    username.addEventListener("input",()=>{
+      if(state.editServices[widgetConfigIndex]?.widget){
+        state.editServices[widgetConfigIndex].widget.username=username.value;
+      }
+    });
+    userField.appendChild(username);
+
+    const passField=document.createElement("label");
+    passField.className="widget-cfg-field";
+    const passLabel=document.createElement("span");
+    passLabel.textContent=t("widgetAdGuardPassword");
+    passField.appendChild(passLabel);
+    const password=document.createElement("input");
+    password.className="edit-input";
+    password.type="password";
+    password.autocomplete="new-password";
+    const secret=service.widget.password||"";
+    const secured=secret.startsWith("aes1.");
+    password.placeholder=secured ? t("passwordConfigured") : t("duplicatiPasswordPlaceholder");
+    password.value=secured ? "" : secret;
+    password.addEventListener("input",()=>{
+      if(state.editServices[widgetConfigIndex]?.widget && password.value){
+        state.editServices[widgetConfigIndex].widget.password=password.value;
+      }
+    });
+    passField.appendChild(password);
+
+    widgetConfigBody.append(userField,passField);
+    return;
+  }
 }
 
 export function renderWebLinksEditor(){
@@ -880,7 +933,11 @@ saveBtn.addEventListener("click",async()=>{
         : service.widget&&service.widget.type==="lichess"
           ? {type:"lichess",username:String(service.widget.username||"").slice(0,200),
              variant:String(service.widget.variant||"").slice(0,50)}
-          : null
+          : service.widget&&service.widget.type==="adguard"
+            ? {type:"adguard",
+               username:String(service.widget.username||"").slice(0,200),
+               password:String(service.widget.password||"").slice(0,2000)}
+            : null
     }))
     .filter(service=>service.name);
 

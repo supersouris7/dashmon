@@ -62,6 +62,26 @@ function formatDateTime(ms){
   }
 }
 
+function formatCompactNumber(n){
+  const locale=state.language==="en" ? "en-GB" : "fr-FR";
+  try{
+    const v=Number(n)||0;
+    if(v>=100000) return new Intl.NumberFormat(locale,{notation:"compact",maximumFractionDigits:1}).format(v);
+    return new Intl.NumberFormat(locale).format(v);
+  }catch(_error){
+    return String(n);
+  }
+}
+
+function formatPercent(ratio){
+  const locale=state.language==="en" ? "en-GB" : "fr-FR";
+  try{
+    return new Intl.NumberFormat(locale,{maximumFractionDigits:1}).format(Number(ratio)||0);
+  }catch(_error){
+    return String(ratio);
+  }
+}
+
 function applyWidgetStatus(wrap,service,info){
   const badge=wrap.querySelector(".widget-badge");
   const time=wrap.querySelector(".widget-time");
@@ -89,6 +109,23 @@ function applyWidgetStatus(wrap,service,info){
       const label=lichessVariantLabel(info.variant);
       time.textContent=label;
       wrap.title=`${t("widgetLichess")} · ${label} ${info.elo}`;
+    }
+    return;
+  }
+  if(service?.widget?.type==="adguard"){
+    if(info.error){
+      badge.className="widget-badge nok";
+      badge.textContent="AdGuard —";
+      time.textContent="—";
+      wrap.title=`${t("widgetAdGuardError")} : ${String(info.error).slice(0,120)}`;
+    }else{
+      const queries=Number(info.queries)||0;
+      const pct=formatPercent(info.ratio);
+      badge.className="widget-badge ok";
+      badge.textContent=`${pct} %`;
+      time.textContent=formatCompactNumber(queries);
+      const avg=info.avgMs!=null ? ` · ${info.avgMs} ms` : "";
+      wrap.title=`${t("widgetAdGuard")} · ${formatCompactNumber(queries)} ${t("widgetAdGuardQueries")} · ${pct} % ${t("widgetAdGuardBlocked")}${avg}`;
     }
     return;
   }
@@ -226,7 +263,7 @@ function createCard(service){
   title.textContent=service.name || t("unnamedService");
   card.appendChild(title);
 
-  if(service.widget&&(service.widget.type==="duplicati"||service.widget.type==="lichess")){
+  if(service.widget&&(service.widget.type==="duplicati"||service.widget.type==="lichess"||service.widget.type==="adguard")){
     const wrap=document.createElement("div");
     wrap.className=`widget-status widget-${service.widget.type}`;
     wrap.dataset.url=sanitizeUrl(service.url)||service.url;
