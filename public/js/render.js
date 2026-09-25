@@ -21,10 +21,9 @@ export function applyFavicon(){
   if(!faviconLink) return;
   const enabled=state.faviconEnabled!==false;
   if(!enabled){
-    if(faviconLink.parentNode) faviconLink.parentNode.removeChild(faviconLink);
+    faviconLink.href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'/>";
     return;
   }
-  if(!faviconLink.parentNode) document.head.appendChild(faviconLink);
   faviconLink.href=state.favicon || DEFAULT_FAVICON;
 }
 

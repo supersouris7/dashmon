@@ -19,7 +19,7 @@ import {
   sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuAppearanceBtn,
   appearanceBackdrop, appearanceCloseBtn, appearanceDoneBtn, themeSelect,
   languageSelect, smallIconsSelect, hostsDisplaySelect, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
-  bannerEnabledCheckbox, bannerUrlInput, faviconInput, importFaviconBtn, resetFaviconBtn, faviconEnabledCheckbox,
+  bannerIconSelect, bannerUrlInput, faviconInput, importFaviconBtn, resetFaviconBtn, faviconEnabledSelect,
   themeImportInput, modalBackdrop, imageLibrary
 } from "./dom.js";
 
@@ -96,10 +96,10 @@ function openAppearance(){
   smallIconsSelect.value=state.smallIcons ? "1" : "0";
   hostsDisplaySelect.value=state.hostsDisplay==="icon" ? "icon" : "name";
   openModeSelect.value=state.openMode==="new" ? "new" : "same";
-  bannerEnabledCheckbox.checked=state.bannerIcon;
+  bannerIconSelect.value=state.bannerIcon ? "1" : "0";
   bannerUrlInput.value=state.bannerUrl;
   bannerUrlInput.disabled=!state.bannerIcon;
-  faviconEnabledCheckbox.checked=state.faviconEnabled!==false;
+  faviconEnabledSelect.value=state.faviconEnabled!==false ? "1" : "0";
   updateThemeManageUI();
   appearanceBackdrop.classList.add("show");
   appearanceBackdrop.setAttribute("aria-hidden","false");
@@ -218,8 +218,8 @@ hostsDisplaySelect.addEventListener("change",()=>{
 
 openModeSelect.addEventListener("change",()=>setOpenMode(openModeSelect.value));
 
-bannerEnabledCheckbox.addEventListener("change",()=>{
-  state.bannerIcon=bannerEnabledCheckbox.checked;
+bannerIconSelect.addEventListener("change",()=>{
+  state.bannerIcon=bannerIconSelect.value==="1";
   bannerUrlInput.disabled=!state.bannerIcon;
   applyBanner();
   patchConfig({bannerIcon:state.bannerIcon});
@@ -266,8 +266,8 @@ resetFaviconBtn.addEventListener("click",()=>{
   patchConfig({favicon:""});
 });
 
-faviconEnabledCheckbox.addEventListener("change",()=>{
-  state.faviconEnabled=faviconEnabledCheckbox.checked;
+faviconEnabledSelect.addEventListener("change",()=>{
+  state.faviconEnabled=faviconEnabledSelect.value==="1";
   applyFavicon();
   patchConfig({faviconEnabled:state.faviconEnabled});
 });

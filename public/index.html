@@ -290,10 +290,10 @@
 
       <div class="appearance-field">
         <span id="bannerFieldLabel">Icône bannière (haut gauche)</span>
-        <label class="appearance-toggle">
-          <input id="bannerEnabledCheckbox" type="checkbox">
-          <span id="bannerEnabledLabel">Activer l’icône bannière</span>
-        </label>
+        <select id="bannerIconSelect" class="edit-select">
+          <option value="1" id="bannerOptionOn">Activée</option>
+          <option value="0" id="bannerOptionOff">Désactivée</option>
+        </select>
       </div>
 
       <div class="appearance-field">
@@ -303,17 +303,19 @@
 
       <div class="appearance-field">
         <span id="faviconFieldLabel">Favicon de l’onglet (.ico)</span>
-        <label class="appearance-toggle">
-          <input id="faviconEnabledCheckbox" type="checkbox">
-          <span id="faviconEnabledLabel">Activer la favicon de l’onglet</span>
-        </label>
-        <div class="theme-manage">
-          <button id="importFaviconBtn" class="action-btn" type="button">
-            <i class="fa-solid fa-upload"></i>&nbsp; <span id="importFaviconLabel">Importer</span>
-          </button>
-          <button id="resetFaviconBtn" class="action-btn" type="button">
-            <i class="fa-solid fa-rotate-left"></i>&nbsp; <span id="resetFaviconLabel">Réinitialiser</span>
-          </button>
+        <div class="favicon-controls">
+          <select id="faviconEnabledSelect" class="edit-select">
+            <option value="1" id="faviconOptionOn">Activée</option>
+            <option value="0" id="faviconOptionOff">Désactivée</option>
+          </select>
+          <div class="theme-manage">
+            <button id="importFaviconBtn" class="action-btn" type="button">
+              <i class="fa-solid fa-upload"></i>&nbsp; <span id="importFaviconLabel">Importer</span>
+            </button>
+            <button id="resetFaviconBtn" class="action-btn" type="button">
+              <i class="fa-solid fa-rotate-left"></i>&nbsp; <span id="resetFaviconLabel">Réinitialiser</span>
+            </button>
+          </div>
         </div>
       </div>
 
