@@ -42,6 +42,38 @@ See `.env.example`. The most important:
 | `PROXMOX_TOKEN_ID` / `PROXMOX_TOKEN_SECRET` | empty | Proxmox API tokens (read-only) |
 | `LINUX_METRICS_TOKEN` | empty | Token for the Linux `/metrics` HTTP agent |
 | `DASHBOARD_TOKEN_ENVS` | empty | Additional allowed token variable names |
+| `DASHMON_MASTER_KEY` | empty | AES-256-GCM master key to encrypt widget secrets (e.g. Duplicati password) in `config.json` |
+
+### Widget secrets (Duplicati…)
+
+Service widgets (e.g. Duplicati) send a server-side password from the editor.
+
+With `DASHMON_MASTER_KEY` set, this password is **encrypted (AES-256-GCM)**
+in `config.json` instead of being stored as plain text.
+
+Generate a key once, keep it secret, never commit it:
+
+```bash
+# Linux / macOS
+openssl rand -base64 32
+```
+
+```powershell
+# Windows PowerShell
+[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+```
+
+Then add it to `.env` (Compose) or the container environment:
+
+```bash
+DASHMON_MASTER_KEY=paste-the-generated-key
+```
+
+Behaviour:
+
+- Without a key, widget passwords fall back to plain text (warning in the logs at startup).
+- Existing plain-text passwords are encrypted automatically on the next config save.
+- If the key changes later, previously encrypted passwords become unreadable — re-enter them in the editor (empty field keeps the stored secret).
 
 ## 3. Data
 
@@ -94,5 +126,6 @@ monitored machines answer on their LAN IP — reverse proxies included.
 ## Notes
 
 - No embedded secrets: `config.json` only contains public examples, tokens are referenced
-  by environment variable (allowlist `DASHBOARD_TOKEN_ENVS`).
+  by environment variable (allowlist `DASHBOARD_TOKEN_ENVS`), and widget passwords are
+  AES-256-GCM encrypted when `DASHMON_MASTER_KEY` is set (plain text otherwise).
 - Logs: `docker logs dashmon`.

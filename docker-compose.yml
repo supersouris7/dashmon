@@ -21,6 +21,9 @@ services:
       PROXMOX_TOKEN_ID: ${PROXMOX_TOKEN_ID:-}
       PROXMOX_TOKEN_SECRET: ${PROXMOX_TOKEN_SECRET:-}
       LINUX_METRICS_TOKEN: ${LINUX_METRICS_TOKEN:-}
+      # Chiffre les mots de passe des widgets (ex. Duplicati) dans config.json.
+      # Sans clé, les secrets sont stockés en clair (warning au démarrage).
+      DASHMON_MASTER_KEY: ${DASHMON_MASTER_KEY:-}
     volumes:
       - dashmon-data:/app/data
     # Résolution DNS des noms locaux (.lan, .home…) pour les pastilles d'état.
