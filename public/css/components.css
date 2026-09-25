@@ -327,10 +327,11 @@
 
 .service-row{
   display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;
+  grid-template-columns:auto auto auto;
   grid-template-areas:
     "name category actions"
     "url host actions";
+  justify-content:start;
   gap:8px 12px;
   align-items:center;
   width:100%;
@@ -340,6 +341,11 @@
 }
 
 .service-row > *{min-width:0}
+
+.service-row > .edit-input:nth-of-type(1):not(.service-widget .edit-input){width:220px}
+.service-row > .edit-input:nth-of-type(2){width:340px}
+.service-row > .edit-select:nth-of-type(1){width:150px}
+.service-row > .edit-select:nth-of-type(2){width:180px}
 
 .service-row .edit-input,
 .service-row .edit-select{
@@ -403,6 +409,10 @@
     gap:8px 10px;
   }
 
+  .service-row > .edit-input:nth-of-type(1){width:100%}
+  .service-row > .edit-input:nth-of-type(2){width:100%}
+  .service-row > .edit-select:nth-of-type(1){width:100%}
+  .service-row > .edit-select:nth-of-type(2){width:100%}
   .service-row .service-widget{grid-column:1/-1}
 }
 
