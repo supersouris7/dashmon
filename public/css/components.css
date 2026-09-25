@@ -327,22 +327,17 @@
 
 .service-row{
   display:grid;
-  grid-template-columns:
-    minmax(150px,1.1fr)
-    minmax(115px,.8fr)
-    minmax(125px,.85fr)
-    minmax(200px,1.35fr)
-    38px 38px 38px;
-  gap:8px 10px;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;
+  grid-template-areas:
+    "name category actions"
+    "url host actions";
+  gap:8px 12px;
   align-items:center;
   width:100%;
   min-width:0;
   box-sizing:border-box;
-  padding:12px 0;
-  border-bottom:1px solid var(--border);
+  padding:10px 0;
 }
-
-.service-row:last-child{border-bottom:none}
 
 .service-row > *{min-width:0}
 
@@ -353,9 +348,18 @@
   box-sizing:border-box;
 }
 
-.service-row .image-field{width:42px;min-width:42px}
+.service-row > .edit-input:nth-of-type(1){grid-area:name}
+.service-row > .edit-input:nth-of-type(2){grid-area:url}
+.service-row > .edit-select:nth-of-type(1){grid-area:host}
+.service-row > .edit-select:nth-of-type(2){grid-area:category}
 
-.service-row .small-icon-btn{width:38px;min-width:38px}
+.service-actions{
+  grid-area:actions;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  align-self:center;
+}
 
 .service-widget{
   grid-column:1/-1;
@@ -364,9 +368,7 @@
   align-items:center;
   gap:8px 10px;
   min-width:0;
-  padding-top:10px;
-  margin-top:2px;
-  border-top:1px dashed var(--border);
+  padding-top:8px;
 }
 
 .service-widget .widget-editor-label{
@@ -385,26 +387,22 @@
 
 .service-widget .edit-input{
   width:auto;
-  flex:1 1 240px;
-  min-width:170px;
+  flex:0 1 220px;
+  min-width:150px;
 }
 
-/* Tablette : 2 lignes, champs par paire, boutons sur la 1re ligne */
-@media (max-width:980px){
+/* Mobile : widget pleine largeur, champs empilés */
+@media (max-width:700px){
   .service-row{
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr) 38px 38px 38px;
+    grid-template-columns:minmax(0,1fr) auto;
     grid-template-areas:
-      "name host icon monitor remove"
-      "category url . . .";
+      "name actions"
+      "url actions"
+      "category ."
+      "host .";
+    gap:8px 10px;
   }
 
-  .service-row > .edit-input:nth-of-type(1){grid-area:name}
-  .service-row > .edit-input:nth-of-type(2){grid-area:url}
-  .service-row > .edit-select:nth-of-type(1){grid-area:host}
-  .service-row > .edit-select:nth-of-type(2){grid-area:category}
-  .service-row .icon-only-field{grid-area:icon}
-  .service-row .monitor-toggle{grid-area:monitor}
-  .service-row .small-icon-btn{grid-area:remove}
   .service-row .service-widget{grid-column:1/-1}
 }
 
@@ -602,29 +600,9 @@ body .modal-backdrop.show .modal{
 .monitor-toggle.active{color:var(--text)}
 .monitor-toggle.soft{color:var(--text);opacity:.85}
 
-@media (max-width:700px){
-  .service-row{
-    grid-template-columns:minmax(0,1fr) 38px 38px 38px;
-    grid-template-areas:
-      "name icon monitor remove"
-      "host . . ."
-      "category . . ."
-      "url . . .";
-  }
-
-  .service-row > .edit-input:nth-of-type(1){grid-area:name}
-  .service-row > .edit-input:nth-of-type(2){grid-area:url}
-  .service-row > .edit-select:nth-of-type(1){grid-area:host}
-  .service-row > .edit-select:nth-of-type(2){grid-area:category}
-  .service-row .icon-only-field{grid-area:icon}
-  .service-row .monitor-toggle{grid-area:monitor}
-  .service-row .small-icon-btn{grid-area:remove}
-  .service-row .service-widget{grid-column:1/-1}
-}
-
-.service-row > .icon-only-field,
-.service-row > .monitor-toggle,
-.service-row > .small-icon-btn{
+.service-actions > .icon-only-field,
+.service-actions > .monitor-toggle,
+.service-actions > .small-icon-btn{
   width:38px;
   min-width:38px;
   height:38px;
@@ -636,15 +614,15 @@ body .modal-backdrop.show .modal{
   justify-self:center;
 }
 
-.service-row > .icon-only-field{
+.service-actions > .icon-only-field{
   display:flex;
   align-items:center;
   justify-content:center;
 }
 
-.service-row > .icon-only-field .image-library-btn,
-.service-row > .monitor-toggle,
-.service-row > .small-icon-btn{
+.service-actions > .icon-only-field .image-library-btn,
+.service-actions > .monitor-toggle,
+.service-actions > .small-icon-btn{
   width:38px;
   min-width:38px;
   height:38px;
@@ -658,7 +636,7 @@ body .modal-backdrop.show .modal{
   border-radius:3px;
 }
 
-.service-row > .icon-only-field .editor-icon-preview{
+.service-actions > .icon-only-field .editor-icon-preview{
   width:22px;
   height:22px;
   object-fit:contain;

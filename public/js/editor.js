@@ -240,6 +240,10 @@ export function renderServiceEditor(){
       renderServiceEditor();
     });
 
+    const actions=document.createElement("div");
+    actions.className="service-actions";
+    actions.append(iconField,monitor,remove);
+
     const widgetWrap=document.createElement("div");
     widgetWrap.className="service-widget";
 
@@ -321,7 +325,7 @@ export function renderServiceEditor(){
       widgetWrap.appendChild(variant);
     }
 
-    row.append(name,host,category,url,iconField,monitor,remove,widgetWrap);
+    row.append(name,host,category,url,actions,widgetWrap);
     serviceEditor.appendChild(row);
   });
 }
