@@ -12,7 +12,8 @@ import {
   editorSearch, editorCategoryFilter, editorHostFilter,
   modalBackdrop, closeBtn, cancelBtn, saveBtn,
   addServiceBtn, addCategoryBtn, addWebLinkBtn, addHostBtn,
-  exportConfigBtn, importConfigBtn, configImportInput
+  exportConfigBtn, importConfigBtn, configImportInput,
+  widgetConfig, widgetConfigBody, widgetConfigCloseBtn
 } from "./dom.js";
 
 function moveItem(list,fromIndex,toIndex){
@@ -247,13 +248,8 @@ export function renderServiceEditor(){
     const widgetWrap=document.createElement("div");
     widgetWrap.className="service-widget";
 
-    const widgetLabel=document.createElement("span");
-    widgetLabel.className="widget-editor-label";
-    widgetLabel.textContent=t("widgetLabel");
-    widgetWrap.appendChild(widgetLabel);
-
     const widgetType=document.createElement("select");
-    widgetType.className="edit-select";
+    widgetType.className="edit-select widget-type";
     widgetType.title=t("widgetLabel");
     [["",t("widgetStandard")],["duplicati",t("widgetDuplicati")],["lichess",t("widgetLichess")]].forEach(([value,label])=>{
       const option=document.createElement("option");
@@ -273,61 +269,106 @@ export function renderServiceEditor(){
     });
     widgetWrap.appendChild(widgetType);
 
-    if(service.widget&&service.widget.type==="duplicati"){
-      const password=document.createElement("input");
-      password.className="edit-input widget-password";
-      password.type="password";
-      password.autocomplete="new-password";
-      const secret=service.widget.password||"";
-      const secured=secret.startsWith("aes1.");
-      password.placeholder=secured ? t("passwordConfigured") : t("duplicatiPasswordPlaceholder");
-      password.title=t("widgetDuplicatiPassword");
-      password.value=secured ? "" : secret;
-      password.addEventListener("input",()=>{
-        if(state.editServices[index].widget && password.value){
-          state.editServices[index].widget.password=password.value;
-        }
-      });
-      widgetWrap.appendChild(password);
-    }
-
-    if(service.widget&&service.widget.type==="lichess"){
-      const username=document.createElement("input");
-      username.className="edit-input widget-username";
-      username.type="text";
-      username.autocomplete="off";
-      username.placeholder=t("widgetLichessPlaceholder");
-      username.title=t("widgetLichess");
-      username.value=service.widget.username||"";
-      username.addEventListener("input",()=>{
-        if(state.editServices[index].widget){
-          state.editServices[index].widget.username=username.value;
-        }
-      });
-      widgetWrap.appendChild(username);
-
-      const variant=document.createElement("select");
-      variant.className="edit-select widget-variant";
-      variant.title=t("widgetLichessVariant");
-      [["",t("widgetLichessAuto")],["classical",t("widgetLichessClassical")],
-       ["rapid",t("widgetLichessRapid")],["blitz",t("widgetLichessBlitz")]].forEach(([value,label])=>{
-        const option=document.createElement("option");
-        option.value=value;
-        option.textContent=label;
-        variant.appendChild(option);
-      });
-      variant.value=service.widget.variant||"";
-      variant.addEventListener("change",()=>{
-        if(state.editServices[index].widget){
-          state.editServices[index].widget.variant=variant.value;
-        }
-      });
-      widgetWrap.appendChild(variant);
-    }
+    const widgetConfigBtn=document.createElement("button");
+    widgetConfigBtn.type="button";
+    widgetConfigBtn.className="small-icon-btn widget-config-btn"+(service.widget ? "" : " disabled");
+    widgetConfigBtn.title=service.widget ? t("widgetConfigTitle") : "";
+    widgetConfigBtn.innerHTML='<i class="fa-solid fa-ellipsis"></i>';
+    widgetConfigBtn.addEventListener("click",()=>{
+      if(service.widget){
+        openWidgetConfig(index);
+      }
+    });
+    widgetWrap.appendChild(widgetConfigBtn);
 
     row.append(name,host,category,url,actions,widgetWrap);
     serviceEditor.appendChild(row);
   });
+}
+
+let widgetConfigIndex=-1;
+
+export function openWidgetConfig(index){
+  widgetConfigIndex=index;
+  renderWidgetConfig();
+  widgetConfig.classList.add("show");
+  widgetConfig.setAttribute("aria-hidden","false");
+  document.body.classList.add("modal-open");
+}
+
+export function closeWidgetConfig(){
+  widgetConfig.classList.remove("show");
+  widgetConfig.setAttribute("aria-hidden","true");
+  widgetConfigIndex=-1;
+  document.body.classList.remove("modal-open");
+}
+
+function renderWidgetConfig(){
+  widgetConfigBody.innerHTML="";
+  const service=state.editServices[widgetConfigIndex];
+  if(!service||!service.widget) return;
+
+  const helper=document.createElement("label");
+  helper.className="widget-cfg-field";
+  const helperLabel=document.createElement("span");
+  helperLabel.textContent=t(service.widget.type==="duplicati" ? "widgetDuplicatiPassword" : "widgetLichess");
+  helper.appendChild(helperLabel);
+
+  if(service.widget.type==="duplicati"){
+    const password=document.createElement("input");
+    password.className="edit-input";
+    password.type="password";
+    password.autocomplete="new-password";
+    const secret=service.widget.password||"";
+    const secured=secret.startsWith("aes1.");
+    password.placeholder=secured ? t("passwordConfigured") : t("duplicatiPasswordPlaceholder");
+    password.value=secured ? "" : secret;
+    password.addEventListener("input",()=>{
+      if(state.editServices[widgetConfigIndex]?.widget && password.value){
+        state.editServices[widgetConfigIndex].widget.password=password.value;
+      }
+    });
+    helper.appendChild(password);
+  }else{
+    const username=document.createElement("input");
+    username.className="edit-input";
+    username.type="text";
+    username.autocomplete="off";
+    username.placeholder=t("widgetLichessPlaceholder");
+    username.value=service.widget.username||"";
+    username.addEventListener("input",()=>{
+      if(state.editServices[widgetConfigIndex]?.widget){
+        state.editServices[widgetConfigIndex].widget.username=username.value;
+      }
+    });
+    helper.appendChild(username);
+
+    const variantWrap=document.createElement("label");
+    variantWrap.className="widget-cfg-field";
+    const variantLabel=document.createElement("span");
+    variantLabel.textContent=t("widgetLichessVariant");
+    variantWrap.appendChild(variantLabel);
+    const variant=document.createElement("select");
+    variant.className="edit-select";
+    [["",t("widgetLichessAuto")],["classical",t("widgetLichessClassical")],
+     ["rapid",t("widgetLichessRapid")],["blitz",t("widgetLichessBlitz")]].forEach(([value,label])=>{
+      const option=document.createElement("option");
+      option.value=value;
+      option.textContent=label;
+      variant.appendChild(option);
+    });
+    variant.value=service.widget.variant||"";
+    variant.addEventListener("change",()=>{
+      if(state.editServices[widgetConfigIndex]?.widget){
+        state.editServices[widgetConfigIndex].widget.variant=variant.value;
+      }
+    });
+    variantWrap.appendChild(variant);
+    widgetConfigBody.append(helper,variantWrap);
+    return;
+  }
+
+  widgetConfigBody.appendChild(helper);
 }
 
 export function renderWebLinksEditor(){
@@ -616,8 +657,14 @@ export function closeEditor(){
   modalBackdrop.classList.remove("show");
   modalBackdrop.setAttribute("aria-hidden","true");
   document.body.classList.remove("modal-open");
+  closeWidgetConfig();
   document.querySelectorAll(".icon-picker.open").forEach(p=>p.classList.remove("open"));
 }
+
+widgetConfigCloseBtn.addEventListener("click",closeWidgetConfig);
+widgetConfig.addEventListener("click",e=>{
+  if(e.target===widgetConfig) closeWidgetConfig();
+});
 
 addServiceBtn.addEventListener("click",()=>{
   const newService={

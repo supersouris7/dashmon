@@ -327,10 +327,10 @@
 
 .service-row{
   display:grid;
-  grid-template-columns:minmax(150px,2fr) 150px auto minmax(180px,1fr);
+  grid-template-columns:minmax(150px,1fr) 150px auto;
   grid-template-areas:
-    "name category actions ."
-    "url host . widget";
+    "name category actions"
+    "url host widget";
   gap:8px 12px;
   align-items:center;
   width:100%;
@@ -360,7 +360,7 @@
   display:flex;
   flex-direction:row;
   gap:6px;
-  justify-content:flex-start;
+  justify-content:flex-end;
   align-self:center;
 }
 
@@ -412,41 +412,36 @@
 .service-widget{
   grid-area:widget;
   display:flex;
-  flex-wrap:wrap;
+  flex-wrap:nowrap;
   align-items:center;
-  gap:8px 8px;
+  gap:6px;
   min-width:0;
   justify-content:flex-start;
-  align-content:center;
 }
 
-.service-widget .widget-editor-label{
-  font-size:11px;
-  font-weight:600;
-  letter-spacing:.05em;
-  text-transform:uppercase;
-  color:var(--muted);
-  white-space:nowrap;
-}
-
-.service-widget .edit-select{
+.service-widget .widget-type{
   width:auto;
   height:36px;
-  flex:0 0 118px;
+  flex:0 0 128px;
   min-width:0;
   font-size:13px;
+  padding:0 8px;
 }
 
-.service-widget .edit-input{
-  width:auto;
+.service-widget .widget-config-btn{
+  width:36px;
   height:36px;
-  flex:1 1 130px;
-  min-width:90px;
-  font-size:13px;
+  flex:0 0 36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
 }
 
-.service-widget .widget-variant{
-  flex:0 0 110px;
+.service-widget .widget-config-btn.disabled{
+  opacity:.4;
+  cursor:default;
+  pointer-events:none;
 }
 
 /* Mobile : widget pleine largeur, champs empilés */
