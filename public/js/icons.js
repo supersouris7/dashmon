@@ -5,7 +5,7 @@ import { t } from "./i18n.js";
 function positionPicker(current,menu){
   requestAnimationFrame(()=>{
     const rect=current.getBoundingClientRect();
-    const width=330;
+    const width=242;
     const height=Math.min(menu.scrollHeight||280,280);
     let left=rect.left;
     let top=rect.bottom+6;
@@ -35,21 +35,10 @@ function buildPicker(currentIcon,onSelect){
     const choice=document.createElement("button");
     choice.className="icon-choice";
     choice.type="button";
-    const label=iconClass
-      .replace(/^fa-(solid|brands) fa-/,"")
-      .replaceAll("-"," ");
     choice.title=iconClass
       .replace(/^fa-(solid|brands) fa-/,"")
       .replaceAll("-"," ");
-
-    const glyph=document.createElement("i");
-    glyph.className=sanitizeIconClass(iconClass);
-
-    const name=document.createElement("span");
-    name.className="icon-choice-name";
-    name.textContent=label;
-
-    choice.append(glyph,name);
+    choice.innerHTML=`<i class="${iconClass}"></i>`;
     choice.addEventListener("click",e=>{
       e.stopPropagation();
       onSelect(iconClass);

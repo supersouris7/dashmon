@@ -71,6 +71,7 @@ export const ICON_OPTIONS=[
   "fa-solid fa-rss",
   "fa-solid fa-film",
   "fa-solid fa-photo-film",
+  "fa-solid fa-closed-captioning",
   "fa-solid fa-music",
   "fa-solid fa-tv",
   "fa-solid fa-video",
