@@ -173,6 +173,13 @@ function normalizeWith(meta, widget) {
       out[field.key] = isEncryptedSecret(raw) ? raw : str(raw, field.maxLength);
     }
   }
+  // "key" n'est pas un champ de configuration : c'est la cle de statut publiee
+  // par le serveur dans GET /api/config. Elle doit survivre a la normalisation,
+  // sinon la tuile ne retrouve plus son entree de cache -- et c'est invisible
+  // pour les widgets a cle par service (leur cle vaut leur URL) alors que les
+  // widgets a cle par configuration (Docker) restent vides.
+  const publishedKey = str(widget.key, 200);
+  if (publishedKey) out.key = publishedKey;
   return out;
 }
 

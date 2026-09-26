@@ -101,8 +101,21 @@ async function main(){
 
   // Normalisation : valeurs hors schema corrigees, secret conserve tel quel.
   check("registre client : config Docker normalisee",
-    registry.normalizeWidgetConfig({ type: "docker", mode: "tcp", url: " tcp://h:2375 ", key: "docker:1" }),
+    registry.normalizeWidgetConfig({ type: "docker", mode: "tcp", url: " tcp://h:2375 " }),
     { type: "docker", mode: "tcp", url: "tcp://h:2375" });
+  // La cle de statut publiee par le serveur doit survivre : sans elle, une
+  // tuile Docker (cle par configuration) ne retrouve pas son entree de cache.
+  check("registre client : la cle de statut survit a la normalisation",
+    registry.normalizeWidgetConfig({ type: "docker", mode: "local", url: "", key: "docker:local|" }),
+    { type: "docker", mode: "local", url: "", key: "docker:local|" });
+  check("registre client : la cle recopiee reste la cle de la tuile",
+    registry.widgetStatusKey({
+      url: "https://portainer.lan/",
+      widget: registry.normalizeWidgetConfig({ type: "docker", mode: "local", url: "", key: "docker:local|" })
+    }), "docker:local|");
+  check("registre client : changement de type = defauts du nouveau widget",
+    registry.inheritWidgetConfig("lichess", { type: "docker", mode: "tcp", url: "tcp://h:2375", key: "docker:x" }),
+    { type: "lichess", username: "", variant: "" });
   check("registre client : select hors options -> defaut",
     registry.normalizeWidgetConfig({ type: "lichess", username: "Willi", variant: "torpedo" }),
     { type: "lichess", username: "Willi", variant: "" });
@@ -113,9 +126,6 @@ async function main(){
   check("registre client : pas de widget -> null", registry.normalizeWidgetConfig(null), null);
   check("registre client : config neuve = defauts du manifest",
     registry.defaultWidgetConfig("docker"), { type: "docker", mode: "local", url: "" });
-  check("registre client : changement de type = defauts du nouveau widget",
-    registry.inheritWidgetConfig("lichess", { type: "docker", mode: "tcp", url: "tcp://h:2375" }),
-    { type: "lichess", username: "", variant: "" });
   check("registre client : changement de type conserve les cles communes",
     registry.inheritWidgetConfig("adguard", { type: "adguard", username: "u", password: "aes1.x" }).username, "u");
 
