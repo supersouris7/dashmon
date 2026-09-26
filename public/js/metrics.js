@@ -122,6 +122,18 @@ async function refreshStatus(){
   }catch(_error){}
 }
 
+export async function manualRefresh(){
+  try{
+    const response=await fetch("/api/refresh",{method:"POST",cache:"no-store"});
+    if(!response.ok) return false;
+    state.serviceStatus=await response.json();
+    updateStatusIndicators();
+    return true;
+  }catch(_error){
+    return false;
+  }
+}
+
 function pageHidden(){
   return typeof document!=="undefined" && document.visibilityState==="hidden";
 }

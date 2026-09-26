@@ -9,14 +9,14 @@ import {
   loadThemes, applyTheme, setTheme, currentTheme, downloadTheme,
   importThemeFile, deleteCustomTheme, applyThemeLabels
 } from "./themes.js";
-import { startStatusLoop, startHostMetricsLoop, refreshHostMetrics, setupVisibilityPause } from "./metrics.js";
+import { startStatusLoop, startHostMetricsLoop, refreshHostMetrics, setupVisibilityPause, manualRefresh } from "./metrics.js";
 import { openEditor, closeEditor, renderServiceEditor, renderCategoryEditor,
   renderHostEditor, renderWebLinksEditor } from "./editor.js";
 import { closeImageLibrary } from "./images.js";
 import {
   searchInput, viewBtn, collapseAllBtn, moreBtn, topMenu,
   openModeSelect, groupCategoryBtn, groupHostBtn,
-  sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuAppearanceBtn,
+  sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuAppearanceBtn, menuRefreshBtn,
   appearanceBackdrop, appearanceCloseBtn, appearanceDoneBtn, themeSelect,
   languageSelect, smallIconsSelect, hostsDisplaySelect, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
   bannerIconSelect, bannerUrlInput, faviconInput, importFaviconBtn, resetFaviconBtn, faviconEnabledSelect,
@@ -180,6 +180,11 @@ menuEditBtn.addEventListener("click",()=>{
 });
 
 menuAppearanceBtn.addEventListener("click",openAppearance);
+
+menuRefreshBtn.addEventListener("click",()=>{
+  closeTopMenu();
+  manualRefresh();
+});
 appearanceCloseBtn.addEventListener("click",closeAppearance);
 appearanceDoneBtn.addEventListener("click",closeAppearance);
 

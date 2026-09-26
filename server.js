@@ -812,6 +812,21 @@ const STATUS_TIMEOUT = 4000;
 // lichess.org applique un rate limit strict sur /api/user (429 sinon).
 const LICHESS_REFRESH_MS = 24*60*60*1000;
 const lichessRatings = new Map();
+// Fréquences de vérification par type (via statusCache[*].lastCheck).
+const CHECK_INTERVALS = {
+  duplicati: 5*60*1000,
+  adguard: 5*60*1000,
+  lichess: LICHESS_REFRESH_MS,
+  default: 2*60*1000
+};
+function checkInterval(svc){
+  const type=svc?.widget?.type;
+  if(type==="duplicati"||type==="adguard"||type==="lichess") return CHECK_INTERVALS[type];
+  return CHECK_INTERVALS.default;
+}
+function serviceCacheKey(svc){
+  return sanitizeUrl(svc?.url) || svc?.url || "";
+}
 
 function makeProbe(target, identity){
   return new Promise(resolve=>{
@@ -845,13 +860,13 @@ function makeProbe(target, identity){
   });
 }
 
-async function checkService(service){
+async function checkService(service,force=false){
   if(service.widget?.type==="duplicati"){
     await checkDuplicati(service);
     return;
   }
   if(service.widget?.type==="lichess"){
-    await checkLichess(service);
+    await checkLichess(service,force);
     return;
   }
   if(service.widget?.type==="adguard"){
@@ -1062,11 +1077,11 @@ async function checkDuplicati(service){
   }
 }
 
-async function checkLichess(service){
-  const key=sanitizeUrl(service.url) || service.url;
+async function checkLichess(service,force=false){
+  const key=serviceCacheKey(service);
   const previous=statusCache[key];
   // Une seule vérification par jour pour respecter le rate limit de lichess.org.
-  if(previous && previous.lastCheck && (Date.now()-previous.lastCheck)<LICHESS_REFRESH_MS){
+  if(!force && previous && previous.lastCheck && (Date.now()-previous.lastCheck)<LICHESS_REFRESH_MS){
     return;
   }
   const out={state:"lichess",ok:false,elo:null,prevElo:null,delta:null,variant:"",ms:0,lastCheck:Date.now()};
@@ -1161,7 +1176,7 @@ async function checkAdGuard(service){
   }
 }
 
-async function refreshStatuses(){
+async function refreshStatuses(force=false){
   let config;
   try{
     config=readConfig();
@@ -1187,12 +1202,21 @@ async function refreshStatuses(){
   for(const key of duplicatiTokens.keys()){
     if(!widgetActive.has(key)) duplicatiTokens.delete(key);
   }
+  const due=force ? services : services.filter(svc=>{
+    const cache=statusCache[serviceCacheKey(svc)];
+    return !(cache && cache.lastCheck && (Date.now()-cache.lastCheck) < checkInterval(svc));
+  });
   // Checks par lots de 3 espacés : évite les rafales de connexions en gardant
   // un cycle de rafraîchissement raisonnable.
-  for(let i=0;i<services.length;i+=3){
-    await Promise.all(services.slice(i,i+3).map(checkService));
+  for(let i=0;i<due.length;i+=3){
+    await Promise.all(due.slice(i,i+3).map(svc=>checkService(svc,force)));
     await new Promise(resolve=>setTimeout(resolve,150));
   }
+  // Marque la dernière vérification de chaque service traité.
+  due.forEach(svc=>{
+    const cache=statusCache[serviceCacheKey(svc)];
+    if(cache) cache.lastCheck=Date.now();
+  });
 }
 
 function readCpuTimes(){
@@ -1464,6 +1488,15 @@ app.get("/api/host-metrics",async(_req,res)=>{
 
 app.get("/api/status",(_req,res)=>{
   res.set("Cache-Control","no-store");
+  res.json(statusCache);
+});
+
+// Rafraîchissement manuel forcé de tous les statuts/pastilles/widgets.
+app.post("/api/refresh",async (_req,res)=>{
+  res.set("Cache-Control","no-store");
+  try{
+    await refreshStatuses(true);
+  }catch(_error){}
   res.json(statusCache);
 });
 
