@@ -155,7 +155,9 @@ return;
       badge.textContent=`${t("widgetDockerContainers")} ${containers.active} / ${containers.total}`;
       time.className="widget-time"+(allUpdated ? " delta-up" : " warn");
       time.textContent=`${t("widgetDockerUpdated")} ${updated.count} / ${updated.total}`;
-      wrap.title=`${t("widgetDocker")} · ${containers.active}/${containers.total} · ${updated.count}/${updated.total}`;
+      const unknown=Number(updated.unknown)||0;
+      wrap.title=`${t("widgetDocker")} · ${containers.active}/${containers.total} · ${updated.count}/${updated.total}`
+        + (unknown>0 ? ` · ${unknown} ${t("widgetDockerUnknown")}` : "");
     }else{
       badge.className="widget-badge pending";
       badge.textContent=`${t("widgetDocker")} —`;

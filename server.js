@@ -1260,9 +1260,9 @@ async function checkDocker(service){
       dockerApi.dockerRequest(host,"/containers/json?all=1"),
       dockerApi.dockerRequest(host,"/images/json")
     ]);
-    const summary=dockerApi.computeDockerSummary(containers,images);
+    const summary=await dockerApi.computeLiveDockerSummary(host,containers,images);
     out.containers={active:summary.active,total:summary.total};
-    out.updated={count:summary.updated,total:summary.total};
+    out.updated={count:summary.updated,total:summary.total,unknown:summary.unknown};
     out.ok=true;
     out.ms=Date.now()-started;
   }catch(error){
