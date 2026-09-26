@@ -251,14 +251,14 @@ export function renderServiceEditor(){
     const widgetType=document.createElement("select");
     widgetType.className="edit-select widget-type";
     widgetType.title=t("widgetLabel");
-    [["",t("widgetStandard")],["duplicati",t("widgetDuplicati")],["lichess",t("widgetLichess")],["adguard",t("widgetAdGuard")]].forEach(([value,label])=>{
+    [["",t("widgetStandard")],["duplicati",t("widgetDuplicati")],["lichess",t("widgetLichess")],["adguard",t("widgetAdGuard")],["docker",t("widgetDocker")]].forEach(([value,label])=>{
       const option=document.createElement("option");
       option.value=value;
       option.textContent=label;
       widgetType.appendChild(option);
     });
     widgetType.value=service.widget?.type==="duplicati" ? "duplicati"
-      : service.widget?.type==="lichess" ? "lichess" : service.widget?.type==="adguard" ? "adguard" : "";
+      : service.widget?.type==="lichess" ? "lichess" : service.widget?.type==="adguard" ? "adguard" : service.widget?.type==="docker" ? "docker" : "";
     widgetType.addEventListener("change",()=>{
       state.editServices[index].widget=widgetType.value==="duplicati"
         ? {type:"duplicati",password:(service.widget&&service.widget.password)||""}
@@ -270,7 +270,9 @@ export function renderServiceEditor(){
                url:(service.widget&&service.widget.url)||"",
                username:(service.widget&&service.widget.username)||"",
                password:(service.widget&&service.widget.password)||""}
-            : null;
+            : widgetType.value==="docker"
+              ? {type:"docker",hostId:(service.widget&&service.widget.hostId)||""}
+              : null;
       renderServiceEditor();
     });
     widgetWrap.appendChild(widgetType);
@@ -340,6 +342,12 @@ function commitWidgetConfig(){
       url:String(d.url||"").trim().slice(0,200),
       username:String(d.username||"").trim().slice(0,200),
       password};
+    return;
+  }
+
+  if(svc.widget.type==="docker"){
+    svc.widget={type:"docker",
+      hostId:String(d.hostId||"").trim().slice(0,64)};
   }
 }
 
@@ -487,6 +495,45 @@ function renderWidgetConfig(){
     });
     passField.appendChild(password);
     widgetConfigBody.appendChild(passField);
+  }
+
+  if(service.widget.type==="docker"){
+    const field=document.createElement("label");
+    field.className="widget-cfg-field";
+    const fieldLabel=document.createElement("span");
+    fieldLabel.textContent=t("widgetDockerServer");
+    field.appendChild(fieldLabel);
+    const select=document.createElement("select");
+    select.className="edit-select";
+
+    const dockerHosts=state.hosts.filter(host=>host.monitoring?.enabled===true);
+    if(!dockerHosts.length){
+      const none=document.createElement("option");
+      none.value="";
+      none.textContent=t("noHostConfigured");
+      none.disabled=true;
+      none.selected=true;
+      select.appendChild(none);
+      select.disabled=true;
+    }else{
+      dockerHosts.forEach(host=>{
+        const option=document.createElement("option");
+        option.value=String(host.id||"").trim();
+        option.textContent=host.name||"";
+        select.appendChild(option);
+      });
+      if(draft.hostId && dockerHosts.some(host=>String(host.id||"").trim()===String(draft.hostId||"").trim())){
+        select.value=draft.hostId;
+      }else{
+        select.selectedIndex=0;
+        draft.hostId=select.value;
+      }
+      select.addEventListener("change",()=>{
+        draft.hostId=select.value;
+      });
+    }
+    field.appendChild(select);
+    widgetConfigBody.appendChild(field);
   }
 }
 
@@ -842,7 +889,7 @@ addWebLinkBtn.addEventListener("click",()=>{
 });
 
 addHostBtn.addEventListener("click",()=>{
-  const newHost={name:t("newHost"),icon:"fa-solid fa-server",monitoring:{enabled:true,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}};
+  const newHost={id:"host-"+Math.random().toString(36).slice(2,12),name:t("newHost"),icon:"fa-solid fa-server",monitoring:{enabled:true,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}};
   state.editHosts.push(newHost);
   renderHostEditor();
   renderServiceEditor();
@@ -972,6 +1019,7 @@ saveBtn.addEventListener("click",async()=>{
       const tokenId=splitToken(h.monitoring?.tokenId||h.monitoring?.tokenIdEnv);
       const tokenSecret=splitToken(h.monitoring?.tokenSecret||h.monitoring?.tokenSecretEnv);
       return {
+      id:String(h.id||"").trim().slice(0,64) || "host-"+Math.random().toString(36).slice(2,12),
       name:(h.name||"").trim(),
       icon:h.icon||"fa-solid fa-server",
       monitoring:{
@@ -983,7 +1031,10 @@ saveBtn.addEventListener("click",async()=>{
         tokenIdEnv:tokenId.alias,
         tokenSecretEnv:tokenSecret.alias,
         tokenId:tokenId.literal,
-        tokenSecret:tokenSecret.literal
+        tokenSecret:tokenSecret.literal,
+        docker:h.monitoring?.docker?.mode==="tcp"
+          ? {mode:"tcp",url:(h.monitoring?.docker?.url||"").trim()}
+          : undefined
       }
     };
     })

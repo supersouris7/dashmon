@@ -635,6 +635,10 @@ select,
   color:var(--error);
 }
 
+.widget-time.warn{
+  color:var(--warning);
+}
+
 .widget-status.pending .widget-time{opacity:.55}
 
 #dashboard.small-icons .widget-time{display:none}

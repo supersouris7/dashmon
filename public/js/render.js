@@ -82,6 +82,13 @@ function formatNumber(n){
   }
 }
 
+function widgetStatusKey(service){
+  if(service.widget?.type==="docker"){
+    return "docker:"+String(service.widget.hostId||"").trim();
+  }
+  return sanitizeUrl(service.url)||service.url;
+}
+
 function applyWidgetStatus(wrap,service,info){
   const badge=wrap.querySelector(".widget-badge");
   const time=wrap.querySelector(".widget-time");
@@ -129,13 +136,34 @@ function applyWidgetStatus(wrap,service,info){
       const avg=info.avgMs!=null ? ` · ${info.avgMs} ms` : "";
       wrap.title=`${t("widgetAdGuard")} · ${formatCompactNumber(queries)} ${t("widgetAdGuardQueries")} · ${pct} % ${t("widgetAdGuardBlocked")}${avg}`;
     }
-    return;
+return;
   }
   if(info.error){
     badge.className="widget-badge nok";
     badge.textContent=t("widgetBadgeNok");
     time.textContent="—";
     wrap.title=`${t("widgetError")} : ${String(info.error).slice(0,120)}`;
+    return;
+  }
+  if(service?.widget?.type==="docker"){
+    const containers=info?.containers;
+    const updated=info?.updated;
+    if(!info.error && containers && updated && containers.total>0){
+      const allActive=containers.active===containers.total;
+      const allUpdated=updated.count===updated.total;
+      badge.className="widget-badge "+(allActive ? "ok" : "nok");
+      badge.textContent=`${t("widgetDockerContainers")} ${containers.active} / ${containers.total}`;
+      time.className="widget-time"+(allUpdated ? " delta-up" : " warn");
+      time.textContent=`${t("widgetDockerUpdated")} ${updated.count} / ${updated.total}`;
+      wrap.title=`${t("widgetDocker")} · ${containers.active}/${containers.total} · ${updated.count}/${updated.total}`;
+    }else{
+      badge.className="widget-badge pending";
+      badge.textContent=`${t("widgetDocker")} —`;
+      time.textContent="—";
+      wrap.title=info?.error
+        ? `${t("widgetError")} : ${String(info.error).slice(0,120)}`
+        : t("widgetNever");
+    }
     return;
   }
   if(info.ok===null || info.lastAttemptAt==null){
@@ -265,10 +293,11 @@ function createCard(service){
   title.textContent=service.name || t("unnamedService");
   card.appendChild(title);
 
-  if(service.widget&&(service.widget.type==="duplicati"||service.widget.type==="lichess"||service.widget.type==="adguard")){
+  if(service.widget && ["duplicati","lichess","adguard","docker"].includes(service.widget.type)){
     const wrap=document.createElement("div");
     wrap.className=`widget-status widget-${service.widget.type}`;
-    wrap.dataset.url=sanitizeUrl(service.url)||service.url;
+    wrap.dataset.url=widgetStatusKey(service);
+    wrap._service=service;
     const badge=document.createElement("span");
     badge.className="widget-badge pending";
     const time=document.createElement("span");
@@ -601,7 +630,8 @@ export function updateStatusIndicators(){
   document.querySelectorAll(".widget-status[data-url]").forEach(wrap=>{
     const info=state.serviceStatus[wrap.dataset.url];
     if(!info) return;
-    const service=state.services.find(s=>s.url===wrap.dataset.url)
+    const service=wrap._service
+      || state.services.find(s=>s.url===wrap.dataset.url)
       || state.services.find(s=>(sanitizeUrl(s.url)||s.url)===wrap.dataset.url);
     applyWidgetStatus(wrap,service,info);
   });

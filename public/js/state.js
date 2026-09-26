@@ -434,7 +434,9 @@ export function normalizeConfig(cfg={}){
                url:String(svc.widget?.url||"").trim().slice(0,200),
                username:String(svc.widget?.username||"").slice(0,200),
                password:String(svc.widget?.password||"").slice(0,2000)}
-            : null
+            : svc.widget?.type==="docker"
+              ? {type:"docker",hostId:String(svc.widget?.hostId||"").trim().slice(0,64)}
+              : null
     })),
     categories:(Array.isArray(cfg.categories) ? clone(cfg.categories) : clone(DEFAULT_CATEGORIES))
       .map(cat=>({
@@ -443,6 +445,7 @@ export function normalizeConfig(cfg={}){
       })),
     hosts:Array.isArray(cfg.hosts) && cfg.hosts.length
       ? cfg.hosts.map(host=>({
+          id:sanitizeText(host.id,64),
           name:sanitizeText(host.name,100),
           icon:sanitizeIconClass(host.icon),
           monitoring:{
@@ -454,11 +457,15 @@ export function normalizeConfig(cfg={}){
             tokenIdEnv:sanitizeText(host.monitoring?.tokenIdEnv||"",50),
             tokenSecretEnv:sanitizeText(host.monitoring?.tokenSecretEnv||"",50),
             tokenId:sanitizeText(host.monitoring?.tokenId||"",2000),
-            tokenSecret:sanitizeText(host.monitoring?.tokenSecret||"",2000)
+            tokenSecret:sanitizeText(host.monitoring?.tokenSecret||"",2000),
+            docker:host.monitoring?.docker?.mode==="tcp"
+              ? {mode:"tcp",url:sanitizeUrl(host.monitoring?.docker?.url)}
+              : undefined
           }
         }))
       : (derivedHosts.length ? derivedHosts : clone(DEFAULT_HOSTS)).map(host=>({
           ...host,
+          id:host.id||"host-"+Math.random().toString(36).slice(2,10),
           monitoring:host.monitoring || {enabled:false,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}
         })),
     collapsed:normalizeCollapsed(cfg.collapsed),

@@ -10,6 +10,7 @@ const path = require("path");
 const http = require("http");
 const https = require("https");
 const os = require("os");
+const dockerApi = require("./docker");
 
 const app = express();
 
@@ -364,6 +365,37 @@ function ensureWebLinksSeeded(){
 
 ensureWebLinksSeeded();
 
+// Identifiants stables des hôtes : le widget Docker référence host.id pour
+// survivre au renommage d'un serveur. Attribue un id aux hôtes qui n'en ont
+// pas (ex. configs antérieures) et garantit leur unicité.
+function ensureHostIds(){
+  let config;
+  try{
+    config=readConfig();
+  }catch(_error){
+    return;
+  }
+  if(!Array.isArray(config.hosts)) return;
+
+  let changed=false;
+  const used=new Set();
+  config.hosts.forEach(host=>{
+    const current=String(host&&host.id||"").trim();
+    if(!current || current.length>64 || used.has(current)){
+      host.id="host-"+crypto.randomBytes(6).toString("hex");
+      changed=true;
+    }
+    used.add(host.id);
+  });
+  if(changed){
+    try{
+      fs.writeFileSync(CONFIG_FILE,JSON.stringify(config,null,2)+"\n","utf8");
+    }catch(_error){}
+  }
+}
+
+ensureHostIds();
+
 app.get("/healthz",(_req,res)=>{
   res.set("Cache-Control","no-store");
   res.json({ok:true});
@@ -372,6 +404,7 @@ app.get("/healthz",(_req,res)=>{
 app.get("/api/config",(_req,res)=>{
   try{
     res.set("Cache-Control","no-store");
+    ensureHostIds();
     res.json(readConfig());
   }catch(error){
     console.error("Lecture config:",error);
@@ -401,10 +434,12 @@ function buildConfigOutput(config){
                      protocol:svc.widget?.protocol==="http" ? "http" : "https",
                      url:String(svc.widget?.url||"").trim().slice(0,200),
                      username:String(svc.widget?.username||"").slice(0,200),
-                     password:isEncryptedSecret(svc.widget?.password)
+password:isEncryptedSecret(svc.widget?.password)
                        ? String(svc.widget?.password||"").slice(0,2000)
                        : encryptSecret(svc.widget?.password)}
-                  : null
+                  : svc.widget?.type==="docker"
+                    ? {type:"docker",hostId:sanitizeText(svc.widget?.hostId,64)}
+                    : null
           }))
         : [],
       categories:Array.isArray(config.categories)
@@ -419,6 +454,7 @@ function buildConfigOutput(config){
             const tokenIdEnv=String(host.monitoring?.tokenIdEnv||"").trim();
             const tokenSecretEnv=String(host.monitoring?.tokenSecretEnv||"").trim();
             return {
+              id:sanitizeText(host.id,64) || "host-"+crypto.randomBytes(6).toString("hex"),
               name:sanitizeText(host.name,100),
               icon:sanitizeIconClass(host.icon),
               monitoring:{
@@ -431,7 +467,10 @@ function buildConfigOutput(config){
                 tokenIdEnv:TOKEN_ENV_ALLOWLIST.has(tokenIdEnv) ? tokenIdEnv : "",
                 tokenSecretEnv:TOKEN_ENV_ALLOWLIST.has(tokenSecretEnv) ? tokenSecretEnv : "",
                 tokenId:sanitizeText(host.monitoring?.tokenId||"",2000),
-                tokenSecret:sanitizeText(host.monitoring?.tokenSecret||"",2000)
+                tokenSecret:sanitizeText(host.monitoring?.tokenSecret||"",2000),
+                docker:host.monitoring?.docker?.mode==="tcp"
+                  ? {mode:"tcp",url:sanitizeUrl(host.monitoring?.docker?.url)}
+                  : undefined
               }
             };
           })
@@ -816,15 +855,21 @@ const lichessRatings = new Map();
 const CHECK_INTERVALS = {
   duplicati: 2*60*60*1000,
   adguard: 2*60*60*1000,
+  docker: 2*60*60*1000,
   lichess: LICHESS_REFRESH_MS,
   default: 5*60*1000
 };
 function checkInterval(svc){
   const type=svc?.widget?.type;
-  if(type==="duplicati"||type==="adguard"||type==="lichess") return CHECK_INTERVALS[type];
+  if(type==="duplicati"||type==="adguard"||type==="docker"||type==="lichess") return CHECK_INTERVALS[type];
   return CHECK_INTERVALS.default;
 }
 function serviceCacheKey(svc){
+  // Le widget Docker n'a pas forcément d'URL de service : la clé de cache est
+  // portée par l'hôte Docker sélectionné pour éviter tout collision entre widgets.
+  if(svc?.widget?.type==="docker"){
+    return "docker:"+String(svc.widget?.hostId||"").trim();
+  }
   return sanitizeUrl(svc?.url) || svc?.url || "";
 }
 
@@ -871,6 +916,10 @@ async function checkService(service,force=false){
   }
   if(service.widget?.type==="adguard"){
     await checkAdGuard(service);
+    return;
+  }
+  if(service.widget?.type==="docker"){
+    await checkDocker(service);
     return;
   }
   if(!service.url || service.monitor===false) return;
@@ -1176,6 +1225,52 @@ async function checkAdGuard(service){
   }
 }
 
+async function checkDocker(service){
+  const widget=service.widget||{};
+  const key=serviceCacheKey(service);
+  const out={state:"docker",ok:false,containers:null,updated:null,ms:0,lastCheck:Date.now()};
+  statusCache[key]=out;
+
+  const hostId=String(widget.hostId||"").trim();
+  if(!hostId){
+    out.error="Serveur Docker manquant";
+    return;
+  }
+
+  let config;
+  try{
+    config=readConfig();
+  }catch(_error){
+    out.error="Lecture de la config impossible";
+    return;
+  }
+
+  let host=null;
+  if(Array.isArray(config.hosts)){
+    host=config.hosts.find(h=>String((h&&h.id)||"").trim()===hostId);
+  }
+  if(!host){
+    out.error="Serveur Docker introuvable";
+    return;
+  }
+
+  const started=Date.now();
+  try{
+    const [containers,images]=await Promise.all([
+      dockerApi.dockerRequest(host,"/containers/json?all=1"),
+      dockerApi.dockerRequest(host,"/images/json")
+    ]);
+    const summary=dockerApi.computeDockerSummary(containers,images);
+    out.containers={active:summary.active,total:summary.total};
+    out.updated={count:summary.updated,total:summary.total};
+    out.ok=true;
+    out.ms=Date.now()-started;
+  }catch(error){
+    out.error=String((error&&error.message)||"Erreur Docker").slice(0,200);
+    out.ms=Date.now()-started;
+  }
+}
+
 async function refreshStatuses(force=false){
   let config;
   try{
@@ -1185,8 +1280,8 @@ async function refreshStatuses(force=false){
   }
 
   const services=Array.isArray(config.services) ? config.services : [];
-  // Purge les entrées dont l'URL n'est plus surveillée.
-  const active=new Set(services.map(s=>sanitizeUrl(s.url)).filter(Boolean));
+  // Purge les entrées dont la clé de cache n'est plus surveillée.
+  const active=new Set(services.map(svc=>serviceCacheKey(svc)).filter(Boolean));
   for(const key of Object.keys(statusCache)){
     if(!active.has(key) && !active.has(key.replace(/\/$/,""))){
       delete statusCache[key];
