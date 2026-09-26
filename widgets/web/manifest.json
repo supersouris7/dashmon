@@ -1,0 +1,27 @@
+{
+  "id": "web",
+  "version": "1.0.0",
+  "label": { "fr": "Lien", "en": "Link" },
+  "description": {
+    "fr": "Sonde HTTP du lien : la tuile garde son point d'état vert ou rouge",
+    "en": "HTTP probe for the link: the tile keeps its green or red status dot"
+  },
+  "interval": 300000,
+  "cacheKey": "service",
+  "defaultFor": "link",
+  "hidden": true,
+  "probe": true,
+  "server": "server.js",
+  "strings": {
+    "fr": {
+      "name": "Lien",
+      "invalidUrl": "URL invalide",
+      "badProtocol": "Protocole non supporté"
+    },
+    "en": {
+      "name": "Link",
+      "invalidUrl": "Invalid URL",
+      "badProtocol": "Unsupported protocol"
+    }
+  }
+}

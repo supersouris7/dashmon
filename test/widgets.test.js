@@ -3,7 +3,9 @@
 // renderers côté navigateur.
 //
 // Aucun accès réseau : le widget Docker n'est PAS exécuté (il parlerait au
-// socket), seuls sa config, sa clé de cache et son renderer sont vérifiés.
+// socket) et les widgets de liens (YouTube, Docker Hub, GitHub) sont testés
+// avec un faux client HTTP. Seuls sa config, sa clé de cache et son renderer
+// sont vérifiés pour le widget Docker.
 
 const assert = require("assert");
 const fs = require("fs");
@@ -65,17 +67,28 @@ async function main(){
   // `_template` n'est pas un plugin : son identifiant ne respecte pas le motif
   // du registre, il sert de modele a copier.
   check("registre : widgets natifs charges, _template ignore",
-    ids, ["adguard", "docker", "duplicati", "lichess"]);
+    ids, ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "web", "youtube"]);
   check("registre : aucun echec de chargement", registry.failures, []);
 
   for (const id of ids) {
     const item = registry.get(id);
     ok("registre : " + id + " a un backend", typeof item.check === "function");
-    ok("registre : " + id + " a un renderer", typeof item.client === "string");
+    // Le widget "web" n'a pas de renderer : c'est le client generique qui
+    // dessine le point d'etat d'un lien. Il ne doit donc pas non plus
+    // s'afficher dans le menu des widgets de l'editeur.
+    if (!item.hidden) ok("registre : " + id + " a un renderer", typeof item.client === "string");
     ok("registre : " + id + " declare une periode", Number(item.interval) > 0);
     ok("registre : " + id + " a des libelles fr+en",
       !!(item.label.fr && item.label.en));
   }
+
+  check("registre : le plugin de lien est interne au moteur",
+    registry.publicList().filter(w => w.hidden).map(w => w.id), ["web"]);
+  check("registre : un lien nu est pris en charge par le plugin \"link\"",
+    registry.bySlot("link") && registry.bySlot("link").id, "web");
+  check("registre : les widgets de liens sont proposes a l'utilisateur",
+    registry.publicList().filter(w => !w.hidden).map(w => w.id),
+    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "youtube"]);
 
   // Le template est bien un modele exploitable, mais volontairement hors registre.
   ok("template : present sur disque mais non charge",
@@ -133,6 +146,64 @@ async function main(){
   check("core : intervalle par defaut pour un widget inconnu",
     core.interval({ widget: { type: "inconnu" } }), 300000);
 
+  // Un service sans widget est un lien : c'est le plugin du slot "link" qui le
+  // prend en charge, et c'est son manifeste qui donne la periode.
+  const plainLink = { url: "https://exemple.lan/", monitor: true };
+  check("core : un lien nu est couvert par le plugin \"link\"",
+    core.pluginFor(plainLink).id, "web");
+  ok("core : le plugin de lien est signale", core.linkPlugin().id === "web");
+  ok("core : un lien nu est surveillable", core.handles(plainLink));
+  check("core : la periode d'un lien nu vient du plugin de lien",
+    core.interval(plainLink), 300000);
+  check("core : la cle d'un lien nu reste son URL", core.cacheKey(plainLink), "https://exemple.lan/");
+  check("core : un widget explicite l'emporte sur le plugin de lien",
+    core.pluginFor({ url: "https://exemple.lan/", widget: { type: "github", repo: "a/b" } }).id, "github");
+  ok("core : un widget installe est surveillable",
+    core.handles({ url: "https://exemple.lan/", widget: { type: "github", repo: "a/b" } }));
+  // Un widget inconnu n'est pas rebascule sur la sonde de lien : le core ne
+  // connait pas son schema, il ne peut donc pas collecter a sa place.
+  ok("core : widget inconnu = non surveillable", !core.handles({ url: "https://x.lan/", widget: { type: "inconnu" } }));
+
+  // Le core est le seul a savoir depuis quand un service a ete verifie : le
+  // plugin n'ecrit pas la cle lui-meme. Il doit aussi garder le temps de
+  // reponse mesure par la sonde au lieu d'ecraser ce chiffre.
+  const logLines = [];
+  const msCache = {};
+  const httpLib = require("../lib/http");
+  const msCore = new WidgetCore({
+    root: ROOT, dataDir: os.tmpdir(), log: m => logLines.push(String(m)),
+    decryptSecret: v => v, encryptSecret: v => v,
+    sanitizeText: v => String(v == null ? "" : v), sanitizeUrl: v => String(v == null ? "" : v).trim(),
+    statusCache: msCache
+  });
+  await msCore.load();
+  const linkService = { url: "https://exemple.test/", monitor: true, widget: { type: "web" } };
+  // La sonde est simulee : aucun trafic, on verifie le contrat du core.
+  const realProbe = httpLib.httpProbe;
+  httpLib.httpProbe = async () => ({ ok: true, code: 200, ms: 137 });
+  try {
+    await msCore.check(linkService);
+  } finally {
+    httpLib.httpProbe = realProbe;
+  }
+  const probed = msCache["https://exemple.test/"];
+  check("core : le plugin de lien publie le temps de reponse mesure", probed.ms, 137);
+  check("core : le plugin de lien publie l'etat up", [probed.state, probed.ok], ["up", true]);
+  check("core : aucune ligne de journal pour un lien qui repond", logLines, []);
+
+  // Un lien qui tombe est signale une fois, pas a chaque cycle.
+  httpLib.httpProbe = async () => ({ ok: false, ms: 4000, error: "timeout" });
+  try {
+    await msCore.check(linkService);
+    await msCore.check(linkService);
+  } finally {
+    httpLib.httpProbe = realProbe;
+  }
+  check("core : lien tombe = etat down", msCache["https://exemple.test/"].state, "down");
+  check("core : panne signalee une seule fois", logLines.filter(m => /DOWN/.test(m)).length, 1);
+  ok("core : la panne nomme le service",
+    logLines.some(m => m.includes("https://exemple.test/")), show(logLines));
+
   // Widget a cle par service (une entree de cache par URL de service).
   const adguardService = { url: "https://adguard.lan/", widget: { type: "adguard", protocol: "https", url: "", username: "", password: "aes1.c2VjcmV0" } };
   const adguardService2 = { url: "https://autre.lan/", widget: { type: "adguard", protocol: "https", url: "", username: "", password: "aes1.c2VjcmV0" } };
@@ -169,6 +240,19 @@ async function main(){
     core.sanitizeWidget({ type: "inconnu", foo: "bar" }), null);
   check("core : champ declare absent -> valeur vide",
     core.sanitizeWidget({ type: "duplicati" }), { type: "duplicati", password: "" });
+  check("core : config GitHub complete (statistique par defaut = etoiles)",
+    core.sanitizeWidget({ type: "github", repo: " surfeon/Dashmon ", metric: "forks", n: 1 }),
+    { type: "github", repo: "surfeon/Dashmon", metric: "forks" });
+  check("core : statistique GitHub hors options -> etoiles",
+    core.sanitizeWidget({ type: "github", repo: "a/b", metric: "commits" }),
+    { type: "github", repo: "a/b", metric: "stars" });
+  check("core : config Docker Hub", core.sanitizeWidget({ type: "dockerhub", repo: "library/nginx" }),
+    { type: "dockerhub", repo: "library/nginx" });
+  check("core : config YouTube", core.sanitizeWidget({ type: "youtube", username: "@supfeon" }),
+    { type: "youtube", username: "@supfeon" });
+  // Le plugin de lien n'a aucun champ : une config le concernant est vide, et
+  // le client n'a rien a afficher dans l'editeur.
+  check("core : le plugin de lien n'a pas de champ", core.sanitizeWidget({ type: "web" }), { type: "web" });
 
   // Un widget dont le type n'est pas installe n'est pas efface : le core ne
   // connait pas son schema, donc il ne peut pas le reecrire. La config survit a
@@ -222,7 +306,8 @@ async function main(){
 
   // --- Exposition HTTP : liste publique et garde-fous de fichiers ---------
   const publicList = core.publicList();
-  check("core : liste publique = ids installes", publicList.map(w => w.id), ["adguard", "docker", "duplicati", "lichess"]);
+  check("core : liste publique = ids installes", publicList.map(w => w.id),
+    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "web", "youtube"]);
   ok("core : aucune fonctionCheck exposee",
     publicList.every(w => typeof w.check === "undefined" && typeof w.createState === "undefined"));
   ok("core : la liste publique porte le schema de config",
@@ -262,6 +347,39 @@ async function main(){
     await sloppy.load();
     check("registre : nom de dossier invalide signale",
       sloppy.failures.map(f => f.id).sort(), ["MyPlugin", "evil"]);
+    // Deux plugins ne peuvent pas revendiquer le meme slot : le second est
+    // refuse plutot que de voler la place du premier dans l'ordre de tri.
+    fs.mkdirSync(path.join(evilRoot, "surdoux"));
+    fs.writeFileSync(path.join(evilRoot, "surdoux", "manifest.json"),
+      JSON.stringify({ id: "surdoux", defaultFor: "link", server: "server.js" }));
+    fs.writeFileSync(path.join(evilRoot, "surdoux", "server.js"), "module.exports={check(){}};");
+    const greedy = new Registry({ kind: "widget", roots: [evilRoot], logger: silentLogger });
+    await greedy.load();
+    check("registre : slot \"link\" deja pris = plugin refuse", greedy.get("surdoux"), null);
+    ok("registre : conflit de slot signale",
+      greedy.failures.some(f => /slot|link/i.test(String(f.error))), JSON.stringify(greedy.failures));
+
+    // Un plugin interne (hidden) n'a pas besoin de renderer : c'est le client
+    // generique qui dessine son resultat.
+    fs.mkdirSync(path.join(evilRoot, "sansvue"));
+    fs.writeFileSync(path.join(evilRoot, "sansvue", "manifest.json"),
+      JSON.stringify({ id: "sansvue", hidden: true, server: "server.js" }));
+    fs.writeFileSync(path.join(evilRoot, "sansvue", "server.js"), "module.exports={check(){}};");
+    const internal = new Registry({ kind: "widget", roots: [evilRoot], logger: silentLogger });
+    await internal.load();
+    check("registre : plugin interne sans renderer accepte", internal.get("sansvue").hidden, true);
+
+    // Un slot qui n'existe pas dans le core est une erreur de developpement :
+    // le plugin n'est pas charge plutot que de devenir un widget injoignable.
+    fs.mkdirSync(path.join(evilRoot, "mauvaisslot"));
+    fs.writeFileSync(path.join(evilRoot, "mauvaisslot", "manifest.json"),
+      JSON.stringify({ id: "mauvaisslot", defaultFor: "bidule", server: "server.js" }));
+    fs.writeFileSync(path.join(evilRoot, "mauvaisslot", "server.js"), "module.exports={check(){}};");
+    const wrong = new Registry({ kind: "widget", roots: [evilRoot], logger: silentLogger });
+    await wrong.load();
+    check("registre : slot inconnu refuse", wrong.get("mauvaisslot"), null);
+    ok("registre : slot inconnu signale",
+      wrong.failures.some(f => f.id === "mauvaisslot"), JSON.stringify(wrong.failures));
   } finally {
     fs.rmSync(evilRoot, { recursive: true, force: true });
   }
@@ -392,11 +510,222 @@ async function main(){
   check("lichess : variante absente de l'API = valeur conservee",
     [sansVariante.ok, sansVariante.elo, sansVariante.stale], [false, null, false]);
 
+  // --- Sonde HTTP du plugin de lien (boucle locale uniquement) ------------
+  // Le plugin "web" remplace la sonde codee en dur de server.js : elle est donc
+  // testee pour de vrai, sur un serveur qui n'ecoute que sur 127.0.0.1.
+  const nodeHttp = require("http");
+  const webServer = require(path.join(WIDGETS, "web", "server.js"));
+  const listener = nodeHttp.createServer((req, res) => {
+    if (req.url === "/ok") { res.writeHead(200, { "Content-Type": "text/plain" }); res.end("bonjour"); return; }
+    if (req.url === "/gros") {
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.end("x".repeat(64 * 1024));
+      return;
+    }
+    if (req.url === "/boum") { res.writeHead(503); res.end("service arrete"); return; }
+    res.writeHead(404);
+    res.end("introuvable");
+  });
+  await new Promise(resolve => listener.listen(0, "127.0.0.1", resolve));
+  const base = "http://127.0.0.1:" + listener.address().port;
+  const probeCtx = url => ({ service: { url, monitor: true }, t: k => k, probe: (href, timeout) => httpLib.httpProbe(href, timeout) });
+  try {
+    const live = await webServer.check(probeCtx(base + "/ok"));
+    check("web : lien qui repond = point vert", [live.state, live.ok, live.code], ["up", true, 200]);
+    ok("web : temps de reponse mesure", Number.isFinite(live.ms), show(live));
+    const broken = await webServer.check(probeCtx(base + "/boum"));
+    check("web : erreur HTTP = point rouge", [broken.state, broken.ok], ["down", false]);
+    const gone = await webServer.check(probeCtx(base + "/absent"));
+    check("web : 404 = point rouge", [gone.state, gone.ok], ["down", false]);
+    check("web : URL vide", (await webServer.check(probeCtx(""))).state, "down");
+    check("web : URL invalide", (await webServer.check(probeCtx("pas une url"))).state, "down");
+    check("web : protocole non http", (await webServer.check(probeCtx("ftp://exemple.test/"))).state, "down");
+    // Le repli loopback ne doit jamais tourner en boucle sur localhost.
+    const loop = await webServer.check(probeCtx(base + "/boum"));
+    check("web : pas de second essai sur 127.0.0.1", loop.via, null);
+
+    // --- Client HTTP : lecture de page (raw) et plafond de corps ----------
+    // Le widget YouTube lit du HTML : `raw` lui renvoie le texte et le code.
+    check("http : plafond de corps par defaut", httpLib.getMaxBody(), httpLib.MAX_BODY);
+    check("http : un plugin peut augmenter le plafond",
+      httpLib.getMaxBody(6 * 1024 * 1024), 6 * 1024 * 1024);
+    check("http : le plafond reste borne pour un tiers",
+      httpLib.getMaxBody(500 * 1024 * 1024), httpLib.MAX_BODY_LIMIT);
+    const rawPage = await httpLib.apiRequest(base, "/ok", { raw: true });
+    check("http : raw renvoie le texte et le code", [rawPage.status, rawPage.body], [200, "bonjour"]);
+    const rawMissing = await httpLib.apiRequest(base, "/absent", { raw: true }).catch(e => e);
+    check("http : raw signale aussi les erreurs HTTP", rawMissing.status, 404);
+    // Sans `raw`, une page HTML ne doit pas tenter d'etre du JSON.
+    const asJson = await httpLib.apiRequest(base, "/ok");
+    check("http : sans raw, une page HTML vaut null", asJson, null);
+    // Le plafond coupe la reponse quand le plugin en demande un plus petit que
+    // la page : c'est ce qui arrive si le HTML d'une chaine s'allonge.
+    const tooBig = await httpLib.apiRequest(base, "/gros", { raw: true, maxBody: 1024 }).catch(e => e);
+    check("http : corps trop gros pour le plafond demande", /volumineuse/i.test(tooBig.message), true);
+    const bigEnough = await httpLib.apiRequest(base, "/gros", { raw: true, maxBody: 128 * 1024 });
+    check("http : le meme corps passe avec un plafond plus large", bigEnough.body.length, 64 * 1024);
+    ok("http : valeur de maxBody invalide = defaut", httpLib.getMaxBody("beaucoup") === httpLib.MAX_BODY);
+  } finally {
+    await new Promise(resolve => listener.close(resolve));
+  }
+
+  // --- Widgets de liens : YouTube, Docker Hub, GitHub ---------------------
+  // Ces trois widgets lisent une API tierce : on leur fournit un faux client,
+  // jamais le reseau.
+  const httpError = status => {
+    const error = new Error("HTTP " + status);
+    error.status = status;
+    return error;
+  };
+  const linkCtx = (over) => Object.assign({
+    config: {},
+    service: { url: "https://exemple.test/", monitor: true },
+    state: {},
+    sanitizeUrl: v => String(v == null ? "" : v).trim(),
+    t: k => k,
+    api: async () => ({})
+  }, over || {});
+
+  // YouTube -----------------------------------------------------------------
+  const youtubeServer = require(path.join(WIDGETS, "youtube", "server.js"));
+  const youtubeParse = require(path.join(WIDGETS, "youtube", "parse.js"));
+  check("youtube : identifiant accepte sous ses trois formes",
+    ["surfeon", "@surfeon", "youtube.com/@surfeon"].map(u => youtubeParse.normalizeInput(u)),
+    ["@surfeon", "@surfeon", "@surfeon"]);
+  check("youtube : identifiant vide refuse", youtubeParse.normalizeInput("   "), null);
+  check("youtube : adresse d'une video refusee",
+    youtubeParse.normalizeInput("https://www.youtube.com/watch?v=abc"), null);
+  check("youtube : identifiant de chaine conserve",
+    youtubeParse.normalizeInput("UC_x5XG1OV2P6uZZ5FSM9Ttw"), "UC_x5XG1OV2P6uZZ5FSM9Ttw");
+  check("youtube : chemin de chaine construit", youtubeParse.channelPath("@surfeon"), "/@surfeon");
+  check("youtube : ancienne URL /c/ supportee",
+    youtubeParse.channelPath("https://www.youtube.com/c/Willi"), "/c/Willi");
+  check("youtube : chemin d'un identifiant de chaine",
+    youtubeParse.channelPath("UC_x5XG1OV2P6uZZ5FSM9Ttw"), "/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw");
+  // Les deux ecritures rencontrees dans la page : "3,45 M" (fr) et "3.45K" (en).
+  check("youtube : nombres compacts lus", ["3,45 M", "1,2 M", "3.45K", "3 450", "1 234", "12,3K", "8,62 k", "1.2B"]
+    .map(youtubeParse.parseNumber), [3450000, 1200000, 3450, 3450, 1234, 12300, 8620, 1200000000]);
+  check("youtube : texte sans nombre", youtubeParse.parseNumber("abonnés"), null);
+  check("youtube : page sans la cle", youtubeParse.parseSubscribers("vanilla JS"), null);
+  check("youtube : la cle interne suffit, quelle que soit la langue",
+    youtubeParse.parseSubscribers('"subscriberCountText":{"simpleText":"3 450 abonnés"}'), 3450);
+  check("youtube : compteur en anglais lu aussi",
+    youtubeParse.parseSubscribers('"subscriberCountText":{"simpleText":"3.45M subscribers"}'), 3450000);
+  // Une chaine privee ou supprimee repond sans compteur : le widget le dit.
+  const privateChannel = await youtubeServer.check(linkCtx({
+    config: { username: "@prive" },
+    api: async () => ({ status: 200, body: "<html>ytInitialData</html>" })
+  }));
+  check("youtube : page sans donnees = lien vivant, compteur inconnu",
+    [privateChannel.state, privateChannel.ok, privateChannel.subscribers], ["up", false, null]);
+  const okChannel = await youtubeServer.check(linkCtx({
+    config: { username: "@surfeon" },
+    api: async () => ({ status: 200, body: '"subscriberCountText":{"simpleText":"3 450 abonnés"}' })
+  }));
+  check("youtube : abonnements lus", [okChannel.state, okChannel.ok, okChannel.subscribers], ["up", true, 3450]);
+  const noRepo = await youtubeServer.check(linkCtx({ config: {} }));
+  check("youtube : identifiant manquant = tuile rouge", [noRepo.state, noRepo.ok], ["down", false]);
+  // Une adresse qui n'est pas une chaine ne doit pas partir sur /about.
+  const notAChannel = await youtubeServer.check(linkCtx({
+    config: { username: "https://www.youtube.com/watch?v=abc" },
+    api: async () => { throw new Error("la page ne devrait pas etre demandee"); }
+  }));
+  check("youtube : adresse de video refusee avant tout appel", notAChannel.state, "down");
+  const youTubeDown = await youtubeServer.check(linkCtx({
+    config: { username: "@surfeon" },
+    api: async () => { throw httpError(503); }
+  }));
+  check("youtube : lien en panne = tuile rouge", [youTubeDown.state, youTubeDown.ok], ["down", false]);
+  const youTubeBridged = await youtubeServer.check(linkCtx({
+    config: { username: "@surfeon" },
+    api: async () => { throw httpError(429); }
+  }));
+  check("youtube : requete bridée = lien vivant, compteur inconnu",
+    [youTubeBridged.state, youTubeBridged.ok, youTubeBridged.throttled], ["up", false, true]);
+  const consent = await youtubeServer.check(linkCtx({
+    config: { username: "@surfeon" },
+    api: async () => ({ status: 200, body: '<form action="https://consent.youtube.com/s"><input id="consentButton"></form>' })
+  }));
+  check("youtube : page de consentement = lien vivant, compteur inconnu",
+    [consent.state, consent.ok, consent.throttled], ["up", false, true]);
+  const tooBig = await youtubeServer.check(linkCtx({
+    config: { username: "@surfeon" },
+    api: async () => { throw new Error("Réponse trop volumineuse"); }
+  }));
+  check("youtube : page trop grosse = lien vivant, compteur inconnu",
+    [tooBig.state, tooBig.ok, tooBig.error], ["up", false, "tooBig"]);
+
+  // Docker Hub --------------------------------------------------------------
+  const dockerHubServer = require(path.join(WIDGETS, "dockerhub", "server.js"));
+  check("dockerhub : depot officiel complete", dockerHubServer.repoPath("nginx"), "library/nginx");
+  check("dockerhub : depot de l'utilisateur tel quel", dockerHubServer.repoPath("surfeon/dashmon"), "surfeon/dashmon");
+  check("dockerhub : depot vide", dockerHubServer.repoPath("  "), "");
+  const pulls = await dockerHubServer.check(linkCtx({
+    config: { repo: "library/nginx" },
+    api: async (base, path) => {
+      check("dockerhub : URL d'API construite", base + path, "https://hub.docker.com/v2/repositories/library/nginx/");
+      return { pull_count: 12000000000, star_count: 20000, last_updated: "2026-09-01T10:00:00Z" };
+    }
+  }));
+  check("dockerhub : pulls lus", [pulls.state, pulls.ok, pulls.pulls, pulls.stars],
+    ["up", true, 12000000000, 20000]);
+  const hubMissing = await dockerHubServer.check(linkCtx({ config: {} }));
+  check("dockerhub : depot manquant = tuile rouge", [hubMissing.state, hubMissing.ok], ["down", false]);
+  check("dockerhub : nom de depot refuse",
+    dockerHubServer.isValidRepo("pas un depot"), false);
+  const hubThrottled = await dockerHubServer.check(linkCtx({
+    config: { repo: "nginx" },
+    api: async () => { throw httpError(429); }
+  }));
+  check("dockerhub : API throttle = lien vivant, compteur inconnu",
+    [hubThrottled.state, hubThrottled.ok, hubThrottled.throttled], ["up", false, true]);
+  const hubGone = await dockerHubServer.check(linkCtx({
+    config: { repo: "nginx" },
+    api: async () => { throw httpError(404); }
+  }));
+  check("dockerhub : depot introuvable = tuile rouge", [hubGone.state, hubGone.ok], ["down", false]);
+
+  // GitHub ------------------------------------------------------------------
+  const githubServer = require(path.join(WIDGETS, "github", "server.js"));
+  check("github : depot valide", [githubServer.isValidRepo("surfeon/Dashmon"), githubServer.isValidRepo("a/")], [true, false]);
+  const ghStars = await githubServer.check(linkCtx({
+    config: { repo: "surfeon/Dashmon", metric: "stars" },
+    api: async (base, path, options) => {
+      check("github : URL d'API construite", base + path, "https://api.github.com/repos/surfeon/Dashmon");
+      ok("github : entete Accept v3", options.headers.Accept === "application/vnd.github+json");
+      return { stargazers_count: 302, forks_count: 21, open_issues_count: 4, subscribers_count: 17, license: { spdx_id: "MIT" }, pushed_at: "2026-09-20T08:00:00Z" };
+    }
+  }));
+  check("github : etoiles par defaut", [ghStars.state, ghStars.ok, ghStars.metric, ghStars.value], ["up", true, "stars", 302]);
+  check("github : autres compteurs mis en cache", [ghStars.forks, ghStars.openIssues], [21, 4]);
+  const ghForks = await githubServer.check(linkCtx({
+    config: { repo: "surfeon/Dashmon", metric: "forks" },
+    api: async () => ({ stargazers_count: 302, forks_count: 21 })
+  }));
+  check("github : forks demandes", [ghForks.metric, ghForks.value], ["forks", 21]);
+  const ghUnknownMetric = await githubServer.check(linkCtx({
+    config: { repo: "surfeon/Dashmon", metric: "commits" },
+    api: async () => ({ stargazers_count: 302 })
+  }));
+  check("github : statistique hors options -> etoiles",
+    [ghUnknownMetric.metric, ghUnknownMetric.value], ["stars", 302]);
+  const ghThrottled = await githubServer.check(linkCtx({
+    config: { repo: "a/b" },
+    api: async () => { throw httpError(403); }
+  }));
+  check("github : API throttle = lien vivant, compteur inconnu",
+    [ghThrottled.state, ghThrottled.ok, ghThrottled.throttled], ["up", false, true]);
+  const ghNoRepo = await githubServer.check(linkCtx({ config: { repo: "" } }));
+  check("github : depot manquant = tuile rouge", [ghNoRepo.state, ghNoRepo.ok], ["down", false]);
+
   // --- Renderers client (ESM, aucune dependance au DOM) ------------------
   const dockerModule = await import(pathToFileURL(path.join(WIDGETS, "docker", "client.mjs")).href);
   const duplicatiModule = await import(pathToFileURL(path.join(WIDGETS, "duplicati", "client.mjs")).href);
   const adguardModule = await import(pathToFileURL(path.join(WIDGETS, "adguard", "client.mjs")).href);
   const lichessModule = await import(pathToFileURL(path.join(WIDGETS, "lichess", "client.mjs")).href);
+  const youtubeModule = await import(pathToFileURL(path.join(WIDGETS, "youtube", "client.mjs")).href);
+  const dockerHubModule = await import(pathToFileURL(path.join(WIDGETS, "dockerhub", "client.mjs")).href);
+  const githubModule = await import(pathToFileURL(path.join(WIDGETS, "github", "client.mjs")).href);
 
   const fmt = { formatDateTime: () => "01/01/2026", formatNumber: n => String(n), formatCompactNumber: n => String(n) };
   const ctx = (info, extra) => Object.assign({ info, config: {}, lang: "fr", t: k => k }, fmt, extra || {});
@@ -461,6 +790,77 @@ async function main(){
     staleView.title.includes("stale") && staleView.title.includes("HTTP 429") && staleView.title.includes("01/01/2026"), staleView.title);
   check("renderer Lichess : aucun ELO connu = tirets",
     lichessModule.render(ctx({ error: "HTTP 429" })).badge, "ELO —");
+
+  // Les renderers de liens : meme contrat, meme langue, compteurs compacts.
+  // Ils utilisent les vrais utilitaires d'affichage (le dashboard ne redefinit
+  // pas de format dans un widget) : on normalise seulement les espaces
+  // insecables, que Intl rend differemment selon la version d'ICU.
+  const formatModule = await import(pathToFileURL(path.join(ROOT, "public", "js", "format.js")).href);
+  const norm = value => String(value).replace(/[\u202f\u00a0]/g, " ");
+  const linkStrings = id => {
+    const raw = JSON.parse(fs.readFileSync(path.join(WIDGETS, id, "manifest.json"), "utf8")).strings;
+    return lang => k => (raw[lang] || {})[k] || k;
+  };
+  const linkCtx = (id, lang, info) => Object.assign(
+    { info, config: {}, lang, t: linkStrings(id)(lang) },
+    formatModule.formatters(lang));
+  const ytStrings = linkStrings("youtube");
+  const hubStrings = linkStrings("dockerhub");
+  const ghStrings = linkStrings("github");
+
+  const ytView = youtubeModule.render(linkCtx("youtube", "fr", { ok: true, subscribers: 3450, ms: 180 }));
+  check("renderer YouTube : abonnements",
+    { ...pick(ytView), badge: norm(ytView.badge) },
+    { badge: "YouTube (3 450)", badgeClass: "ok", time: "180 ms", timeClass: "" });
+  ok("renderer YouTube : le tooltip reprend le compte",
+    norm(ytView.title).startsWith("YouTube · 3 450"), ytView.title);
+  check("renderer YouTube : grand compte compacte",
+    norm(youtubeModule.render(linkCtx("youtube", "fr", { ok: true, subscribers: 3450000 })).badge),
+    "YouTube (3,5 M)");
+  check("renderer YouTube : anglais",
+    youtubeModule.render(linkCtx("youtube", "en", { ok: true, subscribers: 3450 })).badge, "YouTube (3,450)");
+  // La page repond mais le compteur est absent : ni vert ni rouge.
+  check("renderer YouTube : compteur illisible = tuile neutre",
+    youtubeModule.render(linkCtx("youtube", "fr", { ok: false, state: "up", error: "noCount" })).badgeClass, "warn");
+  check("renderer YouTube : lien en panne = tuile rouge",
+    youtubeModule.render(linkCtx("youtube", "fr", { ok: false, state: "down", error: "HTTP 503" })).badgeClass, "nok");
+  check("renderer YouTube : jamais verifie = tirets",
+    youtubeModule.render(linkCtx("youtube", "fr", null)).badge, "—");
+
+  const hubInfo = { ok: true, pulls: 12400000000, stars: 20000, lastPush: 1, ms: 90 };
+  const hubView = dockerHubModule.render(linkCtx("dockerhub", "fr", hubInfo));
+  check("renderer Docker Hub : pulls compacts",
+    { ...pick(hubView), badge: norm(hubView.badge) },
+    { badge: "Docker Hub (12,4 Md)", badgeClass: "ok", time: "90 ms", timeClass: "" });
+  ok("renderer Docker Hub : le tooltip liste pulls, etoiles et date",
+    norm(hubView.title).includes("12 400 000 000")
+    && norm(hubView.title).includes("20 000")
+    && norm(hubView.title).includes(formatModule.formatDateTime(1, "fr")),
+    hubView.title);
+  check("renderer Docker Hub : API throttle = tuile neutre",
+    dockerHubModule.render(linkCtx("dockerhub", "fr", { ok: false, state: "up", throttled: true })).badgeClass, "warn");
+  check("renderer Docker Hub : jamais verifie = tirets",
+    dockerHubModule.render(linkCtx("dockerhub", "fr", null)).badge, "—");
+
+  const ghInfo = { ok: true, metric: "forks", value: 21, stars: 302, forks: 21, openIssues: 4, ms: 42 };
+  const ghView = githubModule.render(linkCtx("github", "fr", ghInfo));
+  check("renderer GitHub : statistique demandee",
+    { ...pick(ghView), badge: norm(ghView.badge) },
+    { badge: "GitHub (21)", badgeClass: "ok", time: "42 ms", timeClass: "" });
+  ok("renderer GitHub : le tooltip reprend la statistique et les autres compteurs",
+    norm(ghView.title).includes("21 forks")
+    && norm(ghView.title).includes("302 étoiles")
+    && norm(ghView.title).includes("4 issues"),
+    ghView.title);
+  ok("renderer GitHub : la statistique choisie n'est pas repetee deux fois",
+    (norm(ghView.title).match(/21 forks/g) || []).length === 1, ghView.title);
+  check("renderer GitHub : etoiles par defaut",
+    norm(githubModule.render(linkCtx("github", "fr",
+      { ok: true, metric: "stars", value: 302, stars: 302 })).badge), "GitHub (302)");
+  check("renderer GitHub : API throttle = tuile neutre",
+    githubModule.render(linkCtx("github", "fr", { ok: false, state: "up", throttled: true })).badgeClass, "warn");
+  check("renderer GitHub : jamais verifie = tirets",
+    githubModule.render(linkCtx("github", "fr", null)).badge, "—");
 
   // Un renderer qui leve ne doit pas faire tomber le appelant : c'est le core
   // navigateur (widget-registry.js) qui rattrape, on verifie donc que le

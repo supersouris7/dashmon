@@ -864,58 +864,19 @@ function serviceCacheKey(svc){
   return widgetCore.cacheKey(svc);
 }
 
-// Sonde "est-ce que ca repond ?" pour une URL de service : utilitaire partage
-// avec les plugins (memes timeouts, meme politique TLS, meme IPv4).
-const makeProbe = target => httpClient.httpProbe(target.href, STATUS_TIMEOUT);
-
+// Un service est couvert par un plugin : son widget s'il en a un, sinon le
+// plugin qui revendique le slot "link" (les liens web). Le core n'a plus de
+// sonde codee en dur, donc ajouter un type de lien est une question de plugin.
 async function checkService(service){
-  // Un service porte au plus un widget : s'il en a un, c'est le widget qui
-  // decide de la collecte (le widget "standard" se resume a une sonde HTTP).
-  if(service.widget?.type){
+  if(widgetCore.handles(service)){
     await widgetCore.check(service);
     return;
   }
+  // Aucun plugin ne sait surveiller ce service (widget d'un plugin absent, ou
+  // plugin de lien non installé) : on ne publie rien plutot qu'un faux etat.
   if(!service.url || service.monitor===false) return;
-
-  let target;
-  try{
-    target=new URL(service.url);
-  }catch(_error){
-    statusCache[service.url]={state:"down",ms:0,error:"URL invalide"};
-    return;
-  }
-
-  if(target.protocol!=="http:" && target.protocol!=="https:"){
-    statusCache[target.href]={state:"down",ms:0,error:"Protocole non supporté"};
-    return;
-  }
-
-  const first=await makeProbe(target);
-
-  if(first.ok){
-    statusCache[target.href]={state:"up",ms:first.ms,code:first.code};
-    return;
-  }
-
-  // Repli loopback : contourne le hairpin NAT quand Dashmon et nginx sont sur
-  // la même machine (le check direct vers l'IP publique échoue côté serveur).
-  const hostname=target.hostname.toLowerCase();
-  if(hostname!=="localhost" && hostname!=="127.0.0.1" && hostname!=="::1"){
-    try{
-      const local=new URL(target.href);
-      local.hostname="127.0.0.1";
-      const retry=await makeProbe(local);
-      if(retry.ok){
-        statusCache[target.href]={state:"up",ms:retry.ms,code:retry.code,via:"loopback"};
-        return;
-      }
-    }catch(_error){}
-  }
-
-  if(statusCache[target.href]?.state!=="down"){
-    console.warn(`${ts()} Status DOWN ${service.url} — ${first.error||"aucune réponse"}`);
-  }
-  statusCache[target.href]={state:"down",ms:first.ms,error:first.error};
+  if(service.widget?.type) return;
+  console.warn(`${ts()} Aucun plugin ne surveille ${service.url} — lien non contrôlé`);
 }
 
 async function refreshStatuses(force=false){
@@ -1286,6 +1247,12 @@ async function start(){
     await widgetCore.load();
   }catch(error){
     console.error(`${ts()} Registre de widgets illisible : ${error.message}`);
+  }
+  // Les liens web sont des services sans widget : ils sont surveilles par le
+  // plugin qui revendique le slot "link". Sans lui, plus rien ne les controle,
+  // autant le dire au demarrage plutot que de laisser des tuiles grises.
+  if(!widgetCore.linkPlugin()){
+    console.warn(`${ts()} Aucun plugin de lien (defaultFor: "link") : les liens web ne seront pas contrôlés`);
   }
   widgetsReady=true;
   httpServer=app.listen(PORT,"0.0.0.0",()=>{

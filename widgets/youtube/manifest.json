@@ -1,0 +1,48 @@
+{
+  "id": "youtube",
+  "version": "1.0.0",
+  "label": { "fr": "YouTube", "en": "YouTube" },
+  "description": {
+    "fr": "Nombre d'abonnés d'une chaîne, lu sur la page publique",
+    "en": "Subscriber count of a channel, read from the public page"
+  },
+  "interval": 21600000,
+  "cacheKey": "service",
+  "probe": true,
+  "server": "server.js",
+  "strings": {
+    "fr": {
+      "name": "YouTube",
+      "username": "Chaîne",
+      "usernamePlaceholder": "@pseudo, URL ou identifiant UC…",
+      "missingChannel": "Chaîne YouTube manquante",
+      "consent": "YouTube demande un accord de cookies",
+      "tooBig": "Page de la chaîne trop volumineuse",
+      "notFound": "Chaîne introuvable ou sans abonnés",
+      "error": "YouTube",
+      "subscribers": "abonnés",
+      "unknownCount": "abonnés inconnus"
+    },
+    "en": {
+      "name": "YouTube",
+      "username": "Channel",
+      "usernamePlaceholder": "@handle, URL or UC… id",
+      "missingChannel": "YouTube channel missing",
+      "consent": "YouTube asks for a cookie consent",
+      "tooBig": "Channel page too large",
+      "notFound": "Channel not found or without subscribers",
+      "error": "YouTube",
+      "subscribers": "subscribers",
+      "unknownCount": "unknown subscribers"
+    }
+  },
+  "config": [
+    {
+      "key": "username",
+      "type": "text",
+      "label": "username",
+      "maxLength": 200,
+      "placeholder": "usernamePlaceholder"
+    }
+  ]
+}

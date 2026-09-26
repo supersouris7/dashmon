@@ -1,0 +1,46 @@
+{
+  "id": "dockerhub",
+  "version": "1.0.0",
+  "label": { "fr": "Docker Hub", "en": "Docker Hub" },
+  "description": {
+    "fr": "Nombre de téléchargements (pulls) d'un dépôt Docker Hub",
+    "en": "Pull count of a Docker Hub repository"
+  },
+  "interval": 21600000,
+  "cacheKey": "service",
+  "probe": true,
+  "server": "server.js",
+  "strings": {
+    "fr": {
+      "name": "Docker Hub",
+      "repo": "Dépôt",
+      "repoPlaceholder": "nginx ou library/nginx",
+      "missingRepo": "Dépôt Docker Hub manquant",
+      "noCount": "Dépôt introuvable ou sans compteur",
+      "error": "Docker Hub",
+      "pulls": "téléchargements",
+      "stars": "étoiles",
+      "unknownCount": "téléchargements inconnus"
+    },
+    "en": {
+      "name": "Docker Hub",
+      "repo": "Repository",
+      "repoPlaceholder": "nginx or library/nginx",
+      "missingRepo": "Docker Hub repository missing",
+      "noCount": "Repository not found or without a counter",
+      "error": "Docker Hub",
+      "pulls": "pulls",
+      "stars": "stars",
+      "unknownCount": "unknown pulls"
+    }
+  },
+  "config": [
+    {
+      "key": "repo",
+      "type": "text",
+      "label": "repo",
+      "maxLength": 200,
+      "placeholder": "repoPlaceholder"
+    }
+  ]
+}

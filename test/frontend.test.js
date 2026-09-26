@@ -78,9 +78,27 @@ async function main(){
   console.warn = realWarn;
   globalThis.fetch = realFetch;
 
-  check("registre client : widgets charges", loaded.slice().sort(), ["adguard", "docker", "duplicati", "lichess"]);
+  check("registre client : widgets charges", loaded.slice().sort(),
+    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "web", "youtube"]);
   ok("registre client : metadonnees disponibles", !!registry.getWidgetMeta("docker"));
   ok("registre client : widget inconnu -> null", registry.getWidgetMeta("inconnu") === null);
+  // Le plugin de sondage des liens est interne au moteur : il ne doit pas
+  // apparaitre dans le menu des widgets propose a l'utilisateur.
+  check("registre client : le menu ne propose pas les plugins internes",
+    registry.listWidgetMetas().map(m => m.id),
+    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "youtube"]);
+  ok("registre client : le plugin interne reste interrogeable (config, libelles)",
+    !!registry.getWidgetMeta("web") && registry.widgetLabel(registry.getWidgetMeta("web"), "fr") === "Lien");
+  // Les nouveaux widgets de liens sont bien des choix possibles, avec leur
+  // schema de config pour l'editeur.
+  const githubMeta = registry.getWidgetMeta("github");
+  check("registre client : schema GitHub", githubMeta.config.map(f => f.key), ["repo", "metric"]);
+  check("registre client : options de la statistique GitHub",
+    githubMeta.config[1].options.map(o => o.value), ["stars", "forks", "issues", "watchers"]);
+  check("registre client : libelle traduit du champ depot",
+    registry.fieldLabel(githubMeta, githubMeta.config[0], "fr"), "Dépôt");
+  check("registre client : placeholder traduit du depot",
+    registry.fieldPlaceholder(githubMeta, githubMeta.config[0], "en"), "surfeon/Dashmon");
 
   const dockerMeta = registry.getWidgetMeta("docker");
   check("registre client : libelle traduit", registry.widgetLabel(dockerMeta, "fr"), "Docker");

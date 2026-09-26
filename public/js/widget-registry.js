@@ -90,7 +90,9 @@ export function isRegistryLoaded() {
 }
 
 export function listWidgetMetas() {
-  return [...metas.values()];
+  // Un plugin interne (hidden) fait partie du moteur, pas du choix de
+  // l'utilisateur : il n'apparait dans aucun menu.
+  return [...metas.values()].filter(meta => !meta.hidden);
 }
 
 export function getWidgetMeta(id) {

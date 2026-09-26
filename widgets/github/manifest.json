@@ -1,0 +1,76 @@
+{
+  "id": "github",
+  "version": "1.0.0",
+  "label": { "fr": "GitHub", "en": "GitHub" },
+  "description": {
+    "fr": "Étoiles, forks, issues ou abonnés d'un dépôt GitHub",
+    "en": "Stars, forks, issues or watchers of a GitHub repository"
+  },
+  "interval": 21600000,
+  "cacheKey": "service",
+  "probe": true,
+  "server": "server.js",
+  "strings": {
+    "fr": {
+      "name": "GitHub",
+      "repo": "Dépôt",
+      "repoPlaceholder": "surfeon/Dashmon",
+      "metric": "Statistique",
+      "metricStars": "Étoiles",
+      "metricForks": "Forks",
+      "metricIssues": "Issues ouvertes",
+      "metricWatchers": "Abonnés",
+      "missingRepo": "Dépôt GitHub manquant",
+      "noCount": "Dépôt introuvable ou sans compteur",
+      "error": "GitHub",
+      "metricStarsShort": "étoiles",
+      "metricForksShort": "forks",
+      "metricIssuesShort": "issues",
+      "metricWatchersShort": "abonnés",
+      "unknownCount": "statistique inconnue",
+      "pushed": "poussé le",
+      "throttled": "API GitHub saturée"
+    },
+    "en": {
+      "name": "GitHub",
+      "repo": "Repository",
+      "repoPlaceholder": "surfeon/Dashmon",
+      "metric": "Statistic",
+      "metricStars": "Stars",
+      "metricForks": "Forks",
+      "metricIssues": "Open issues",
+      "metricWatchers": "Watchers",
+      "missingRepo": "GitHub repository missing",
+      "noCount": "Repository not found or without a counter",
+      "error": "GitHub",
+      "metricStarsShort": "stars",
+      "metricForksShort": "forks",
+      "metricIssuesShort": "issues",
+      "metricWatchersShort": "watchers",
+      "unknownCount": "unknown statistic",
+      "pushed": "pushed on",
+      "throttled": "GitHub API rate limit"
+    }
+  },
+  "config": [
+    {
+      "key": "repo",
+      "type": "text",
+      "label": "repo",
+      "maxLength": 200,
+      "placeholder": "repoPlaceholder"
+    },
+    {
+      "key": "metric",
+      "type": "select",
+      "label": "metric",
+      "default": "stars",
+      "options": [
+        { "value": "stars", "label": "metricStars" },
+        { "value": "forks", "label": "metricForks" },
+        { "value": "issues", "label": "metricIssues" },
+        { "value": "watchers", "label": "metricWatchers" }
+      ]
+    }
+  ]
+}

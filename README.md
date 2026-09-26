@@ -33,6 +33,15 @@ actually going on.
 | **Duplicati** | last backup OK / NOK with date & time |
 | **AdGuard** | queries blocked as a percentage |
 | **Lichess** | your current rating (ELO) and its recent delta |
+| **YouTube** | subscriber count of a channel, read from its public page (no API key) |
+| **Docker Hub** | pull count of a repository, plus its stars and last push |
+| **GitHub** | stars, forks, open issues or watchers of a repository |
+
+A service with **no** widget is a plain link: it is probed like before, with its
+green/red dot. Pick one of the widgets above in the service editor to turn that
+same link into a metric — YouTube, Docker Hub and GitHub measure a *third-party*
+site, so a quota or a rate limit turns the tile neutral instead of red, while the
+link itself is still down-checked.
 
 New widgets are already on the roadmap, and more will keep coming. **If a tool
 you self-host is missing, don't hesitate to propose it** — open an issue (or a
@@ -43,7 +52,9 @@ pull request) and it's a strong candidate for the next integration.
 Widgets are **plugins**: one folder in `widgets/`, three files, no build step, no
 npm dependency. Dashmon discovers them at startup, generates their settings form
 from their manifest, and serves their renderer to the browser. Adding one touches
-**no file of the core** — not the server, not the renderer, not the editor.
+**no file of the core** — not the server, not the renderer, not the editor. A
+widget can also take over a *category* of service instead of being picked by the
+user: `defaultFor: "link"` is how every plain web link is probed.
 
 ```bash
 cp -r widgets/_template widgets/my-widget   # then edit manifest.json, server.js, client.mjs
