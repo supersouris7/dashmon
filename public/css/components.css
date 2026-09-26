@@ -627,6 +627,14 @@ select,
   max-width:150px;
 }
 
+.widget-time.delta-up{
+  color:var(--success);
+}
+
+.widget-time.delta-down{
+  color:var(--error);
+}
+
 .widget-status.pending .widget-time{opacity:.55}
 
 #dashboard.small-icons .widget-time{display:none}

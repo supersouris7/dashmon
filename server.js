@@ -808,6 +808,10 @@ app.use(express.static(PUBLIC_DIR));
 const statusCache = {};
 const STATUS_INTERVAL = 60000;
 const STATUS_TIMEOUT = 4000;
+// Le widget Lichess rafraîchit les notes une seule fois par jour :
+// lichess.org applique un rate limit strict sur /api/user (429 sinon).
+const LICHESS_REFRESH_MS = 24*60*60*1000;
+const lichessRatings = new Map();
 
 function makeProbe(target, identity){
   return new Promise(resolve=>{
@@ -1059,16 +1063,22 @@ async function checkDuplicati(service){
 }
 
 async function checkLichess(service){
-  const url=sanitizeUrl(service.url);
-  const out={state:"lichess",ok:false,elo:null,variant:"",ms:0};
-  statusCache[url || service.url]=out;
+  const key=sanitizeUrl(service.url) || service.url;
+  const previous=statusCache[key];
+  // Une seule vérification par jour pour respecter le rate limit de lichess.org.
+  if(previous && previous.lastCheck && (Date.now()-previous.lastCheck)<LICHESS_REFRESH_MS){
+    return;
+  }
+  const out={state:"lichess",ok:false,elo:null,prevElo:null,delta:null,variant:"",ms:0,lastCheck:Date.now()};
+  statusCache[key]=out;
   const username=String(service.widget?.username||"").trim();
-  if(!url || !username){
+  if(!sanitizeUrl(service.url) || !username){
     out.error="Pseudo Lichess manquant";
     return;
   }
   const started=Date.now();
   const variant=String(service.widget?.variant||"").trim();
+  const prevElo=lichessRatings.has(key) ? lichessRatings.get(key) : null;
   try{
     const user=await apiRequest("https://lichess.org","/api/user/"+encodeURIComponent(username),{});
     const perfs=user?.perfs||{};
@@ -1076,9 +1086,12 @@ async function checkLichess(service){
       const rating=perfs[variant]?.rating;
       if(Number.isFinite(rating) && rating>0){
         out.elo=rating;
+        out.prevElo=prevElo;
+        out.delta=prevElo!=null ? rating-prevElo : null;
         out.variant=variant;
         out.ok=true;
         out.ms=Date.now()-started;
+        lichessRatings.set(key,rating);
       }else{
         out.error="Aucun ELO pour cette variante";
         out.ms=Date.now()-started;
@@ -1098,9 +1111,12 @@ async function checkLichess(service){
     }
     candidates.sort((a,b)=>b[1]-a[1]);
     out.elo=candidates[0][1];
+    out.prevElo=prevElo;
+    out.delta=prevElo!=null ? out.elo-prevElo : null;
     out.variant=candidates[0][0];
     out.ok=true;
     out.ms=Date.now()-started;
+    lichessRatings.set(key,out.elo);
   }catch(error){
     out.error=String(error?.message||"Erreur Lichess").slice(0,200);
     out.ms=Date.now()-started;

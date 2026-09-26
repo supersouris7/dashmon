@@ -93,21 +93,23 @@ function applyWidgetStatus(wrap,service,info){
     return;
   }
   if(service?.widget?.type==="lichess"){
+    badge.className="widget-badge";
     if(info.error){
-      badge.className="widget-badge pending";
       badge.textContent="ELO —";
+      time.className="widget-time";
       time.textContent="—";
       wrap.title=`${t("widgetError")} : ${String(info.error).slice(0,120)}`;
     }else if(info.elo==null){
-      badge.className="widget-badge pending";
       badge.textContent="ELO —";
+      time.className="widget-time";
       time.textContent="—";
       wrap.title=t("widgetNoElo");
     }else{
-      badge.className="widget-badge ok";
       badge.textContent="ELO "+info.elo;
       const label=lichessVariantLabel(info.variant);
-      time.textContent=label;
+      const delta=info.delta==null ? null : Number(info.delta);
+      time.className="widget-time"+(delta>0 ? " delta-up" : delta<0 ? " delta-down" : "");
+      time.textContent=delta==null ? "—" : delta>0 ? `+${delta}` : delta<0 ? String(delta) : "±0";
       wrap.title=`${t("widgetLichess")} · ${label} ${info.elo}`;
     }
     return;
