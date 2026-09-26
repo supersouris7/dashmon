@@ -801,34 +801,34 @@ async function main(){
     const raw = JSON.parse(fs.readFileSync(path.join(WIDGETS, id, "manifest.json"), "utf8")).strings;
     return lang => k => (raw[lang] || {})[k] || k;
   };
-  const linkCtx = (id, lang, info) => Object.assign(
+  const renderCtx = (id, lang, info) => Object.assign(
     { info, config: {}, lang, t: linkStrings(id)(lang) },
     formatModule.formatters(lang));
   const ytStrings = linkStrings("youtube");
   const hubStrings = linkStrings("dockerhub");
   const ghStrings = linkStrings("github");
 
-  const ytView = youtubeModule.render(linkCtx("youtube", "fr", { ok: true, subscribers: 3450, ms: 180 }));
+  const ytView = youtubeModule.render(renderCtx("youtube", "fr", { ok: true, subscribers: 3450, ms: 180 }));
   check("renderer YouTube : abonnements",
     { ...pick(ytView), badge: norm(ytView.badge) },
     { badge: "YouTube (3 450)", badgeClass: "ok", time: "180 ms", timeClass: "" });
   ok("renderer YouTube : le tooltip reprend le compte",
     norm(ytView.title).startsWith("YouTube · 3 450"), ytView.title);
   check("renderer YouTube : grand compte compacte",
-    norm(youtubeModule.render(linkCtx("youtube", "fr", { ok: true, subscribers: 3450000 })).badge),
+    norm(youtubeModule.render(renderCtx("youtube", "fr", { ok: true, subscribers: 3450000 })).badge),
     "YouTube (3,5 M)");
   check("renderer YouTube : anglais",
-    youtubeModule.render(linkCtx("youtube", "en", { ok: true, subscribers: 3450 })).badge, "YouTube (3,450)");
+    youtubeModule.render(renderCtx("youtube", "en", { ok: true, subscribers: 3450 })).badge, "YouTube (3,450)");
   // La page repond mais le compteur est absent : ni vert ni rouge.
   check("renderer YouTube : compteur illisible = tuile neutre",
-    youtubeModule.render(linkCtx("youtube", "fr", { ok: false, state: "up", error: "noCount" })).badgeClass, "warn");
+    youtubeModule.render(renderCtx("youtube", "fr", { ok: false, state: "up", error: "noCount" })).badgeClass, "warn");
   check("renderer YouTube : lien en panne = tuile rouge",
-    youtubeModule.render(linkCtx("youtube", "fr", { ok: false, state: "down", error: "HTTP 503" })).badgeClass, "nok");
+    youtubeModule.render(renderCtx("youtube", "fr", { ok: false, state: "down", error: "HTTP 503" })).badgeClass, "nok");
   check("renderer YouTube : jamais verifie = tirets",
-    youtubeModule.render(linkCtx("youtube", "fr", null)).badge, "—");
+    youtubeModule.render(renderCtx("youtube", "fr", null)).badge, "—");
 
   const hubInfo = { ok: true, pulls: 12400000000, stars: 20000, lastPush: 1, ms: 90 };
-  const hubView = dockerHubModule.render(linkCtx("dockerhub", "fr", hubInfo));
+  const hubView = dockerHubModule.render(renderCtx("dockerhub", "fr", hubInfo));
   check("renderer Docker Hub : pulls compacts",
     { ...pick(hubView), badge: norm(hubView.badge) },
     { badge: "Docker Hub (12,4 Md)", badgeClass: "ok", time: "90 ms", timeClass: "" });
@@ -838,12 +838,12 @@ async function main(){
     && norm(hubView.title).includes(formatModule.formatDateTime(1, "fr")),
     hubView.title);
   check("renderer Docker Hub : API throttle = tuile neutre",
-    dockerHubModule.render(linkCtx("dockerhub", "fr", { ok: false, state: "up", throttled: true })).badgeClass, "warn");
+    dockerHubModule.render(renderCtx("dockerhub", "fr", { ok: false, state: "up", throttled: true })).badgeClass, "warn");
   check("renderer Docker Hub : jamais verifie = tirets",
-    dockerHubModule.render(linkCtx("dockerhub", "fr", null)).badge, "—");
+    dockerHubModule.render(renderCtx("dockerhub", "fr", null)).badge, "—");
 
   const ghInfo = { ok: true, metric: "forks", value: 21, stars: 302, forks: 21, openIssues: 4, ms: 42 };
-  const ghView = githubModule.render(linkCtx("github", "fr", ghInfo));
+  const ghView = githubModule.render(renderCtx("github", "fr", ghInfo));
   check("renderer GitHub : statistique demandee",
     { ...pick(ghView), badge: norm(ghView.badge) },
     { badge: "GitHub (21)", badgeClass: "ok", time: "42 ms", timeClass: "" });
@@ -855,12 +855,12 @@ async function main(){
   ok("renderer GitHub : la statistique choisie n'est pas repetee deux fois",
     (norm(ghView.title).match(/21 forks/g) || []).length === 1, ghView.title);
   check("renderer GitHub : etoiles par defaut",
-    norm(githubModule.render(linkCtx("github", "fr",
+    norm(githubModule.render(renderCtx("github", "fr",
       { ok: true, metric: "stars", value: 302, stars: 302 })).badge), "GitHub (302)");
   check("renderer GitHub : API throttle = tuile neutre",
-    githubModule.render(linkCtx("github", "fr", { ok: false, state: "up", throttled: true })).badgeClass, "warn");
+    githubModule.render(renderCtx("github", "fr", { ok: false, state: "up", throttled: true })).badgeClass, "warn");
   check("renderer GitHub : jamais verifie = tirets",
-    githubModule.render(linkCtx("github", "fr", null)).badge, "—");
+    githubModule.render(renderCtx("github", "fr", null)).badge, "—");
 
   // Un renderer qui leve ne doit pas faire tomber le appelant : c'est le core
   // navigateur (widget-registry.js) qui rattrape, on verifie donc que le
