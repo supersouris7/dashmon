@@ -352,14 +352,6 @@ body.modal-open{
   font-weight:600;
 }
 
-.widget-cfg-hint{
-  margin-top:10px;
-  font-size:12.5px;
-  line-height:1.45;
-  color:var(--text-muted);
-  opacity:0.85;
-}
-
 .widget-config-footer{
   display:flex;
   justify-content:flex-end;

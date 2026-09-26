@@ -543,11 +543,6 @@ function renderWidgetConfig(){
       urlField.appendChild(url);
       widgetConfigBody.appendChild(urlField);
     }
-
-    const hint=document.createElement("div");
-    hint.className="widget-cfg-hint";
-    hint.textContent=t("widgetDockerHint");
-    widgetConfigBody.appendChild(hint);
     return;
   }
 }
