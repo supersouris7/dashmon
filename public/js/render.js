@@ -84,7 +84,8 @@ function formatNumber(n){
 
 function widgetStatusKey(service){
   if(service.widget?.type==="docker"){
-    return "docker:"+String(service.widget.hostId||"").trim();
+    const mode=service.widget?.mode==="tcp" ? "tcp" : "local";
+    return "docker:"+mode+":"+String(service.widget?.url||"").trim();
   }
   return sanitizeUrl(service.url)||service.url;
 }

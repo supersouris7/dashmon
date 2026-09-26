@@ -3,10 +3,11 @@
 // Les requêtes passent uniquement par le backend : le frontend ne reçoit
 // jamais le socket Docker ni de jetons d'accès au registre.
 //
-// Mode de connexion déterminé par la configuration de l'hôte (host.monitoring.docker) :
+// Mode de connexion déterminé par les paramètres du widget (agent.backend
+// construit un hôte virtuel {monitoring:{docker}} à partir du widget) :
 //   - "local" (défaut) : socket Unix local (DOCKER_SOCKET ou /var/run/docker.sock).
-//   - "tcp"            : URL d'une API Docker distante (ajout futur, sans modifier
-//                        le modèle du widget qui ne référence que l'identifiant de l'hôte).
+//   - "tcp"            : URL HTTP(S) d'une API Docker distante (saisie à la main,
+//                        aucun lien avec la liste des hôtes de monitoring).
 //
 // Détection des mises à jour d'images (fiable, lecture seule, aucun pull) :
 //   - signal local : si le len tag local a été re-pullé vers une nouvelle image

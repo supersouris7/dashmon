@@ -401,7 +401,9 @@ password:isEncryptedSecret(svc.widget?.password)
                        ? String(svc.widget?.password||"").slice(0,2000)
                        : encryptSecret(svc.widget?.password)}
                   : svc.widget?.type==="docker"
-                    ? {type:"docker",hostId:sanitizeText(svc.widget?.hostId,64)}
+                    ? {type:"docker",
+                       mode:svc.widget?.mode==="tcp" ? "tcp" : "local",
+                       url:String(svc.widget?.url||"").trim().slice(0,200)}
                     : null
           }))
         : [],
@@ -430,10 +432,7 @@ password:isEncryptedSecret(svc.widget?.password)
                 tokenIdEnv:TOKEN_ENV_ALLOWLIST.has(tokenIdEnv) ? tokenIdEnv : "",
                 tokenSecretEnv:TOKEN_ENV_ALLOWLIST.has(tokenSecretEnv) ? tokenSecretEnv : "",
                 tokenId:sanitizeText(host.monitoring?.tokenId||"",2000),
-                tokenSecret:sanitizeText(host.monitoring?.tokenSecret||"",2000),
-                docker:host.monitoring?.docker?.mode==="tcp"
-                  ? {mode:"tcp",url:sanitizeUrl(host.monitoring?.docker?.url)}
-                  : undefined
+                tokenSecret:sanitizeText(host.monitoring?.tokenSecret||"",2000)
               }
             };
           })
@@ -827,9 +826,11 @@ function checkInterval(svc){
 }
 function serviceCacheKey(svc){
   // Le widget Docker n'a pas forcément d'URL de service : la clé de cache est
-  // portée par l'hôte Docker sélectionné pour éviter tout collision entre widgets.
+  // portée par ses paramètres de connexion (mode + url) pour éviter toute
+  // collision entre widgets (et recouvre le socket local sans config).
   if(svc?.widget?.type==="docker"){
-    return "docker:"+String(svc.widget?.hostId||"").trim();
+    const mode=svc.widget?.mode==="tcp" ? "tcp" : "local";
+    return "docker:"+mode+":"+String(svc.widget?.url||"").trim();
   }
   return sanitizeUrl(svc?.url) || svc?.url || "";
 }
@@ -1192,27 +1193,17 @@ async function checkDocker(service){
   const out={state:"docker",ok:false,containers:null,updated:null,ms:0,lastCheck:Date.now()};
   statusCache[key]=out;
 
-  const hostId=String(widget.hostId||"").trim();
-
-  // Sans hostId : socket Docker local du conteneur Dashmon (zéro config,
-  // adaptable à tout environnement où le socket est monté en lecture seule).
-  let host={id:"",name:"Dashmon",monitoring:{}};
-  if(hostId){
-    let config;
-    try{
-      config=readConfig();
-    }catch(_error){
-      out.error="Lecture de la config impossible";
-      return;
-    }
-    if(Array.isArray(config.hosts)){
-      host=config.hosts.find(h=>String((h&&h.id)||"").trim()===hostId);
-    }
-    if(!host){
-      out.error="Serveur Docker introuvable";
-      return;
-    }
+  // Paramètres saisis à la main dans la fenêtre de configuration du widget :
+  //  - mode "local" : socket Docker du conteneur Dashmon (zéro config).
+  //  - mode "tcp"   : API Docker distante fournie par l'utilisateur (url).
+  // Aucun lien avec la liste des hôtes de monitoring.
+  const mode=widget.mode==="tcp" ? "tcp" : "local";
+  const url=String(widget.url||"").trim();
+  if(mode==="tcp" && !url){
+    out.error="URL Docker TCP manquante";
+    return;
   }
+  const host={id:"",name:"",monitoring:{docker:mode==="tcp" ? {mode:"tcp",url} : undefined}};
 
   const started=Date.now();
   try{
