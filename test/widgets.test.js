@@ -352,7 +352,7 @@ async function main(){
       sloppy.failures.map(f => f.id).sort(), ["MyPlugin", "evil"]);
     // Deux plugins ne peuvent pas revendiquer le meme slot : le second est
     // refuse plutot que de voler la place du premier dans l'ordre de tri.
-    for (const id of ["lienun", "liendeux"]) {
+    for (const id of ["lien-a", "lien-b"]) {
       fs.mkdirSync(path.join(evilRoot, id));
       fs.writeFileSync(path.join(evilRoot, id, "manifest.json"),
         JSON.stringify({ id, defaultFor: "link", server: "server.js" }));
@@ -360,10 +360,10 @@ async function main(){
     }
     const greedy = new Registry({ kind: "widget", roots: [evilRoot], logger: silentLogger });
     await greedy.load();
-    check("registre : un seul plugin garde le slot \"link\"", greedy.bySlot("link").id, "lienun");
-    check("registre : le second plugin du slot est refuse", greedy.get("liendeux"), null);
+    check("registre : un seul plugin garde le slot \"link\"", greedy.bySlot("link").id, "lien-a");
+    check("registre : le second plugin du slot est refuse", greedy.get("lien-b"), null);
     ok("registre : conflit de slot signale",
-      greedy.failures.some(f => f.id === "liendeux" && /slot|link/i.test(String(f.reason))),
+      greedy.failures.some(f => f.id === "lien-b" && /slot|link/i.test(String(f.reason))),
       show(greedy.failures));
 
     // Un plugin interne (hidden) n'a pas besoin de renderer : c'est le client
@@ -635,7 +635,7 @@ async function main(){
   }));
   check("youtube : abonnements lus", [okChannel.state, okChannel.ok, okChannel.subscribers], ["up", true, 3450]);
   const noRepo = await youtubeServer.check(linkCtx({ config: {} }));
-  check("youtube : identifiant manquant = tuile rouge", [noRepo.state, noRepo.ok], ["down", false]);
+  check("youtube : identifiant manquant = tuile rouge", [noRepo.state, noRepo.ok, noRepo.subscribers], ["down", false, null]);
   // Une adresse qui n'est pas une chaine ne doit pas partir sur /about.
   const notAChannel = await youtubeServer.check(linkCtx({
     config: { username: "https://www.youtube.com/watch?v=abc" },

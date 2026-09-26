@@ -49,7 +49,7 @@ async function check(ctx) {
   // Une adresse de video ou un nom de domaine ne sont pas des chaines : on ne
   // part pas sur une requete qui ne peut rien rapporter.
   if (!ctx.sanitizeUrl(ctx.service.url) || !normalizeInput(username)) {
-    return { state: "down", ok: false, error: ctx.t("missingChannel") };
+    return { state: "down", ok: false, subscribers: null, error: ctx.t("missingChannel") };
   }
 
   let page;
@@ -66,18 +66,19 @@ async function check(ctx) {
     return {
       state: throttled || tooBig ? "up" : "down",
       ok: false,
+      subscribers: null,
       error: tooBig ? ctx.t("tooBig") : message,
       throttled: !!throttled
     };
   }
 
   if (isChallenge(page.html)) {
-    return { state: "up", ok: false, error: ctx.t("consent"), throttled: true };
+    return { state: "up", ok: false, subscribers: null, error: ctx.t("consent"), throttled: true };
   }
 
   const count = parseSubscribers(page.html);
   if (count == null) {
-    return { state: "up", ok: false, error: ctx.t("notFound") };
+    return { state: "up", ok: false, subscribers: null, error: ctx.t("notFound") };
   }
 
   return { state: "up", ok: true, subscribers: count, variant: "" };
