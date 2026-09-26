@@ -89,7 +89,7 @@ async function main(){
   check("registre client : placeholder traduit",
     registry.fieldPlaceholder(dockerMeta, dockerMeta.config[1], "fr"), "tcp://hôte:2375 ou https://…");
   check("registre client : placeholder anglais",
-    registry.fieldPlaceholder(dockerMeta, dockerMeta.config[1], "en"), "tcp://host:2375 or https://.");
+    registry.fieldPlaceholder(dockerMeta, dockerMeta.config[1], "en"), "tcp://host:2375 or https://…");
   check("registre client : libelle i18n de l'application intact",
     registry.widgetString(dockerMeta, "missingUrl", "fr"), "URL Docker TCP manquante");
 
