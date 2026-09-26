@@ -244,6 +244,7 @@ function registryRequest(protocol, host, path, headers, timeout){
       path,
       headers: Object.assign({ "User-Agent": "Dashmon-Registry/1.0" }, headers || {}),
       timeout: timeout || REGISTRY_TIMEOUT,
+      family: 4,
       rejectUnauthorized: !INSECURE_REGISTRY_TLS,
       servername: protocol === "https:" ? bareHost(host) : undefined
     }, response => {
