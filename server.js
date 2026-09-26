@@ -817,7 +817,7 @@ const CHECK_INTERVALS = {
   duplicati: 2*60*60*1000,
   adguard: 2*60*60*1000,
   lichess: LICHESS_REFRESH_MS,
-  default: 30*60*1000
+  default: 5*60*1000
 };
 function checkInterval(svc){
   const type=svc?.widget?.type;
