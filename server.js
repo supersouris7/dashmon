@@ -10,7 +10,8 @@ const path = require("path");
 const http = require("http");
 const https = require("https");
 const os = require("os");
-const dockerApi = require("./docker");
+const httpClient = require("./lib/http");
+const { WidgetCore } = require("./lib/widget-core");
 
 const app = express();
 
@@ -44,6 +45,8 @@ const pngBody=express.raw({
 
 const INSECURE_TLS = process.env.DASHBOARD_INSECURE_TLS === "1";
 const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "";
+// Delai maximal d'une sonde de statut, partage par le core et les plugins.
+const STATUS_TIMEOUT = 4000;
 
 const TOKEN_ENV_ALLOWLIST = new Set([
   "PROXMOX_TOKEN_ID",
@@ -253,6 +256,22 @@ function decryptSecret(value){
   }
 }
 
+// Le core widgets charge le registre, dispatche les checks, gere le cache, les
+// frequences, les secrets et la purge. Le core ne connait aucun widget nomme :
+// ajouter un widget n'oblige donc jamais a modifier ce fichier.
+const statusCache = {};
+const widgetCore = new WidgetCore({
+  root: ROOT,
+  dataDir: DATA_DIR,
+  log: message => console.log(`${ts()} ${message}`),
+  decryptSecret,
+  encryptSecret,
+  sanitizeText,
+  sanitizeUrl,
+  statusCache
+});
+httpClient.configure({ insecure: INSECURE_TLS, timeout: STATUS_TIMEOUT });
+
 function sanitizeFavicon(value) {
   const s = String(value || "").trim();
   if (!s || s.length > 350000) return "";
@@ -364,16 +383,65 @@ app.get("/healthz",(_req,res)=>{
   res.json({ok:true});
 });
 
+// Publie la cle de statut calculee par le core, sans repasser par la
+// serialisation complete : le client ne recompose donc jamais la cle, et les
+// deux cotes ne peuvent pas diverger. Le champ n'est jamais persiste car
+// buildConfigOutput() ne copie que les champs declares par le manifest.
+function withCacheKeys(config){
+  const services=Array.isArray(config.services) ? config.services : [];
+  return {
+    ...config,
+    services:services.map(svc=>{
+      if(!svc?.widget?.type) return svc;
+      return {...svc,widget:{...svc.widget,key:widgetCore.cacheKey(svc)}};
+    })
+  };
+}
+
 app.get("/api/config",(_req,res)=>{
   try{
     res.set("Cache-Control","no-store");
     ensureHostIds();
-    res.json(readConfig());
+    res.json(withCacheKeys(readConfig()));
   }catch(error){
     console.error("Lecture config:",error);
     res.status(500).json({error:"Lecture de config.json impossible"});
   }
 });
+
+// Registre des widgets installees : metadonnees publiques (schema de config,
+// libelles, icone, periode). Ni code serveur, ni secret.
+app.get("/api/widgets",(_req,res)=>{
+  res.set("Cache-Control","no-store");
+  res.json(widgetCore.publicList());
+});
+
+// Code client d'un widget, servi depuis le dossier du widget. Le nom de fichier
+// vient exclusivement du manifest valide par le registre : aucune traversée de
+// chemin possible et aucun fichier serveur exposé.
+app.get("/widget-client/:id.js",(req,res)=>{
+  const asset=widgetCore.clientAsset(req.params.id,"js");
+  if(!asset) return res.status(404).type("text/plain").send("Introuvable");
+  res.set("Cache-Control","public, max-age=300");
+  res.type("text/javascript").send(asset.body);
+});
+
+app.get("/widget-client/:id.css",(req,res)=>{
+  const asset=widgetCore.clientAsset(req.params.id,"css");
+  if(!asset) return res.status(404).type("text/plain").send("Introuvable");
+  res.set("Cache-Control","public, max-age=300");
+  res.type("text/css").send(asset.body);
+});
+
+// Un widget installe est serialise depuis son manifest (chiffrement des secrets
+// compris) ; un widget inconnu est conserve tel quel, pour ne pas perdre sa
+// config si le plugin est momentanement absent.
+function serializeWidget(widget){
+  if(!widget?.type) return null;
+  return widgetCore.has(widget.type)
+    ? widgetCore.sanitizeWidget(widget)
+    : widgetCore.preserveWidget(widget);
+}
 
 function buildConfigOutput(config){
   return {
@@ -385,26 +453,7 @@ function buildConfigOutput(config){
             url:sanitizeUrl(svc.url),
             icon:sanitizeImagePath(svc.icon),
             monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true,
-            widget:svc.widget?.type==="duplicati"
-              ? {type:"duplicati",password:isEncryptedSecret(svc.widget?.password)
-                  ? String(svc.widget?.password||"").slice(0,2000)
-                  : encryptSecret(svc.widget?.password)}
-              : svc.widget?.type==="lichess"
-                ? {type:"lichess",username:String(svc.widget?.username||"").slice(0,200),
-                   variant:String(svc.widget?.variant||"").slice(0,50)}
-                : svc.widget?.type==="adguard"
-                  ? {type:"adguard",
-                     protocol:svc.widget?.protocol==="http" ? "http" : "https",
-                     url:String(svc.widget?.url||"").trim().slice(0,200),
-                     username:String(svc.widget?.username||"").slice(0,200),
-password:isEncryptedSecret(svc.widget?.password)
-                       ? String(svc.widget?.password||"").slice(0,2000)
-                       : encryptSecret(svc.widget?.password)}
-                  : svc.widget?.type==="docker"
-                    ? {type:"docker",
-                       mode:svc.widget?.mode==="tcp" ? "tcp" : "local",
-                       url:String(svc.widget?.url||"").trim().slice(0,200)}
-                    : null
+            widget:serializeWidget(svc.widget)
           }))
         : [],
       categories:Array.isArray(config.categories)
@@ -804,84 +853,26 @@ app.get("/",(_req,res)=>{
 });
 app.use(express.static(PUBLIC_DIR));
 
-const statusCache = {};
 const STATUS_INTERVAL = 60000;
-const STATUS_TIMEOUT = 4000;
-// Le widget Lichess rafraîchit les notes une seule fois par jour :
-// lichess.org applique un rate limit strict sur /api/user (429 sinon).
-const LICHESS_REFRESH_MS = 24*60*60*1000;
-const lichessRatings = new Map();
-// Fréquences de vérification par type (via statusCache[*].lastCheck).
-const CHECK_INTERVALS = {
-  duplicati: 2*60*60*1000,
-  adguard: 2*60*60*1000,
-  docker: 2*60*60*1000,
-  lichess: LICHESS_REFRESH_MS,
-  default: 5*60*1000
-};
+
+// Frequence de re-verification et cle de cache : deleguees au registre, qui lit
+// la periode declaree dans le manifest.json de chaque widget.
 function checkInterval(svc){
-  const type=svc?.widget?.type;
-  if(type==="duplicati"||type==="adguard"||type==="docker"||type==="lichess") return CHECK_INTERVALS[type];
-  return CHECK_INTERVALS.default;
+  return widgetCore.interval(svc);
 }
 function serviceCacheKey(svc){
-  // Le widget Docker n'a pas forcément d'URL de service : la clé de cache est
-  // portée par ses paramètres de connexion (mode + url) pour éviter toute
-  // collision entre widgets (et recouvre le socket local sans config).
-  if(svc?.widget?.type==="docker"){
-    const mode=svc.widget?.mode==="tcp" ? "tcp" : "local";
-    return "docker:"+mode+":"+String(svc.widget?.url||"").trim();
-  }
-  return sanitizeUrl(svc?.url) || svc?.url || "";
+  return widgetCore.cacheKey(svc);
 }
 
-function makeProbe(target, identity){
-  return new Promise(resolve=>{
-    const client=target.protocol==="https:" ? https : http;
-    const started=Date.now();
+// Sonde "est-ce que ca repond ?" pour une URL de service : utilitaire partage
+// avec les plugins (memes timeouts, meme politique TLS, meme IPv4).
+const makeProbe = target => httpClient.httpProbe(target.href, STATUS_TIMEOUT);
 
-    const options={
-      method:"GET",
-      timeout:STATUS_TIMEOUT,
-      rejectUnauthorized:!INSECURE_TLS,
-      agent:false,
-      family:4,
-      headers:{
-        "User-Agent":"Dashmon-Status/1.0",
-        "Connection":"close",
-        "Host":identity.host
-      }
-    };
-    if(target.protocol==="https:") options.servername=identity.hostname;
-
-    const req=client.request(target,options,res=>{
-      res.resume();
-      resolve({ok:true,ms:Date.now()-started,code:res.statusCode});
-    });
-
-    req.on("timeout",()=>req.destroy(new Error("timeout")));
-    req.on("error",error=>
-      resolve({ok:false,ms:Date.now()-started,error:error.message==="timeout" ? "timeout" : error.message}));
-
-    req.end();
-  });
-}
-
-async function checkService(service,force=false){
-  if(service.widget?.type==="duplicati"){
-    await checkDuplicati(service);
-    return;
-  }
-  if(service.widget?.type==="lichess"){
-    await checkLichess(service,force);
-    return;
-  }
-  if(service.widget?.type==="adguard"){
-    await checkAdGuard(service);
-    return;
-  }
-  if(service.widget?.type==="docker"){
-    await checkDocker(service);
+async function checkService(service){
+  // Un service porte au plus un widget : s'il en a un, c'est le widget qui
+  // decide de la collecte (le widget "standard" se resume a une sonde HTTP).
+  if(service.widget?.type){
+    await widgetCore.check(service);
     return;
   }
   if(!service.url || service.monitor===false) return;
@@ -899,8 +890,7 @@ async function checkService(service,force=false){
     return;
   }
 
-  const identity={host:target.host,hostname:target.hostname};
-  const first=await makeProbe(target,identity);
+  const first=await makeProbe(target);
 
   if(first.ok){
     statusCache[target.href]={state:"up",ms:first.ms,code:first.code};
@@ -914,7 +904,7 @@ async function checkService(service,force=false){
     try{
       const local=new URL(target.href);
       local.hostname="127.0.0.1";
-      const retry=await makeProbe(local,identity);
+      const retry=await makeProbe(local);
       if(retry.ok){
         statusCache[target.href]={state:"up",ms:retry.ms,code:retry.code,via:"loopback"};
         return;
@@ -928,300 +918,6 @@ async function checkService(service,force=false){
   statusCache[target.href]={state:"down",ms:first.ms,error:first.error};
 }
 
-function apiRequest(baseUrl, apiPath, options){
-  return new Promise((resolve,reject)=>{
-    let target;
-    try{
-      target=new URL(`${baseUrl}${apiPath}`);
-    }catch(_error){
-      return reject(new Error("URL Duplicati invalide"));
-    }
-    const method=options.method||"GET";
-    const headers=Object.assign({Accept:"application/json"},options.headers||{});
-    if(options.token) headers.Authorization=`Bearer ${options.token}`;
-    if(options.basic) headers.Authorization="Basic "+Buffer.from(
-      String(options.basic.user||"")+":"+String(options.basic.password||""),"utf8").toString("base64");
-
-    const client=target.protocol==="http:" ? http : https;
-    const req=client.request(target,{
-      method,
-      headers,
-      rejectUnauthorized:!INSECURE_TLS,
-      timeout:STATUS_TIMEOUT
-    },response=>{
-      let body="";
-      response.setEncoding("utf8");
-      response.on("data",chunk=>{
-        body+=chunk;
-        if(body.length>2*1024*1024) req.destroy(new Error("Réponse trop volumineuse"));
-      });
-      response.on("end",()=>{
-        let parsed=null;
-        try{
-          parsed=body ? JSON.parse(body) : null;
-        }catch(_error){}
-        if(response.statusCode<200 || response.statusCode>=300){
-          const message=parsed && (parsed.message||parsed.Message||parsed.error||parsed.Error)
-            ? String(parsed.message||parsed.Message||parsed.error||parsed.Error).slice(0,200)
-            : "";
-          const error=new Error(message || `HTTP ${response.statusCode}`,{cause:`HTTP ${response.statusCode}`});
-          error.status=response.statusCode;
-          return reject(error);
-        }
-        resolve(parsed);
-      });
-    });
-    req.on("timeout",()=>req.destroy(new Error("timeout")));
-    req.on("error",reject);
-    if(options.body!==undefined) req.write(typeof options.body==="string" ? options.body : JSON.stringify(options.body));
-    req.end();
-  });
-}
-
-// Caches mémoire des tokens par URL de serveur Duplicati : on ne s'identifie
-// qu'une fois par cycle, les re-logins sont réservés aux réponses 401.
-const duplicatiTokens=new Map();
-
-async function duplicatiLogin(baseUrl,password){
-  const response=await apiRequest(baseUrl,"/api/v1/auth/login",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:{Password:password,RememberMe:false}
-  });
-  const token=response?.AccessToken || response?.accessToken;
-  if(!token || typeof token!=="string" || !token.length){
-    throw new Error("Connexion Duplicati : token manquant");
-  }
-  return token;
-}
-
-async function duplicatiBackups(baseUrl,token){
-  const data=await apiRequest(baseUrl,"/api/v1/backups",{token});
-  if(Array.isArray(data)) return data;
-  if(Array.isArray(data?.Backups)) return data.Backups;
-  if(Array.isArray(data?.backups)) return data.backups;
-  throw new Error("Réponse Duplicati inattendue");
-}
-
-// Formule Duplicati ("yyyyMMdd'T'HHmmssK", UTC) : 20260925T153045Z
-function parseDuplicatiDate(value){
-  if(!value) return null;
-  const match=String(value).trim().match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z|[+-]\d{2}:?\d{2})?$/);
-  if(!match) return null;
-  const zone=match[7] || "Z";
-  const iso=`${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:${match[6]}${zone}`;
-  const ms=Date.parse(iso);
-  return Number.isFinite(ms) ? ms : null;
-}
-
-function computeDuplicatiStatus(backups){
-  let total=0, okCount=0, errCount=0, lastAttemptAt=null, lastErrorAt=null;
-  for(const entry of Array.isArray(backups) ? backups : []){
-    // /api/v1/backups retourne des entrées enveloppées {"Backup":{...},"Schedule":{...}}.
-    const backup=entry?.Backup || entry?.backup || entry;
-    const metadata=backup?.Metadata || backup?.metadata || {};
-    const lastB=parseDuplicatiDate(metadata.LastBackupFinished)
-      ?? parseDuplicatiDate(metadata.LastBackupDate);
-    const lastE=parseDuplicatiDate(metadata.LastErrorDate);
-    if(!lastB && !lastE) continue;
-
-    total++;
-    const failed=lastE && (!lastB || lastE>=lastB);
-    if(failed) errCount++; else okCount++;
-
-    const attempt=Math.max(lastB ?? -Infinity,lastE ?? -Infinity);
-    if(lastAttemptAt===null || attempt>lastAttemptAt) lastAttemptAt=attempt;
-    if(failed && (lastErrorAt===null || lastE>lastErrorAt)) lastErrorAt=lastE;
-  }
-
-  if(total===0){
-    return {ok:null,lastAttemptAt:null,lastErrorAt:null,total:0,okCount:0,errCount:0};
-  }
-  const latestError=lastAttemptAt!==null && lastErrorAt!==null && lastErrorAt>=lastAttemptAt;
-  return {ok:!latestError,lastAttemptAt,lastErrorAt,total,okCount,errCount};
-}
-
-async function checkDuplicati(service){
-  const url=sanitizeUrl(service.url);
-  const out={state:"duplicati",ok:false,lastAttemptAt:null,total:0,okCount:0,errCount:0,lastErrorAt:null,ms:0};
-  statusCache[url || service.url]=out;
-
-  if(!url){
-    out.error="URL Duplicati invalide";
-    return;
-  }
-  const baseUrl=url.replace(/\/+$/,"");
-  const started=Date.now();
-  const password=decryptSecret(service.widget?.password);
-
-  try{
-    const token=duplicatiTokens.get(baseUrl) || await duplicatiLogin(baseUrl,password);
-    if(!duplicatiTokens.has(baseUrl)) duplicatiTokens.set(baseUrl,token);
-
-    let backups;
-    try{
-      backups=await duplicatiBackups(baseUrl,token);
-    }catch(error){
-      // Token expiré/révoqué : un seul re-login puis on réessaie.
-      if(error.status===401 || /401|Unauthorized/i.test(String(error.message||""))){
-        duplicatiTokens.delete(baseUrl);
-        const fresh=await duplicatiLogin(baseUrl,password);
-        duplicatiTokens.set(baseUrl,fresh);
-        backups=await duplicatiBackups(baseUrl,fresh);
-      }else{
-        throw error;
-      }
-    }
-
-    const status=computeDuplicatiStatus(backups);
-    out.ok=status.ok;
-    out.lastAttemptAt=status.lastAttemptAt;
-    out.lastErrorAt=status.lastErrorAt;
-    out.total=status.total;
-    out.okCount=status.okCount;
-    out.errCount=status.errCount;
-    out.ms=Date.now()-started;
-  }catch(error){
-    duplicatiTokens.delete(baseUrl);
-    out.error=String(error?.message||"Erreur Duplicati").slice(0,200);
-    out.ms=Date.now()-started;
-  }
-}
-
-async function checkLichess(service,force=false){
-  const key=serviceCacheKey(service);
-  const previous=statusCache[key];
-  // Une seule vérification par jour pour respecter le rate limit de lichess.org.
-  if(!force && previous && previous.lastCheck && (Date.now()-previous.lastCheck)<LICHESS_REFRESH_MS){
-    return;
-  }
-  const out={state:"lichess",ok:false,elo:null,prevElo:null,delta:null,variant:"",ms:0,lastCheck:Date.now()};
-  statusCache[key]=out;
-  const username=String(service.widget?.username||"").trim();
-  if(!sanitizeUrl(service.url) || !username){
-    out.error="Pseudo Lichess manquant";
-    return;
-  }
-  const started=Date.now();
-  const variant=String(service.widget?.variant||"").trim();
-  const prevElo=lichessRatings.has(key) ? lichessRatings.get(key) : null;
-  try{
-    const user=await apiRequest("https://lichess.org","/api/user/"+encodeURIComponent(username),{});
-    const perfs=user?.perfs||{};
-    if(variant){
-      const rating=perfs[variant]?.rating;
-      if(Number.isFinite(rating) && rating>0){
-        out.elo=rating;
-        out.prevElo=prevElo;
-        out.delta=prevElo!=null ? rating-prevElo : null;
-        out.variant=variant;
-        out.ok=true;
-        out.ms=Date.now()-started;
-        lichessRatings.set(key,rating);
-      }else{
-        out.error="Aucun ELO pour cette variante";
-        out.ms=Date.now()-started;
-      }
-      return;
-    }
-    const candidates=[
-      ["bullet",perfs.bullet?.rating],
-      ["blitz",perfs.blitz?.rating],
-      ["rapid",perfs.rapid?.rating],
-      ["classical",perfs.classical?.rating]
-    ].filter(e=>Number.isFinite(e[1]) && e[1]>0);
-    if(!candidates.length){
-      out.error="Aucun ELO enregistré";
-      out.ms=Date.now()-started;
-      return;
-    }
-    candidates.sort((a,b)=>b[1]-a[1]);
-    out.elo=candidates[0][1];
-    out.prevElo=prevElo;
-    out.delta=prevElo!=null ? out.elo-prevElo : null;
-    out.variant=candidates[0][0];
-    out.ok=true;
-    out.ms=Date.now()-started;
-    lichessRatings.set(key,out.elo);
-  }catch(error){
-    out.error=String(error?.message||"Erreur Lichess").slice(0,200);
-    out.ms=Date.now()-started;
-  }
-}
-
-async function checkAdGuard(service){
-  const serviceUrl=sanitizeUrl(service.url);
-  const widget=service.widget||{};
-  const rawTarget=String(widget.url||"").trim().replace(/^https?:\/\//i,"");
-  const target=rawTarget
-    ? sanitizeUrl((widget.protocol==="http" ? "http" : "https")+"://"+rawTarget)
-    : serviceUrl;
-  const out={state:"adguard",ok:false,queries:0,blocked:0,ratio:null,avgMs:null,ms:0};
-  statusCache[serviceUrl || service.url]=out;
-  const baseUrl=target.replace(/\/+$/,"");
-  if(!baseUrl){
-    out.error="URL AdGuard invalide";
-    return;
-  }
-  const username=String(widget.username||"").trim();
-  const password=decryptSecret(widget.password);
-  const started=Date.now();
-  try{
-    const stats=await apiRequest(baseUrl,"/control/stats",
-      username||password ? {basic:{user:username,password}} : {});
-    const queries=Number(stats?.num_dns_queries)||0;
-    const blocked=(Number(stats?.num_blocked_filtering)||0)
-      +(Number(stats?.num_replaced_safebrowsing)||0)
-      +(Number(stats?.num_replaced_parental)||0)
-      +(Number(stats?.num_replaced_safesearch)||0);
-    out.queries=queries;
-    out.blocked=blocked;
-    out.ratio=queries>0 ? Math.round((blocked/queries)*1000)/10 : 0;
-    out.avgMs=Number.isFinite(stats?.avg_processing_time)
-      ? Math.round(stats.avg_processing_time*1000) : null;
-    out.ok=true;
-    out.ms=Date.now()-started;
-  }catch(error){
-    out.error=String(error?.message||"Erreur AdGuard").slice(0,200);
-    out.ms=Date.now()-started;
-  }
-}
-
-async function checkDocker(service){
-  const widget=service.widget||{};
-  const key=serviceCacheKey(service);
-  const out={state:"docker",ok:false,containers:null,updated:null,ms:0,lastCheck:Date.now()};
-  statusCache[key]=out;
-
-  // Paramètres saisis à la main dans la fenêtre de configuration du widget :
-  //  - mode "local" : socket Docker du conteneur Dashmon (zéro config).
-  //  - mode "tcp"   : API Docker distante fournie par l'utilisateur (url).
-  // Aucun lien avec la liste des hôtes de monitoring.
-  const mode=widget.mode==="tcp" ? "tcp" : "local";
-  const url=String(widget.url||"").trim();
-  if(mode==="tcp" && !url){
-    out.error="URL Docker TCP manquante";
-    return;
-  }
-  const host={id:"",name:"",monitoring:{docker:mode==="tcp" ? {mode:"tcp",url} : undefined}};
-
-  const started=Date.now();
-  try{
-    const [containers,images]=await Promise.all([
-      dockerApi.dockerRequest(host,"/containers/json?all=1"),
-      dockerApi.dockerRequest(host,"/images/json")
-    ]);
-    const summary=await dockerApi.computeLiveDockerSummary(host,containers,images);
-    out.containers={active:summary.active,total:summary.total};
-    out.updated={count:summary.updated,total:summary.total,unknown:summary.unknown};
-    out.ok=true;
-    out.ms=Date.now()-started;
-  }catch(error){
-    out.error=String((error&&error.message)||"Erreur Docker").slice(0,200);
-    out.ms=Date.now()-started;
-  }
-}
-
 async function refreshStatuses(force=false){
   let config;
   try{
@@ -1231,23 +927,10 @@ async function refreshStatuses(force=false){
   }
 
   const services=Array.isArray(config.services) ? config.services : [];
-  // Purge les entrées dont la clé de cache n'est plus surveillée.
-  const active=new Set(services.map(svc=>serviceCacheKey(svc)).filter(Boolean));
-  for(const key of Object.keys(statusCache)){
-    if(!active.has(key) && !active.has(key.replace(/\/$/,""))){
-      delete statusCache[key];
-    }
-  }
-  // Purge les tokens Duplicati dont l'URL n'a plus de widget actif.
-  const widgetActive=new Set(
-    services
-      .filter(s=>s.widget?.type==="duplicati")
-      .map(s=>sanitizeUrl(s.url).replace(/\/+$/,""))
-      .filter(Boolean)
-  );
-  for(const key of duplicatiTokens.keys()){
-    if(!widgetActive.has(key)) duplicatiTokens.delete(key);
-  }
+  // Purge des entrées de cache devenues orphelines et des mémoires internes
+  // des widgets (jetons, historiques) : chaque widget purge ce qu'il veut via
+  // son hook purge(), le core ne connaît aucun widget.
+  widgetCore.purge(services);
   const due=force ? services : services.filter(svc=>{
     const cache=statusCache[serviceCacheKey(svc)];
     return !(cache && cache.lastCheck && (Date.now()-cache.lastCheck) < checkInterval(svc));
@@ -1255,7 +938,7 @@ async function refreshStatuses(force=false){
   // Checks par lots de 3 espacés : évite les rafales de connexions en gardant
   // un cycle de rafraîchissement raisonnable.
   for(let i=0;i<due.length;i+=3){
-    await Promise.all(due.slice(i,i+3).map(svc=>checkService(svc,force)));
+    await Promise.all(due.slice(i,i+3).map(svc=>checkService(svc)));
     await new Promise(resolve=>setTimeout(resolve,150));
   }
   // Marque la dernière vérification de chaque service traité.
@@ -1577,10 +1260,12 @@ let httpServer;
 function shutdownGraceful(signal){
   console.log(`${ts()} ${signal} reçu, arrêt propre…`);
   clearInterval(statusTimer);
-  httpServer.close(()=>{
+  const bye=()=>{
     console.log(`${ts()} Serveur arrêté proprement.`);
     process.exit(0);
-  });
+  };
+  if(httpServer) httpServer.close(bye);
+  else bye();
   setTimeout(()=>{
     console.error(`${ts()} Arrêt forcé (délai dépassé).`);
     process.exit(1);
@@ -1590,9 +1275,30 @@ function shutdownGraceful(signal){
 process.on("SIGTERM",()=>shutdownGraceful("SIGTERM"));
 process.on("SIGINT",()=>shutdownGraceful("SIGINT"));
 
-setTimeout(refreshStatuses,500);
-const statusTimer=setInterval(refreshStatuses,STATUS_INTERVAL);
+// Le registre doit etre charge avant l'ecoute HTTP et avant tout cycle de
+// statut : sinon /api/widgets pourrait repondre une liste vide au tout premier
+// chargement du navigateur, et le core ignorerait les types qu'il ne connait
+// pas encore.
+let widgetsReady=false;
 
-httpServer=app.listen(PORT,"0.0.0.0",()=>{
-  console.log(`${ts()} Dashmon : http://0.0.0.0:${PORT}`);
+async function start(){
+  try{
+    await widgetCore.load();
+  }catch(error){
+    console.error(`${ts()} Registre de widgets illisible : ${error.message}`);
+  }
+  widgetsReady=true;
+  httpServer=app.listen(PORT,"0.0.0.0",()=>{
+    console.log(`${ts()} Dashmon : http://0.0.0.0:${PORT}`);
+  });
+  await refreshStatuses();
+}
+
+start().catch(error=>{
+  console.error(`${ts()} Demarrage impossible :`,error);
+  process.exit(1);
 });
+
+const statusTimer=setInterval(()=>{
+  if(widgetsReady) refreshStatuses();
+},STATUS_INTERVAL);

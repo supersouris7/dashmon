@@ -13,6 +13,7 @@ import { startStatusLoop, startHostMetricsLoop, refreshHostMetrics, setupVisibil
 import { openEditor, closeEditor, renderServiceEditor, renderCategoryEditor,
   renderHostEditor, renderWebLinksEditor } from "./editor.js";
 import { closeImageLibrary } from "./images.js";
+import { loadWidgetRegistry } from "./widget-registry.js";
 import {
   searchInput, viewBtn, collapseAllBtn, moreBtn, topMenu,
   openModeSelect, groupCategoryBtn, groupHostBtn,
@@ -352,7 +353,10 @@ document.addEventListener("keydown",e=>{
 
 async function init(){
   try{
-    await Promise.all([loadThemes(),loadConfig()]);
+    // Le registre DOIT etre charge avant la config : la normalisation de
+    // l'etat et le premier rendu s'appuient sur les schemas de widgets.
+    await Promise.all([loadThemes(),loadWidgetRegistry()]);
+    await loadConfig();
     setupVisibilityPause();
     startStatusLoop();
   }finally{

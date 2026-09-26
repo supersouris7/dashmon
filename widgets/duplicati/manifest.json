@@ -1,0 +1,50 @@
+{
+  "id": "duplicati",
+  "version": "1.0.0",
+  "label": { "fr": "Duplicati", "en": "Duplicati" },
+  "description": {
+    "fr": "Derniere sauvegarde OK/NOK avec sa date",
+    "en": "Last backup OK/NOK with its date"
+  },
+  "interval": 7200000,
+  "cacheKey": "service",
+  "server": "server.js",
+  "client": "client.mjs",
+  "strings": {
+    "fr": {
+      "name": "Duplicati",
+      "password": "Mot de passe Duplicati",
+      "passwordConfigured": "Mot de passe enregistré (laisser vide pour ne pas changer)",
+      "passwordPlaceholder": "Mot de passe de l'API Duplicati",
+      "badgeOk": "sauvegarde OK",
+      "badgeNok": "sauvegarde NOK",
+      "pending": "Vérification Duplicati…",
+      "error": "Duplicati",
+      "never": "Aucune sauvegarde enregistrée",
+      "ok": "Dernière sauvegarde OK",
+      "nok": "Dernière sauvegarde en échec"
+    },
+    "en": {
+      "name": "Duplicati",
+      "password": "Duplicati password",
+      "passwordConfigured": "Password saved (leave empty to keep it)",
+      "passwordPlaceholder": "Duplicati API password",
+      "badgeOk": "backup OK",
+      "badgeNok": "backup NOK",
+      "pending": "Checking Duplicati…",
+      "error": "Duplicati",
+      "never": "No backup recorded",
+      "ok": "Last backup OK",
+      "nok": "Last backup failed"
+    }
+  },
+  "config": [
+    {
+      "key": "password",
+      "type": "secret",
+      "label": "password",
+      "maxLength": 2000,
+      "placeholder": "passwordPlaceholder"
+    }
+  ]
+}

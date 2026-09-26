@@ -1,4 +1,8 @@
 // État global partagé, valeurs par défaut et normalisation de la configuration.
+// Importe le registre des widgets : la config d'un widget est deduite du
+// manifest publie par le serveur, plus d'une liste de champs ecrite ici.
+import { normalizeWidgetConfig } from "./widget-registry.js";
+
 export const DEFAULT_CATEGORIES = [
   {name:"Infrastructure",icon:"fa-solid fa-server"},
   {name:"Applications",icon:"fa-solid fa-cubes"},
@@ -412,22 +416,9 @@ export function normalizeConfig(cfg={}){
       url:sanitizeUrl(svc.url),
       icon:sanitizeImagePath(svc.icon),
       monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true,
-      widget:svc.widget?.type==="duplicati"
-        ? {type:"duplicati",password:String(svc.widget?.password||"").slice(0,2000)}
-        : svc.widget?.type==="lichess"
-          ? {type:"lichess",username:String(svc.widget?.username||"").slice(0,200),
-             variant:String(svc.widget?.variant||"").slice(0,50)}
-          : svc.widget?.type==="adguard"
-            ? {type:"adguard",
-               protocol:svc.widget?.protocol==="http" ? "http" : "https",
-               url:String(svc.widget?.url||"").trim().slice(0,200),
-               username:String(svc.widget?.username||"").slice(0,200),
-               password:String(svc.widget?.password||"").slice(0,2000)}
-            : svc.widget?.type==="docker"
-              ? {type:"docker",
-                 mode:svc.widget?.mode==="tcp" ? "tcp" : "local",
-                 url:String(svc.widget?.url||"").trim().slice(0,200)}
-              : null
+      // Normalisation pilotee par le schema du widget (manifest). Un widget
+      // inconnu est conserve tel quel : on ne perd jamais des reglages.
+      widget:normalizeWidgetConfig(svc.widget)
     })),
     categories:(Array.isArray(cfg.categories) ? clone(cfg.categories) : clone(DEFAULT_CATEGORIES))
       .map(cat=>({

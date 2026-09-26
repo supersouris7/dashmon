@@ -627,12 +627,6 @@ select,
   max-width:150px;
 }
 
-.widget-status.widget-docker .widget-time{
-  font-weight:700;
-  letter-spacing:.05em;
-  line-height:1.4;
-}
-
 .widget-time.delta-up{
   color:var(--success);
 }

@@ -352,6 +352,16 @@ body.modal-open{
   font-weight:600;
 }
 
+/* Message du formulaire widget (widget non installe, widget sans reglages) :
+   le style provient de Dashmon, pas du widget, donc il reste lisible meme
+   quand le module client du widget a echoue au chargement. */
+.widget-cfg-note{
+  margin:0;
+  font-size:14px;
+  line-height:1.5;
+  color:var(--muted);
+}
+
 .widget-config-footer{
   display:flex;
   justify-content:flex-end;

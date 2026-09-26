@@ -1,0 +1,56 @@
+{
+  "id": "lichess",
+  "version": "1.0.0",
+  "label": { "fr": "Lichess", "en": "Lichess" },
+  "description": {
+    "fr": "Classement ELO et variation recente",
+    "en": "ELO rating and recent delta"
+  },
+  "interval": 86400000,
+  "cacheKey": "service",
+  "server": "server.js",
+  "client": "client.mjs",
+  "strings": {
+    "fr": {
+      "name": "Lichess",
+      "username": "Pseudo Lichess",
+      "usernamePlaceholder": "votre pseudo",
+      "variant": "Variante",
+      "variantAuto": "Meilleure variante",
+      "variantClassical": "Classique",
+      "variantRapid": "Rapide",
+      "variantBlitz": "Blitz",
+      "error": "Lichess",
+      "noElo": "Aucun ELO enregistré",
+      "missingUsername": "Pseudo Lichess manquant"
+    },
+    "en": {
+      "name": "Lichess",
+      "username": "Lichess username",
+      "usernamePlaceholder": "your username",
+      "variant": "Variant",
+      "variantAuto": "Best variant",
+      "variantClassical": "Classical",
+      "variantRapid": "Rapid",
+      "variantBlitz": "Blitz",
+      "error": "Lichess",
+      "noElo": "No rating recorded",
+      "missingUsername": "Lichess username missing"
+    }
+  },
+  "config": [
+    { "key": "username", "type": "text", "label": "username", "maxLength": 200, "placeholder": "usernamePlaceholder" },
+    {
+      "key": "variant",
+      "type": "select",
+      "label": "variant",
+      "default": "",
+      "options": [
+        { "value": "", "label": "variantAuto" },
+        { "value": "classical", "label": "variantClassical" },
+        { "value": "rapid", "label": "variantRapid" },
+        { "value": "blitz", "label": "variantBlitz" }
+      ]
+    }
+  ]
+}

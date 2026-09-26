@@ -8,6 +8,10 @@ import { refreshHostMetrics } from "./metrics.js";
 import { openImageLibrary, renderImageManager } from "./images.js";
 import { createIconPicker, createHostIconPicker, createWebLinkIconPicker } from "./icons.js";
 import {
+  getWidgetMeta, listWidgetMetas, widgetLabel, widgetString, fieldLabel, fieldPlaceholder,
+  fieldTitle, visibleFields, inheritWidgetConfig, normalizeWidgetConfig, isEncryptedSecret
+} from "./widget-registry.js";
+import {
   serviceEditor, categoryEditor, hostEditor, webLinksEditor,
   editorSearch, editorCategoryFilter, editorHostFilter,
   modalBackdrop, closeBtn, cancelBtn, saveBtn,
@@ -248,33 +252,25 @@ export function renderServiceEditor(){
     const widgetWrap=document.createElement("div");
     widgetWrap.className="service-widget";
 
+    // Le menu des widgets est construit depuis le registre : ajouter un widget
+    // ne demande aucune edition ici.
     const widgetType=document.createElement("select");
     widgetType.className="edit-select widget-type";
     widgetType.title=t("widgetLabel");
-    [["",t("widgetStandard")],["duplicati",t("widgetDuplicati")],["lichess",t("widgetLichess")],["adguard",t("widgetAdGuard")],["docker",t("widgetDocker")]].forEach(([value,label])=>{
+    [[ "", t("widgetStandard") ],
+      ...listWidgetMetas().map(meta=>[ meta.id, widgetLabel(meta,state.language) ])].forEach(([value,label])=>{
       const option=document.createElement("option");
       option.value=value;
       option.textContent=label;
       widgetType.appendChild(option);
     });
-    widgetType.value=service.widget?.type==="duplicati" ? "duplicati"
-      : service.widget?.type==="lichess" ? "lichess" : service.widget?.type==="adguard" ? "adguard" : service.widget?.type==="docker" ? "docker" : "";
+    widgetType.value=hasWidgetType(service.widget) ? service.widget.type : "";
     widgetType.addEventListener("change",()=>{
-      state.editServices[index].widget=widgetType.value==="duplicati"
-        ? {type:"duplicati",password:(service.widget&&service.widget.password)||""}
-        : widgetType.value==="lichess"
-          ? {type:"lichess",username:(service.widget&&service.widget.username)||""}
-          : widgetType.value==="adguard"
-            ? {type:"adguard",
-               protocol:(service.widget&&service.widget.protocol==="http")?"http":"https",
-               url:(service.widget&&service.widget.url)||"",
-               username:(service.widget&&service.widget.username)||"",
-               password:(service.widget&&service.widget.password)||""}
-            : widgetType.value==="docker"
-              ? {type:"docker",
-                 mode:service.widget?.mode==="tcp" ? "tcp" : "local",
-                 url:(service.widget&&service.widget.url)||""}
-              : null;
+      // Changer de widget : on repart des defauts du manifest et on ne
+      // conserve que les cles communes (inheritWidgetConfig).
+      state.editServices[index].widget=widgetType.value
+        ? inheritWidgetConfig(widgetType.value,service.widget)
+        : null;
       renderServiceEditor();
     });
     widgetWrap.appendChild(widgetType);
@@ -299,6 +295,12 @@ export function renderServiceEditor(){
 let widgetConfigIndex=-1;
 let widgetDraft=null;
 
+// Un widget absent du registre est traite comme "standard" dans le menu : on ne
+// propose jamais une option qui ne serait pas exploitable.
+function hasWidgetType(widget){
+  return !!(widget && widget.type && getWidgetMeta(widget.type));
+}
+
 export function openWidgetConfig(index){
   widgetConfigIndex=index;
   const svc=state.editServices[index];
@@ -317,42 +319,113 @@ export function closeWidgetConfig(){
   document.body.classList.remove("modal-open");
 }
 
+// Enregistrement du formulaire widget : regle generique, valable pour tout
+// widget present ou a venir.
+//   - un champ secret laisse vide conserve la valeur deja enregistree (le
+//     serveur ne peut dechiffrer que cote serveur, on ne perd donc jamais un
+//     mot de passe en ouvrantly l'editeur) ;
+//   - sinon la valeur du brouillon est reprise, bornee par le schema.
 function commitWidgetConfig(){
   const svc=state.editServices[widgetConfigIndex];
   if(!svc||!svc.widget||!widgetDraft) return;
-  const d=widgetDraft;
+  const meta=getWidgetMeta(svc.widget.type);
+  if(!meta) return;
 
-  if(svc.widget.type==="duplicati"){
-    const password=d.password&&!String(d.password).startsWith("aes1.")
-      ? String(d.password).slice(0,2000) : svc.widget.password||"";
-    svc.widget={type:"duplicati",password};
-    return;
+  const next={type:meta.id};
+  for(const field of meta.config||[]){
+    const draftValue=widgetDraft[field.key];
+    if(field.type==="secret"){
+      next[field.key]=(draftValue && !isEncryptedSecret(draftValue))
+        ? String(draftValue).slice(0,2000)
+        : (svc.widget[field.key] || "");
+      continue;
+    }
+    if(field.type==="checkbox"){
+      next[field.key]=draftValue===true||draftValue==="true"||draftValue==="on"||draftValue===1;
+      continue;
+    }
+    if(field.type==="number"){
+      let n=Number(draftValue);
+      if(!Number.isFinite(n)) n=Number(field.default)||0;
+      next[field.key]=Math.min(field.max,Math.max(field.min,Math.trunc(n)));
+      continue;
+    }
+    if(field.type==="select"){
+      const wanted=String(draftValue==null ? "" : draftValue).trim();
+      const known=(field.options||[]).some(option=>option.value===wanted);
+      next[field.key]=known ? wanted : String(field.default==null ? "" : field.default);
+      continue;
+    }
+    next[field.key]=String(draftValue==null ? "" : draftValue).trim().slice(0,field.maxLength);
   }
+  svc.widget=next;
+}
 
-  if(svc.widget.type==="lichess"){
-    svc.widget={type:"lichess",
-      username:String(d.username||"").trim().slice(0,200),
-      variant:String(d.variant||"").trim().slice(0,50)};
-    return;
-  }
+// Un champ du formulaire, construit depuis la declaration du manifest.
+function buildWidgetField(meta,field,draft,onVisibilityChange){
+  const wrap=document.createElement("label");
+  wrap.className="widget-cfg-field";
 
-  if(svc.widget.type==="adguard"){
-    const password=d.password&&!String(d.password).startsWith("aes1.")
-      ? String(d.password).slice(0,2000) : svc.widget.password||"";
-    svc.widget={type:"adguard",
-      protocol:d.protocol==="http" ? "http" : "https",
-      url:String(d.url||"").trim().slice(0,200),
-      username:String(d.username||"").trim().slice(0,200),
-      password};
-    return;
-  }
+  const label=document.createElement("span");
+  label.textContent=fieldLabel(meta,field,state.language);
+  wrap.appendChild(label);
 
-  if(svc.widget.type==="docker"){
-    svc.widget={type:"docker",
-      mode:d.mode==="tcp" ? "tcp" : "local",
-      url:String(d.url||"").trim().slice(0,200)};
-    return;
+  const placeholder=fieldPlaceholder(meta,field,state.language);
+  let input;
+
+  if(field.type==="select"){
+    input=document.createElement("select");
+    input.className="edit-select";
+    (field.options||[]).forEach(option=>{
+      const node=document.createElement("option");
+      node.value=option.value;
+      node.textContent=widgetString(meta,option.label||option.value,state.language);
+      input.appendChild(node);
+    });
+    const current=String(draft[field.key]==null ? "" : draft[field.key]);
+    const known=(field.options||[]).some(option=>option.value===current);
+    input.value=known ? current : String(field.default==null ? "" : field.default);
+    input.addEventListener("change",()=>{
+      draft[field.key]=input.value;
+      // Un select pilote l'affichage d'autres champs (regle "when").
+      if(onVisibilityChange) onVisibilityChange();
+    });
+  }else{
+    input=document.createElement("input");
+    input.className="edit-input";
+    if(field.type==="checkbox"){
+      input.type="checkbox";
+      input.checked=draft[field.key]===true;
+      input.addEventListener("change",()=>{ draft[field.key]=input.checked; });
+    }else if(field.type==="number"){
+      input.type="number";
+      if(Number.isFinite(field.min)) input.min=String(field.min);
+      if(Number.isFinite(field.max)) input.max=String(field.max);
+      input.addEventListener("input",()=>{ draft[field.key]=input.value; });
+    }else if(field.type==="secret"){
+      input.type="password";
+      input.autocomplete="new-password";
+      // Jamais de secret en clair dans le formulaire : si la valeur est deja
+      // chiffree, le champ reste vide et n'affiche qu'un libelle.
+      const secured=isEncryptedSecret(draft[field.key]);
+      input.placeholder=secured ? t("passwordConfigured") : (placeholder || field.label || "");
+      input.value=secured ? "" : (draft[field.key] || "");
+      input.addEventListener("input",()=>{
+        if(input.value) draft[field.key]=input.value;
+      });
+    }else{
+      input.type="text";
+      input.autocomplete="off";
+      input.placeholder=placeholder;
+      input.value=draft[field.key]==null ? "" : String(draft[field.key]);
+      input.addEventListener("input",()=>{ draft[field.key]=input.value; });
+    }
   }
+  if(placeholder && field.type!=="secret") input.title=placeholder;
+  const hint=fieldTitle(meta,field,state.language);
+  if(hint) wrap.title=hint;
+  wrap.appendChild(input);
+  return wrap;
 }
 
 function renderWidgetConfig(){
@@ -362,189 +435,34 @@ function renderWidgetConfig(){
   const draft=widgetDraft;
   if(!draft) return;
 
-  if(service.widget.type==="duplicati"){
-    const helper=document.createElement("label");
-    helper.className="widget-cfg-field";
-    const helperLabel=document.createElement("span");
-    helperLabel.textContent=t("widgetDuplicatiPassword");
-    helper.appendChild(helperLabel);
-    const password=document.createElement("input");
-    password.className="edit-input";
-    password.type="password";
-    password.autocomplete="new-password";
-    const secured=String(draft.password||"").startsWith("aes1.");
-    password.placeholder=secured ? t("passwordConfigured") : t("duplicatiPasswordPlaceholder");
-    password.value=secured ? "" : draft.password||"";
-    password.addEventListener("input",()=>{
-      if(password.value){
-        draft.password=password.value;
-      }
-    });
-    helper.appendChild(password);
-    widgetConfigBody.appendChild(helper);
+  const meta=getWidgetMeta(service.widget.type);
+  if(!meta){
+    // Widget non installe : on ne pretend pas pouvoir l'editer, mais on ne
+    // perd pas ses reglages.
+    const note=document.createElement("p");
+    note.className="widget-cfg-note";
+    note.textContent=`Widget « ${service.widget.type} » non installé.`;
+    widgetConfigBody.appendChild(note);
     return;
   }
 
-  if(service.widget.type==="lichess"){
-    const helper=document.createElement("label");
-    helper.className="widget-cfg-field";
-    const helperLabel=document.createElement("span");
-    helperLabel.textContent=t("widgetLichess");
-    helper.appendChild(helperLabel);
-    const username=document.createElement("input");
-    username.className="edit-input";
-    username.type="text";
-    username.autocomplete="off";
-    username.placeholder=t("widgetLichessPlaceholder");
-    username.value=draft.username||"";
-    username.addEventListener("input",()=>{
-      draft.username=username.value;
-    });
-    helper.appendChild(username);
-
-    const variantWrap=document.createElement("label");
-    variantWrap.className="widget-cfg-field";
-    const variantLabel=document.createElement("span");
-    variantLabel.textContent=t("widgetLichessVariant");
-    variantWrap.appendChild(variantLabel);
-    const variant=document.createElement("select");
-    variant.className="edit-select";
-    [["",t("widgetLichessAuto")],["classical",t("widgetLichessClassical")],
-     ["rapid",t("widgetLichessRapid")],["blitz",t("widgetLichessBlitz")]].forEach(([value,label])=>{
-      const option=document.createElement("option");
-      option.value=value;
-      option.textContent=label;
-      variant.appendChild(option);
-    });
-    variant.value=draft.variant||"";
-    variant.addEventListener("change",()=>{
-      draft.variant=variant.value;
-    });
-    variantWrap.appendChild(variant);
-    widgetConfigBody.append(helper,variantWrap);
+  const fields=visibleFields(meta,draft);
+  if(!fields.length){
+    const note=document.createElement("p");
+    note.className="widget-cfg-note";
+    note.textContent=widgetLabel(meta,state.language);
+    widgetConfigBody.appendChild(note);
     return;
   }
-
-  if(service.widget.type==="adguard"){
-    const protocolField=document.createElement("label");
-    protocolField.className="widget-cfg-field";
-    const protocolLabel=document.createElement("span");
-    protocolLabel.textContent=t("widgetAdGuardProtocol");
-    protocolField.appendChild(protocolLabel);
-    const protocol=document.createElement("select");
-    protocol.className="edit-select";
-    [["https","HTTPS"],["http","HTTP"]].forEach(([value,label])=>{
-      const option=document.createElement("option");
-      option.value=value;
-      option.textContent=label;
-      protocol.appendChild(option);
-    });
-    protocol.value=draft.protocol==="http" ? "http" : "https";
-    protocol.addEventListener("change",()=>{
-      draft.protocol=protocol.value;
-    });
-    protocolField.appendChild(protocol);
-    widgetConfigBody.appendChild(protocolField);
-
-    const urlField=document.createElement("label");
-    urlField.className="widget-cfg-field";
-    const urlLabel=document.createElement("span");
-    urlLabel.textContent=t("widgetAdGuardUrl");
-    urlField.appendChild(urlLabel);
-    const url=document.createElement("input");
-    url.className="edit-input";
-    url.type="text";
-    url.autocomplete="off";
-    url.placeholder=t("widgetAdGuardUrlPlaceholder");
-    url.value=draft.url||"";
-    url.addEventListener("input",()=>{
-      draft.url=url.value;
-    });
-    urlField.appendChild(url);
-    widgetConfigBody.appendChild(urlField);
-
-    const userField=document.createElement("label");
-    userField.className="widget-cfg-field";
-    const userLabel=document.createElement("span");
-    userLabel.textContent=t("widgetAdGuardUsername");
-    userField.appendChild(userLabel);
-    const username=document.createElement("input");
-    username.className="edit-input";
-    username.type="text";
-    username.autocomplete="off";
-    username.placeholder=t("widgetAdGuardUsername");
-    username.value=draft.username||"";
-    username.addEventListener("input",()=>{
-      draft.username=username.value;
-    });
-    userField.appendChild(username);
-    widgetConfigBody.appendChild(userField);
-
-    const passField=document.createElement("label");
-    passField.className="widget-cfg-field";
-    const passLabel=document.createElement("span");
-    passLabel.textContent=t("widgetAdGuardPassword");
-    passField.appendChild(passLabel);
-    const password=document.createElement("input");
-    password.className="edit-input";
-    password.type="password";
-    password.autocomplete="new-password";
-    const secured=String(draft.password||"").startsWith("aes1.");
-    password.placeholder=secured ? t("passwordConfigured") : t("duplicatiPasswordPlaceholder");
-    password.value=secured ? "" : draft.password||"";
-    password.addEventListener("input",()=>{
-      if(password.value){
-        draft.password=password.value;
-      }
-    });
-    passField.appendChild(password);
-    widgetConfigBody.appendChild(passField);
-  }
-
-  if(service.widget.type==="docker"){
-    // Paramètres saisis à la main : mode de connexion + URL pour le TCP.
-    // Aucun lien avec la liste des hôtes de monitoring.
-    const modeField=document.createElement("label");
-    modeField.className="widget-cfg-field";
-    const modeLabel=document.createElement("span");
-    modeLabel.textContent=t("widgetDockerMode");
-    modeField.appendChild(modeLabel);
-    const mode=document.createElement("select");
-    mode.className="edit-select";
-    [["local",t("widgetDockerLocal")],["tcp",t("widgetDockerTcp")]].forEach(([value,label])=>{
-      const option=document.createElement("option");
-      option.value=value;
-      option.textContent=label;
-      mode.appendChild(option);
-    });
-    mode.value=draft.mode==="tcp" ? "tcp" : "local";
-    mode.addEventListener("change",()=>{
-      draft.mode=mode.value;
-      renderWidgetConfig();
-    });
-    modeField.appendChild(mode);
-    widgetConfigBody.appendChild(modeField);
-
-    if(draft.mode==="tcp"){
-      const urlField=document.createElement("label");
-      urlField.className="widget-cfg-field";
-      const urlLabel=document.createElement("span");
-      urlLabel.textContent=t("widgetDockerUrl");
-      urlField.appendChild(urlLabel);
-      const url=document.createElement("input");
-      url.className="edit-input";
-      url.type="text";
-      url.autocomplete="off";
-      url.placeholder=t("widgetDockerUrlPlaceholder");
-      url.value=draft.url||"";
-      url.addEventListener("input",()=>{
-        draft.url=url.value;
-      });
-      urlField.appendChild(url);
-      widgetConfigBody.appendChild(urlField);
+  // Rendu differe : un select peut masquer un champ, on reconstruit donc le
+  // formulaire apres chaque changement de ce type.
+  const rerender=()=>{
+    widgetConfigBody.innerHTML="";
+    for(const field of visibleFields(meta,widgetDraft)){
+      widgetConfigBody.appendChild(buildWidgetField(meta,field,widgetDraft,rerender));
     }
-    return;
-  }
+  };
+  rerender();
 }
 
 export function renderWebLinksEditor(){
@@ -1058,22 +976,9 @@ saveBtn.addEventListener("click",async()=>{
       url:(service.url||"").trim(),
       icon:(service.icon||"").trim(),
       monitor:service.monitor===false ? false : service.monitor==="soft" ? "soft" : true,
-      widget:service.widget&&service.widget.type==="duplicati"
-        ? {type:"duplicati",password:String(service.widget.password||"").slice(0,2000)}
-        : service.widget&&service.widget.type==="lichess"
-          ? {type:"lichess",username:String(service.widget.username||"").slice(0,200),
-             variant:String(service.widget.variant||"").slice(0,50)}
-          : service.widget&&service.widget.type==="adguard"
-            ? {type:"adguard",
-               protocol:service.widget.protocol==="http" ? "http" : "https",
-               url:String(service.widget.url||"").trim().slice(0,200),
-               username:String(service.widget.username||"").slice(0,200),
-               password:String(service.widget.password||"").slice(0,2000)}
-            : service.widget&&service.widget.type==="docker"
-              ? {type:"docker",
-                 mode:service.widget.mode==="tcp" ? "tcp" : "local",
-                 url:String(service.widget.url||"").trim().slice(0,200)}
-              : null
+      // Serialisation pilotee par le schema du manifest : plus aucune liste
+      // de champs ecrite a la main, donc plus de widget perdu a l'enregistrement.
+      widget:normalizeWidgetConfig(service.widget)
     }))
     .filter(service=>service.name);
 

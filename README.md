@@ -38,6 +38,23 @@ New widgets are already on the roadmap, and more will keep coming. **If a tool
 you self-host is missing, don't hesitate to propose it** — open an issue (or a
 pull request) and it's a strong candidate for the next integration.
 
+### Writing a widget
+
+Widgets are **plugins**: one folder in `widgets/`, three files, no build step, no
+npm dependency. Dashmon discovers them at startup, generates their settings form
+from their manifest, and serves their renderer to the browser. Adding one touches
+**no file of the core** — not the server, not the renderer, not the editor.
+
+```bash
+cp -r widgets/_template widgets/my-widget   # then edit manifest.json, server.js, client.mjs
+```
+
+A broken plugin is skipped with a log line: it can never prevent Dashmon from
+starting. Secrets stay server-side and are encrypted in `config.json`.
+
+→ **[docs/EXTENDING.md](docs/EXTENDING.md)** — full guide (manifest, contexts,
+security rules, tests).
+
 <p align="center">
   <img src="screenshots/dashboard.png" alt="Dashmon dashboard screenshot" width="800">
 </p>

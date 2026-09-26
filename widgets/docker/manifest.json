@@ -1,0 +1,62 @@
+{
+  "id": "docker",
+  "version": "1.0.0",
+  "label": { "fr": "Docker", "en": "Docker" },
+  "description": {
+    "fr": "Conteneurs actifs et images a jour, comparees au registre",
+    "en": "Running containers and up-to-date images, compared to the registry"
+  },
+  "interval": 7200000,
+  "cacheKey": "config",
+  "server": "server.js",
+  "client": "client.mjs",
+  "css": "client.css",
+  "strings": {
+    "fr": {
+      "name": "Docker",
+      "mode": "Connexion",
+      "local": "Socket local (Dashmon)",
+      "tcp": "API Docker distante (TCP)",
+      "url": "Adresse de l'API",
+      "urlPlaceholder": "tcp://hôte:2375 ou https://…",
+      "missingUrl": "URL Docker TCP manquante",
+      "containers": "Conteneurs",
+      "updated": "MAJ",
+      "unknown": "non vérifiés",
+      "error": "Docker"
+    },
+    "en": {
+      "name": "Docker",
+      "mode": "Connection",
+      "local": "Local socket (Dashmon)",
+      "tcp": "Remote Docker API (TCP)",
+      "url": "API address",
+      "urlPlaceholder": "tcp://host:2375 or https://…",
+      "missingUrl": "Docker TCP URL missing",
+      "containers": "Containers",
+      "updated": "Updated",
+      "unknown": "unverified",
+      "error": "Docker"
+    }
+  },
+  "config": [
+    {
+      "key": "mode",
+      "type": "select",
+      "label": "mode",
+      "default": "local",
+      "options": [
+        { "value": "local", "label": "local" },
+        { "value": "tcp", "label": "tcp" }
+      ]
+    },
+    {
+      "key": "url",
+      "type": "text",
+      "label": "url",
+      "maxLength": 200,
+      "placeholder": "urlPlaceholder",
+      "when": { "key": "mode", "equals": "tcp" }
+    }
+  ]
+}

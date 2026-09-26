@@ -1,0 +1,8 @@
+/* Styles propres au widget Docker.
+   Ce fichier n'est charge que si le widget Docker est installe : ajouter un
+   widget n'oblige donc jamais a toucher au CSS du core. */
+.widget-status.widget-docker .widget-time{
+  font-weight:700;
+  letter-spacing:.05em;
+  line-height:1.4;
+}

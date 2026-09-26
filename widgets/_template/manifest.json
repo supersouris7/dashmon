@@ -1,0 +1,41 @@
+{
+  "id": "mowidget",
+  "version": "1.0.0",
+  "label": { "fr": "Mon widget", "en": "My widget" },
+  "description": {
+    "fr": "Une ligne d'explication affichee dans l'editeur",
+    "en": "One-line description shown in the editor"
+  },
+  "interval": 300000,
+  "cacheKey": "service",
+  "server": "server.js",
+  "client": "client.mjs",
+  "strings": {
+    "fr": {
+      "name": "Mon widget",
+      "apiUrl": "URL de l'API",
+      "apiUrlPlaceholder": "https://mon-outil.example/api",
+      "apiToken": "Jeton",
+      "apiTokenPlaceholder": "jeton de l'API",
+      "apiTokenConfigured": "Jeton enregistré (laisser vide pour ne pas changer)",
+      "badge": "valeur",
+      "secondLine": "détail",
+      "error": "Mon widget"
+    },
+    "en": {
+      "name": "My widget",
+      "apiUrl": "API URL",
+      "apiUrlPlaceholder": "https://my-tool.example/api",
+      "apiToken": "Token",
+      "apiTokenPlaceholder": "API token",
+      "apiTokenConfigured": "Token saved (leave empty to keep it)",
+      "badge": "value",
+      "secondLine": "detail",
+      "error": "My widget"
+    }
+  },
+  "config": [
+    { "key": "apiUrl", "type": "text", "label": "apiUrl", "maxLength": 200, "placeholder": "apiUrlPlaceholder" },
+    { "key": "apiToken", "type": "secret", "label": "apiToken", "maxLength": 2000, "placeholder": "apiTokenPlaceholder" }
+  ]
+}

@@ -2,6 +2,7 @@
 import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, DEFAULT_BANNER_URL, DEFAULT_FAVICON, FALLBACK_HOST } from "./state.js";
 import { t } from "./i18n.js";
 import { patchConfig, bumpUsage } from "./api.js";
+import { hasWidget, renderWidget, widgetStatusKey } from "./widget-registry.js";
 import {
   dashboard, searchInput, webLinksSection, webLinksHeader, webLinksList,
   viewBtn, collapseAllBtn, openModeSelect, groupCategoryBtn,
@@ -51,149 +52,27 @@ function statusTitle(monitor, info){
   return `${t("statusDown")} · ${info.error||t("statusNoResponse")}`;
 }
 
-function formatDateTime(ms){
-  try{
-    const locale=state.language==="en" ? "en-GB" : "fr-FR";
-    return new Intl.DateTimeFormat(locale,{
-      day:"2-digit",month:"2-digit",year:"numeric"
-    }).format(new Date(ms));
-  }catch(_error){
-    return "";
-  }
-}
-
-function formatCompactNumber(n){
-  const locale=state.language==="en" ? "en-GB" : "fr-FR";
-  try{
-    const v=Number(n)||0;
-    if(v>=100000) return new Intl.NumberFormat(locale,{notation:"compact",maximumFractionDigits:1}).format(v);
-    return new Intl.NumberFormat(locale).format(v);
-  }catch(_error){
-    return String(n);
-  }
-}
-
-function formatNumber(n){
-  const locale=state.language==="en" ? "en-GB" : "fr-FR";
-  try{
-    return new Intl.NumberFormat(locale).format(Number(n)||0);
-  }catch(_error){
-    return String(n);
-  }
-}
-
-function widgetStatusKey(service){
-  if(service.widget?.type==="docker"){
-    const mode=service.widget?.mode==="tcp" ? "tcp" : "local";
-    return "docker:"+mode+":"+String(service.widget?.url||"").trim();
-  }
-  return sanitizeUrl(service.url)||service.url;
-}
-
+// Rendu d'une tuile de widget : le travail est fait par le renderer du widget
+// (widgets/<id>/client.js), charge dynamiquement par le registre. Ce fichier ne
+// contient plus aucun cas particulier : ajouter un widget n'edite pas render.js.
 function applyWidgetStatus(wrap,service,info){
+  const view=renderWidget(service,info,state.language);
+  if(view.element){
+    // Rendu sur mesure : le widget fournit son propre noeud DOM.
+    wrap.replaceChildren(view.element);
+    wrap.title=view.title||"";
+    return;
+  }
   const badge=wrap.querySelector(".widget-badge");
   const time=wrap.querySelector(".widget-time");
-  if(!info){
-    badge.className="widget-badge pending";
-    badge.textContent="—";
-    time.textContent="";
-    wrap.title=t("widgetPending");
-    return;
-  }
-  if(service?.widget?.type==="lichess"){
-    badge.className="widget-badge";
-    if(info.error){
-      badge.textContent="ELO —";
-      time.className="widget-time";
-      time.textContent="—";
-      wrap.title=`${t("widgetError")} : ${String(info.error).slice(0,120)}`;
-    }else if(info.elo==null){
-      badge.textContent="ELO —";
-      time.className="widget-time";
-      time.textContent="—";
-      wrap.title=t("widgetNoElo");
-    }else{
-      badge.textContent="ELO "+info.elo;
-      const label=lichessVariantLabel(info.variant);
-      const delta=info.delta==null ? null : Number(info.delta);
-      time.className="widget-time"+(delta>0 ? " delta-up" : delta<0 ? " delta-down" : "");
-      time.textContent=delta==null ? "—" : delta>0 ? `+${delta}` : delta<0 ? String(delta) : "±0";
-      wrap.title=`${t("widgetLichess")} · ${label} ${info.elo}`;
-    }
-    return;
-  }
-  if(service?.widget?.type==="adguard"){
-    if(info.error){
-      badge.className="widget-badge nok";
-      badge.textContent="AdGuard —";
-      time.textContent="—";
-      wrap.title=`${t("widgetAdGuardError")} : ${String(info.error).slice(0,120)}`;
-    }else{
-      const queries=Number(info.queries)||0;
-      const pct=Math.round(Number(info.ratio)||0);
-      badge.className="widget-badge ok";
-      badge.textContent=`${t("widgetAdGuardBlocked")} ${pct} %`;
-      time.textContent=`${t("widgetAdGuardQueries")} ${formatNumber(queries)}`;
-      const avg=info.avgMs!=null ? ` · ${info.avgMs} ms` : "";
-      wrap.title=`${t("widgetAdGuard")} · ${formatCompactNumber(queries)} ${t("widgetAdGuardQueries")} · ${pct} % ${t("widgetAdGuardBlocked")}${avg}`;
-    }
-return;
-  }
-  if(info.error){
-    badge.className="widget-badge nok";
-    badge.textContent=t("widgetBadgeNok");
-    time.textContent="—";
-    wrap.title=`${t("widgetError")} : ${String(info.error).slice(0,120)}`;
-    return;
-  }
-  if(service?.widget?.type==="docker"){
-    const containers=info?.containers;
-    const updated=info?.updated;
-    if(!info.error && containers && updated && containers.total>0){
-      const allActive=containers.active===containers.total;
-      const allUpdated=updated.count===updated.total;
-      badge.className="widget-badge "+(allActive ? "ok" : "nok");
-      badge.textContent=`${t("widgetDockerContainers")} ${containers.active} / ${containers.total}`;
-      time.className="widget-time"+(allUpdated ? " delta-up" : " warn");
-      time.textContent=`${t("widgetDockerUpdated")} ${updated.count} / ${updated.total}`;
-      const unknown=Number(updated.unknown)||0;
-      wrap.title=`${t("widgetDocker")} · ${containers.active}/${containers.total} · ${updated.count}/${updated.total}`
-        + (unknown>0 ? ` · ${unknown} ${t("widgetDockerUnknown")}` : "");
-    }else{
-      badge.className="widget-badge pending";
-      badge.textContent=`${t("widgetDocker")} —`;
-      time.textContent="—";
-      wrap.title=info?.error
-        ? `${t("widgetError")} : ${String(info.error).slice(0,120)}`
-        : t("widgetNever");
-    }
-    return;
-  }
-  if(info.ok===null || info.lastAttemptAt==null){
-    badge.className="widget-badge pending";
-    badge.textContent="—";
-    time.textContent="—";
-    wrap.title=t("widgetNever");
-    return;
-  }
-  badge.className=info.ok ? "widget-badge ok" : "widget-badge nok";
-  badge.textContent=info.ok ? t("widgetBadgeOk") : t("widgetBadgeNok");
-  time.textContent=formatDateTime(info.lastAttemptAt);
-  wrap.title=info.ok
-    ? t("widgetOk")
-    : `${t("widgetNok")} · ${formatDateTime(info.lastAttemptAt)}`;
+  if(!badge||!time) return;
+  badge.className="widget-badge"+(view.badgeClass ? " "+view.badgeClass : "");
+  badge.textContent=view.badge || "—";
+  time.className="widget-time"+(view.timeClass ? " "+view.timeClass : "");
+  time.textContent=view.time || "";
+  wrap.title=view.title || "";
 }
 
-function lichessVariantLabel(variant){
-  const en=state.language==="en";
-  const labels={
-    bullet:en?"Bullet":"Bullet",
-    blitz:en?"Blitz":"Blitz",
-    rapid:en?"Rapid":"Rapide",
-    classical:en?"Classical":"Classique"
-  };
-  return labels[variant] || variant || "";
-}
 
 export function updateViewButton(){
   const icon=viewBtn.querySelector("i");
@@ -296,7 +175,9 @@ function createCard(service){
   title.textContent=service.name || t("unnamedService");
   card.appendChild(title);
 
-  if(service.widget && ["duplicati","lichess","adguard","docker"].includes(service.widget.type)){
+  // La classe widget-<id> reste : elle porte les specificites CSS du widget
+  // (ex. la 2e ligne en gras pour Docker), sans que le core connaisse le widget.
+  if(service.widget && hasWidget(service.widget.type)){
     const wrap=document.createElement("div");
     wrap.className=`widget-status widget-${service.widget.type}`;
     wrap.dataset.url=widgetStatusKey(service);

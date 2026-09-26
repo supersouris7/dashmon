@@ -1,0 +1,56 @@
+{
+  "id": "adguard",
+  "version": "1.0.0",
+  "label": { "fr": "AdGuard Home", "en": "AdGuard Home" },
+  "description": {
+    "fr": "Requetes bloquees en pourcentage",
+    "en": "Blocked queries as a percentage"
+  },
+  "interval": 7200000,
+  "cacheKey": "service",
+  "server": "server.js",
+  "client": "client.mjs",
+  "strings": {
+    "fr": {
+      "name": "AdGuard",
+      "protocol": "Protocole",
+      "url": "URL",
+      "urlPlaceholder": "adguard.home:3000",
+      "username": "Identifiant",
+      "password": "Mot de passe",
+      "passwordConfigured": "Mot de passe enregistré (laisser vide pour ne pas changer)",
+      "passwordPlaceholder": "Mot de passe AdGuard",
+      "blocked": "bloquées",
+      "queries": "requêtes",
+      "error": "AdGuard"
+    },
+    "en": {
+      "name": "AdGuard",
+      "protocol": "Protocol",
+      "url": "URL",
+      "urlPlaceholder": "adguard.home:3000",
+      "username": "Username",
+      "password": "Password",
+      "passwordConfigured": "Password saved (leave empty to keep it)",
+      "passwordPlaceholder": "AdGuard password",
+      "blocked": "blocked",
+      "queries": "queries",
+      "error": "AdGuard"
+    }
+  },
+  "config": [
+    {
+      "key": "protocol",
+      "type": "select",
+      "label": "protocol",
+      "default": "https",
+      "options": [
+        { "value": "https", "label": "HTTPS" },
+        { "value": "http", "label": "HTTP" }
+      ]
+    },
+    { "key": "url", "type": "text", "label": "url", "maxLength": 200, "placeholder": "urlPlaceholder" },
+    { "key": "username", "type": "text", "label": "username", "maxLength": 200 },
+    { "key": "password", "type": "secret", "label": "password", "maxLength": 2000, "placeholder": "passwordPlaceholder" }
+  ]
+}
