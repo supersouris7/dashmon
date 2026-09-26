@@ -18,13 +18,30 @@ const ROOT = path.join(__dirname, "..");
 const WIDGETS = path.join(ROOT, "widgets");
 
 let failures = 0;
+
+// Affiche une valeur courte et lisible (les Buffers et les valeurs cycliques
+// ne doivent jamais masquer la vraie cause d'un echec).
+function show(value){
+  if (value === undefined) return "undefined";
+  if (value instanceof Uint8Array) return "<Buffer " + value.length + " octets> " + value.toString("utf8").slice(0, 60);
+  if (typeof value === "string") return JSON.stringify(value);
+  try {
+    const text = JSON.stringify(value);
+    return text === undefined ? String(value) : (text.length > 300 ? text.slice(0, 300) + "…" : text);
+  } catch (_) {
+    return String(value);
+  }
+}
+
 function check(name, actual, expected){
   try {
     assert.deepStrictEqual(actual, expected);
     console.log("PASS " + name);
   } catch (error) {
     failures++;
-    console.error("FAIL " + name + " — " + error.message);
+    console.error("FAIL " + name);
+    console.error("     attendu : " + show(expected));
+    console.error("     obtenu  : " + show(actual));
   }
 }
 function ok(name, condition, detail){
@@ -65,13 +82,22 @@ async function main(){
     fs.existsSync(path.join(WIDGETS, "_template", "manifest.json")) && !registry.has("_template"));
 
   // --- Schema : validation d'un manifest -------------------------------
-  // Le modele doit etre un exemple copiable tel quel : son id suit le dossier.
+  // Le modele est volontairement hors registre : son id ne peut pas suivre le
+  // dossier "_template" (un identifiant commence par une lettre minuscule).
+  const templateErrors = [];
+  const templateManifest = JSON.parse(fs.readFileSync(path.join(WIDGETS, "_template", "manifest.json"), "utf8"));
+  check("schema : le template n'est pas chargeable tel quel",
+    validateManifest("_template", templateManifest, templateErrors), null);
+  ok("schema : le template est signale comme invalide", templateErrors.length >= 1, templateErrors.join(" ; "));
+
+  // Un manifest complet et coherent est en revanche accepte tel quel.
   const errors = [];
-  const manifest = validateManifest("_template",
-    JSON.parse(fs.readFileSync(path.join(WIDGETS, "_template", "manifest.json"), "utf8")),
-    errors);
-  ok("schema : le manifest du template est valide", !!manifest && !errors.length, errors.join(" ; "));
-  check("schema : id du template = nom du dossier", manifest && manifest.id, "_template");
+  const manifest = validateManifest("demo", {
+    id: "demo", label: { fr: "Demo", en: "Demo" }, server: "server.js", client: "client.mjs",
+    config: [{ key: "jeton", type: "secret", maxLength: 200 }]
+  }, errors);
+  ok("schema : un manifest complet est valide", !!manifest && !errors.length, errors.join(" ; "));
+  check("schema : config copiee telle quelle", manifest.config.map(f => f.key), ["jeton"]);
 
   // Un id qui ne correspond pas au dossier est rejete : rien n'est renvoye.
   const mismatch = [];
@@ -184,13 +210,15 @@ async function main(){
   });
   await purgeCore.load();
   const duplicatiState = purgeCore.states.get("duplicati");
-  duplicatiState.tokens.set("https://adguard.lan/", "jeton");
-  duplicatiState.tokens.set("https://oublie.lan/", "jeton");
+  duplicatiState.tokens.set("https://doublon-a.lan/", "jeton");
+  duplicatiState.tokens.set("https://doublon-b.lan/", "jeton");
+  // Le jeton d'un serveur encore surveille est conserve, celui du serveur
+  // supprime est oublie. Attention : le hook purge() d'un widget ne recoit que
+  // les services de SON type (c'est lui qui decide de ce qu'il oublie).
   purgeCore.purge([{ url: "https://adguard.lan/", widget: { type: "adguard" } }]);
   check("core : purge des entrees orphelines", Object.keys(cache).sort(), ["https://adguard.lan/"]);
-  // Le jeton du serveur encore configure est conserve, celui du serveur
-  // supprime est oublie : c'est le hook purge() du widget qui decide.
-  check("core : purge des jetons du widget", [...duplicatiState.tokens.keys()], ["https://adguard.lan/"]);
+  check("core : purge d'un widget sans service actif oublie tout",
+    [...duplicatiState.tokens.keys()], []);
 
   // --- Exposition HTTP : liste publique et garde-fous de fichiers ---------
   const publicList = core.publicList();
@@ -204,23 +232,38 @@ async function main(){
   ok("core : renderer client servi", !!asset && asset.type === "text/javascript");
   ok("core : contenu du renderer", String(asset.body).includes("export function render"));
   check("core : widget inexistant -> pas d'asset", core.clientAsset("inconnu", "js"), null);
-  check("core : pas de CSS declare -> pas d'asset", core.clientAsset("docker", "css"), null);
+  check("core : widget sans CSS declare -> pas d'asset", core.clientAsset("adguard", "css"), null);
+  check("core : CSS declare -> asset servi", core.clientAsset("docker", "css").type, "text/css");
+  ok("core : le CSS du widget est bien son fichier",
+    String(core.clientAsset("docker", "css").body).includes(".widget-status.widget-docker"));
   check("core : widget sans client -> pas d'asset", core.clientAsset("inconnu", "css"), null);
 
   // Un manifest qui designe un fichier hors de son dossier est rejete : c'est
   // la seule defense possible si un tiers tente de servir server.js.
-  const evilDir = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-plugin-"));
+  // (Le nom du dossier est impose : mkdtemp produirait un nom invalide.)
+  const evilRoot = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-"));
+  const evilDir = path.join(evilRoot, "evil");
   try {
+    fs.mkdirSync(evilDir);
     fs.writeFileSync(path.join(evilDir, "manifest.json"), JSON.stringify({
       id: "evil", client: "../serveur.js", server: "server.js"
     }));
     fs.writeFileSync(path.join(evilDir, "server.js"), "module.exports={check(){}};");
-    const evil = new Registry({ kind: "widget", roots: [evilDir], logger: silentLogger });
+    const evil = new Registry({ kind: "widget", roots: [evilRoot], logger: silentLogger });
     await evil.load();
     check("registre : tentative de traversee rejetee", evil.ids(), []);
     ok("registre : traversee signalee", evil.failures.length === 1, JSON.stringify(evil.failures));
+
+    // Un dossier de plugin dont le nom est invalide (majuscule) doit etre
+    // signale, pas ignore en silence.
+    fs.mkdirSync(path.join(evilRoot, "MyPlugin"));
+    fs.writeFileSync(path.join(evilRoot, "MyPlugin", "manifest.json"), JSON.stringify({ id: "MyPlugin" }));
+    const sloppy = new Registry({ kind: "widget", roots: [evilRoot], logger: silentLogger });
+    await sloppy.load();
+    check("registre : nom de dossier invalide signale",
+      sloppy.failures.map(f => f.id), ["MyPlugin", "evil"]);
   } finally {
-    fs.rmSync(evilDir, { recursive: true, force: true });
+    fs.rmSync(evilRoot, { recursive: true, force: true });
   }
 
   // Un plugin casse ne doit jamais empecher les autres de charger.
@@ -259,7 +302,7 @@ async function main(){
   check("renderer Docker : erreur = tuile neutre",
     dockerModule.render(ctx({ error: "ECONNREFUSED" })).badgeClass, "pending");
   check("renderer Docker : jamais verifie = tirets",
-    dockerModule.render(ctx(null)).badge, "-");
+    dockerModule.render(ctx(null)).badge, "—");
 
   check("renderer Duplicati : sauvegarde OK",
     pick(duplicatiModule.render(ctx({ ok: true, lastAttemptAt: 1 }))),
@@ -267,7 +310,7 @@ async function main(){
   check("renderer Duplicati : echec = NOK",
     pick(duplicatiModule.render(ctx({ ok: false, lastAttemptAt: 1 }))).badgeClass, "nok");
   check("renderer Duplicati : aucune sauvegarde",
-    duplicatiModule.render(ctx({ ok: null, lastAttemptAt: null })).badge, "-");
+    duplicatiModule.render(ctx({ ok: null, lastAttemptAt: null })).badge, "—");
 
   check("renderer AdGuard : pourcentage",
     pick(adguardModule.render(ctx({ ok: true, queries: 12345, ratio: 12.3, avgMs: 2 }))),
@@ -279,9 +322,9 @@ async function main(){
   check("renderer Lichess : perte",
     pick(lichessModule.render(ctx({ ok: true, elo: 1500, delta: -8, variant: "blitz" }))).timeClass, "delta-down");
   check("renderer Lichess : premiere visite (pas de variation)",
-    lichessModule.render(ctx({ ok: true, elo: 1500, delta: null, variant: "blitz" })).time, "-");
+    lichessModule.render(ctx({ ok: true, elo: 1500, delta: null, variant: "blitz" })).time, "—");
   check("renderer Lichess : erreur 429 = tuile neutre",
-    lichessModule.render(ctx({ error: "HTTP 429" })).badge, "ELO -");
+    lichessModule.render(ctx({ error: "HTTP 429" })).badge, "ELO —");
 
   // Un renderer qui leve ne doit pas faire tomber le appelant : c'est le core
   // navigateur (widget-registry.js) qui rattrape, on verifie donc que le
