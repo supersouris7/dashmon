@@ -284,6 +284,114 @@ async function main(){
     fs.rmSync(mixedDir, { recursive: true, force: true });
   }
 
+  // --- Persistance : le stockage ouvert aux widgets ----------------------
+  // Un widget qui a un historique (note ELO, compteur) doit pouvoir ecrire
+  // dans le dossier de donnees sans jamais en sortir.
+  const { Storage } = require("../lib/storage");
+  const storageDir = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-stock-"));
+  try {
+    const storage = new Storage({ dir: storageDir, log: silentLogger });
+    check("storage : defaut quand le fichier n'existe pas", storage.read("absent", { a: 1 }), { a: 1 });
+    ok("storage : ecriture acceptee", storage.write("note", { elo: 1500 }));
+    check("storage : relecture fidele", storage.read("note"), { elo: 1500 });
+    check("storage : nom invalide -> aucun chemin", storage.file("../evasion"), null);
+    check("storage : traversee ecrasee", storage.file("a/b"), null);
+    ok("storage : ecriture refusee hors espace nomme", storage.write("../evasion", { x: 1 }) === false);
+    ok("storage : rien ecrit a cote", !fs.existsSync(path.join(path.dirname(storageDir), "evasion.json")));
+    fs.writeFileSync(path.join(storageDir, "widgets", "casse.json"), "{ pas du json");
+    check("storage : JSON illisible -> defaut", storage.read("casse", "defaut"), "defaut");
+    ok("storage : valeur trop volumineuse refusee",
+      storage.write("gros", { s: "x".repeat(1024 * 1024 + 16) }) === false);
+  } finally {
+    fs.rmSync(storageDir, { recursive: true, force: true });
+  }
+
+  // --- Widget Lichess : ELO conserve et evolution mensuelle --------------
+  // Le cas qui motive tout le widget : lichess.org repond 429. La note
+  // enregistree doit donc survivre au rate limit ET au redemarrage.
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const lichessServer = require(path.join(WIDGETS, "lichess", "server.js"));
+  const files = new Map();
+  const memoryStorage = {
+    read: (name, fallback) => (files.has(name) ? files.get(name) : fallback),
+    write: (name, value) => { files.set(name, value); return true; }
+  };
+  const lichessCtx = (over) => Object.assign({
+    config: { username: "Willi", variant: "" },
+    service: { url: "https://lichess.org/" },
+    state: lichessServer.createState(),
+    storage: memoryStorage,
+    sanitizeUrl: v => String(v == null ? "" : v).trim(),
+    t: k => k,
+    api: async () => ({ perfs: { blitz: { rating: 1500 } } })
+  }, over || {});
+  const throttled = () => {
+    const error = new Error("HTTP 429 Too many requests");
+    error.status = 429;
+    return async () => { throw error; };
+  };
+
+  const first = await lichessServer.check(lichessCtx());
+  check("lichess : premiere mesure enregistree",
+    [first.ok, first.elo, first.variant], [true, 1500, "blitz"]);
+  check("lichess : premier jour, pas encore d'evolution", first.monthDelta, null);
+  ok("lichess : l'historique est ecrit sur disque",
+    files.has("lichess-history") && !!files.get("lichess-history").entries["willi|*"].history);
+
+  // 30 jours plus tot : la note de reference existe deja.
+  const day30 = lichessServer.dayKey(Date.now() - 30 * DAY_MS);
+  files.set("lichess-history", {
+    version: 1,
+    entries: { "willi|*": { elo: 1450, variant: "blitz", at: Date.now() - 30 * DAY_MS, history: { [day30]: 1450 } } }
+  });
+  const monthly = await lichessServer.check(lichessCtx());
+  check("lichess : evolution sur un mois = 30 jours",
+    [monthly.monthDelta, monthly.monthDays], [50, 30]);
+
+  // Le rate limit frappe : la tuile garde la derniere note et son evolution.
+  const limited = await lichessServer.check(lichessCtx({ api: throttled() }));
+  check("lichess : 429 conserve le dernier ELO",
+    [limited.ok, limited.elo, limited.variant, limited.stale], [false, 1500, "blitz", true]);
+  check("lichess : 429 conserve l'evolution mensuelle", limited.monthDelta, 50);
+  ok("lichess : l'erreur reste signalee", String(limited.error).includes("429"), limited.error);
+
+  // Un historique de plus de 75 jours est elague, pas conserve indefiniment.
+  const ancien = new Map();
+  for (let i = 0; i < 200; i++) {
+    ancien[lichessServer.dayKey(Date.now() - i * DAY_MS)] = 1400 + i;
+  }
+  files.set("lichess-history", { version: 1, entries: { "willi|*": { elo: 1400, variant: "blitz", at: 0, history: ancien } } });
+  await lichessServer.check(lichessCtx());
+  const kept = Object.keys(files.get("lichess-history").entries["willi|*"].history);
+  check("lichess : historique elague a la fenetre utile", kept.length, 76);
+
+  // Sans aucune note enregistree, une erreur reste une erreur : on n'invente
+  // pas de valeur.
+  files.clear();
+  const noData = await lichessServer.check(lichessCtx({ api: throttled() }));
+  check("lichess : aucune note connue -> pas de valeur fantome",
+    [noData.elo, noData.stale, noData.monthDelta], [null, false, null]);
+
+  // Le pseudo et la variante ont des historiques distincts.
+  files.clear();
+  await lichessServer.check(lichessCtx());
+  const rapid = await lichessServer.check(lichessCtx({
+    config: { username: "willi", variant: "rapid" },
+    api: async () => ({ perfs: { blitz: { rating: 1500 }, rapid: { rating: 1800 } } })
+  }));
+  check("lichess : historique par joueur et par variante",
+    [Object.keys(files.get("lichess-history").entries).sort(), rapid.elo, rapid.variant],
+    [["willi|*", "willi|rapid"], 1800, "rapid"]);
+
+  // Un compte sans note pour la variante demandee retombe sur la valeur
+  // enregistree plutot que d'afficher un tiret.
+  const sansVariante = await lichessServer.check(lichessCtx({
+    config: { username: "Willi", variant: "bullet" },
+    api: async () => ({ perfs: { blitz: { rating: 1500 } } })
+  }));
+  check("lichess : variante absente de l'API = valeur conservee",
+    [sansVariante.ok, sansVariante.elo, sansVariante.stale], [false, null, false]);
+
   // --- Renderers client (ESM, aucune dependance au DOM) ------------------
   const dockerModule = await import(pathToFileURL(path.join(WIDGETS, "docker", "client.mjs")).href);
   const duplicatiModule = await import(pathToFileURL(path.join(WIDGETS, "duplicati", "client.mjs")).href);
@@ -316,14 +424,24 @@ async function main(){
     pick(adguardModule.render(ctx({ ok: true, queries: 12345, ratio: 12.3, avgMs: 2 }))),
     { badge: "blocked 12 %", badgeClass: "ok", time: "queries 12345", timeClass: "" });
 
-  check("renderer Lichess : gain",
-    pick(lichessModule.render(ctx({ ok: true, elo: 1500, delta: 12, variant: "blitz" }))),
-    { badge: "ELO 1500", badgeClass: "", time: "+12", timeClass: "delta-up" });
-  check("renderer Lichess : perte",
-    pick(lichessModule.render(ctx({ ok: true, elo: 1500, delta: -8, variant: "blitz" }))).timeClass, "delta-down");
-  check("renderer Lichess : premiere visite (pas de variation)",
-    lichessModule.render(ctx({ ok: true, elo: 1500, delta: null, variant: "blitz" })).time, "—");
-  check("renderer Lichess : erreur 429 = tuile neutre",
+  check("renderer Lichess : ELO en vert, evolution mensuelle en dessous",
+    pick(lichessModule.render(ctx({ ok: true, elo: 1500, delta: 12, monthDelta: 42, monthDays: 30, variant: "blitz", updatedAt: 1 }))),
+    { badge: "ELO 1500", badgeClass: "ok", time: "+42 over 30 days", timeClass: "delta-up" });
+  check("renderer Lichess : perte mensuelle",
+    pick(lichessModule.render(ctx({ ok: true, elo: 1500, monthDelta: -8, monthDays: 30, variant: "blitz" }))).timeClass, "delta-down");
+  check("renderer Lichess : historique plus court que le mois = duree reelle",
+    pick(lichessModule.render(ctx({ ok: true, elo: 1500, monthDelta: 5, monthDays: 4, variant: "blitz" }))).time,
+    "+5 over 4 days");
+  check("renderer Lichess : premiere visite (pas d'historique)",
+    lichessModule.render(ctx({ ok: true, elo: 1500, delta: null, monthDelta: null, variant: "blitz" })).time, "—");
+  check("renderer Lichess : note constante",
+    pick(lichessModule.render(ctx({ ok: true, elo: 1500, monthDelta: 0, monthDays: 30, variant: "blitz" }))).timeClass, "");
+  const staleView = lichessModule.render(ctx({ ok: false, elo: 1500, monthDelta: 42, monthDays: 30, variant: "blitz", updatedAt: 1, stale: true, error: "HTTP 429" }));
+  check("renderer Lichess : 429 = derniere valeur connue, toujours verte",
+    [staleView.badge, staleView.badgeClass], ["ELO 1500", "ok"]);
+  ok("renderer Lichess : l'info-bulle signale la valeur conservee et l'erreur",
+    staleView.title.includes("stale") && staleView.title.includes("HTTP 429") && staleView.title.includes("01/01/2026"), staleView.title);
+  check("renderer Lichess : aucun ELO connu = tirets",
     lichessModule.render(ctx({ error: "HTTP 429" })).badge, "ELO —");
 
   // Un renderer qui leve ne doit pas faire tomber le appelant : c'est le core

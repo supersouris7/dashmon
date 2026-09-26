@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "label": { "fr": "Lichess", "en": "Lichess" },
   "description": {
-    "fr": "Classement ELO et variation recente",
-    "en": "ELO rating and recent delta"
+    "fr": "Classement ELO et evolution sur un mois",
+    "en": "ELO rating and one-month evolution"
   },
   "interval": 86400000,
   "cacheKey": "service",
@@ -22,7 +22,11 @@
       "variantBlitz": "Blitz",
       "error": "Lichess",
       "noElo": "Aucun ELO enregistré",
-      "missingUsername": "Pseudo Lichess manquant"
+      "missingUsername": "Pseudo Lichess manquant",
+      "over": "sur",
+      "days": "j",
+      "updated": "mesuré le",
+      "stale": "dernière valeur connue"
     },
     "en": {
       "name": "Lichess",
@@ -35,7 +39,11 @@
       "variantBlitz": "Blitz",
       "error": "Lichess",
       "noElo": "No rating recorded",
-      "missingUsername": "Lichess username missing"
+      "missingUsername": "Lichess username missing",
+      "over": "over",
+      "days": "d",
+      "updated": "measured on",
+      "stale": "last known value"
     }
   },
   "config": [

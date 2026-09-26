@@ -63,6 +63,7 @@ async function check(ctx){
   // ctx.config : la config, secrets DÉCHIFFRÉS
   // ctx.api(base, path, options) : client HTTP partagé (timeouts, TLS, IPv4)
   // ctx.state : votre mémoire, créée une fois par le widget
+  // ctx.storage : ce qui doit survivre à un redémarrage (voir plus bas)
   return { ok: true, value: 42 };                          // -> cache du statut
 }
 
@@ -73,6 +74,26 @@ module.exports = { createState, check, purge };
 
 Le statut renvoyé est un objet libre : son contenu est votre affichage, Dashmon
 n'y touche pas. `check` ne doit jamais lever : renvoyez `{ ok:false, error }`.
+
+### Conserver une valeur dans le temps
+
+`ctx.state` est en mémoire : un redémarrage l'oublie. Quand un widget doit se
+souvenir d'un historique (évolution d'une note, compteur, version déjà vue),
+`ctx.storage` écrit un JSON par votre nom dans le dossier de données :
+
+```js
+// ctx.storage.read(nom, defaut) / ctx.storage.write(nom, valeur)
+const store = ctx.storage.read("mon-historique", { points: [] });
+store.points.push({ at: Date.now(), value: 42 });
+ctx.storage.write("mon-historique", store.slice(-90));
+```
+
+Seuls un nom de fichier (`lettres`, chiffres, `.`, `-`, `_`, 64 caractères max)
+et 1 Mo sont acceptés : impossible d'écrire ailleurs. L'écriture est atomique
+et silencieuse en cas d'échec — un widget en lecture seule dégrade son
+affichage, il n'empêche jamais le démarrage. C'est exactement ce dont le widget
+`lichess` se sert pour afficher le dernier ELO connu quand lichess.org renvoie
+un 429.
 
 ## client.mjs
 
