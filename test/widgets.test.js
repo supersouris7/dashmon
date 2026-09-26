@@ -189,7 +189,10 @@ async function main(){
   const probed = msCache["https://exemple.test/"];
   check("core : le plugin de lien publie le temps de reponse mesure", probed.ms, 137);
   check("core : le plugin de lien publie l'etat up", [probed.state, probed.ok], ["up", true]);
-  check("core : aucune ligne de journal pour un lien qui repond", logLines, []);
+  // Le chargement du registre ecrit deja dans le journal : on ne compte que les
+  // lignes de panne, qui sont seules a devoir etre discretes.
+  const downLines = () => logLines.filter(m => /DOWN/.test(m));
+  check("core : aucune panne signalee pour un lien qui repond", downLines(), []);
 
   // Un lien qui tombe est signale une fois, pas a chaque cycle.
   httpLib.httpProbe = async () => ({ ok: false, ms: 4000, error: "timeout" });
@@ -200,7 +203,7 @@ async function main(){
     httpLib.httpProbe = realProbe;
   }
   check("core : lien tombe = etat down", msCache["https://exemple.test/"].state, "down");
-  check("core : panne signalee une seule fois", logLines.filter(m => /DOWN/.test(m)).length, 1);
+  check("core : panne signalee une seule fois", downLines().length, 1);
   ok("core : la panne nomme le service",
     logLines.some(m => m.includes("https://exemple.test/")), show(logLines));
 
@@ -337,7 +340,7 @@ async function main(){
     const evil = new Registry({ kind: "widget", roots: [evilRoot], logger: silentLogger });
     await evil.load();
     check("registre : tentative de traversee rejetee", evil.ids(), []);
-    ok("registre : traversee signalee", evil.failures.length === 1, JSON.stringify(evil.failures));
+    ok("registre : traversee signalee", evil.failures.length === 1, show(evil.failures));
 
     // Un dossier de plugin dont le nom est invalide (majuscule) doit etre
     // signale, pas ignore en silence.
@@ -349,15 +352,19 @@ async function main(){
       sloppy.failures.map(f => f.id).sort(), ["MyPlugin", "evil"]);
     // Deux plugins ne peuvent pas revendiquer le meme slot : le second est
     // refuse plutot que de voler la place du premier dans l'ordre de tri.
-    fs.mkdirSync(path.join(evilRoot, "surdoux"));
-    fs.writeFileSync(path.join(evilRoot, "surdoux", "manifest.json"),
-      JSON.stringify({ id: "surdoux", defaultFor: "link", server: "server.js" }));
-    fs.writeFileSync(path.join(evilRoot, "surdoux", "server.js"), "module.exports={check(){}};");
+    for (const id of ["lienun", "liendeux"]) {
+      fs.mkdirSync(path.join(evilRoot, id));
+      fs.writeFileSync(path.join(evilRoot, id, "manifest.json"),
+        JSON.stringify({ id, defaultFor: "link", server: "server.js" }));
+      fs.writeFileSync(path.join(evilRoot, id, "server.js"), "module.exports={check(){}};");
+    }
     const greedy = new Registry({ kind: "widget", roots: [evilRoot], logger: silentLogger });
     await greedy.load();
-    check("registre : slot \"link\" deja pris = plugin refuse", greedy.get("surdoux"), null);
+    check("registre : un seul plugin garde le slot \"link\"", greedy.bySlot("link").id, "lienun");
+    check("registre : le second plugin du slot est refuse", greedy.get("liendeux"), null);
     ok("registre : conflit de slot signale",
-      greedy.failures.some(f => /slot|link/i.test(String(f.error))), JSON.stringify(greedy.failures));
+      greedy.failures.some(f => f.id === "liendeux" && /slot|link/i.test(String(f.reason))),
+      show(greedy.failures));
 
     // Un plugin interne (hidden) n'a pas besoin de renderer : c'est le client
     // generique qui dessine son resultat.
@@ -379,7 +386,7 @@ async function main(){
     await wrong.load();
     check("registre : slot inconnu refuse", wrong.get("mauvaisslot"), null);
     ok("registre : slot inconnu signale",
-      wrong.failures.some(f => f.id === "mauvaisslot"), JSON.stringify(wrong.failures));
+      wrong.failures.some(f => f.id === "mauvaisslot" && /defaultFor/i.test(String(f.reason))), show(wrong.failures));
   } finally {
     fs.rmSync(evilRoot, { recursive: true, force: true });
   }
@@ -534,15 +541,19 @@ async function main(){
     check("web : lien qui repond = point vert", [live.state, live.ok, live.code], ["up", true, 200]);
     ok("web : temps de reponse mesure", Number.isFinite(live.ms), show(live));
     const broken = await webServer.check(probeCtx(base + "/boum"));
-    check("web : erreur HTTP = point rouge", [broken.state, broken.ok], ["down", false]);
+    // Une reponse HTTP est une reponse : 503 et 404 restent verts, comme avant
+    // le passage en plugin (la sonde ne juge pas le contenu). Seule l'absence
+    // de reponse fait tomber la tuile.
+    check("web : erreur HTTP = point vert (le serveur a repondu)", [broken.state, broken.ok, broken.code], ["up", true, 503]);
     const gone = await webServer.check(probeCtx(base + "/absent"));
-    check("web : 404 = point rouge", [gone.state, gone.ok], ["down", false]);
+    check("web : 404 = point vert", [gone.state, gone.ok, gone.code], ["up", true, 404]);
+    // Port 1 : rien n'y ecoute, la connexion est refusee.
+    const refused = await webServer.check(probeCtx("http://127.0.0.1:1/"));
+    check("web : connexion refusee = point rouge", [refused.state, refused.ok], ["down", false]);
+    ok("web : pas de second essai sur 127.0.0.1", refused.via == null, show(refused));
     check("web : URL vide", (await webServer.check(probeCtx(""))).state, "down");
     check("web : URL invalide", (await webServer.check(probeCtx("pas une url"))).state, "down");
     check("web : protocole non http", (await webServer.check(probeCtx("ftp://exemple.test/"))).state, "down");
-    // Le repli loopback ne doit jamais tourner en boucle sur localhost.
-    const loop = await webServer.check(probeCtx(base + "/boum"));
-    check("web : pas de second essai sur 127.0.0.1", loop.via, null);
 
     // --- Client HTTP : lecture de page (raw) et plafond de corps ----------
     // Le widget YouTube lit du HTML : `raw` lui renvoie le texte et le code.

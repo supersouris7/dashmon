@@ -11,7 +11,8 @@ export function render(ctx) {
   }
 
   const metric = info.metric || "stars";
-  const hasValue = Number.isFinite(Number(info.value));
+  // null ne vaut pas zero : une statistique illisible ne doit pas afficher "0".
+  const hasValue = info.value != null && Number.isFinite(Number(info.value));
   // Compteur non lu alors que le depot repond (API GitHub throttle) : neutre.
   const missing = !info.ok && info.state === "up";
   const badgeClass = info.ok ? "ok" : (missing ? "warn" : "nok");

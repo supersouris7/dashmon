@@ -10,7 +10,8 @@ export function render(ctx) {
     return { badge: "—", badgeClass: "pending", time: "", timeClass: "", title: t("name") };
   }
 
-  const hasCount = Number.isFinite(Number(info.pulls));
+  // null ne vaut pas zero : un compteur illisible ne doit pas afficher "0".
+  const hasCount = info.pulls != null && Number.isFinite(Number(info.pulls));
   // Le widget mesure un compteur qu'il n'a pas pu lire (repo sans compteur,
   // API throttle) : le lien repond, la tuile est donc neutre et non rouge.
   const missing = !info.ok && info.state === "up";
