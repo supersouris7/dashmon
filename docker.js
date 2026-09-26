@@ -270,14 +270,28 @@ function registryRequest(protocol, host, path, headers, timeout){
   });
 }
 
-async function registryToken(parsed, endpoint){
-  const scope = "repository:" + parsed.repo + ":pull";
+function parseAuthChallenge(header){
+  const match = /^Bearer\s+(.*)$/i.exec(header || "");
+  if (!match) return null;
+  const fields = {};
+  for (const part of match[1].split(/\s*,\s*/)) {
+    const kv = /^([^=]+)="([^"]*)"$/.exec(part);
+    if (kv) fields[kv[1]] = kv[2];
+  }
+  if (!fields.realm) return null;
+  return fields;
+}
+
+async function tokenFromChallenge(parsed, header){
+  const fields = parseAuthChallenge(header);
+  if (!fields) return null;
   try {
-    const tokenPath = endpoint.hub
-      ? "/token?service=registry.docker.io&scope=" + encodeURIComponent(scope)
-      : "/token?service=registry&scope=" + encodeURIComponent(scope);
-    const host = endpoint.hub ? "auth.docker.io" : endpoint.host;
-    const response = await registryRequest(endpoint.protocol, host, tokenPath, {});
+    const url = new URL(fields.realm);
+    const query = new URLSearchParams();
+    if (fields.service) query.set("service", fields.service);
+    query.set("scope", fields.scope || ("repository:" + parsed.repo + ":pull"));
+    const tokenPath = url.pathname + "?" + query.toString();
+    const response = await registryRequest(url.protocol, url.host, tokenPath, {});
     if (response.status < 200 || response.status >= 300) return null;
     const body = JSON.parse(response.body.toString("utf8"));
     return body.token || body.access_token || null;
@@ -299,13 +313,12 @@ async function registryManifestDigest(ref, host){
   };
 
   const resolveAttempt = async (protocol, hostname) => {
-    // Docker Hub : jeton requis. Registres custom : d'abord en anonyme,
-    // jeton uniquement si le registre répond 401/403.
-    const token = endpoint.hub ? await registryToken(parsed, endpoint) : null;
-    let response = await readManifest(protocol, hostname, token);
-    if (!endpoint.hub && (response.status === 401 || response.status === 403)) {
-      const token2 = await registryToken(parsed, endpoint);
-      if (token2) response = await readManifest(protocol, hostname, token2);
+    // Flux Bearer standard : anonyme d'abord, puis jeton auprès du realm
+    // indiqué par WWW-Authenticate si le registre répond 401/403.
+    let response = await readManifest(protocol, hostname, null);
+    if (response.status === 401 || response.status === 403) {
+      const token = await tokenFromChallenge(parsed, response.headers["www-authenticate"]);
+      if (token) response = await readManifest(protocol, hostname, token);
     }
     return response;
   };
