@@ -425,9 +425,9 @@ async function main(){
     { badge: "en ligne 9 / 9", badgeClass: "ok", time: "à jour 9 / 9", timeClass: "delta-up" });
   check("renderer Docker : le tooltip reprend les deux libelles",
     dockerModule.render(localized("fr")(allGreen)).title, "Docker · en ligne 9 / 9 · à jour 9 / 9");
-  check("renderer Docker : images non verifiees au singulier",
+  ok("renderer Docker : images non verifiees au singulier",
     dockerModule.render(localized("fr")({ ok: true, containers: { active: 9, total: 9 }, updated: { count: 9, total: 9, unknown: 1 } })).title.endsWith(" · 1 non vérifié"));
-  check("renderer Docker : images non verifiees au pluriel",
+  ok("renderer Docker : images non verifiees au pluriel",
     dockerModule.render(localized("fr")({ ok: true, containers: { active: 9, total: 9 }, updated: { count: 9, total: 9, unknown: 3 } })).title.endsWith(" · 3 non vérifiés"));
 
   check("renderer Duplicati : sauvegarde OK",
