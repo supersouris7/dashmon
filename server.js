@@ -814,10 +814,10 @@ const LICHESS_REFRESH_MS = 24*60*60*1000;
 const lichessRatings = new Map();
 // Fréquences de vérification par type (via statusCache[*].lastCheck).
 const CHECK_INTERVALS = {
-  duplicati: 5*60*1000,
-  adguard: 5*60*1000,
+  duplicati: 2*60*60*1000,
+  adguard: 2*60*60*1000,
   lichess: LICHESS_REFRESH_MS,
-  default: 2*60*1000
+  default: 30*60*1000
 };
 function checkInterval(svc){
   const type=svc?.widget?.type;
