@@ -619,7 +619,9 @@ select,
 
 .widget-time{
   font-size:11px;
-  line-height:1;
+  font-weight:700;
+  letter-spacing:.05em;
+  line-height:1.4;
   color:var(--muted);
   white-space:nowrap;
   overflow:hidden;
