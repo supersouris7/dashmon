@@ -8,6 +8,8 @@ in one page, keep an eye on their status, and watch the CPU/RAM of your hosts.
 
 - **One page, your whole lab**: services grouped by category or host, search,
   view modes (rows / columns / full), icon or name display.
+- **Widget tiles**: live integrations dropped right into each tile — Docker,
+  Duplicati, AdGuard, Lichess — see the section below.
 - **Status monitoring**: green/red pills for each URL, refreshed automatically.
 - **Host metrics**: CPU/RAM widgets from the local host, a tiny Linux agent
   (`/metrics`), or Proxmox with a read-only API token.
@@ -17,6 +19,24 @@ in one page, keep an eye on their status, and watch the CPU/RAM of your hosts.
 
 Node.js / Express server, native ES modules, zero dependency besides Express.
 Runs anywhere Docker runs (amd64 & arm64).
+
+## Widget tiles — the heart of Dashmon
+
+Beyond a plain up/down pill, each service tile can host a small **widget**: a
+live integration that talks directly to the tool it represents. This is the
+real added value of Dashmon — one glance at the dashboard tells you what is
+actually going on.
+
+| Widget | What it shows |
+| --- | --- |
+| **Docker** | containers running / total + images up to date (MAJ), each image cross-checked against its registry via digest comparison; connect through the local socket or a remote Docker API (TCP) |
+| **Duplicati** | last backup OK / NOK with date & time |
+| **AdGuard** | queries blocked as a percentage |
+| **Lichess** | your current rating (ELO) and its recent delta |
+
+New widgets are already on the roadmap, and more will keep coming. **If a tool
+you self-host is missing, don't hesitate to propose it** — open an issue (or a
+pull request) and it's a strong candidate for the next integration.
 
 <p align="center">
   <img src="screenshots/dashboard.png" alt="Dashmon dashboard screenshot" width="800">
@@ -82,6 +102,11 @@ Dashmon uses [Font Awesome 6 (Free)](https://cdnjs.cloudflare.com/ajax/libs/font
 for service and category icons. Pick any free solid/brand class, e.g.
 `fa-solid fa-folder`. Requests for additional icons — within the free set — are
 welcome.
+
+You can also upload your own **PNG icons** (editor → **Images** tab) and assign
+them to a service. Personally, I grab mine from the
+[homer-icons](https://github.com/NX211/homer-icons) collection — a great source
+of plain, self-hosted app logos.
 
 ## Requests, bugs, ideas
 
