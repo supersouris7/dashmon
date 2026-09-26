@@ -503,37 +503,46 @@ function renderWidgetConfig(){
     const fieldLabel=document.createElement("span");
     fieldLabel.textContent=t("widgetDockerServer");
     field.appendChild(fieldLabel);
+
+    // Choix du serveur Docker, indépendant du monitoring métrique des hôtes :
+    //  - "socket local" : le socket Docker du conteneur Dashmon, aucune finition
+    //    requise (adaptable à toute install où le socket est monté en lecture seule).
+    //  - un hôte de la session d'édition avec monitoring.docker.mode="tcp" : Docker
+    //    distant via son API TCP (URL saisie en onglet "Serveurs").
     const select=document.createElement("select");
     select.className="edit-select";
 
-    const dockerHosts=state.hosts.filter(host=>host.monitoring?.enabled===true);
-    if(!dockerHosts.length){
-      const none=document.createElement("option");
-      none.value="";
-      none.textContent=t("noHostConfigured");
-      none.disabled=true;
-      none.selected=true;
-      select.appendChild(none);
-      select.disabled=true;
-    }else{
-      dockerHosts.forEach(host=>{
-        const option=document.createElement("option");
-        option.value=String(host.id||"").trim();
-        option.textContent=host.name||"";
-        select.appendChild(option);
-      });
-      if(draft.hostId && dockerHosts.some(host=>String(host.id||"").trim()===String(draft.hostId||"").trim())){
-        select.value=draft.hostId;
-      }else{
-        select.selectedIndex=0;
-        draft.hostId=select.value;
-      }
-      select.addEventListener("change",()=>{
-        draft.hostId=select.value;
-      });
-    }
+    const localOption=document.createElement("option");
+    localOption.value="";
+    localOption.textContent="— "+t("widgetDockerLocal")+" —";
+    localOption.title=t("widgetDockerLocalTitle");
+    select.appendChild(localOption);
+
+    const tcpHosts=(state.editHosts||[]).filter(host=>host
+      && host.monitoring?.docker?.mode==="tcp"
+      && (host.name||"").trim());
+    tcpHosts.forEach(host=>{
+      const option=document.createElement("option");
+      option.value=String(host.id||"").trim();
+      option.textContent=`${host.name||""} · ${host.monitoring.docker.url||"TCP"}`;
+      option.title="Docker TCP : "+(host.monitoring.docker.url||"");
+      select.appendChild(option);
+    });
+
+    const match=draft.hostId
+      && tcpHosts.some(host=>String(host.id||"").trim()===String(draft.hostId||"").trim());
+    select.value=match ? draft.hostId : "";
+    select.addEventListener("change",()=>{
+      draft.hostId=select.value;
+    });
     field.appendChild(select);
     widgetConfigBody.appendChild(field);
+
+    const hint=document.createElement("div");
+    hint.className="widget-cfg-hint";
+    hint.textContent=t("widgetDockerHint");
+    widgetConfigBody.appendChild(hint);
+    return;
   }
 }
 

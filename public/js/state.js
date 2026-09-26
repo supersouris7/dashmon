@@ -272,21 +272,10 @@ export const ICON_OPTIONS=[
   "fa-brands fa-spotify"
 ];
 
-export const DEFAULT_HOSTS=[
-  {name:"Dashmon",icon:"fa-solid fa-gauge-high",monitoring:{enabled:true,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}},
-  {name:"Proxmox",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"proxmox",url:"https://proxmox.local",node:"pve",tokenEnv:"",tokenIdEnv:"PROXMOX_TOKEN_ID",tokenSecretEnv:"PROXMOX_TOKEN_SECRET",tokenId:"",tokenSecret:""}},
-  {name:"Linux",icon:"fa-brands fa-linux",monitoring:{enabled:true,type:"linux",url:"http://linux.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}},
-  {name:"Serveur",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"linux",url:"http://serveur.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}}
-];
-
-export const DEFAULT_SERVICES = [
-  {name:"Portainer",host:"Dashmon",category:"Infrastructure",url:"https://portainer.local",icon:"icons/portainer.png",monitor:true},
-  {name:"Proxmox",host:"Proxmox",category:"Infrastructure",url:"https://proxmox.local",icon:"icons/proxmox.png",monitor:true},
-  {name:"AdGuard Home",host:"Linux",category:"Infrastructure",url:"http://adguard.local",icon:"icons/adguard-home.png",monitor:true},
-  {name:"Jellyfin",host:"Serveur",category:"Applications",url:"http://jellyfin.local",icon:"icons/jellyfin.png",monitor:true},
-  {name:"Home Assistant",host:"Serveur",category:"Applications",url:"http://homeassistant.local",icon:"icons/home-assistant.png",monitor:true},
-  {name:"Routeur",host:"",category:"Administration",url:"http://router.local",icon:"icons/router.png",monitor:true}
-];
+// Pas d'hôte ni de service d'exemple : la configuration est celle de
+// l'utilisateur, adaptable à tout environnement (vide à la première install).
+export const DEFAULT_HOSTS=[];
+export const DEFAULT_SERVICES = [];
 
 export const DEFAULT_WEB_LINKS=[
   {"name":"YouTube","url":"https://www.youtube.com","icon":"fa-brands fa-youtube"},
@@ -411,7 +400,7 @@ function normalizeCollapsed(collapsed){
 export function normalizeConfig(cfg={}){
   const normalizedServices=Array.isArray(cfg.services)
     ? clone(cfg.services)
-    : clone(DEFAULT_SERVICES);
+    : [];
   const derivedHosts=[...new Set(
     normalizedServices.map(service=>(service.host||"").trim()).filter(Boolean)
   )].map(name=>({name,icon:"fa-solid fa-server"}));
@@ -463,7 +452,7 @@ export function normalizeConfig(cfg={}){
               : undefined
           }
         }))
-      : (derivedHosts.length ? derivedHosts : clone(DEFAULT_HOSTS)).map(host=>({
+      : derivedHosts.map(host=>({
           ...host,
           id:host.id||"host-"+Math.random().toString(36).slice(2,10),
           monitoring:host.monitoring || {enabled:false,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}

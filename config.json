@@ -1,73 +1,7 @@
 {
-  "services": [
-    {
-      "name": "GitHub",
-      "category": "Outils",
-      "url": "https://github.com",
-      "icon": "",
-      "monitor": true,
-      "host": "Serveur"
-    },
-    {
-      "name": "Docker Hub",
-      "category": "Outils",
-      "url": "https://hub.docker.com",
-      "icon": "icons/docker-moby.png",
-      "monitor": true,
-      "host": "Serveur"
-    },
-    {
-      "name": "Wikipedia",
-      "category": "Sites",
-      "url": "https://www.wikipedia.org",
-      "icon": "",
-      "monitor": true,
-      "host": "Serveur"
-    },
-    {
-      "name": "DuckDuckGo",
-      "category": "Sites",
-      "url": "https://duckduckgo.com",
-      "icon": "",
-      "monitor": true,
-      "host": "Serveur"
-    },
-    {
-      "name": "Framasoft",
-      "category": "Sites",
-      "url": "https://framasoft.org",
-      "icon": "",
-      "monitor": true,
-      "host": "Serveur"
-    },
-    {
-      "name": "Qwant",
-      "category": "Sites",
-      "url": "https://www.qwant.com",
-      "icon": "",
-      "monitor": true,
-      "host": "Serveur"
-    }
-  ],
-  "categories": [
-    { "name": "Outils", "icon": "fa-solid fa-toolbox" },
-    { "name": "Sites",  "icon": "fa-solid fa-globe" }
-  ],
-  "hosts": [
-    {
-      "name": "Serveur",
-      "icon": "fa-solid fa-server",
-      "monitoring": {
-        "enabled": true,
-        "type": "local",
-        "url": "",
-        "node": "",
-        "tokenEnv": "",
-        "tokenIdEnv": "",
-        "tokenSecretEnv": ""
-      }
-    }
-  ],
+  "services": [],
+  "categories": [],
+  "hosts": [],
   "groupMode": "category",
   "viewMode": "columns",
   "openMode": "same",
@@ -84,7 +18,6 @@
   ],
   "webLinksCollapsed": false,
   "webLinksSeedVersion": 2,
-  "hostsSeedVersion": 1,
   "smallIcons": false,
   "hostsDisplay": "name",
   "bannerIcon": true,

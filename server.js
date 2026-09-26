@@ -297,45 +297,8 @@ function readConfig(){
   return JSON.parse(fs.readFileSync(CONFIG_FILE,"utf8"));
 }
 
-const DEFAULT_HOSTS = [
-  {name:"Dashmon",icon:"fa-solid fa-gauge-high",monitoring:{enabled:true,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}},
-  {name:"Proxmox",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"proxmox",url:"https://proxmox.local",node:"pve",tokenEnv:"",tokenIdEnv:"PROXMOX_TOKEN_ID",tokenSecretEnv:"PROXMOX_TOKEN_SECRET",tokenId:"",tokenSecret:""}},
-  {name:"Linux",icon:"fa-brands fa-linux",monitoring:{enabled:true,type:"linux",url:"http://linux.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}},
-  {name:"Serveur",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"linux",url:"http://serveur.local/metrics",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}}
-];
-const HOSTS_SEED_VERSION = 1;
-
-function ensureHostExamplesSeeded(){
-  let config;
-  try{
-    config=readConfig();
-  }catch(_error){
-    return;
-  }
-
-  const currentVersion=Number(config.hostsSeedVersion||0);
-  if(currentVersion>=HOSTS_SEED_VERSION) return;
-
-  if(!Array.isArray(config.hosts)) config.hosts=[];
-
-  // Ajoute uniquement les exemples absents, sans écraser les hôtes personnalisés.
-  const existingNames=new Set(config.hosts.map(host=>host?.name).filter(Boolean));
-  for(const sample of DEFAULT_HOSTS){
-    if(!existingNames.has(sample.name)){
-      config.hosts.push(JSON.parse(JSON.stringify(sample)));
-    }
-  }
-
-  config.hostsSeedVersion=HOSTS_SEED_VERSION;
-
-  try{
-    fs.writeFileSync(CONFIG_FILE,JSON.stringify(config,null,2)+"\n","utf8");
-  }catch(_error){
-    // Ne pas bloquer le démarrage si la migration ne peut pas être écrite.
-  }
-}
-
-ensureHostExamplesSeeded();
+// NOTE : aucun hôte d'exemple n'est injecté — la config est celle de
+// l'utilisateur (vide à la première installation), adaptable à tout environnement.
 
 const DEFAULT_WEB_LINKS = [{"name": "YouTube", "url": "https://www.youtube.com", "icon": "fa-brands fa-youtube"}, {"name": "Outlook", "url": "https://outlook.office.com", "icon": "fa-solid fa-envelope"}, {"name": "Google Drive", "url": "https://drive.google.com", "icon": "fa-brands fa-google-drive"}, {"name": "GitHub", "url": "https://github.com", "icon": "fa-brands fa-github"}];
 const WEB_LINKS_SEED_VERSION = 2;
@@ -475,8 +438,6 @@ password:isEncryptedSecret(svc.widget?.password)
             };
           })
         : [],
-      hostsSeedVersion:Number.isFinite(Number(config.hostsSeedVersion))
-        ? Number(config.hostsSeedVersion) : HOSTS_SEED_VERSION,
       collapsed:config.collapsed && typeof config.collapsed==="object" && !Array.isArray(config.collapsed)
         ? config.collapsed : {},
       viewMode:["rows","columns","plain"].includes(config.viewMode) ? config.viewMode : "columns",
@@ -1232,26 +1193,25 @@ async function checkDocker(service){
   statusCache[key]=out;
 
   const hostId=String(widget.hostId||"").trim();
-  if(!hostId){
-    out.error="Serveur Docker manquant";
-    return;
-  }
 
-  let config;
-  try{
-    config=readConfig();
-  }catch(_error){
-    out.error="Lecture de la config impossible";
-    return;
-  }
-
-  let host=null;
-  if(Array.isArray(config.hosts)){
-    host=config.hosts.find(h=>String((h&&h.id)||"").trim()===hostId);
-  }
-  if(!host){
-    out.error="Serveur Docker introuvable";
-    return;
+  // Sans hostId : socket Docker local du conteneur Dashmon (zéro config,
+  // adaptable à tout environnement où le socket est monté en lecture seule).
+  let host={id:"",name:"Dashmon",monitoring:{}};
+  if(hostId){
+    let config;
+    try{
+      config=readConfig();
+    }catch(_error){
+      out.error="Lecture de la config impossible";
+      return;
+    }
+    if(Array.isArray(config.hosts)){
+      host=config.hosts.find(h=>String((h&&h.id)||"").trim()===hostId);
+    }
+    if(!host){
+      out.error="Serveur Docker introuvable";
+      return;
+    }
   }
 
   const started=Date.now();
