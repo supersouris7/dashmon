@@ -6,6 +6,7 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 COPY server.js docker.js config.json ./
+COPY test ./test
 COPY public ./public
 RUN mkdir -p /app/data/icons /app/data/themes
 
