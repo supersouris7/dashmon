@@ -289,10 +289,25 @@ async function registryManifestDigest(ref, host){
   const parsed = parseImageRef(ref);
   if (parsed.pinned || !parsed.repo) throw new Error("Référence non vérifiable au registre");
   const endpoint = registryEndpoint(parsed, "https:");
-  const token = await registryToken(parsed, endpoint);
-  const headers = { "Accept": MANIFEST_ACCEPT };
-  if (token) headers.Authorization = "Bearer " + token;
   const path = "/v2/" + parsed.repo + "/manifests/" + encodeURIComponent(parsed.tag);
+
+  const readManifest = async (protocol, hostname, token) => {
+    const headers = { "Accept": MANIFEST_ACCEPT };
+    if (token) headers.Authorization = "Bearer " + token;
+    return registryRequest(protocol, hostname, path, headers);
+  };
+
+  const resolveAttempt = async (protocol, hostname) => {
+    // Docker Hub : jeton requis. Registres custom : d'abord en anonyme,
+    // jeton uniquement si le registre répond 401/403.
+    const token = endpoint.hub ? await registryToken(parsed, endpoint) : null;
+    let response = await readManifest(protocol, hostname, token);
+    if (!endpoint.hub && (response.status === 401 || response.status === 403)) {
+      const token2 = await registryToken(parsed, endpoint);
+      if (token2) response = await readManifest(protocol, hostname, token2);
+    }
+    return response;
+  };
 
   const candidates = endpoint.hub
     ? [[ "https:", "registry-1.docker.io" ]]
@@ -300,14 +315,13 @@ async function registryManifestDigest(ref, host){
   let lastError = new Error("registry unreachable");
   for (const [ protocol, hostname ] of candidates) {
     try {
-      const response = await registryRequest(protocol, hostname, path, headers);
-      if (response.status < 200 || response.status >= 300) {
-        lastError = new Error("HTTP " + response.status);
-        continue;
+      const response = await resolveAttempt(protocol, hostname);
+      if (response.status >= 200 && response.status < 300) {
+        const digestHeader = String(response.headers["docker-content-digest"] || "");
+        if (digestHeader) return digestHeader;
+        return "sha256:" + crypto.createHash("sha256").update(response.body).digest("hex");
       }
-      const digestHeader = String(response.headers["docker-content-digest"] || "");
-      if (digestHeader) return digestHeader;
-      return "sha256:" + crypto.createHash("sha256").update(response.body).digest("hex");
+      lastError = new Error("HTTP " + response.status);
     } catch (error) {
       lastError = error;
     }
