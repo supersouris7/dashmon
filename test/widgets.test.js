@@ -261,7 +261,7 @@ async function main(){
     const sloppy = new Registry({ kind: "widget", roots: [evilRoot], logger: silentLogger });
     await sloppy.load();
     check("registre : nom de dossier invalide signale",
-      sloppy.failures.map(f => f.id), ["MyPlugin", "evil"]);
+      sloppy.failures.map(f => f.id).sort(), ["MyPlugin", "evil"]);
   } finally {
     fs.rmSync(evilRoot, { recursive: true, force: true });
   }
