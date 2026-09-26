@@ -20,9 +20,10 @@
       "url": "Adresse de l'API",
       "urlPlaceholder": "tcp://hôte:2375 ou https://…",
       "missingUrl": "URL Docker TCP manquante",
-      "containers": "Conteneurs",
-      "updated": "MAJ",
-      "unknown": "non vérifiés",
+      "up": "en ligne",
+      "updated": "à jour",
+      "unknownOne": "non vérifié",
+      "unknownMany": "non vérifiés",
       "error": "Docker"
     },
     "en": {
@@ -33,9 +34,10 @@
       "url": "API address",
       "urlPlaceholder": "tcp://host:2375 or https://…",
       "missingUrl": "Docker TCP URL missing",
-      "containers": "Containers",
-      "updated": "Updated",
-      "unknown": "unverified",
+      "up": "up",
+      "updated": "updated",
+      "unknownOne": "unverified",
+      "unknownMany": "unverified",
       "error": "Docker"
     }
   },

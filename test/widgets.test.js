@@ -403,14 +403,32 @@ async function main(){
 
   check("renderer Docker : conteneurs et MAJ",
     pick(dockerModule.render(ctx({ ok: true, containers: { active: 8, total: 9 }, updated: { count: 8, total: 9, unknown: 1 } }))),
-    { badge: "containers 8 / 9", badgeClass: "nok", time: "updated 8 / 9", timeClass: "warn" });
+    { badge: "up 8 / 9", badgeClass: "nok", time: "updated 8 / 9", timeClass: "warn" });
   check("renderer Docker : tout vert",
     pick(dockerModule.render(ctx({ ok: true, containers: { active: 9, total: 9 }, updated: { count: 9, total: 9, unknown: 0 } }))),
-    { badge: "containers 9 / 9", badgeClass: "ok", time: "updated 9 / 9", timeClass: "delta-up" });
+    { badge: "up 9 / 9", badgeClass: "ok", time: "updated 9 / 9", timeClass: "delta-up" });
   check("renderer Docker : erreur = tuile neutre",
     dockerModule.render(ctx({ error: "ECONNREFUSED" })).badgeClass, "pending");
   check("renderer Docker : jamais verifie = tirets",
     dockerModule.render(ctx(null)).badge, "—");
+
+  // Les deux libelles de la tuile Docker doivent suivre la langue de
+  // l'interface : le renderer ne doit contenir aucun mot en dur.
+  const dockerStrings = JSON.parse(fs.readFileSync(path.join(WIDGETS, "docker", "manifest.json"), "utf8")).strings;
+  const localized = lang => info => ctx(info, { t: k => (dockerStrings[lang] || {})[k] || k });
+  const allGreen = { ok: true, containers: { active: 9, total: 9 }, updated: { count: 9, total: 9, unknown: 0 } };
+  check("renderer Docker : libelles anglais",
+    pick(dockerModule.render(localized("en")(allGreen))),
+    { badge: "up 9 / 9", badgeClass: "ok", time: "updated 9 / 9", timeClass: "delta-up" });
+  check("renderer Docker : libelles francais",
+    pick(dockerModule.render(localized("fr")(allGreen))),
+    { badge: "en ligne 9 / 9", badgeClass: "ok", time: "à jour 9 / 9", timeClass: "delta-up" });
+  check("renderer Docker : le tooltip reprend les deux libelles",
+    dockerModule.render(localized("fr")(allGreen)).title, "Docker · en ligne 9 / 9 · à jour 9 / 9");
+  check("renderer Docker : images non verifiees au singulier",
+    dockerModule.render(localized("fr")({ ok: true, containers: { active: 9, total: 9 }, updated: { count: 9, total: 9, unknown: 1 } })).title.endsWith(" · 1 non vérifié"));
+  check("renderer Docker : images non verifiees au pluriel",
+    dockerModule.render(localized("fr")({ ok: true, containers: { active: 9, total: 9 }, updated: { count: 9, total: 9, unknown: 3 } })).title.endsWith(" · 3 non vérifiés"));
 
   check("renderer Duplicati : sauvegarde OK",
     pick(duplicatiModule.render(ctx({ ok: true, lastAttemptAt: 1 }))),
