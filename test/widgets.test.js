@@ -65,16 +65,18 @@ async function main(){
     fs.existsSync(path.join(WIDGETS, "_template", "manifest.json")) && !registry.has("_template"));
 
   // --- Schema : validation d'un manifest -------------------------------
+  // Le modele doit etre un exemple copiable tel quel : son id suit le dossier.
   const errors = [];
-  const manifest = validateManifest("demo",
+  const manifest = validateManifest("_template",
     JSON.parse(fs.readFileSync(path.join(WIDGETS, "_template", "manifest.json"), "utf8")),
     errors);
-  ok("schema : le manifest du template est valide", manifest && !errors.length, errors.join(" ; "));
-  check("schema : id du dossier impose", manifest.id, "demo");
+  ok("schema : le manifest du template est valide", !!manifest && !errors.length, errors.join(" ; "));
+  check("schema : id du template = nom du dossier", manifest && manifest.id, "_template");
 
+  // Un id qui ne correspond pas au dossier est rejete : rien n'est renvoye.
   const mismatch = [];
-  validateManifest("autre", { id: "demo" }, mismatch);
-  ok("schema : id incoherent rejete", mismatch.length === 1, mismatch.join(" ; "));
+  check("schema : id incoherent rejete", validateManifest("autre", { id: "demo" }, mismatch), null);
+  ok("schema : id incoherent signale", mismatch.length === 1, mismatch.join(" ; "));
 
   const badType = [];
   const bad = validateManifest("demo", { config: [{ key: "x", type: "fichier" }] }, badType);
@@ -141,6 +143,22 @@ async function main(){
     core.sanitizeWidget({ type: "inconnu", foo: "bar" }), null);
   check("core : champ declare absent -> valeur vide",
     core.sanitizeWidget({ type: "duplicati" }), { type: "duplicati", password: "" });
+
+  // Un widget dont le type n'est pas installe n'est pas efface : le core ne
+  // connait pas son schema, donc il ne peut pas le reecrire. La config survit a
+  // un plugin temporairement absent (dossier supprime, manifeste invalide).
+  check("core : widget inconnu conserve ses champs",
+    core.preserveWidget({ type: "inconnu", jeton: "abc", actif: true, n: 3 }),
+    { type: "inconnu", jeton: "abc", actif: true, n: 3 });
+  check("core : widget inconnu : types exotiques et cles proto ecartees",
+    core.preserveWidget({ type: "inconnu", objet: { a: 1 }, liste: [1], vide: null, "__proto__": "x" }),
+    { type: "inconnu" });
+  check("core : widget inconnu : type invalide -> null",
+    core.preserveWidget({ type: "../../etc/passwd", a: "b" }), null);
+  check("core : sans widget -> null", core.preserveWidget(null), null);
+  ok("core : la cle de statut d'un widget inconnu reste son URL de service",
+    core.cacheKey({ url: "https://inconnu.lan/", widget: { type: "inconnu", jeton: "x" } })
+      === "https://inconnu.lan/");
 
   // Un secret en clair est chiffre a l'ecriture, un secret deja chiffre est
   // conserve tel quel (le re-chiffrement a chaque sauvegarde tournerait la cle
