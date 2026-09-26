@@ -192,19 +192,21 @@ function classifyDockerContainers(containers, images){
     const repoDigests = Array.isArray(image && image.RepoDigests)
       ? image.RepoDigests.map(value => String(value || "")).filter(Boolean)
       : [];
+    const imageId = typeof container.ImageID === "string" ? container.ImageID : "";
     if (ref.includes("@")) {
-      out.push({ ref, status: "pinned", repoDigests });
+      out.push({ ref, status: "pinned", repoDigests, imageId });
       return;
     }
     const current = tagById.get(ref);
-    if (current && current !== container.ImageID) {
-      out.push({ ref, status: "update", repoDigests });
+    if (current && current !== imageId) {
+      out.push({ ref, status: "update", repoDigests, imageId });
       return;
     }
     out.push({
       ref,
       status: current ? "local-current" : "unresolved",
-      repoDigests
+      repoDigests,
+      imageId
     });
   });
   return out;
@@ -300,27 +302,24 @@ async function tokenFromChallenge(parsed, header){
   }
 }
 
-async function registryManifestDigest(ref, host){
+async function registryManifestDigest(ref, host, platform){
   const parsed = parseImageRef(ref);
   if (parsed.pinned || !parsed.repo) throw new Error("Référence non vérifiable au registre");
   const endpoint = registryEndpoint(parsed, "https:");
   const path = "/v2/" + parsed.repo + "/manifests/" + encodeURIComponent(parsed.tag);
 
-  const readManifest = async (protocol, hostname, token) => {
-    const headers = { "Accept": MANIFEST_ACCEPT };
+  const attempt = async (protocol, hostname, reqPath, token) => {
+    let headers = { "Accept": MANIFEST_ACCEPT };
     if (token) headers.Authorization = "Bearer " + token;
-    return registryRequest(protocol, hostname, path, headers);
-  };
-
-  const resolveAttempt = async (protocol, hostname) => {
-    // Flux Bearer standard : anonyme d'abord, puis jeton auprès du realm
-    // indiqué par WWW-Authenticate si le registre répond 401/403.
-    let response = await readManifest(protocol, hostname, null);
-    if (response.status === 401 || response.status === 403) {
-      const token = await tokenFromChallenge(parsed, response.headers["www-authenticate"]);
-      if (token) response = await readManifest(protocol, hostname, token);
+    let response = await registryRequest(protocol, hostname, reqPath, headers);
+    if (!token && (response.status === 401 || response.status === 403)) {
+      const newToken = await tokenFromChallenge(parsed, response.headers["www-authenticate"]);
+      if (newToken) {
+        response = await registryRequest(protocol, hostname, reqPath, { "Accept": MANIFEST_ACCEPT, "Authorization": "Bearer " + newToken });
+        token = newToken;
+      }
     }
-    return response;
+    return { response, token };
   };
 
   const candidates = endpoint.hub
@@ -329,13 +328,39 @@ async function registryManifestDigest(ref, host){
   let lastError = new Error("registry unreachable");
   for (const [ protocol, hostname ] of candidates) {
     try {
-      const response = await resolveAttempt(protocol, hostname);
-      if (response.status >= 200 && response.status < 300) {
-        const digestHeader = String(response.headers["docker-content-digest"] || "");
-        if (digestHeader) return digestHeader;
-        return "sha256:" + crypto.createHash("sha256").update(response.body).digest("hex");
+      const main = await attempt(protocol, hostname, path, null);
+      if (main.response.status < 200 || main.response.status >= 300) {
+        lastError = new Error("HTTP " + main.response.status);
+        continue;
       }
-      lastError = new Error("HTTP " + response.status);
+      const digestHeader = String(main.response.headers["docker-content-digest"] || "");
+      const digest = digestHeader || ("sha256:" + crypto.createHash("sha256").update(main.response.body).digest("hex"));
+      let configDigest = null;
+      try {
+        const json = JSON.parse(main.response.body.toString("utf8"));
+        if (Array.isArray(json && json.manifests)) {
+          // Index multi-arch : sélectionner l'artefact du bon couple os/arch.
+          const target = (platform && platform.os && platform.architecture)
+            ? { os: platform.os, architecture: platform.architecture }
+            : null;
+          const entry = target
+            ? json.manifests.find(value => value && value.platform
+              && value.platform.os === target.os && value.platform.architecture === target.architecture)
+            : null;
+          if (entry) {
+            const child = await attempt(protocol, hostname, "/v2/" + parsed.repo + "/manifests/" + entry.digest, main.token);
+            if (child.response.status >= 200 && child.response.status < 300) {
+              const childJson = JSON.parse(child.response.body.toString("utf8"));
+              configDigest = childJson && childJson.config && typeof childJson.config.digest === "string"
+                ? childJson.config.digest
+                : null;
+            }
+          }
+        } else if (json && json.config && typeof json.config.digest === "string") {
+          configDigest = json.config.digest;
+        }
+      } catch (_error) {}
+      return { digest, configDigest };
     } catch (error) {
       lastError = error;
     }
@@ -345,30 +370,40 @@ async function registryManifestDigest(ref, host){
 
 const registryDigestCache = new Map();
 
-function cachedDigest(ref){
+function cachedResolved(ref){
   const hit = registryDigestCache.get(ref);
-  if (!hit) return { hit: false, digest: null };
+  if (!hit) return { hit: false, resolved: null };
   const ttl = hit.digest ? REGISTRY_CACHE_MS : REGISTRY_NULL_CACHE_MS;
-  if (Date.now() - hit.ts < ttl) return { hit: true, digest: hit.digest };
-  return { hit: false, digest: null };
+  if (Date.now() - hit.ts < ttl) return { hit: true, resolved: hit };
+  return { hit: false, resolved: null };
 }
 
-async function resolveRegistryDigests(host, refs){
+function platformForRef(ref, images){
+  const list = Array.isArray(images) ? images : [];
+  const image = list.find(item => item && Array.isArray(item.RepoTags)
+    && item.RepoTags.some(tag => tag === ref));
+  if (image && typeof image.Architecture === "string") {
+    return { os: image.Os || "linux", architecture: image.Architecture };
+  }
+  return null;
+}
+
+async function resolveRegistryDigests(host, refs, images){
   const map = new Map();
   const unique = Array.isArray(refs) ? [...new Set(refs.filter(Boolean))] : [];
   const pending = [];
   for (const ref of unique) {
-    const entry = cachedDigest(ref);
-    if (entry.hit) map.set(ref, entry.digest);
+    const entry = cachedResolved(ref);
+    if (entry.hit) map.set(ref, entry.resolved);
     else pending.push(ref);
   }
   for (const ref of pending) {
-    let digest = null;
+    let resolved = null;
     try {
-      digest = await registryManifestDigest(ref, host);
+      resolved = await registryManifestDigest(ref, host, platformForRef(ref, images));
     } catch (_error) {}
-    registryDigestCache.set(ref, { digest, ts: Date.now() });
-    map.set(ref, digest);
+    registryDigestCache.set(ref, resolved || { digest: null, configDigest: null, ts: Date.now() });
+    map.set(ref, registryDigestCache.get(ref));
   }
   return map;
 }
@@ -382,30 +417,37 @@ async function computeLiveDockerSummary(host, containers, images){
 
   const refs = [];
   for (const item of classified) {
-    if ((item.status === "local-current" || item.status === "unresolved") && !item.ref.includes("@")) {
+    if ((item.status === "local-current" || item.status === "unresolved") && item.ref && !item.ref.includes("@")) {
       refs.push(item.ref);
     }
   }
-  const digests = await resolveRegistryDigests(host, refs);
+  const resolved = await resolveRegistryDigests(host, refs, images);
 
   let updated = 0;
   let unknown = 0;
   for (const item of classified) {
     if (item.status === "pinned") { updated++; continue; }
     if (item.status === "update") continue;
-    const remote = item.ref ? digests.get(item.ref) : null;
-    if (!remote) {
+    const remote = item.ref ? resolved.get(item.ref) : null;
+    // Sans digest distant exploitable : pas de preuve -> compté à jour + trace.
+    if (!remote || !remote.digest) {
       updated++;
       unknown++;
       continue;
     }
-    if (!item.repoDigests.length) {
-      updated++;
-      unknown++;
+    if (item.repoDigests.length) {
+      const hasRemoteDigest = item.repoDigests.some(value => value.split("@").pop() === remote.digest);
+      updated += hasRemoteDigest ? 1 : 0;
       continue;
     }
-    const hasRemoteDigest = item.repoDigests.some(value => value.split("@").pop() === remote);
-    if (hasRemoteDigest) updated++;
+    // Image sans RepoDigest : comparer le digest de config du manifest
+    // (équivaut à l'image ID local) pour trancher réellement.
+    if (remote.configDigest) {
+      updated += item.imageId === remote.configDigest ? 1 : 0;
+      continue;
+    }
+    updated++;
+    unknown++;
   }
   return { total, active, updated, unknown };
 }
