@@ -3,6 +3,7 @@ import { state, getCategory, compareServices, serviceUsageKey, normalize, saniti
 import { t } from "./i18n.js";
 import { patchConfig, bumpUsage } from "./api.js";
 import { hasWidget, renderWidget, widgetStatusKey } from "./widget-registry.js";
+import { effectiveStatus, statusIcon } from "./status.js";
 import {
   dashboard, searchInput, webLinksSection, webLinksHeader, webLinksList,
   viewBtn, collapseAllBtn, openModeSelect, groupCategoryBtn,
@@ -30,18 +31,6 @@ export function applyFavicon(){
 
 function safeHref(url){
   return /^https?:\/\//.test(url) ? url : "#";
-}
-
-function effectiveStatus(monitor, info){
-  const state=(info&&info.state)||"pending";
-  return monitor==="soft" && state==="down" ? "soft" : state;
-}
-
-function statusIcon(state){
-  if(state==="up") return "fa-solid fa-circle-check";
-  if(state==="soft") return "fa-solid fa-circle-xmark";
-  if(state==="down") return "fa-solid fa-circle-xmark";
-  return "fa-regular fa-circle";
 }
 
 function statusTitle(monitor, info){

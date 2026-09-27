@@ -6,7 +6,9 @@
 //      interpretterait `import` comme une erreur de syntaxe) ;
 //   2. registre : le module est charge avec un `fetch` simule servant la vraie
 //      liste publiee par le core, ce qui permet de tester la normalisation de
-//      config, les champs conditionnels et le repli de rendu sans DOM.
+//      config, les champs conditionnels et le repli de rendu sans DOM ;
+//   3. pastilles : les regles d'etat (y compris la supervision non importante)
+//      sont testees sans DOM, via le module status.js.
 
 const assert = require("assert");
 const fs = require("fs");
@@ -167,6 +169,23 @@ async function main(){
   check("format : date FR", format.formatDateTime(new Date(2026, 0, 2, 12, 0).getTime(), "fr"), "02/01/2026");
   check("format : nombre EN", format.formatNumber(1234567, "en"), "1,234,567");
   ok("format : valeur invalide toleree", format.formatDateTime("n'importe quoi", "fr") !== undefined);
+
+  // --- 3. Pastilles de supervision ---------------------------------------
+  const status = await import(pathToFileURL(path.join(JS_DIR, "status.js")).href);
+  check("pastille : disponible = coche verte", status.statusIcon("up"), "fa-solid fa-circle-check");
+  check("pastille : indisponible = croix rouge", status.statusIcon("down"), "fa-solid fa-circle-xmark");
+  check("pastille : statut inconnu = rond vide", status.statusIcon("pending"), "fa-regular fa-circle");
+  // Supervision non importante : l'etat reste "soft" (l'info-bulle le dit),
+  // mais la pastille est un rond vide, exactement comme un statut inconnu.
+  check("pastille : supervision non importante = rond vide",
+    status.statusIcon(status.effectiveStatus("soft", { state: "down" })),
+    status.statusIcon("pending"));
+  check("pastille : supervision non importante, etat conserve pour l'info-bulle",
+    status.effectiveStatus("soft", { state: "down" }), "soft");
+  check("pastille : supervision non importante, service disponible = coche verte",
+    status.effectiveStatus("soft", { state: "up" }), "up");
+  check("pastille : rien de connu = statut inconnu",
+    status.effectiveStatus("soft", null), "pending");
 
   if (failures) {
     console.error(failures + " échec(s)");

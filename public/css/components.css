@@ -580,11 +580,12 @@ select,
   color:var(--error);
 }
 
-.service-status.soft{
-  color:var(--warning);
+/* Supervision non importante : meme aspect qu'un statut pas encore defini. */
+.service-status.soft,
+.service-status.pending{
+  color:var(--muted);
+  opacity:.55
 }
-
-.service-status.pending{opacity:.55}
 
 .widget-status{
   margin-left:auto;
