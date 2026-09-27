@@ -117,7 +117,7 @@ function ref(name, expected){
 ref("nginx:latest", { registry:"", repo:"nginx", tag:"latest", pinned:false, digest:"" });
 ref("library/nginx", { registry:"", repo:"library/nginx", tag:"latest", pinned:false, digest:"" });
 ref("ghcr.io/owner/app:1.0", { registry:"ghcr.io", repo:"owner/app", tag:"1.0", pinned:false, digest:"" });
-ref("192.168.1.10:5000/app:1.0", { registry:"192.168.1.10:5000", repo:"app", tag:"1.0", pinned:false, digest:"" });
+ref("192.0.2.10:5000/app:1.0", { registry:"192.0.2.10:5000", repo:"app", tag:"1.0", pinned:false, digest:"" });
 ref("docker.io/library/nginx:latest", { registry:"docker.io", repo:"library/nginx", tag:"latest", pinned:false, digest:"" });
 ref("nginx@sha256:abc", { registry:"", repo:"nginx", tag:"latest", pinned:true, digest:"sha256:abc" });
 

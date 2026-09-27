@@ -116,7 +116,7 @@ function dockerErrorBody(body, status){
 // --- Parse d'une référence d'image (pur) ---
 // "nginx:latest" -> {registry:"", repo:"nginx", tag:"latest"}
 // "ghcr.io/owner/app:1.0" -> {registry:"ghcr.io", repo:"owner/app", tag:"1.0"}
-// "192.168.1.10:5000/app" -> {registry:"192.168.1.10:5000", repo:"app", tag:"latest"}
+// "192.0.2.10:5000/app" -> {registry:"192.0.2.10:5000", repo:"app", tag:"latest"}
 // "nginx@sha256:abc" -> {pinned:true}
 function parseImageRef(ref){
   const raw = String(ref || "").trim();

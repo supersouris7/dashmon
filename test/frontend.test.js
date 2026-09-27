@@ -132,15 +132,15 @@ async function main(){
     { type: "docker", mode: "local", url: "", key: "docker:local|" });
   check("registre client : la cle recopiee reste la cle de la tuile",
     registry.widgetStatusKey({
-      url: "https://portainer.lan/",
+      url: "https://portainer.exemple.lan/",
       widget: registry.normalizeWidgetConfig({ type: "docker", mode: "local", url: "", key: "docker:local|" })
     }), "docker:local|");
   check("registre client : changement de type = defauts du nouveau widget",
     registry.inheritWidgetConfig("lichess", { type: "docker", mode: "tcp", url: "tcp://h:2375", key: "docker:x" }),
     { type: "lichess", username: "", variant: "" });
   check("registre client : select hors options -> defaut",
-    registry.normalizeWidgetConfig({ type: "lichess", username: "Willi", variant: "torpedo" }),
-    { type: "lichess", username: "Willi", variant: "" });
+    registry.normalizeWidgetConfig({ type: "lichess", username: "exemple", variant: "torpedo" }),
+    { type: "lichess", username: "exemple", variant: "" });
   check("registre client : secret chiffre non touche",
     registry.normalizeWidgetConfig({ type: "duplicati", password: "aes1.abc.def.ghi" }).password, "aes1.abc.def.ghi");
   check("registre client : widget inconnu conserve intact",

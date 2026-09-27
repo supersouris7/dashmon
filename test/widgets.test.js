@@ -237,8 +237,8 @@ async function main(){
     core.sanitizeWidget({ type: "adguard", protocol: "http", url: "adguard.lan:3000", username: "u", password: "aes1.YQ==" }),
     { type: "adguard", protocol: "http", url: "adguard.lan:3000", username: "u", password: "aes1.YQ==" });
   check("core : select hors options retombe sur le defaut",
-    core.sanitizeWidget({ type: "lichess", username: "Willi", variant: "torpedo" }),
-    { type: "lichess", username: "Willi", variant: "" });
+    core.sanitizeWidget({ type: "lichess", username: "exemple", variant: "torpedo" }),
+    { type: "lichess", username: "exemple", variant: "" });
   check("core : widget inconnu -> null (aucune config fantome)",
     core.sanitizeWidget({ type: "inconnu", foo: "bar" }), null);
   check("core : champ declare absent -> valeur vide",
@@ -442,7 +442,7 @@ async function main(){
     write: (name, value) => { files.set(name, value); return true; }
   };
   const lichessCtx = (over) => Object.assign({
-    config: { username: "Willi", variant: "" },
+    config: { username: "exemple", variant: "" },
     service: { url: "https://lichess.org/" },
     state: lichessServer.createState(),
     storage: memoryStorage,
@@ -461,13 +461,13 @@ async function main(){
     [first.ok, first.elo, first.variant], [true, 1500, "blitz"]);
   check("lichess : premier jour, pas encore d'evolution", first.monthDelta, null);
   ok("lichess : l'historique est ecrit sur disque",
-    files.has("lichess-history") && !!files.get("lichess-history").entries["willi|*"].history);
+    files.has("lichess-history") && !!files.get("lichess-history").entries["exemple|*"].history);
 
   // 30 jours plus tot : la note de reference existe deja.
   const day30 = lichessServer.dayKey(Date.now() - 30 * DAY_MS);
   files.set("lichess-history", {
     version: 1,
-    entries: { "willi|*": { elo: 1450, variant: "blitz", at: Date.now() - 30 * DAY_MS, history: { [day30]: 1450 } } }
+    entries: { "exemple|*": { elo: 1450, variant: "blitz", at: Date.now() - 30 * DAY_MS, history: { [day30]: 1450 } } }
   });
   const monthly = await lichessServer.check(lichessCtx());
   check("lichess : evolution sur un mois = 30 jours",
@@ -485,9 +485,9 @@ async function main(){
   for (let i = 0; i < 200; i++) {
     ancien[lichessServer.dayKey(Date.now() - i * DAY_MS)] = 1400 + i;
   }
-  files.set("lichess-history", { version: 1, entries: { "willi|*": { elo: 1400, variant: "blitz", at: 0, history: ancien } } });
+  files.set("lichess-history", { version: 1, entries: { "exemple|*": { elo: 1400, variant: "blitz", at: 0, history: ancien } } });
   await lichessServer.check(lichessCtx());
-  const kept = Object.keys(files.get("lichess-history").entries["willi|*"].history);
+  const kept = Object.keys(files.get("lichess-history").entries["exemple|*"].history);
   check("lichess : historique elague a la fenetre utile", kept.length, 76);
 
   // Sans aucune note enregistree, une erreur reste une erreur : on n'invente
@@ -501,17 +501,17 @@ async function main(){
   files.clear();
   await lichessServer.check(lichessCtx());
   const rapid = await lichessServer.check(lichessCtx({
-    config: { username: "willi", variant: "rapid" },
+    config: { username: "exemple", variant: "rapid" },
     api: async () => ({ perfs: { blitz: { rating: 1500 }, rapid: { rating: 1800 } } })
   }));
   check("lichess : historique par joueur et par variante",
     [Object.keys(files.get("lichess-history").entries).sort(), rapid.elo, rapid.variant],
-    [["willi|*", "willi|rapid"], 1800, "rapid"]);
+    [["exemple|*", "exemple|rapid"], 1800, "rapid"]);
 
   // Un compte sans note pour la variante demandee retombe sur la valeur
   // enregistree plutot que d'afficher un tiret.
   const sansVariante = await lichessServer.check(lichessCtx({
-    config: { username: "Willi", variant: "bullet" },
+    config: { username: "exemple", variant: "bullet" },
     api: async () => ({ perfs: { blitz: { rating: 1500 } } })
   }));
   check("lichess : variante absente de l'API = valeur conservee",
@@ -610,7 +610,7 @@ async function main(){
     youtubeParse.normalizeInput("UC_x5XG1OV2P6uZZ5FSM9Ttw"), "UC_x5XG1OV2P6uZZ5FSM9Ttw");
   check("youtube : chemin de chaine construit", youtubeParse.channelPath("@surfeon"), "/@surfeon");
   check("youtube : ancienne URL /c/ supportee",
-    youtubeParse.channelPath("https://www.youtube.com/c/Willi"), "/c/Willi");
+    youtubeParse.channelPath("https://www.youtube.com/c/exemple"), "/c/exemple");
   check("youtube : chemin d'un identifiant de chaine",
     youtubeParse.channelPath("UC_x5XG1OV2P6uZZ5FSM9Ttw"), "/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw");
   // Les deux ecritures rencontrees dans la page : "3,45 M" (fr) et "3.45K" (en).
