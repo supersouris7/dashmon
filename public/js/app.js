@@ -1,6 +1,7 @@
 // Point d'entrée : initialisation, menu principal, modals (éditeur/apparence), événements globaux.
-import { state, normalizeConfig, isTypingTarget, sanitizeUrl, DEFAULT_BANNER_URL } from "./state.js";
+import { state, normalizeConfig, normalizeViewPrefs, isTypingTarget, sanitizeUrl, DEFAULT_BANNER_URL } from "./state.js";
 import { patchConfig } from "./api.js";
+import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
 import { render, updateViewButton, updateOpenModeMenu, updateGroupModeMenu,
   updateSortModeMenu, setGroupMode, getCollapseAllState, updateCollapseAllButton,
   applyBanner, applyFavicon, updateStatusIndicators } from "./render.js";
@@ -36,19 +37,22 @@ async function loadConfig(){
     state.services=cfg.services;
     state.categories=cfg.categories;
     state.hosts=cfg.hosts;
-    state.collapsed=cfg.collapsed;
-    state.viewMode=cfg.viewMode;
-    state.openMode=cfg.openMode;
-    state.groupMode=cfg.groupMode;
+    // Disposition de l'écran : ce navigateur prime, la config serveur sert de
+    // valeur initiale (premier chargement, ou navigateur tout neuf).
+    const viewPrefs=normalizeViewPrefs(Object.assign(pickViewPrefs(cfg),loadViewPrefs()));
+    state.collapsed=viewPrefs.collapsed;
+    state.viewMode=viewPrefs.viewMode;
+    state.openMode=viewPrefs.openMode;
+    state.groupMode=viewPrefs.groupMode;
+    state.sortMode=viewPrefs.sortMode;
+    state.webLinksCollapsed=viewPrefs.webLinksCollapsed;
+    state.smallIcons=viewPrefs.smallIcons;
+    state.hostsDisplay=viewPrefs.hostsDisplay;
     state.theme=cfg.theme;
     state.language=cfg.language;
-    state.sortMode=cfg.sortMode;
     state.usageCounts=cfg.usageCounts;
     state.webLinks=cfg.webLinks;
-    state.webLinksCollapsed=cfg.webLinksCollapsed;
     state.webLinksSeedVersion=cfg.webLinksSeedVersion;
-    state.smallIcons=cfg.smallIcons;
-    state.hostsDisplay=cfg.hostsDisplay;
     state.bannerIcon=cfg.bannerIcon;
     state.bannerUrl=cfg.bannerUrl;
     state.favicon=cfg.favicon;
@@ -79,7 +83,7 @@ function setOpenMode(mode){
   updateOpenModeMenu();
   openModeSelect.value=mode;
   render();
-  patchConfig({openMode:mode},true);
+  saveViewPrefs({openMode:mode});
 }
 
 function setToolbarHeight(){
@@ -134,7 +138,7 @@ sortAlphabeticalBtn.addEventListener("click",()=>{
   state.sortMode="alphabetical";
   updateSortModeMenu();
   render();
-  patchConfig({sortMode:"alphabetical"});
+  saveViewPrefs({sortMode:"alphabetical"});
   closeTopMenu();
 });
 
@@ -142,7 +146,7 @@ sortUsageBtn.addEventListener("click",()=>{
   state.sortMode="usage";
   updateSortModeMenu();
   render();
-  patchConfig({sortMode:"usage"});
+  saveViewPrefs({sortMode:"usage"});
   closeTopMenu();
 });
 
@@ -157,7 +161,7 @@ viewBtn.addEventListener("click",()=>{
 
   updateViewButton();
   render();
-  patchConfig({viewMode:state.viewMode});
+  saveViewPrefs({viewMode:state.viewMode});
 });
 
 collapseAllBtn.addEventListener("click",()=>{
@@ -172,7 +176,7 @@ collapseAllBtn.addEventListener("click",()=>{
   });
 
   render();
-  patchConfig({collapsed:state.collapsed});
+  saveViewPrefs({collapsed:state.collapsed});
 });
 
 menuEditBtn.addEventListener("click",()=>{
@@ -213,13 +217,13 @@ languageSelect.addEventListener("change",()=>{
 smallIconsSelect.addEventListener("change",()=>{
   state.smallIcons=smallIconsSelect.value==="1";
   render();
-  patchConfig({smallIcons:state.smallIcons});
+  saveViewPrefs({smallIcons:state.smallIcons});
 });
 
 hostsDisplaySelect.addEventListener("change",()=>{
   state.hostsDisplay=hostsDisplaySelect.value==="icon" ? "icon" : "name";
   refreshHostMetrics();
-  patchConfig({hostsDisplay:state.hostsDisplay});
+  saveViewPrefs({hostsDisplay:state.hostsDisplay});
 });
 
 openModeSelect.addEventListener("change",()=>setOpenMode(openModeSelect.value));

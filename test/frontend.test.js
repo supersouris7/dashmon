@@ -8,7 +8,9 @@
 //      liste publiee par le core, ce qui permet de tester la normalisation de
 //      config, les champs conditionnels et le repli de rendu sans DOM ;
 //   3. pastilles : les regles d'etat (y compris la supervision non importante)
-//      sont testees sans DOM, via le module status.js.
+//      sont testees sans DOM, via le module status.js ;
+//   4. preferences d'affichage : leur stockage local (localStorage simule) et
+//      leur normalisation, sans DOM.
 
 const assert = require("assert");
 const fs = require("fs");
@@ -186,6 +188,65 @@ async function main(){
     status.effectiveStatus("soft", { state: "up" }), "up");
   check("pastille : rien de connu = statut inconnu",
     status.effectiveStatus("soft", null), "pending");
+
+  // --- 4. Preferences d'affichage stockees cote navigateur ---------------
+  // Le stockage est simule : view-prefs.js n'y touche qu'a l'appel, jamais a
+  // l'import, ce qui le rend testable hors navigateur.
+  const saved = new Map();
+  const realStorage = globalThis.localStorage;
+  globalThis.localStorage = {
+    getItem: key => (saved.has(key) ? saved.get(key) : null),
+    setItem: (key, value) => saved.set(key, String(value)),
+    removeItem: key => saved.delete(key)
+  };
+  try {
+    const prefs = await import(pathToFileURL(path.join(JS_DIR, "view-prefs.js")).href);
+    const stateModule = await import(pathToFileURL(path.join(JS_DIR, "state.js")).href);
+
+    check("prefs : la liste des cles est stable", stateModule.VIEW_PREF_KEYS.slice(),
+      ["viewMode", "sortMode", "groupMode", "openMode",
+        "smallIcons", "hostsDisplay", "collapsed", "webLinksCollapsed"]);
+
+    // Rien d'ecrit tant que l'utilisateur n'a rien change.
+    check("prefs : navigateur neuf = aucune preference", prefs.loadViewPrefs(), {});
+
+    prefs.saveViewPrefs({ viewMode: "rows" });
+    check("prefs : la disposition est relue", prefs.loadViewPrefs().viewMode, "rows");
+
+    // Une preference de serveur (langue, services) ne doit jamais atterrir
+    // dans le stockage du navigateur.
+    prefs.saveViewPrefs({ language: "en", services: [{ name: "x" }], theme: "matrix" });
+    check("prefs : rien d'autre que la disposition n'est ecrit",
+      Object.keys(JSON.parse(saved.get("dashmon.view"))), ["viewMode"]);
+
+    prefs.saveViewPrefs({ collapsed: { "category:Jeux": true } });
+    check("prefs : les prefs s'accumulent sans s'ecraser",
+      prefs.loadViewPrefs().collapsed, { "category:Jeux": true });
+
+    // Valeur bricolee a la main dans le navigateur : la normalisation de
+    // state.js doit la remplacer par un defaut sur, jamais la propager.
+    check("prefs : valeur invalide recalee",
+      stateModule.normalizeViewPrefs({ viewMode: "n'importe quoi" }).viewMode, "columns");
+    check("prefs : le navigateur prime sur la config serveur",
+      stateModule.normalizeViewPrefs(Object.assign(
+        { viewMode: "columns" }, prefs.loadViewPrefs())).viewMode, "rows");
+
+    check("prefs : extraction depuis la config serveur",
+      prefs.pickViewPrefs({ viewMode: "plain", language: "en", hosts: [] }),
+      { viewMode: "plain" });
+
+    // Stockage indisponible (navigation privée) : l'appel ne doit pas lever.
+    globalThis.localStorage = {
+      getItem: () => { throw new Error("bloqué"); },
+      setItem: () => { throw new Error("bloqué"); }
+    };
+    ok("prefs : stockage indisponible = repli silencieux",
+      prefs.loadViewPrefs().viewMode === undefined
+      && prefs.saveViewPrefs({ viewMode: "rows" }).viewMode === "rows");
+  } finally {
+    if (realStorage === undefined) delete globalThis.localStorage;
+    else globalThis.localStorage = realStorage;
+  }
 
   if (failures) {
     console.error(failures + " échec(s)");

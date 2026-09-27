@@ -9,23 +9,19 @@ export function saveConfig(immediate=false){
   clearTimeout(configSaveTimer);
 
   const run=()=>{
+    // Volontairement pas de collapsed/viewMode/sortMode/groupMode/openMode/
+    // smallIcons/hostsDisplay/webLinksCollapsed : la disposition de l'écran
+    // vit dans le navigateur (view-prefs.js), elle n'est ni lue ni écrite par
+    // le serveur. Le PUT sert la configuration et les préférences d'apparence.
     const payload=JSON.stringify({
       services:state.services,
       categories:state.categories,
       hosts:state.hosts,
-      collapsed:state.collapsed,
-      viewMode:state.viewMode,
-      openMode:state.openMode,
-      groupMode:state.groupMode,
       theme:state.theme,
       language:state.language,
-      sortMode:state.sortMode,
       usageCounts:state.usageCounts,
       webLinks:state.webLinks,
-      webLinksCollapsed:state.webLinksCollapsed,
       webLinksSeedVersion:state.webLinksSeedVersion,
-      smallIcons:state.smallIcons,
-      hostsDisplay:state.hostsDisplay,
       bannerIcon:state.bannerIcon,
       bannerUrl:state.bannerUrl,
       favicon:state.favicon,

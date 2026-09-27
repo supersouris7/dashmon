@@ -401,6 +401,29 @@ function normalizeCollapsed(collapsed){
   return out;
 }
 
+// Préférences d'affichage : elles décrivent la façon dont CET écran regarde le
+// tableau de bord, pas la configuration elle-même. Elles sont donc stockées
+// côté navigateur (voir view-prefs.js) et normalisées ici, avec exactement les
+// mêmes règles que la config serveur, pour qu'une valeur briculée dans le
+// navigateur ne puisse pas casser le rendu.
+export const VIEW_PREF_KEYS=Object.freeze([
+  "viewMode","sortMode","groupMode","openMode",
+  "smallIcons","hostsDisplay","collapsed","webLinksCollapsed"
+]);
+
+export function normalizeViewPrefs(cfg={}){
+  return {
+    viewMode:["rows","columns","plain"].includes(cfg.viewMode) ? cfg.viewMode : "columns",
+    openMode:cfg.openMode==="new" ? "new" : "same",
+    groupMode:cfg.groupMode==="host" ? "host" : "category",
+    sortMode:cfg.sortMode==="usage" ? "usage" : "alphabetical",
+    webLinksCollapsed:cfg.webLinksCollapsed===true,
+    smallIcons:cfg.smallIcons===true,
+    hostsDisplay:cfg.hostsDisplay==="icon" ? "icon" : "name",
+    collapsed:normalizeCollapsed(cfg.collapsed)
+  };
+}
+
 export function normalizeConfig(cfg={}){
   const normalizedServices=Array.isArray(cfg.services)
     ? clone(cfg.services)
@@ -409,6 +432,7 @@ export function normalizeConfig(cfg={}){
     normalizedServices.map(service=>(service.host||"").trim()).filter(Boolean)
   )].map(name=>({name,icon:"fa-solid fa-server"}));
   return {
+    ...normalizeViewPrefs(cfg),
     services:normalizedServices.map(svc=>({
       name:sanitizeText(svc.name,100),
       host:sanitizeText(svc.host,100),
@@ -447,13 +471,8 @@ export function normalizeConfig(cfg={}){
           id:host.id||"host-"+Math.random().toString(36).slice(2,10),
           monitoring:host.monitoring || {enabled:false,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}
         })),
-    collapsed:normalizeCollapsed(cfg.collapsed),
-    viewMode:["rows","columns","plain"].includes(cfg.viewMode) ? cfg.viewMode : "columns",
-    openMode:cfg.openMode==="new" ? "new" : "same",
-    groupMode:cfg.groupMode==="host" ? "host" : "category",
     theme:typeof cfg.theme==="string" && cfg.theme.trim() ? cfg.theme.trim() : "dark",
     language:cfg.language==="en" ? "en" : "fr",
-    sortMode:cfg.sortMode==="usage" ? "usage" : "alphabetical",
     usageCounts:cfg.usageCounts && typeof cfg.usageCounts==="object" && !Array.isArray(cfg.usageCounts) ? cfg.usageCounts : {},
     webLinks:(Array.isArray(cfg.webLinks) ? clone(cfg.webLinks) : clone(DEFAULT_WEB_LINKS))
       .map(link=>({
@@ -461,10 +480,7 @@ export function normalizeConfig(cfg={}){
         url:sanitizeUrl(link.url),
         icon:sanitizeIconClass(link.icon)
       })),
-    webLinksCollapsed:cfg.webLinksCollapsed===true,
     webLinksSeedVersion:Number.isFinite(Number(cfg.webLinksSeedVersion)) ? Number(cfg.webLinksSeedVersion) : 0,
-    smallIcons:cfg.smallIcons===true,
-    hostsDisplay:cfg.hostsDisplay==="icon" ? "icon" : "name",
     bannerIcon:cfg.bannerIcon!==false,
     bannerUrl:sanitizeUrl(cfg.bannerUrl||"") || DEFAULT_BANNER_URL,
     favicon:sanitizeFavicon(cfg.favicon),

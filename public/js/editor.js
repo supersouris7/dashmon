@@ -1,7 +1,8 @@
 // Éditeur de configuration : services, catégories, hôtes, liens web, import/export config.
-import { state, clone, normalize, normalizeConfig, compareNames } from "./state.js";
+import { state, clone, normalize, normalizeConfig, normalizeViewPrefs, compareNames } from "./state.js";
 import { t, applyLanguage } from "./i18n.js";
 import { saveConfig, putConfig, fetchConfig } from "./api.js";
+import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
 import { render, updateViewButton, updateOpenModeMenu, updateGroupModeMenu, updateSortModeMenu, applyBanner, applyFavicon } from "./render.js";
 import { applyTheme } from "./themes.js";
 import { refreshHostMetrics } from "./metrics.js";
@@ -854,18 +855,21 @@ configImportInput.addEventListener("change",async()=>{
     state.services=clone(imported.services);
     state.categories=clone(imported.categories);
     state.hosts=clone(imported.hosts);
-    state.collapsed={...imported.collapsed};
-    state.viewMode=imported.viewMode;
-    state.openMode=imported.openMode;
-    state.groupMode=imported.groupMode;
+    // La disposition de l'écran n'est pas dans le fichier importé : elle reste
+    // celle de ce navigateur, comme pour un simple rechargement.
+    const viewPrefs=normalizeViewPrefs(Object.assign(pickViewPrefs(imported),loadViewPrefs()));
+    state.collapsed=viewPrefs.collapsed;
+    state.viewMode=viewPrefs.viewMode;
+    state.openMode=viewPrefs.openMode;
+    state.groupMode=viewPrefs.groupMode;
+    state.sortMode=viewPrefs.sortMode;
+    state.webLinksCollapsed=viewPrefs.webLinksCollapsed;
+    state.smallIcons=viewPrefs.smallIcons;
+    state.hostsDisplay=viewPrefs.hostsDisplay;
     state.theme=imported.theme;
     state.language=imported.language;
-    state.sortMode=imported.sortMode;
     state.usageCounts={...imported.usageCounts};
     state.webLinks=clone(imported.webLinks);
-    state.webLinksCollapsed=imported.webLinksCollapsed;
-    state.smallIcons=imported.smallIcons;
-    state.hostsDisplay=imported.hostsDisplay;
     state.bannerIcon=imported.bannerIcon;
     state.bannerUrl=imported.bannerUrl;
     state.favicon=imported.favicon;
@@ -1003,6 +1007,9 @@ saveBtn.addEventListener("click",async()=>{
   state.collapsed=Object.fromEntries(
     Object.entries(state.collapsed).filter(([name])=>validCollapsedKeys.has(name))
   );
+  // Les sections repliées sont une préférence d'affichage : elles vivent dans
+  // le navigateur, pas dans config.json.
+  saveViewPrefs({collapsed:state.collapsed});
 
   render();
   await saveConfig(true);

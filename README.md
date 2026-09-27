@@ -117,6 +117,18 @@ For Proxmox you may instead paste the token ID/secret directly in the host
 editor — the value is then stored in `config.json` (keep your data volume
 private).
 
+### What lives where
+
+- **Server (`config.json`)** — the dashboard itself: services, categories,
+  hosts, web links, language, theme, banner/favicon, click counters.
+- **This browser only (`localStorage`)** — the layout: columns/lines/plain,
+  sort, grouping, link-opening mode, collapsed sections, small icons, host
+  name vs icon, collapsed web-links bar. Nothing is written to disk and
+  nothing is sent back to the server, so a layout never travels from one
+  device to another. The values already in `config.json` seed a browser that
+  has never chosen a layout.
+
+
 Full customization guide (create your own themes, import icons):
 [CUSTOMIZATION.md](CUSTOMIZATION.md).
 
