@@ -2,7 +2,7 @@
 import { state, normalizeConfig, normalizeViewPrefs, isTypingTarget, sanitizeUrl, DEFAULT_BANNER_URL } from "./state.js";
 import { patchConfig } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
-import { render, updateViewButton, updateOpenModeMenu, updateGroupModeMenu,
+import { render, updateViewButton, updateIconsButton, updateOpenModeMenu, updateGroupModeMenu,
   updateSortModeMenu, setGroupMode, getCollapseAllState, updateCollapseAllButton,
   applyBanner, applyFavicon, updateStatusIndicators } from "./render.js";
 import { applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater, t } from "./i18n.js";
@@ -16,7 +16,7 @@ import { openEditor, closeEditor, renderServiceEditor, renderCategoryEditor,
 import { closeImageLibrary } from "./images.js";
 import { loadWidgetRegistry } from "./widget-registry.js";
 import {
-  searchInput, viewBtn, collapseAllBtn, moreBtn, topMenu,
+    searchInput, viewBtn, iconsBtn, collapseAllBtn, moreBtn, topMenu,
   openModeSelect, groupCategoryBtn, groupHostBtn,
   sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuAppearanceBtn, menuRefreshBtn,
   appearanceBackdrop, appearanceCloseBtn, appearanceDoneBtn, themeSelect,
@@ -62,6 +62,7 @@ async function loadConfig(){
   }
 
   updateViewButton();
+  updateIconsButton();
   updateOpenModeMenu();
   updateGroupModeMenu();
   updateSortModeMenu();
@@ -206,6 +207,7 @@ languageSelect.addEventListener("change",()=>{
   state.language=languageSelect.value==="en" ? "en" : "fr";
   applyLanguage();
   updateViewButton();
+  updateIconsButton();
   updateStatusIndicators();
   renderServiceEditor();
   renderCategoryEditor();
@@ -217,6 +219,17 @@ languageSelect.addEventListener("change",()=>{
 smallIconsSelect.addEventListener("change",()=>{
   state.smallIcons=smallIconsSelect.value==="1";
   render();
+  updateIconsButton();
+  saveViewPrefs({smallIcons:state.smallIcons});
+});
+
+// Raccourci du mode petites icônes dans le bandeau. Le select du panneau
+// d'apparence doit suivre, sinon les deux se contredisent a l'ecran.
+iconsBtn.addEventListener("click",()=>{
+  state.smallIcons=!state.smallIcons;
+  smallIconsSelect.value=state.smallIcons ? "1" : "0";
+  render();
+  updateIconsButton();
   saveViewPrefs({smallIcons:state.smallIcons});
 });
 

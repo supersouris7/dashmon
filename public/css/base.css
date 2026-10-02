@@ -48,8 +48,8 @@ main{
   right:0;
   z-index:20;
   display:grid;
-  grid-template-columns:auto minmax(120px,200px) 1fr 48px 48px 48px;
-  grid-template-areas:"logo search metrics view collapse more";
+  grid-template-columns:auto minmax(120px,200px) 1fr 48px 48px 48px 48px;
+  grid-template-areas:"logo search metrics view icons collapse more";
   align-items:center;
   gap:10px;
   box-sizing:border-box;
@@ -84,8 +84,8 @@ html.banner-off .app-logo{
 }
 
 html.banner-off .toolbar{
-  grid-template-columns:minmax(240px,520px) 1fr 48px 48px 48px;
-  grid-template-areas:"search metrics view collapse more";
+  grid-template-columns:minmax(240px,520px) 1fr 48px 48px 48px 48px;
+  grid-template-areas:"search metrics view icons collapse more";
 }
 
 .search-box{
@@ -185,6 +185,13 @@ html.banner-off .toolbar{
 .icon-btn:hover{
   background:var(--surface-2);
   border-color:var(--muted);
+}
+
+/* Le glyphe suit l'état : quand les icônes du tableau de bord passent en
+   petites icônes, celle du bouton rétrécit aussi. On lit donc le mode actif
+   sans avoir à rouvrir le panneau d'apparence. */
+.icon-btn i.is-small{
+  font-size:11px;
 }
 
 .top-menu-wrap{

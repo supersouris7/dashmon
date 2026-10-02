@@ -7,7 +7,7 @@ import { hasWidget, renderWidget, widgetStatusKey } from "./widget-registry.js";
 import { effectiveStatus, statusIcon } from "./status.js";
 import {
   dashboard, searchInput, webLinksSection, webLinksHeader, webLinksList,
-  viewBtn, collapseAllBtn, openModeSelect, groupCategoryBtn,
+  viewBtn, iconsBtn, collapseAllBtn, openModeSelect, groupCategoryBtn,
   groupHostBtn, sortAlphabeticalBtn, sortUsageBtn,
   appLogoLink, faviconLink
 } from "./dom.js";
@@ -77,6 +77,18 @@ export function updateViewButton(){
     icon.className="fa-solid fa-border-all";
     viewBtn.title=t("viewPlain");
   }
+}
+
+// Le mode petites icônes existe déjà dans le panneau d'apparence ; ce bouton en
+// est le raccourci. Le libellé annonce l'état courant, comme le bouton
+// d'affichage, et le glyphe rétrécit quand il est actif.
+export function updateIconsButton(){
+  const icon=iconsBtn.querySelector("i");
+  const label=state.smallIcons ? t("smallIconsOptionOn") : t("smallIconsOptionOff");
+  icon.classList.toggle("is-small",state.smallIcons);
+  iconsBtn.title=label;
+  iconsBtn.setAttribute("aria-label",label);
+  iconsBtn.setAttribute("aria-pressed",state.smallIcons ? "true" : "false");
 }
 
 export function updateOpenModeMenu(){

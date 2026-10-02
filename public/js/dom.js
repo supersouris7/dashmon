@@ -4,6 +4,7 @@ export const refreshBar=document.getElementById("refreshBar");
 export const hostMetrics=document.getElementById("hostMetrics");
 export const searchInput=document.getElementById("search");
 export const viewBtn=document.getElementById("viewBtn");
+export const iconsBtn=document.getElementById("iconsBtn");
 export const collapseAllBtn=document.getElementById("collapseAllBtn");
 export const moreBtn=document.getElementById("moreBtn");
 export const topMenu=document.getElementById("topMenu");
