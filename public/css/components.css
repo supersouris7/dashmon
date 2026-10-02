@@ -958,17 +958,11 @@ body.is-refreshing .service-status{animation:refreshPulse 1.15s ease-in-out infi
 }
 
 @media (max-width:560px){
+  /* Téléphone : pas de bandeau du tout, seulement les tuiles. La recherche, les
+     métriques d'hôtes et les boutons d'action restent accessibles au clavier
+     depuis l'éditeur. */
   .toolbar{
-    grid-template-columns:32px minmax(96px,1fr) minmax(0,1fr) 48px 48px 48px;
-    gap:6px;
-  }
-  html.banner-off .toolbar{
-    grid-template-columns:minmax(96px,1fr) minmax(0,1fr) 48px 48px 48px;
-  }
-  .app-logo{
-    width:30px;
-    height:30px;
-    min-width:30px;
+    display:none;
   }
   .appearance-field{
     grid-template-columns:1fr;
