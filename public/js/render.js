@@ -81,12 +81,14 @@ export function updateViewButton(){
 
 // Le mode petites icônes existe déjà dans le panneau d'apparence ; ce bouton en
 // est le raccourci. Le libellé annonce l'état courant et le glyphe change, comme
-// le bouton d'affichage : la même grille de tuiles, à deux échelles, se lit sans
-// avoir à rouvrir le panneau d'apparence.
+// le bouton d'affichage : les flèches rentrent quand les icônes rétrécissent et
+// sortent quand elles grossissent, donc le bouton montre l'action, pas l'état.
 export function updateIconsButton(){
   const icon=iconsBtn.querySelector("i");
   const label=state.smallIcons ? t("smallIconsOptionOn") : t("smallIconsOptionOff");
-  icon.className=state.smallIcons ? "fa-solid fa-table-cells-small" : "fa-solid fa-table-cells-large";
+  icon.className=state.smallIcons
+    ? "fa-solid fa-down-left-and-up-right-to-center"
+    : "fa-solid fa-up-right-and-down-left-to-center";
   iconsBtn.title=label;
   iconsBtn.setAttribute("aria-label",label);
   iconsBtn.setAttribute("aria-pressed",state.smallIcons ? "true" : "false");
