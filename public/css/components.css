@@ -108,7 +108,7 @@
 
 /* Large : texte + barres + % */
 @media(max-width:1240px){
-  .host-metric:nth-child(3){
+  .host-metric:nth-child(n+4){
     display:none;
   }
 }
@@ -141,8 +141,8 @@
 /* Étroit : la recherche reste sur la même ligne que les hôtes et boutons (comme PC), simplement non sticky */
 @media (max-width:920px){
   .toolbar{
-    grid-template-columns:34px minmax(150px,1fr) minmax(0,1fr) 48px 48px 48px;
-    grid-template-areas:"logo search metrics view collapse more";
+    grid-template-columns:34px minmax(150px,1fr) minmax(0,1fr) 48px 48px 48px 48px;
+    grid-template-areas:"logo search metrics view icons collapse more";
     gap:8px;
     position:static;
     margin-bottom:28px;
@@ -151,8 +151,8 @@
     box-shadow:none;
   }
   html.banner-off .toolbar{
-    grid-template-columns:minmax(150px,1fr) minmax(0,1fr) 48px 48px 48px;
-    grid-template-areas:"search metrics view collapse more";
+    grid-template-columns:minmax(150px,1fr) minmax(0,1fr) 48px 48px 48px 48px;
+    grid-template-areas:"search metrics view icons collapse more";
   }
   .host-metrics{
     grid-area:metrics;
@@ -160,6 +160,9 @@
   }
   #viewBtn{
     grid-area:view;
+  }
+  #iconsBtn{
+    grid-area:icons;
   }
   #collapseAllBtn{
     grid-area:collapse;
