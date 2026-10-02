@@ -33,7 +33,16 @@ const THEMES_NATIVE_DIR = process.env.THEMES_NATIVE_DIR || path.join(PUBLIC_DIR,
 const THEMES_CUSTOM_DIR = process.env.THEMES_CUSTOM_DIR || path.join(DATA_DIR, "themes");
 
 const APP_VERSION = require("./package.json").version;
-const INDEX_HTML = fs.readFileSync(INDEX_FILE, "utf8").replace(/\{\{VERSION\}\}/g, APP_VERSION);
+// SHA du commit qui a produit l'image (Dockerfile : ARG DASHMON_COMMIT, alimentee
+// par la CI). Il est affiche a cote du numero de version pour verifier d'un coup
+// d'oeil quelle version tourne apres un "docker pull".
+// La valeur vient de l'environnement : elle est validee avant d'atteindre le
+// HTML, et un SHA absent ou inattendu ("unknown" par defaut) fait disparaitre
+// le suffixe plutot que d'afficher un marqueur trompeur.
+const APP_COMMIT = (process.env.DASHMON_COMMIT || "").trim();
+const APP_COMMIT_SHORT = /^[0-9a-f]{7,40}$/.test(APP_COMMIT) ? APP_COMMIT.slice(0, 7) : "";
+const APP_LABEL = APP_COMMIT_SHORT ? APP_VERSION + " · " + APP_COMMIT_SHORT : APP_VERSION;
+const INDEX_HTML = fs.readFileSync(INDEX_FILE, "utf8").replace(/\{\{VERSION\}\}/g, APP_LABEL);
 
 app.disable("x-powered-by");
 app.use(express.json({limit:"1mb",strict:true}));

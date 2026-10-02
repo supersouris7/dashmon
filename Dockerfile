@@ -20,6 +20,14 @@ ENV NODE_ENV=production
 ENV PORT=8080
 ENV DATA_DIR=/app/data
 ENV CONFIG_FILE=/app/data/config.json
+
+# SHA du commit qui a produit l'image, injecte par la CI. L'interface
+# l'affiche a cote du numero de version, ce qui permet de verifier d'un
+# coup d'oeil quelle version tourne reellement apres un "docker pull".
+# "unknown" pour une construction locale, l'interface n'affiche alors rien.
+ARG DASHMON_COMMIT=unknown
+ENV DASHMON_COMMIT=$DASHMON_COMMIT
+
 ENV ICONS_DIR=/app/data/icons
 
 COPY --from=build --chown=node:node /app/ ./
