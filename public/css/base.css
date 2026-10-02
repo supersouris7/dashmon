@@ -296,11 +296,12 @@ html.banner-off .toolbar{
 
 .cards{
   display:grid;
-  /* Doit rester aligne sur la grille du mode colonnes ci-dessous : meme
-     minimum de piste et meme gap, sinon les tuiles n'ont pas la meme
-     largeur selon le mode d'affichage. */
+  /* L'ecart horizontal (18px) doit rester aligne sur la grille du mode
+     colonnes ci-dessous : c'est lui, et lui seul, qui fixe le nombre de
+     colonnes et donc la largeur des tuiles. L'ecart vertical est libre et
+     resserre pour approcher les lignes de tuiles. */
   grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:18px;
+  gap:10px 18px;
   overflow:visible;
 }
 
@@ -312,7 +313,7 @@ html.banner-off .toolbar{
 #dashboard[data-view="columns"]{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:18px;
+  gap:10px 18px;
   align-items:start;
 }
 
@@ -422,7 +423,7 @@ html.banner-off .toolbar{
 @media(max-width:560px){
   body{padding:10px}
   .cards{grid-template-columns:1fr}
-  #dashboard[data-view="columns"]{grid-template-columns:1fr;gap:12px}
+  #dashboard[data-view="columns"]{grid-template-columns:1fr;gap:10px 12px}
   .toolbar{gap:8px}
   .card{padding:12px;gap:10px}
   .card-title{font-size:14px}
