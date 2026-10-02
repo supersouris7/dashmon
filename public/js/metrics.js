@@ -2,7 +2,7 @@
 import { state, sanitizeIconClass } from "./state.js";
 import { render, focusHostGroup, updateStatusIndicators } from "./render.js";
 import { t } from "./i18n.js";
-import { hostMetrics } from "./dom.js";
+import { hostMetrics, refreshBar, menuRefreshBtn } from "./dom.js";
 
 function renderHostMetrics(){
   if(!hostMetrics) return;
@@ -122,7 +122,30 @@ async function refreshStatus(){
   }catch(_error){}
 }
 
+// Duree minimale pendant laquelle le retour d'activite reste affiche. Sans elle,
+// un hote local repond si vite que le repere clignote et passe inaperçu, ce qui
+// est pire que ne rien afficher du tout.
+const MIN_REFRESH_FEEDBACK=700;
+let statusRefreshPending=false;
+
+function setRefreshPending(pending){
+  statusRefreshPending=pending;
+  document.body.classList.toggle("is-refreshing",pending);
+  if(menuRefreshBtn){
+    menuRefreshBtn.disabled=pending;
+    menuRefreshBtn.setAttribute("aria-busy",pending?"true":"false");
+  }
+  if(refreshBar) refreshBar.textContent=pending ? t("refreshing") : "";
+}
+
 export async function manualRefresh(){
+  // Un second clic pendant une sonde en cours empilerait un POST /api/refresh
+  // sur le meme travail et ne renverrait aucun gain.
+  if(statusRefreshPending) return false;
+
+  const startedAt=Date.now();
+  setRefreshPending(true);
+
   try{
     const response=await fetch("/api/refresh",{method:"POST",cache:"no-store"});
     if(!response.ok) return false;
@@ -131,6 +154,10 @@ export async function manualRefresh(){
     return true;
   }catch(_error){
     return false;
+  }finally{
+    const remaining=MIN_REFRESH_FEEDBACK-(Date.now()-startedAt);
+    if(remaining>0) setTimeout(()=>setRefreshPending(false),remaining);
+    else setRefreshPending(false);
   }
 }
 

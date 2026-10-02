@@ -58,6 +58,10 @@
 </head>
 
 <body>
+<!-- Retour d'activité pendant un rafraîchissement : le menu se referme aussitôt,
+     cette barre est donc le seul repère qui reste à l'écran. Le texte qu'elle
+     reçoit sert à l'accessibilité, la barre est trop fine pour l'afficher. -->
+<div class="refresh-bar" id="refreshBar" role="status" aria-live="polite"></div>
 <main>
   <div class="toolbar">
     <a id="appLogoLink" class="app-logo" href="https://github.com/supersouris7" target="_blank" rel="noopener" title="Dashmon">
