@@ -4,7 +4,7 @@
 // (tag local re-pullé vers une autre image). Sinon il est compté à jour et
 // tracé dans `unknown` (à raffiner au registre distant par le backend).
 const assert = require("assert");
-const { computeDockerSummary, parseImageRef } = require("../docker");
+const { computeDockerSummary, parseImageRef, dockerSocketError } = require("../docker");
 
 let failures = 0;
 function check(name, actual, expected){
@@ -120,6 +120,22 @@ ref("ghcr.io/owner/app:1.0", { registry:"ghcr.io", repo:"owner/app", tag:"1.0", 
 ref("192.0.2.10:5000/app:1.0", { registry:"192.0.2.10:5000", repo:"app", tag:"1.0", pinned:false, digest:"" });
 ref("docker.io/library/nginx:latest", { registry:"docker.io", repo:"library/nginx", tag:"latest", pinned:false, digest:"" });
 ref("nginx@sha256:abc", { registry:"", repo:"nginx", tag:"latest", pinned:true, digest:"sha256:abc" });
+
+// --- dockerSocketError ---
+// Le conteneur tourne en non-root : sans group_add, le socket (root:docker en
+// 660) refuse la connexion. EACCES doit donc nommer la cause et le remède.
+function eacces(code){
+  return dockerSocketError(Object.assign(new Error("connect " + code), { code }));
+}
+check("EACCES traduit en cause et remede",
+  /group_add/.test(eacces("EACCES").message) && /docker\.sock/.test(eacces("EACCES").message), true);
+check("EPERM traduit aussi", /group_add/.test(eacces("EPERM").message), true);
+check("le code d'erreur est conserve", eacces("EACCES").code, "EACCES");
+check("une erreur de timeout reste intacte",
+  dockerSocketError(Object.assign(new Error("timeout"), { code:"ETIMEDOUT" })).message, "timeout");
+check("une erreur sans code reste intacte",
+  dockerSocketError(new Error("boom")).message, "boom");
+check("pas d'erreur = pas d'exception", dockerSocketError(undefined), undefined);
 
 if (failures) {
   console.error(failures + " échec(s)");

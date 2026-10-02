@@ -44,6 +44,15 @@ function dockerHostMode(host){
   return docker && docker.mode === "tcp" ? "tcp" : "local";
 }
 
+// L'image tourne sous l'utilisateur non-root node : sans groupe supplémentaire,
+// le socket Docker (root:docker en 660) refuse la connexion. EACCES/EPERM ne dit
+// rien d'exploitable, on le traduit en cause et en remède.
+function dockerSocketError(error){
+  if (!error || (error.code !== "EACCES" && error.code !== "EPERM")) return error;
+  const hint = "Socket Docker inaccessible (" + error.code + ") : le conteneur n'appartient pas au groupe docker. Ajoutez group_add avec le gid de /var/run/docker.sock (stat -c '%g' /var/run/docker.sock).";
+  return Object.assign(new Error(hint), { code: error.code });
+}
+
 function dockerRequest(host, endpoint, timeout){
   const tcp = dockerHostMode(host) === "tcp";
   const timeoutMs = Number.isFinite(timeout) ? timeout : DOCKER_TIMEOUT;
@@ -100,7 +109,7 @@ function dockerRequest(host, endpoint, timeout){
     }
 
     req.on("timeout", () => req.destroy(new Error("timeout")));
-    req.on("error", reject);
+    req.on("error", error => reject(tcp ? error : dockerSocketError(error)));
     req.end();
   });
 }
@@ -455,6 +464,7 @@ async function computeLiveDockerSummary(host, containers, images){
 
 module.exports = {
   dockerRequest,
+  dockerSocketError,
   dockerHostMode,
   parseImageRef,
   classifyDockerContainers,

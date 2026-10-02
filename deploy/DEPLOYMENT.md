@@ -29,6 +29,28 @@ docker run -d --name dashmon -p 8080:8080 \
 
 On first start, `config.json` (sample services) is copied to `/app/data` if missing.
 
+### Docker widget (optional socket)
+
+The Docker widget reads the Engine API read-only through `/var/run/docker.sock`.
+The image runs as the non-root user `node` (uid 1000), while the socket usually
+belongs to `root:docker` in mode `660`. Mounting it is not enough: without that
+group every request is refused with `EACCES` and the widget stays empty.
+
+```bash
+stat -c '%g' /var/run/docker.sock   # gid of the docker group
+```
+
+```yaml
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    group_add:
+      - "999"   # the gid printed above
+```
+
+Adding the group is preferable to `user: "0:0"`: the container stays non-root and
+only the socket becomes reachable. Without the socket the rest of Dashmon is
+unaffected, so drop both lines to disable the widget.
+
 ## 2. Environment variables
 
 See `.env.example`. The most important:
