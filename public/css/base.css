@@ -296,12 +296,32 @@ html.banner-off .toolbar{
 
 .cards{
   display:grid;
-  /* Doit rester aligne sur la grille du mode colonnes (editor.css) :
-     meme minimum de piste et meme gap, sinon les tuiles n'ont pas la
-     meme largeur selon le mode d'affichage. */
+  /* Doit rester aligne sur la grille du mode colonnes ci-dessous : meme
+     minimum de piste et meme gap, sinon les tuiles n'ont pas la meme
+     largeur selon le mode d'affichage. */
   grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
   gap:18px;
   overflow:visible;
+}
+
+/* Mode colonnes : le tableau de bord lui-meme devient la grille, chaque
+   section occupe une colonne et ses tuiles s'empilent sur une seule piste.
+   Voisines de .cards par construction, elles doivent vivre dans le meme
+   fichier : c'est le decalage entre ces deux moities qui avait produit
+   une largeur de tuile differente selon le mode. */
+#dashboard[data-view="columns"]{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:18px;
+  align-items:start;
+}
+
+#dashboard[data-view="columns"] .section{
+  margin-bottom:0;
+}
+
+#dashboard[data-view="columns"] .cards{
+  grid-template-columns:1fr;
 }
 
 .card{
@@ -402,6 +422,7 @@ html.banner-off .toolbar{
 @media(max-width:560px){
   body{padding:10px}
   .cards{grid-template-columns:1fr}
+  #dashboard[data-view="columns"]{grid-template-columns:1fr;gap:12px}
   .toolbar{gap:8px}
   .card{padding:12px;gap:10px}
   .card-title{font-size:14px}

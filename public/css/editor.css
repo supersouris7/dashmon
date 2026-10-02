@@ -488,28 +488,6 @@ body.modal-open{
   margin-left:auto;
 }
 
-#dashboard[data-view="columns"]{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:18px;
-  align-items:start;
-}
-
-@media(max-width:560px){
-  #dashboard[data-view="columns"]{
-    grid-template-columns:1fr;
-    gap:12px;
-  }
-}
-
-#dashboard[data-view="columns"] .section{
-  margin-bottom:0;
-}
-
-#dashboard[data-view="columns"] .cards{
-  grid-template-columns:1fr;
-}
-
 .drag-handle{
   width:30px;
   height:38px;
