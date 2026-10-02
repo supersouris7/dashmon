@@ -26,7 +26,10 @@ const DOCKER_API_VERSION = process.env.DOCKER_API_VERSION || "v1.41";
 const DOCKER_SOCKET = process.env.DOCKER_SOCKET || "/var/run/docker.sock";
 const DOCKER_TIMEOUT = 4000;
 const REGISTRY_TIMEOUT = 8000;
-const INSECURE_REGISTRY_TLS = process.env.DASHBOARD_INSECURE_TLS === "1";
+// Même interrupteur que les autres sorties HTTP du tableau de bord (lib/http.js,
+// server.js) : il vaut aussi pour une API Docker joignable en TCP, dont le
+// certificat est souvent auto-signé.
+const INSECURE_TLS = process.env.DASHBOARD_INSECURE_TLS === "1";
 // Cache mmoire des digests de manifest par référence (repo@tag). Les succès
 // sont conservés REGISTRY_CACHE_MS ; les échecs seulement 30 min pour ne pas
 // rater un tag venant d'être publié.
@@ -93,6 +96,7 @@ function dockerRequest(host, endpoint, timeout){
         req = (target.protocol === "https:" ? https : http).request(target, {
           method: "GET",
           timeout: timeoutMs,
+          rejectUnauthorized: !INSECURE_TLS,
           headers: { "Accept": "application/json" }
         }, onResponse);
       } else {
@@ -257,7 +261,7 @@ function registryRequest(protocol, host, path, headers, timeout){
       headers: Object.assign({ "User-Agent": "Dashmon-Registry/1.0" }, headers || {}),
       timeout: timeout || REGISTRY_TIMEOUT,
       family: 4,
-      rejectUnauthorized: !INSECURE_REGISTRY_TLS,
+      rejectUnauthorized: !INSECURE_TLS,
       servername: protocol === "https:" ? bareHost(host) : undefined
     }, response => {
       const chunks = [];
