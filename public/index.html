@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Dashmon gère ses propres thèmes clair et sombre : cette déclaration
+     empêche les extensions comme Dark Reader d'inverser la page en plus. -->
+<meta name="color-scheme" content="dark light">
 <title>Dashmon</title>
 <link id="faviconLink" rel="icon" href="{{FAVICON_HREF}}">
 <noscript><style>body{opacity:1 !important}</style></noscript>
@@ -34,6 +37,17 @@
       var preload=document.createElement("style");
       preload.textContent=":root{"+vars+"}";
       document.head.appendChild(preload);
+      // Widgets natifs alignés sur le thème dès la première peinture : le fond
+      // est déjà dans vars, inutile d'attendre le chargement des modules.
+      var bg=(vars.match(/--bg:\s*(#[0-9a-f]{3,6})/i)||[])[1];
+      if(bg){
+        var h=bg.slice(1);
+        if(h.length===3) h=h.replace(/./g,function(c){return c+c});
+        if(/^[0-9a-f]{6}$/i.test(h)){
+          var l=0.299*parseInt(h.slice(0,2),16)+0.587*parseInt(h.slice(2,4),16)+0.114*parseInt(h.slice(4,6),16);
+          docEl.style.colorScheme=l<128?"dark":"light";
+        }
+      }
     }
   }catch(e){}
   function reveal(){if(document.body) document.body.classList.add("app-ready")}

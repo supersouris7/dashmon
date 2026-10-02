@@ -95,10 +95,26 @@ export async function loadThemes(){
   applyTheme();
 }
 
+// Un thème peut être clair ou sombre, et les thèmes importés le peuvent aussi :
+// on juge donc sur le fond plutôt que sur le nom. Un fond clair donne false.
+// Le seuil est la formule de luminance perçue (Rec. 601), celle qui colle le
+// plus à la perception, donc au rendu réel du texte sur ce fond.
+function isDarkTheme(theme){
+  const bg=(theme?.variables?.bg)||"";
+  let hex=bg.trim().replace(/^#/,"");
+  if(/^[0-9a-f]{3}$/i.test(hex)) hex=hex.replace(/./g,c=>c+c);
+  if(!/^[0-9a-f]{6}$/i.test(hex)) return true;
+  const [r,g,b]=[0,2,4].map(i=>parseInt(hex.slice(i,i+2),16));
+  return 0.299*r + 0.587*g + 0.114*b < 128;
+}
+
 export function applyTheme(){
   document.documentElement.dataset.theme=state.theme;
   try{
     const theme=currentTheme();
+    // Aligne les widgets natifs du navigateur sur le thème réellement appliqué,
+    // plutôt que sur le réglage clair/sombre du poste.
+    document.documentElement.style.colorScheme=isDarkTheme(theme)?"dark":"light";
     if(theme?.variables){
       const vars=Object.entries(theme.variables)
         .map(([key,value])=>`--${key}:${value};`)
