@@ -296,8 +296,11 @@ html.banner-off .toolbar{
 
 .cards{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-  gap:10px;
+  /* Doit rester aligne sur la grille du mode colonnes (editor.css) :
+     meme minimum de piste et meme gap, sinon les tuiles n'ont pas la
+     meme largeur selon le mode d'affichage. */
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:18px;
   overflow:visible;
 }
 
