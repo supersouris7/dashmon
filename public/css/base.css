@@ -187,13 +187,6 @@ html.banner-off .toolbar{
   border-color:var(--muted);
 }
 
-/* Le glyphe suit l'état : quand les icônes du tableau de bord passent en
-   petites icônes, celle du bouton rétrécit aussi. On lit donc le mode actif
-   sans avoir à rouvrir le panneau d'apparence. */
-.icon-btn i.is-small{
-  font-size:11px;
-}
-
 .top-menu-wrap{
   position:relative;
 }
