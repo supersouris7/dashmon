@@ -88,7 +88,7 @@ export function updateIconsButton(){
   const label=state.smallIcons ? t("smallIconsOptionOn") : t("smallIconsOptionOff");
   icon.className=state.smallIcons
     ? "fa-solid fa-down-left-and-up-right-to-center"
-    : "fa-solid fa-up-right-and-down-left-to-center";
+    : "fa-solid fa-expand-alt";
   iconsBtn.title=label;
   iconsBtn.setAttribute("aria-label",label);
   iconsBtn.setAttribute("aria-pressed",state.smallIcons ? "true" : "false");
