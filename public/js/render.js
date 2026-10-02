@@ -79,14 +79,14 @@ export function updateViewButton(){
   }
 }
 
-// La densité des tuiles se règle aussi dans le panneau d'apparence ; ce bouton en
+// Le mode petites icônes existe déjà dans le panneau d'apparence ; ce bouton en
 // est le raccourci. Le libellé annonce l'état courant et le glyphe change, comme
-// le bouton d'affichage : quatre cases quand c'est aéré, une grille de points
-// quand c'est compact.
+// le bouton d'affichage : la même grille de tuiles, à deux échelles, se lit sans
+// avoir à rouvrir le panneau d'apparence.
 export function updateIconsButton(){
   const icon=iconsBtn.querySelector("i");
-  const label=state.smallIcons ? t("densityCompact") : t("densityNormal");
-  icon.className=state.smallIcons ? "fa-solid fa-grip" : "fa-solid fa-table-cells";
+  const label=state.smallIcons ? t("smallIconsOptionOn") : t("smallIconsOptionOff");
+  icon.className=state.smallIcons ? "fa-solid fa-table-cells-small" : "fa-solid fa-table-cells-large";
   iconsBtn.title=label;
   iconsBtn.setAttribute("aria-label",label);
   iconsBtn.setAttribute("aria-pressed",state.smallIcons ? "true" : "false");
