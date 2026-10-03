@@ -52,6 +52,9 @@ async function check(ctx) {
   return {
     state: "down",
     ok: false,
+    // Le code HTTP quand la sonde en a obtenu un : c'est lui qui distingue un
+    // 502 d'une connexion refusee, et l'info-bulle de la tuile s'appuie dessus.
+    code: first.code,
     ms: first.ms,
     error: String((first.error || "no response")).slice(0, 200)
   };

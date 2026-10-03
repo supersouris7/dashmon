@@ -548,12 +548,16 @@ async function main(){
     check("web : lien qui repond = point vert", [live.state, live.ok, live.code], ["up", true, 200]);
     ok("web : temps de reponse mesure", Number.isFinite(live.ms), show(live));
     const broken = await webServer.check(probeCtx(base + "/boum"));
-    // Une reponse HTTP est une reponse : 503 et 404 restent verts, comme avant
-    // le passage en plugin (la sonde ne juge pas le contenu). Seule l'absence
-    // de reponse fait tomber la tuile.
-    check("web : erreur HTTP = point vert (le serveur a repondu)", [broken.state, broken.ok, broken.code], ["up", true, 503]);
+    // Une erreur 5xx est un echec du service derriere : nginx repond, mais
+    // l'application est tombee. Une pastille verte serait un faux positif, donc
+    // 503 tombe en rouge. Le code reste visible pour le diagnostic.
+    check("web : erreur 5xx = point rouge", [broken.state, broken.ok, broken.code], ["down", false, 503]);
+    check("web : l'erreur nomme le code HTTP", /503/.test(broken.error || ""), true);
     const gone = await webServer.check(probeCtx(base + "/absent"));
-    check("web : 404 = point vert", [gone.state, gone.ok, gone.code], ["up", true, 404]);
+    // 4xx en revanche prouve que la cible est joignable : une page sous
+    // authentification (401/403) reste verte, sinon tout tableau de bord protege
+    // serait en alarme permanente.
+    check("web : 404 = point vert (la cible repond)", [gone.state, gone.ok, gone.code], ["up", true, 404]);
     // Port 1 : rien n'y ecoute, la connexion est refusee.
     const refused = await webServer.check(probeCtx("http://127.0.0.1:1/"));
     check("web : connexion refusee = point rouge", [refused.state, refused.ok], ["down", false]);
