@@ -909,8 +909,18 @@ async function main(){
   check("ping : adresse invalide refusee", ping.parseTarget("http://"), null);
   check("ping : cible vide refusee", ping.parseTarget("   "), null);
 
-  const pingCtx = (host, url) => ({
-    config: { type: "ping", host },
+  // Le champ "port" de l'editeur prime sur le port ecrit dans l'hote.
+  check("ping : le champ port prime sur l'hote",
+    ping.parseTarget("nas.exemple.lan:8080", 443), { host: "nas.exemple.lan", port: 443 });
+  check("ping : champ port seul, port par defaut conserve",
+    ping.parseTarget("nas.exemple.lan", 8443), { host: "nas.exemple.lan", port: 8443 });
+  check("ping : champ port a zero = defaut du scheme",
+    ping.parseTarget("https://routeur.exemple.lan", 0), { host: "routeur.exemple.lan", port: 443 });
+  check("ping : champ port hors bornes ignore",
+    ping.parseTarget("nas.exemple.lan", 70000), { host: "nas.exemple.lan", port: 80 });
+
+  const pingCtx = (host, url, port) => ({
+    config: { type: "ping", host, port: port == null ? 0 : port },
     service: url == null ? { name: "cible" } : { name: "cible", url },
     sanitizeUrl: value => value,
     t: key => key

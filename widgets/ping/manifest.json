@@ -15,7 +15,8 @@
     "fr": {
       "name": "Ping",
       "host": "Hôte testé",
-      "hostPlaceholder": "192.0.2.10, nas.exemple.lan ou nas.exemple.lan:8080",
+      "hostPlaceholder": "192.0.2.10 ou nas.exemple.lan",
+      "port": "Port TCP",
       "reachable": "Répond",
       "unreachable": "Ne répond pas",
       "missingHost": "Adresse manquante",
@@ -26,7 +27,8 @@
     "en": {
       "name": "Ping",
       "host": "Tested host",
-      "hostPlaceholder": "192.0.2.10, nas.example.lan or nas.example.lan:8080",
+      "hostPlaceholder": "192.0.2.10 or nas.example.lan",
+      "port": "TCP port",
       "reachable": "Answers",
       "unreachable": "Does not answer",
       "missingHost": "Missing address",
@@ -42,6 +44,14 @@
       "label": "host",
       "maxLength": 200,
       "placeholder": "hostPlaceholder"
+    },
+    {
+      "key": "port",
+      "type": "number",
+      "label": "port",
+      "default": 0,
+      "min": 0,
+      "max": 65535
     }
   ]
 }

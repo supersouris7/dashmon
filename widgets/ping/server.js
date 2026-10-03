@@ -31,9 +31,10 @@ const TIMEOUT = 3000;
 
 // Extrait l'hote et le port de l'URL du service. Accepte une URL avec scheme
 // ("http://nas:8080") comme une adresse nue ("192.0.2.10"), et les deux
-// formes d'IPv6 ("[::1]" et "::1"). Le port vient de l'URL quand il y en a un,
-// sinon du scheme : 443 pour https, 80 pour http.
-function parseTarget(raw) {
+// formes d'IPv6 ("[::1]" et "::1"). Le port est prioritise s'il est donne dans
+// "host" ; sinon le champ "port" de la config ; sinon le scheme (443 pour
+// https, 80 pour http).
+function parseTarget(raw, portOverride) {
   const text = String(raw == null ? "" : raw).trim();
   if (!text) return null;
 
@@ -68,6 +69,14 @@ function parseTarget(raw) {
   }
 
   if (!host) return null;
+
+  // Champ "port" de l'editeur : prioritaire sur le port ecrit dans l'hote,
+  // pour que la saisie reste naturelle ("nas.exemple.lan" + 443).
+  const chosen = Math.trunc(Number(portOverride));
+  if (Number.isInteger(chosen) && chosen >= 1 && chosen <= 65535) {
+    return { host, port: chosen };
+  }
+
   if (!port) port = scheme === "https" ? 443 : 80;
   if (!Number.isInteger(port) || port < 1 || port > 65535) return null;
   return { host, port };
@@ -95,8 +104,9 @@ function tcpConnect(host, port, timeout) {
 
 async function check(ctx) {
   // Le champ "host" gagne sur l'URL du service : on teste ce que l'utilisateur
-  // a explicitement demande, meme si la carte pointe ailleurs.
-  const target = parseTarget(ctx.config.host || (ctx.service && ctx.service.url));
+  // a explicitement demande, meme si la carte pointe ailleurs. Le port vient du
+  // champ dedie de l'editeur quand il est renseigne.
+  const target = parseTarget(ctx.config.host || (ctx.service && ctx.service.url), ctx.config.port);
   if (!target) {
     return { state: "down", ok: false, error: ctx.t("missingHost") };
   }
