@@ -156,6 +156,13 @@ async function main(){
   check("core : la periode d'un lien nu vient du plugin de lien",
     core.interval(plainLink), 300000);
   check("core : la cle d'un lien nu reste son URL", core.cacheKey(plainLink), "https://exemple.lan/");
+  // Le widget Ping teste un hote choisi, pas l'URL de la carte : deux cartes
+  // sans URL ne doivent donc pas se marcher dessus dans le cache de statut.
+  const pingKeyA = core.cacheKey({ name: "a", url: "", widget: { type: "ping", host: "192.0.2.10" } });
+  const pingKeyB = core.cacheKey({ name: "b", url: "", widget: { type: "ping", host: "192.0.2.11" } });
+  ok("core : deux tuiles ping sans URL ont des cles distinctes",
+    pingKeyA !== pingKeyB && pingKeyA.startsWith("ping:") && pingKeyB.startsWith("ping:"),
+    pingKeyA + " / " + pingKeyB);
   check("core : un widget explicite l'emporte sur le plugin de lien",
     core.pluginFor({ url: "https://exemple.lan/", widget: { type: "github", repo: "a/b" } }).id, "github");
   ok("core : un widget installe est surveillable",
@@ -902,32 +909,38 @@ async function main(){
   check("ping : adresse invalide refusee", ping.parseTarget("http://"), null);
   check("ping : cible vide refusee", ping.parseTarget("   "), null);
 
-  const pingCtx = url => ({
-    config: { type: "ping" },
-    service: { url },
+  const pingCtx = (host, url) => ({
+    config: { type: "ping", host },
+    service: url == null ? { name: "cible" } : { name: "cible", url },
     sanitizeUrl: value => value,
     t: key => key
   });
 
-  const noHost = await ping.check(pingCtx(""));
-  check("ping : pas d'adresse = down", [noHost.state, noHost.ok, noHost.error],
+  // Le champ "host" prime sur l'URL : c'est lui que l'utilisateur choisit.
+  const noHost = await ping.check(pingCtx("", ""));
+  check("ping : ni host ni URL = down", [noHost.state, noHost.ok, noHost.error],
     ["down", false, "missingHost"]);
 
-  const badName = await ping.check(pingCtx("http://hote-inexistant.exemple.lan"));
+  const noHostNoUrl = await ping.check(pingCtx("", null));
+  check("ping : carte sans URL = down", [noHostNoUrl.state, noHostNoUrl.error],
+    ["down", "missingHost"]);
+
+  // Sans champ host, l'URL du service sert de repli.
+  const badName = await ping.check(pingCtx("", "http://hote-inexistant.exemple.lan"));
   check("ping : nom introuvable = down", [badName.state, badName.ok, badName.error],
     ["down", false, "unresolved"]);
 
-  // Le renderer ne doit afficher aucun temps de reponse : la tuile ne porte que
-  // la pastille et le libelle.
-  check("ping : rendu sans ligne de temps",
-    pick(pingModule.render({ info: { ok: true, state: "up", ms: 12 }, t: k => k, formatNumber: String })),
-    { badge: "name", badgeClass: "ok", time: "", timeClass: "" });
-  check("ping : rendu en panne",
-    pick(pingModule.render({ info: { ok: false, state: "down", error: "noAnswer" }, t: k => k })),
-    { badge: "name", badgeClass: "nok", time: "", timeClass: "" });
-  check("ping : statut inconnu = pending",
-    pick(pingModule.render({ info: null, t: k => k })),
-    { badge: "name", badgeClass: "pending", time: "", timeClass: "" });
+  const badHost = await ping.check(pingCtx("hote-inexistant.exemple.lan", "http://autre.exemple.lan"));
+  check("ping : le champ host prime sur l'URL", [badHost.state, badHost.error],
+    ["down", "unresolved"]);
+
+  // Le renderer renvoie un noeud DOM : on verifie ici son contrat et la
+  // correspondance etat -> glyphe, le DOM lui-meme n'etant pas disponible dans
+  // ces tests sans navigateur.
+  check("ping : le client expose un rendu sur mesure", typeof pingModule.element, "function");
+  check("ping : glyphe up", pingModule.statusIcon("up"), "fa-solid fa-circle-check");
+  check("ping : glyphe down", pingModule.statusIcon("down"), "fa-solid fa-circle-xmark");
+  check("ping : glyphe pending", pingModule.statusIcon("pending"), "fa-regular fa-circle");
 
   if (failures) {
     console.error(failures + " échec(s)");

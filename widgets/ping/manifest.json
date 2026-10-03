@@ -3,17 +3,21 @@
   "version": "1.0.0",
   "label": { "fr": "Ping", "en": "Ping" },
   "description": {
-    "fr": "Teste si une IP ou un hôte répond : résolution du nom puis connexion TCP",
-    "en": "Tests whether an IP or a host answers: name resolution then TCP connection"
+    "fr": "Teste si un hôte répond : résolution du nom puis connexion TCP",
+    "en": "Tests whether a host answers: name resolution then TCP connection"
   },
   "interval": 60000,
-  "cacheKey": "service",
+  "cacheKey": "config",
   "probe": true,
   "server": "server.js",
   "client": "client.mjs",
   "strings": {
     "fr": {
       "name": "Ping",
+      "host": "Hôte testé",
+      "hostPlaceholder": "192.0.2.10, nas.exemple.lan ou nas.exemple.lan:8080",
+      "reachable": "Répond",
+      "unreachable": "Ne répond pas",
       "missingHost": "Adresse manquante",
       "unresolved": "Nom introuvable",
       "noAnswer": "Port fermé ou injoignable",
@@ -21,10 +25,23 @@
     },
     "en": {
       "name": "Ping",
+      "host": "Tested host",
+      "hostPlaceholder": "192.0.2.10, nas.example.lan or nas.example.lan:8080",
+      "reachable": "Answers",
+      "unreachable": "Does not answer",
       "missingHost": "Missing address",
       "unresolved": "Host not found",
       "noAnswer": "Port closed or unreachable",
       "error": "Ping"
     }
-  }
+  },
+  "config": [
+    {
+      "key": "host",
+      "type": "text",
+      "label": "host",
+      "maxLength": 200,
+      "placeholder": "hostPlaceholder"
+    }
+  ]
 }

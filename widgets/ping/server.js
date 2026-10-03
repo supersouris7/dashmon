@@ -8,13 +8,14 @@
 // question qui compte sur un tableau de bord — "est-ce que ce service est
 // joignable ?" — et ne demande ni privilege ni dependance.
 //
-// La cible est l'URL du service elle-meme : "http://192.0.2.10",
-// "http://nas.exemple.lan:8080", "https://routeur.exemple.lan". Un champ
-// dediee serait une seconde source de verite a tenir synchrone avec l'URL, et
-// la pastille n'est rendue de toute facon que sur une carte qui a une URL.
+// La cible est le champ "host" du widget : "192.0.2.10", "nas.exemple.lan",
+// "nas.exemple.lan:8080". L'URL du service n'est qu'un repli, pour que le
+// widget reste utile sans configuration ; elle reste aussi le lien au clic et
+// n'a donc pas a connaitre l'hote teste. Le port vient de la saisie quand il y
+// en a un, sinon 80 (ou 443 si l'URL de repli est en https).
 //
-// L'URL sert aussi de lien au clic, et l'icone reste celle choisie par
-// l'utilisateur : une adresse nue n'est pas forcernment un site web.
+// Sans URL, la carte n'a pas de lien au clic — c'est le comportement normal
+// d'une tuile qui n'en a pas, pas une degradee de ce widget.
 
 const dns = require("dns");
 const net = require("net");
@@ -88,7 +89,9 @@ function tcpConnect(host, port, timeout) {
 }
 
 async function check(ctx) {
-  const target = parseTarget(ctx.service && ctx.service.url);
+  // Le champ "host" gagne sur l'URL du service : on teste ce que l'utilisateur
+  // a explicitement demande, meme si la carte pointe ailleurs.
+  const target = parseTarget(ctx.config.host || (ctx.service && ctx.service.url));
   if (!target) {
     return { state: "down", ok: false, error: ctx.t("missingHost") };
   }
