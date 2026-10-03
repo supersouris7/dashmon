@@ -10,7 +10,6 @@
   "cacheKey": "config",
   "server": "server.js",
   "client": "client.mjs",
-  "css": "client.css",
   "strings": {
     "fr": {
       "name": "Uptime Kuma",
