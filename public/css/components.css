@@ -684,6 +684,17 @@ body.is-refreshing .service-status{animation:refreshPulse 1.15s ease-in-out infi
 
 .widget-status.pending .widget-time{opacity:.55}
 
+/* Lichess, AdGuard et Duplicati : les deux lignes portent la meme information
+   (une note et son evolution, un pourcentage et son volume). La seconde n'est
+   donc pas une legende mais une donnee, et elle se lit aussi mal que la
+   premiere. Le badge est deja gras (.widget-badge) ; on aligne la ligne du bas
+   sur ces trois widgets seulement, sans toucher Docker ni les autres. */
+#dashboard .widget-lichess .widget-time,
+#dashboard .widget-adguard .widget-time,
+#dashboard .widget-duplicati .widget-time{
+  font-weight:700;
+}
+
 #dashboard.small-icons .widget-time{display:none}
 
 #dashboard.small-icons .widget-badge{font-size:10px}
