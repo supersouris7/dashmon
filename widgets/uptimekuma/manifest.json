@@ -1,6 +1,6 @@
 {
   "id": "uptimekuma",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "label": { "fr": "Uptime Kuma", "en": "Uptime Kuma" },
   "description": {
     "fr": "Compte les moniteurs en ligne et hors ligne d'une page de statut Uptime Kuma",
@@ -24,7 +24,7 @@
       "monitor": "moniteur",
       "monitors": "moniteurs",
       "missingConfig": "Adresse ou page de statut manquante",
-      "badAnswer": "Réponse illisible d'Uptime Kuma",
+      "noMonitors": "Aucun moniteur trouvé sur cette page",
       "error": "Uptime Kuma"
     },
     "en": {
@@ -40,7 +40,7 @@
       "monitor": "monitor",
       "monitors": "monitors",
       "missingConfig": "Missing address or status page",
-      "badAnswer": "Unreadable answer from Uptime Kuma",
+      "noMonitors": "No monitor found on this page",
       "error": "Uptime Kuma"
     }
   },

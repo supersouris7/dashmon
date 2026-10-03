@@ -963,27 +963,26 @@ async function main(){
   // le ferait la page de statut d'Uptime Kuma.
   const kuma = require("../widgets/uptimekuma/server.js");
 
-  check("kuma : moniteurs imbriques dans des groupes",
-    kuma.monitorIds([{ id: 1, monitorList: [{ id: 10 }, { id: 11 }] }, { id: 2, monitorList: [{ id: 12 }] }]),
-    ["10", "11", "12"]);
-  check("kuma : liste plate acceptee", kuma.monitorIds([{ id: 7 }, { id: 8 }]), ["7", "8"]);
-  check("kuma : liste vide", kuma.monitorIds([]), []);
+  // sanitizeUrl exige un schema : une adresse nue doit etre completee, sinon le
+  // widget s'annonçait "adresse manquante" alors que le champ etait rempli.
+  check("kuma : adresse nue completee en http", kuma.normalizeBase("kuma.exemple.lan"), "http://kuma.exemple.lan");
+  check("kuma : schema https conserve", kuma.normalizeBase("https://kuma.exemple.lan"), "https://kuma.exemple.lan");
+  check("kuma : adresse vide", kuma.normalizeBase("  "), "");
+
   check("kuma : dernier heartbeat garde",
     kuma.latest([{ status: 1, time: "2026-01-01 10:00:00" }, { status: 0, time: "2026-01-01 12:00:00" }]).status, 0);
+  check("kuma : ordre inverse tolerated",
+    kuma.latest([{ status: 0, time: "2026-01-01 12:00:00" }, { status: 1, time: "2026-01-01 10:00:00" }]).status, 0);
   check("kuma : serie vide", kuma.latest([]), null);
 
-  const kumaCtx = (page, beats, config) => ({
+  const kumaCtx = (beats, config) => ({
     config: Object.assign({ type: "uptimekuma", url: "https://kuma.exemple.lan", slug: "kuma" }, config),
     service: { name: "kuma" },
-    sanitizeUrl: value => value,
+    sanitizeUrl: value => (/^https?:\/\//.test(value) ? value : ""),
     t: key => key,
-    api: async (_base, path) => {
-      if (path.startsWith("/api/status-page/heartbeat/")) return beats;
-      return page;
-    }
+    api: async () => beats
   });
 
-  const kumaPage = { publicGroupList: [{ id: 1, monitorList: [{ id: 10 }, { id: 11 }, { id: 12 }, { id: 13 }] }] };
   const kumaBeats = {
     heartbeatList: {
       10: [{ status: 1, time: "2026-01-01 10:00:00" }],
@@ -992,23 +991,21 @@ async function main(){
       13: [{ status: 3, time: "2026-01-01 10:00:00" }]
     }
   };
-  const counted = await kuma.check(kumaCtx(kumaPage, kumaBeats, {}));
+  const counted = await kuma.check(kumaCtx(kumaBeats, {}));
   check("kuma : 2 en ligne, 1 hors ligne, 1 maintenance non compte",
     [counted.ok, counted.up, counted.down, counted.total], [true, 2, 1, 4]);
 
-  const allUp = await kuma.check(kumaCtx(kumaPage, {
-    heartbeatList: { 10: [{ status: 1, time: "x" }], 11: [{ status: 1, time: "x" }], 12: [{ status: 1, time: "x" }], 13: [{ status: 1, time: "x" }] }
-  }, {}));
-  check("kuma : tout en ligne", [allUp.ok, allUp.up, allUp.down], [true, 4, 0]);
+  // L'identifiant de moniteur est une cle JSON : "12", pas 12.
+  check("kuma : 0 en ligne", (await kuma.check(kumaCtx({ heartbeatList: { 1: [{ status: 0, time: "x" }] } }, {}))).down, 1);
 
-  const noConfig = await kuma.check(kumaCtx(kumaPage, kumaBeats, { url: "", slug: "" }));
+  const noConfig = await kuma.check(kumaCtx(kumaBeats, { url: "", slug: "" }));
   check("kuma : config incomplete signalee",
     [noConfig.ok, noConfig.up, noConfig.error], [false, null, "missingConfig"]);
 
-  const wrongPage = await kuma.check(kumaCtx({ publicGroupList: [] }, { heartbeatList: {} }, {}));
-  check("kuma : page vide signalee plutot que 0", [wrongPage.ok, wrongPage.error], [false, "badAnswer"]);
+  const wrongPage = await kuma.check(kumaCtx({ heartbeatList: {} }, {}));
+  check("kuma : page vide signalee plutot que 0", [wrongPage.ok, wrongPage.error], [false, "noMonitors"]);
 
-  const unreachable = await kuma.check(Object.assign(kumaCtx(kumaPage, kumaBeats, {}), {
+  const unreachable = await kuma.check(Object.assign(kumaCtx(kumaBeats, {}), {
     api: async () => { throw new Error("timeout"); }
   }));
   check("kuma : erreur reseau signalee", [unreachable.ok, unreachable.error], [false, "timeout"]);
