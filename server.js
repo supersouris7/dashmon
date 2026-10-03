@@ -32,16 +32,20 @@ const ICONS_DIR = process.env.ICONS_DIR || path.join(DATA_DIR, "icons");
 const THEMES_NATIVE_DIR = process.env.THEMES_NATIVE_DIR || path.join(PUBLIC_DIR, "themes");
 const THEMES_CUSTOM_DIR = process.env.THEMES_CUSTOM_DIR || path.join(DATA_DIR, "themes");
 
-const PACKAGE_VERSION = require("./package.json").version;
-// Version de release affichee dans le pied de page. Elle suit le tag plutot
-// que le champ "version" du paquet, qui reste fige entre deux releases : sur
-// une image construite depuis un tag v*, la CI passe DASHMON_RELEASE et le
-// pied de page annonce la version publiee. Sans tag (build sur main), on garde
-// le numero du paquet.
+// Version de release affichee dans le pied de page. Elle suit le tag plutot que
+// le champ "version" du paquet, qui reste fige entre deux releases : sur une
+// image construite depuis un tag v*, la CI passe DASHMON_RELEASE et le pied de
+// page annonce la version publiee.
+//
+// Un build depuis main — l'image "unstable", celle de la preprod — ne peut pas
+// pretendre etre une release, et afficher le numero du paquet serait doublement
+// trompeur : fige a 1.0.0 entre deux releases, il laisserait croire que
+// l'image tourne a jour alors qu'elle avance a chaque push. On affiche donc
+// "unstable", et c'est le commit affiche a cote qui change a chaque build.
 const RELEASE = (process.env.DASHMON_RELEASE || "").trim();
 const APP_VERSION = /^v?\d+(\.\d+){0,2}([-.][0-9A-Za-z.-]+)?$/.test(RELEASE)
   ? (RELEASE.startsWith("v") ? RELEASE : "v" + RELEASE)
-  : PACKAGE_VERSION;
+  : "unstable";
 // SHA du commit qui a produit l'image (Dockerfile : ARG DASHMON_COMMIT, alimentee
 // par la CI). Il est affiche a cote du numero de version pour verifier d'un coup
 // d'oeil quelle version tourne apres un "docker pull".
