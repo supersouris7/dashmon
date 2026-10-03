@@ -1,6 +1,6 @@
 {
   "id": "uptimekuma",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "label": { "fr": "Uptime Kuma", "en": "Uptime Kuma" },
   "description": {
     "fr": "Compte les moniteurs en ligne et hors ligne d'une page de statut Uptime Kuma",
@@ -17,6 +17,7 @@
       "urlPlaceholder": "https://kuma.exemple.lan",
       "slug": "Identifiant de la page de statut",
       "slugPlaceholder": "kuma",
+      "threshold": "Seuil d’alerte",
       "password": "Mot de passe de la page (si privée)",
       "passwordConfigured": "Mot de passe enregistré (laisser vide pour ne pas le changer)",
       "up": "en ligne",
@@ -33,6 +34,7 @@
       "urlPlaceholder": "https://kuma.example.lan",
       "slug": "Status page slug",
       "slugPlaceholder": "kuma",
+      "threshold": "Alert threshold",
       "password": "Status page password (if private)",
       "passwordConfigured": "Password saved (leave empty to keep it)",
       "up": "up",
@@ -64,6 +66,14 @@
       "type": "secret",
       "label": "password",
       "maxLength": 200
+    },
+    {
+      "key": "threshold",
+      "type": "number",
+      "label": "threshold",
+      "default": 1,
+      "min": 0,
+      "max": 999
     }
   ]
 }

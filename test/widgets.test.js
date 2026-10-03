@@ -1047,6 +1047,18 @@ async function main(){
   const kumaModule = await import(pathToFileURL(path.join(WIDGETS, "uptimekuma", "client.mjs")).href);
   check("kuma : le client expose un rendu sur mesure", typeof kumaModule.element, "function");
 
+  // Seuil d'alerte : la couleur porte le sens, pas le compte.
+  check("kuma : seuil par defaut = 1", kumaModule.thresholdOf({}), 1);
+  check("kuma : seuil explicite respecte", kumaModule.thresholdOf({ threshold: 3 }), 3);
+  check("kuma : seuil a zero accepte", kumaModule.thresholdOf({ threshold: 0 }), 0);
+  check("kuma : seuil aberrant retombe sur le defaut", kumaModule.thresholdOf({ threshold: "abc" }), 1);
+  check("kuma : 0 down reste gris", kumaModule.downColor(0, 1), "var(--muted)");
+  check("kuma : 1 down sous le seuil reste gris", kumaModule.downColor(1, 1), "var(--muted)");
+  check("kuma : 2 down au-dessus du seuil devient rouge", kumaModule.downColor(2, 1), "var(--error)");
+  check("kuma : seuil 0 : un seul down suffit", kumaModule.downColor(1, 0), "var(--error)");
+  check("kuma : seuil 2 : 5 down rouge", kumaModule.downColor(5, 2), "var(--error)");
+  check("kuma : valeur inconnue grise", kumaModule.downColor(NaN, 1), "var(--muted)");
+
   if (failures) {
     console.error(failures + " échec(s)");
     process.exit(1);
