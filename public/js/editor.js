@@ -402,6 +402,11 @@ function buildWidgetField(meta,field,draft,onVisibilityChange){
       input.type="number";
       if(Number.isFinite(field.min)) input.min=String(field.min);
       if(Number.isFinite(field.max)) input.max=String(field.max);
+      // Sans cette ligne, le champ s'affiche vide a chaque reouverture : la
+      // valeur enregistree existe encore, mais si l'utilisateur valide sans
+      // retaper, le formulaire renvoie le defaut et l'ecrase.
+      const current=draft[field.key];
+      input.value=current==null || current==="" ? String(field.default==null ? "" : field.default) : String(current);
       input.addEventListener("input",()=>{ draft[field.key]=input.value; });
     }else if(field.type==="secret"){
       input.type="password";
