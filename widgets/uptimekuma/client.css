@@ -1,0 +1,35 @@
+// Tuile Uptime Kuma : deux lignes empilees, une seule ligne en petites icones.
+//
+// Le widget embarque son propre CSS (manifest "css" -> /widget-client/<id>.css)
+// plutot que d'ajouter des regles dans components.css : le style reste avec le
+// code qui le produit, et le core n'a pas a connaitre un widget de plus.
+
+.uptimekuma-stats{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:2px;
+  min-width:0;
+}
+
+.uptimekuma-line{
+  font-size:11px;
+  font-weight:700;
+  line-height:1.4;
+  white-space:nowrap;
+}
+
+.uptimekuma-up{
+  color:var(--success);
+}
+
+.uptimekuma-down{
+  color:var(--error);
+}
+
+/* En mode petites icones, les deux compteurs se suivent sur une seule ligne. */
+#dashboard.small-icons .uptimekuma-stats{
+  flex-direction:row;
+  align-items:center;
+  gap:6px;
+}

@@ -67,7 +67,7 @@ async function main(){
   // `_template` n'est pas un plugin : son identifiant ne respecte pas le motif
   // du registre, il sert de modele a copier.
   check("registre : widgets natifs charges, _template ignore",
-    ids, ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "web", "youtube"]);
+    ids, ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "web", "youtube"]);
   check("registre : aucun echec de chargement", registry.failures, []);
 
   for (const id of ids) {
@@ -88,7 +88,7 @@ async function main(){
     registry.bySlot("link") && registry.bySlot("link").id, "web");
   check("registre : les widgets de liens sont proposes a l'utilisateur",
     registry.publicList().filter(w => !w.hidden).map(w => w.id),
-    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "youtube"]);
+    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "youtube"]);
 
   // Le template est bien un modele exploitable, mais volontairement hors registre.
   ok("template : present sur disque mais non charge",
@@ -317,7 +317,7 @@ async function main(){
   // --- Exposition HTTP : liste publique et garde-fous de fichiers ---------
   const publicList = core.publicList();
   check("core : liste publique = ids installes", publicList.map(w => w.id),
-    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "web", "youtube"]);
+    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "web", "youtube"]);
   ok("core : aucune fonctionCheck exposee",
     publicList.every(w => typeof w.check === "undefined" && typeof w.createState === "undefined"));
   ok("core : la liste publique porte le schema de config",
@@ -957,6 +957,65 @@ async function main(){
   check("ping : glyphe up", pingModule.statusIcon("up"), "fa-solid fa-circle-check");
   check("ping : glyphe down", pingModule.statusIcon("down"), "fa-solid fa-circle-xmark");
   check("ping : glyphe pending", pingModule.statusIcon("pending"), "fa-regular fa-circle");
+
+  // --- Widget Uptime Kuma : comptes en ligne / hors ligne ------------------
+  // Aucun acces reseau : check() est exerce sur un faux client qui repond comme
+  // le ferait la page de statut d'Uptime Kuma.
+  const kuma = require("../widgets/uptimekuma/server.js");
+
+  check("kuma : moniteurs imbriques dans des groupes",
+    kuma.monitorIds([{ id: 1, monitorList: [{ id: 10 }, { id: 11 }] }, { id: 2, monitorList: [{ id: 12 }] }]),
+    ["10", "11", "12"]);
+  check("kuma : liste plate acceptee", kuma.monitorIds([{ id: 7 }, { id: 8 }]), ["7", "8"]);
+  check("kuma : liste vide", kuma.monitorIds([]), []);
+  check("kuma : dernier heartbeat garde",
+    kuma.latest([{ status: 1, time: "2026-01-01 10:00:00" }, { status: 0, time: "2026-01-01 12:00:00" }]).status, 0);
+  check("kuma : serie vide", kuma.latest([]), null);
+
+  const kumaCtx = (page, beats, config) => ({
+    config: Object.assign({ type: "uptimekuma", url: "https://kuma.exemple.lan", slug: "kuma" }, config),
+    service: { name: "kuma" },
+    sanitizeUrl: value => value,
+    t: key => key,
+    api: async (_base, path) => {
+      if (path.startsWith("/api/status-page/heartbeat/")) return beats;
+      return page;
+    }
+  });
+
+  const kumaPage = { publicGroupList: [{ id: 1, monitorList: [{ id: 10 }, { id: 11 }, { id: 12 }, { id: 13 }] }] };
+  const kumaBeats = {
+    heartbeatList: {
+      10: [{ status: 1, time: "2026-01-01 10:00:00" }],
+      11: [{ status: 1, time: "2026-01-01 10:00:00" }],
+      12: [{ status: 0, time: "2026-01-01 10:00:00" }],
+      13: [{ status: 3, time: "2026-01-01 10:00:00" }]
+    }
+  };
+  const counted = await kuma.check(kumaCtx(kumaPage, kumaBeats, {}));
+  check("kuma : 2 en ligne, 1 hors ligne, 1 maintenance non compte",
+    [counted.ok, counted.up, counted.down, counted.total], [true, 2, 1, 4]);
+
+  const allUp = await kuma.check(kumaCtx(kumaPage, {
+    heartbeatList: { 10: [{ status: 1, time: "x" }], 11: [{ status: 1, time: "x" }], 12: [{ status: 1, time: "x" }], 13: [{ status: 1, time: "x" }] }
+  }, {}));
+  check("kuma : tout en ligne", [allUp.ok, allUp.up, allUp.down], [true, 4, 0]);
+
+  const noConfig = await kuma.check(kumaCtx(kumaPage, kumaBeats, { url: "", slug: "" }));
+  check("kuma : config incomplete signalee",
+    [noConfig.ok, noConfig.up, noConfig.error], [false, null, "missingConfig"]);
+
+  const wrongPage = await kuma.check(kumaCtx({ publicGroupList: [] }, { heartbeatList: {} }, {}));
+  check("kuma : page vide signalee plutot que 0", [wrongPage.ok, wrongPage.error], [false, "badAnswer"]);
+
+  const unreachable = await kuma.check(Object.assign(kumaCtx(kumaPage, kumaBeats, {}), {
+    api: async () => { throw new Error("timeout"); }
+  }));
+  check("kuma : erreur reseau signalee", [unreachable.ok, unreachable.error], [false, "timeout"]);
+
+  // Le renderer construit un DOM : on verifie son contrat, pas ses noeuds.
+  const kumaModule = await import(pathToFileURL(path.join(WIDGETS, "uptimekuma", "client.mjs")).href);
+  check("kuma : le client expose un rendu sur mesure", typeof kumaModule.element, "function");
 
   if (failures) {
     console.error(failures + " échec(s)");
