@@ -1,0 +1,30 @@
+{
+  "id": "ping",
+  "version": "1.0.0",
+  "label": { "fr": "Ping", "en": "Ping" },
+  "description": {
+    "fr": "Teste si une IP ou un hôte répond : résolution du nom puis connexion TCP",
+    "en": "Tests whether an IP or a host answers: name resolution then TCP connection"
+  },
+  "interval": 60000,
+  "cacheKey": "service",
+  "probe": true,
+  "server": "server.js",
+  "client": "client.mjs",
+  "strings": {
+    "fr": {
+      "name": "Ping",
+      "missingHost": "Adresse manquante",
+      "unresolved": "Nom introuvable",
+      "noAnswer": "Port fermé ou injoignable",
+      "error": "Ping"
+    },
+    "en": {
+      "name": "Ping",
+      "missingHost": "Missing address",
+      "unresolved": "Host not found",
+      "noAnswer": "Port closed or unreachable",
+      "error": "Ping"
+    }
+  }
+}

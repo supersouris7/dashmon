@@ -67,7 +67,7 @@ async function main(){
   // `_template` n'est pas un plugin : son identifiant ne respecte pas le motif
   // du registre, il sert de modele a copier.
   check("registre : widgets natifs charges, _template ignore",
-    ids, ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "web", "youtube"]);
+    ids, ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "web", "youtube"]);
   check("registre : aucun echec de chargement", registry.failures, []);
 
   for (const id of ids) {
@@ -88,7 +88,7 @@ async function main(){
     registry.bySlot("link") && registry.bySlot("link").id, "web");
   check("registre : les widgets de liens sont proposes a l'utilisateur",
     registry.publicList().filter(w => !w.hidden).map(w => w.id),
-    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "youtube"]);
+    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "youtube"]);
 
   // Le template est bien un modele exploitable, mais volontairement hors registre.
   ok("template : present sur disque mais non charge",
@@ -310,7 +310,7 @@ async function main(){
   // --- Exposition HTTP : liste publique et garde-fous de fichiers ---------
   const publicList = core.publicList();
   check("core : liste publique = ids installes", publicList.map(w => w.id),
-    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "web", "youtube"]);
+    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "web", "youtube"]);
   ok("core : aucune fonctionCheck exposee",
     publicList.every(w => typeof w.check === "undefined" && typeof w.createState === "undefined"));
   ok("core : la liste publique porte le schema de config",
@@ -879,6 +879,55 @@ async function main(){
   ok("renderer : contrat { badge, badgeClass, time, timeClass, title }",
     ["badge", "badgeClass", "time", "timeClass", "title"].every(
       k => k in dockerModule.render(ctx({ ok: true, containers: { active: 1, total: 1 }, updated: { count: 1, total: 1, unknown: 0 } }))));
+
+  // --- Widget Ping : lecture de l'URL et etat de la tuile -----------------
+  // Aucun acces reseau : parseTarget est une fonction pure, et check() n'est
+  // exerce que sur des entrees qui echouent avant toute connexion (pas d'hote,
+  // nom introuvable).
+  const ping = require("../widgets/ping/server.js");
+  const pingModule = await import(pathToFileURL(path.join(WIDGETS, "ping", "client.mjs")).href);
+
+  check("ping : URL avec scheme, port par defaut du scheme",
+    ping.parseTarget("https://routeur.exemple.lan"), { host: "routeur.exemple.lan", port: 443 });
+  check("ping : port explicite conserve",
+    ping.parseTarget("http://nas.exemple.lan:8080"), { host: "nas.exemple.lan", port: 8080 });
+  check("ping : adresse IP nue, port 80 par defaut",
+    ping.parseTarget("192.0.2.10"), { host: "192.0.2.10", port: 80 });
+  check("ping : chemin et query ignores",
+    ping.parseTarget("http://exemple.lan:8443/soute?a=1#b"), { host: "exemple.lan", port: 8443 });
+  check("ping : IPv6 entre crochets",
+    ping.parseTarget("http://[2001:db8::1]:9000"), { host: "2001:db8::1", port: 9000 });
+  check("ping : IPv6 sans port, 80 par defaut",
+    ping.parseTarget("[2001:db8::1]"), { host: "2001:db8::1", port: 80 });
+  check("ping : adresse invalide refusee", ping.parseTarget("http://"), null);
+  check("ping : cible vide refusee", ping.parseTarget("   "), null);
+
+  const pingCtx = url => ({
+    config: { type: "ping" },
+    service: { url },
+    sanitizeUrl: value => value,
+    t: key => key
+  });
+
+  const noHost = await ping.check(pingCtx(""));
+  check("ping : pas d'adresse = down", [noHost.state, noHost.ok, noHost.error],
+    ["down", false, "missingHost"]);
+
+  const badName = await ping.check(pingCtx("http://hote-inexistant.exemple.lan"));
+  check("ping : nom introuvable = down", [badName.state, badName.ok, badName.error],
+    ["down", false, "unresolved"]);
+
+  // Le renderer ne doit afficher aucun temps de reponse : la tuile ne porte que
+  // la pastille et le libelle.
+  check("ping : rendu sans ligne de temps",
+    pick(pingModule.render({ info: { ok: true, state: "up", ms: 12 }, t: k => k, formatNumber: String })),
+    { badge: "name", badgeClass: "ok", time: "", timeClass: "" });
+  check("ping : rendu en panne",
+    pick(pingModule.render({ info: { ok: false, state: "down", error: "noAnswer" }, t: k => k })),
+    { badge: "name", badgeClass: "nok", time: "", timeClass: "" });
+  check("ping : statut inconnu = pending",
+    pick(pingModule.render({ info: null, t: k => k })),
+    { badge: "name", badgeClass: "pending", time: "", timeClass: "" });
 
   if (failures) {
     console.error(failures + " échec(s)");
