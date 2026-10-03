@@ -48,3 +48,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             DASHMON_COMMIT=${{ github.sha }}
+            DASHMON_RELEASE=${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}

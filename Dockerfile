@@ -28,6 +28,13 @@ ENV CONFIG_FILE=/app/data/config.json
 ARG DASHMON_COMMIT=unknown
 ENV DASHMON_COMMIT=$DASHMON_COMMIT
 
+# Version de release, injectee elle aussi par la CI a partir du tag v*. Elle
+# alimente le pied de page de l'interface, pour que "docker pull" affiche la
+# version reellement publiee plutot que le champ "version" du paquet, qui reste
+# fige entre deux releases. Vide sur un build depuis main.
+ARG DASHMON_RELEASE=
+ENV DASHMON_RELEASE=$DASHMON_RELEASE
+
 ENV ICONS_DIR=/app/data/icons
 
 COPY --from=build --chown=node:node /app/ ./
