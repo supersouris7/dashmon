@@ -871,6 +871,12 @@ app.get("/",(_req,res)=>{
       faviconHref="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'/>";
     }
   }catch(_error){}
+  // La page doit toujours etre revalidee : elle porte le libelle de version du
+  // pied de page et les references des scripts. Sans cet en-tete, un
+  // navigateur garde le HTML en cache et affiche une version perimee alors que
+  // les scripts, eux, sont bien charges a jour. Les routes API sont deja en
+  // no-store pour la meme raison.
+  res.set("Cache-Control","no-store");
   res.type("html").send(INDEX_HTML.replace("{{FAVICON_HREF}}",faviconHref));
 });
 app.use(express.static(PUBLIC_DIR));
