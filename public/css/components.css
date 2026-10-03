@@ -531,8 +531,17 @@ body.is-refreshing .refresh-bar{opacity:1}
 body.is-refreshing .refresh-bar::after{animation:refreshSweep 1.1s ease-in-out infinite}
 /* La pastille est l'objet même du rafraîchissement : la faire respirer evite
    d'ajouter un habillage fige autour d'elle. La couleur d'état est preservee,
-   seule l'opacite bouge, donc un service en panne reste lisible. */
-body.is-refreshing .service-status{animation:refreshPulse 1.15s ease-in-out infinite}
+   seule l'opacite bouge, donc un service en panne reste lisible.
+
+   Les widgets sont rafraîchis exactement au meme moment — ils lisent le meme
+   statut fraichement calcule — donc leur bloc respire aussi, sinon la tuile
+   paraitrait inerte pendant que la pastille du dessous bat. On vise le
+   conteneur .widget-status et non ses enfants : un renderer dessine son propre
+   noeud, et .card > .service-status evite que le widget Ping, qui porte une
+   pastille standard, ne soit pulse deux fois (une fois par son conteneur, une
+   fois par la pastille). */
+body.is-refreshing .card > .service-status,
+body.is-refreshing .widget-status{animation:refreshPulse 1.15s ease-in-out infinite}
 @keyframes refreshSweep{
   from{transform:translateX(-100%)}
   to{transform:translateX(100%)}
@@ -565,7 +574,8 @@ body.is-refreshing .service-status{animation:refreshPulse 1.15s ease-in-out infi
   .image-library.show .image-library-panel,
   .icon-picker.open .icon-picker-menu,
   body.is-refreshing .refresh-bar::after,
-  body.is-refreshing .service-status{
+  body.is-refreshing .card > .service-status,
+  body.is-refreshing .widget-status{
     animation:none;
   }
 
