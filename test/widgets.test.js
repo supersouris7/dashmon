@@ -975,14 +975,31 @@ async function main(){
     kuma.latest([{ status: 0, time: "2026-01-01 12:00:00" }, { status: 1, time: "2026-01-01 10:00:00" }]).status, 0);
   check("kuma : serie vide", kuma.latest([]), null);
 
-  const kumaCtx = (beats, config) => ({
+  const kumaCtx = (page, beats, config) => ({
     config: Object.assign({ type: "uptimekuma", url: "https://kuma.exemple.lan", slug: "kuma" }, config),
     service: { name: "kuma" },
     sanitizeUrl: value => (/^https?:\/\//.test(value) ? value : ""),
     t: key => key,
-    api: async () => beats
+    api: async (_base, path) => {
+      if (path.startsWith("/api/status-page/heartbeat/")) {
+        if (beats instanceof Error) throw beats;
+        return beats;
+      }
+      if (page instanceof Error) throw page;
+      return page;
+    }
   });
 
+  const kumaPage = {
+    publicGroupList: [{
+      monitorList: [
+        { id: 10, name: "Site" },
+        { id: 11, name: "NAS" },
+        { id: 12, name: "Plex" },
+        { id: 13, name: "B copier" }
+      ]
+    }]
+  };
   const kumaBeats = {
     heartbeatList: {
       10: [{ status: 1, time: "2026-01-01 10:00:00" }],
@@ -991,24 +1008,36 @@ async function main(){
       13: [{ status: 3, time: "2026-01-01 10:00:00" }]
     }
   };
-  const counted = await kuma.check(kumaCtx(kumaBeats, {}));
+  const counted = await kuma.check(kumaCtx(kumaPage, kumaBeats, {}));
   check("kuma : 2 en ligne, 1 hors ligne, 1 maintenance non compte",
     [counted.ok, counted.up, counted.down, counted.total], [true, 2, 1, 4]);
+  check("kuma : le nom du moniteur hors ligne est remonte", counted.downNames, ["Plex"]);
 
-  // L'identifiant de moniteur est une cle JSON : "12", pas 12.
-  check("kuma : 0 en ligne", (await kuma.check(kumaCtx({ heartbeatList: { 1: [{ status: 0, time: "x" }] } }, {}))).down, 1);
+  // Repli : si la page de statut ne repond pas, les cles de heartbeatList
+  // suffisent a compter, sans les noms.
+  const fallback = await kuma.check(kumaCtx(new Error("404"), kumaBeats, {}));
+  check("kuma : repli sur heartbeatList si la page ne repond pas",
+    [fallback.ok, fallback.up, fallback.down, fallback.total], [true, 2, 1, 4]);
 
-  const noConfig = await kuma.check(kumaCtx(kumaBeats, { url: "", slug: "" }));
+  // Mauvais slug : aucun moniteur, et la raison est affichee.
+  const wrongSlug = await kuma.check(kumaCtx(new Error("Status Page Not Found"), { heartbeatList: {} }, {}));
+  check("kuma : page vide signalee avec la raison",
+    [wrongSlug.ok, wrongSlug.up, wrongSlug.error],
+    [false, null, "noMonitors (Status Page Not Found)"]);
+
+  // Moniteurs hors groupe public : la page les ignore, les comptes restent justes.
+  const notPublished = await kuma.check(kumaCtx({ publicGroupList: [] }, kumaBeats, {}));
+  check("kuma : page sans groupe public, repli sur les etats",
+    [notPublished.ok, notPublished.total], [true, 4]);
+
+  const noConfig = await kuma.check(kumaCtx(null, null, { url: "", slug: "" }));
   check("kuma : config incomplete signalee",
     [noConfig.ok, noConfig.up, noConfig.error], [false, null, "missingConfig"]);
 
-  const wrongPage = await kuma.check(kumaCtx({ heartbeatList: {} }, {}));
-  check("kuma : page vide signalee plutot que 0", [wrongPage.ok, wrongPage.error], [false, "noMonitors"]);
-
-  const unreachable = await kuma.check(Object.assign(kumaCtx(kumaBeats, {}), {
+  const unreachable = await kuma.check(Object.assign(kumaCtx(null, null, {}), {
     api: async () => { throw new Error("timeout"); }
   }));
-  check("kuma : erreur reseau signalee", [unreachable.ok, unreachable.error], [false, "timeout"]);
+  check("kuma : erreur reseau signalee", [unreachable.ok, unreachable.error], [false, "noMonitors (timeout)"]);
 
   // Le renderer construit un DOM : on verifie son contrat, pas ses noeuds.
   const kumaModule = await import(pathToFileURL(path.join(WIDGETS, "uptimekuma", "client.mjs")).href);

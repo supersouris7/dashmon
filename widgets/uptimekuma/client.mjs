@@ -52,9 +52,15 @@ export function element(ctx) {
     line(t("down"), down, "var(--error)")
   );
 
-  box.title = known
-    ? t("name") + " · " + info.total + " " + (info.total === 1 ? t("monitor") : t("monitors"))
-    : t("name") + " · " + ((info && info.error) || t("missingConfig"));
+  const parts = [t("name")];
+  if (known) {
+    parts.push(up + " " + t("up") + " · " + down + " " + t("down"));
+    const names = Array.isArray(info.downNames) ? info.downNames.filter(Boolean) : [];
+    if (names.length) parts.push(names.join(", "));
+  } else {
+    parts.push((info && info.error) || t("missingConfig"));
+  }
+  box.title = parts.join(" · ");
 
   return box;
 }
