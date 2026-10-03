@@ -1,6 +1,6 @@
 {
   "id": "uptimekuma",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "label": { "fr": "Uptime Kuma", "en": "Uptime Kuma" },
   "description": {
     "fr": "Compte les moniteurs en ligne et hors ligne d'une page de statut Uptime Kuma",

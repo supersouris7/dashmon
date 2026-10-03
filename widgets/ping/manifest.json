@@ -1,6 +1,6 @@
 {
   "id": "ping",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "label": { "fr": "Ping", "en": "Ping" },
   "description": {
     "fr": "Teste si un hôte répond : résolution du nom puis connexion TCP",

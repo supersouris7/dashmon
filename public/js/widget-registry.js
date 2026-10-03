@@ -48,13 +48,18 @@ export async function loadWidgetRegistry() {
   }
   if (!Array.isArray(list)) return [];
 
-  const styleIds = [];
+  const styles = [];
   for (const meta of list) {
     if (!meta || !meta.id) continue;
     metas.set(meta.id, meta);
-    if (meta.hasCss) styleIds.push(meta.id);
+    if (meta.hasCss) styles.push({ id: meta.id, version: meta.version || "" });
     try {
-      const module = await import("/widget-client/" + encodeURIComponent(meta.id) + ".js");
+      // La version du manifeste entre dans l'URL : sans elle, l'URL reste la
+      // meme apres une mise a jour de widget et le navigateur peut resservir
+      // l'ancien code pendant toute la duree de son cache. Un widget corrige
+      // doit etre visible immediatement, donc la version change -> URL change.
+      const module = await import("/widget-client/" + encodeURIComponent(meta.id)
+        + ".js?v=" + encodeURIComponent(meta.version || ""));
       if (typeof module.render === "function" || typeof module.element === "function") {
         renderers.set(meta.id, module);
       }
@@ -64,21 +69,24 @@ export async function loadWidgetRegistry() {
       console.warn("Renderer de widget indisponible : " + meta.id, error);
     }
   }
-  injectStyles(styleIds);
+  injectStyles(styles);
   return [...metas.keys()];
 }
 
-function injectStyles(ids) {
-  if (typeof document === "undefined" || !ids.length) return;
+function injectStyles(entries) {
+  if (typeof document === "undefined" || !entries.length) return;
   const present = new Set(
     [...document.querySelectorAll("link[data-widget-style]")].map(link => link.dataset.widgetStyle)
   );
-  for (const id of ids) {
+  for (const entry of entries) {
+    const id = entry.id;
     if (present.has(id)) continue;
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.dataset.widgetStyle = id;
-    link.href = "/widget-client/" + encodeURIComponent(id) + ".css";
+    // Meme rupture de cache que pour le module : la version du manifeste dans
+    // l'URL, sinon une feuille de style corrigee peut rester en cache.
+    link.href = "/widget-client/" + encodeURIComponent(id) + ".css?v=" + encodeURIComponent(entry.version || "");
     document.head.appendChild(link);
   }
 }
