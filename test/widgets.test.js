@@ -928,11 +928,17 @@ async function main(){
   // Sans champ host, l'URL du service sert de repli.
   const badName = await ping.check(pingCtx("", "http://hote-inexistant.exemple.lan"));
   check("ping : nom introuvable = down", [badName.state, badName.ok, badName.error],
-    ["down", false, "unresolved"]);
+    ["down", false, "unresolved (hote-inexistant.exemple.lan)"]);
 
   const badHost = await ping.check(pingCtx("hote-inexistant.exemple.lan", "http://autre.exemple.lan"));
   check("ping : le champ host prime sur l'URL", [badHost.state, badHost.error],
-    ["down", "unresolved"]);
+    ["down", "unresolved (hote-inexistant.exemple.lan)"]);
+
+  // Un port ferme doit nommer le port essaye : c'est le seul moyen pour
+  // l'utilisateur de comprendre qu'un hote saisi sans port a ete teste en 80.
+  const closedPort = await ping.check(pingCtx("127.0.0.1:1", null));
+  check("ping : port ferme nomme dans l'erreur", [closedPort.state, closedPort.error],
+    ["down", "noAnswer (127.0.0.1:1)"]);
 
   // Le renderer renvoie un noeud DOM : on verifie ici son contrat et la
   // correspondance etat -> glyphe, le DOM lui-meme n'etant pas disponible dans

@@ -11,8 +11,13 @@
 // La cible est le champ "host" du widget : "192.0.2.10", "nas.exemple.lan",
 // "nas.exemple.lan:8080". L'URL du service n'est qu'un repli, pour que le
 // widget reste utile sans configuration ; elle reste aussi le lien au clic et
-// n'a donc pas a connaitre l'hote teste. Le port vient de la saisie quand il y
-// en a un, sinon 80 (ou 443 si l'URL de repli est en https).
+// n'a donc pas a connaitre l'hote teste.
+//
+// Le port compte beaucoup : un hote saisi sans port est teste en 80, et une
+// machine qui n'y sert pas de HTTP parait injoignable alors qu'elle repond.
+// C'est pourquoi l'erreur nomme toujours le port reellement essaye. Pour un
+// test de vivacite general, il faut soit donner le port, soit un vrai ping
+// ICMP — voir la note sur Docker plus bas.
 //
 // Sans URL, la carte n'a pas de lien au clic — c'est le comportement normal
 // d'une tuile qui n'en a pas, pas une degradee de ce widget.
@@ -102,12 +107,15 @@ async function check(ctx) {
   try {
     await dns.promises.lookup(target.host);
   } catch (_error) {
-    return { state: "down", ok: false, error: ctx.t("unresolved") };
+    return { state: "down", ok: false, error: ctx.t("unresolved") + " (" + target.host + ")" };
   }
 
   const reachable = await tcpConnect(target.host, target.port, TIMEOUT);
   if (!reachable) {
-    return { state: "down", ok: false, error: ctx.t("noAnswer") };
+    // Le port est named explicitement : sans lui, un hote saisi sans port se
+    // fait tester en 80 et l'utilisateur n'a aucun moyen de deviner que c'est
+    // ce port-la qui a ete essaye.
+    return { state: "down", ok: false, error: ctx.t("noAnswer") + " (" + target.host + ":" + target.port + ")" };
   }
   return { state: "up", ok: true };
 }
