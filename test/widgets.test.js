@@ -754,10 +754,15 @@ async function main(){
 
   check("renderer Docker : conteneurs et MAJ",
     pick(dockerModule.render(ctx({ ok: true, containers: { active: 8, total: 9 }, updated: { count: 8, total: 9, unknown: 1 } }))),
-    { badge: "up 8 / 9", badgeClass: "nok", time: "updated 8 / 9", timeClass: "warn" });
+    { badge: "up 8", badgeClass: "nok", time: "updated 8", timeClass: "warn" });
   check("renderer Docker : tout vert",
     pick(dockerModule.render(ctx({ ok: true, containers: { active: 9, total: 9 }, updated: { count: 9, total: 9, unknown: 0 } }))),
-    { badge: "up 9 / 9", badgeClass: "ok", time: "updated 9 / 9", timeClass: "delta-up" });
+    { badge: "up 9", badgeClass: "ok", time: "updated 9", timeClass: "delta-up" });
+  // Les totaux quittent la tuile mais restent dans l'info-bulle : sans eux,
+  // "8" ne dit pas si la cible compte 8 services ou 80.
+  ok("renderer Docker : le total reste dans l'info-bulle",
+    /8 \/ 9/.test(dockerModule.render(ctx({ ok: true, containers: { active: 8, total: 9 }, updated: { count: 8, total: 9, unknown: 1 } })).title),
+    dockerModule.render(ctx({ ok: true, containers: { active: 8, total: 9 }, updated: { count: 8, total: 9, unknown: 1 } })).title);
   check("renderer Docker : erreur = tuile neutre",
     dockerModule.render(ctx({ error: "ECONNREFUSED" })).badgeClass, "pending");
   check("renderer Docker : jamais verifie = tirets",
@@ -770,10 +775,10 @@ async function main(){
   const allGreen = { ok: true, containers: { active: 9, total: 9 }, updated: { count: 9, total: 9, unknown: 0 } };
   check("renderer Docker : libelles anglais",
     pick(dockerModule.render(localized("en")(allGreen))),
-    { badge: "up 9 / 9", badgeClass: "ok", time: "updated 9 / 9", timeClass: "delta-up" });
+    { badge: "up 9", badgeClass: "ok", time: "updated 9", timeClass: "delta-up" });
   check("renderer Docker : libelles francais",
     pick(dockerModule.render(localized("fr")(allGreen))),
-    { badge: "en ligne 9 / 9", badgeClass: "ok", time: "à jour 9 / 9", timeClass: "delta-up" });
+    { badge: "en ligne 9", badgeClass: "ok", time: "à jour 9", timeClass: "delta-up" });
   check("renderer Docker : le tooltip reprend les deux libelles",
     dockerModule.render(localized("fr")(allGreen)).title, "Docker · en ligne 9 / 9 · à jour 9 / 9");
   ok("renderer Docker : images non verifiees au singulier",
