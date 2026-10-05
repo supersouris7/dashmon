@@ -55,6 +55,9 @@ const APP_VERSION = /^v?\d+(\.\d+){0,2}([-.][0-9A-Za-z.-]+)?$/.test(RELEASE)
 const APP_COMMIT = (process.env.DASHMON_COMMIT || "").trim();
 const APP_COMMIT_SHORT = /^[0-9a-f]{7,40}$/.test(APP_COMMIT) ? APP_COMMIT.slice(0, 7) : "";
 const APP_LABEL = APP_COMMIT_SHORT ? APP_VERSION + " · " + APP_COMMIT_SHORT : APP_VERSION;
+// Instant de demarrage : sert a distinguer "l'image est ancienne" de "le
+// conteneur tourne depuis le dernier redemarrage sans avoir ete recree".
+const STARTED_AT = new Date().toISOString();
 const INDEX_HTML = fs.readFileSync(INDEX_FILE, "utf8").replace(/\{\{VERSION\}\}/g, APP_LABEL);
 
 app.disable("x-powered-by");
@@ -403,6 +406,26 @@ ensureHostIds();
 app.get("/healthz",(_req,res)=>{
   res.set("Cache-Control","no-store");
   res.json({ok:true});
+});
+
+// Quelle version tourne, reellement. Le pied de page de l'interface est une
+// page HTML, donc passe par le cache du navigateur et par celui d'un eventuel
+// reverse proxy : y lire la version peut montrer une valeur perimee alors que
+// l'image, elle, est a jour. Cette route n'est qu'un objet JSON, jamais mise en
+// cache, et elle renvoie aussi la valeur brute du SHA d'image : c'est le seul
+// point de controle qui ne puisse pas mentir.
+app.get("/api/version",(_req,res)=>{
+  res.set("Cache-Control","no-store");
+  res.json({
+    version:APP_VERSION,
+    commit:APP_COMMIT || "",
+    commitShort:APP_COMMIT_SHORT,
+    // Le champ "version" du paquet n'est mis a jour qu'a la publication d'un
+    // tag : sur une image "unstable" il reste fige, ce qui est sans rapport
+    // avec l'etat reel du deploiement.
+    packageVersion:require("./package.json").version,
+    startedAt:STARTED_AT
+  });
 });
 
 // Publie la cle de statut calculee par le core, sans repasser par la
