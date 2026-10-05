@@ -6,13 +6,23 @@
      Dark Reader, laissent la page tranquille au lieu d'inverser des couleurs
      déjà choisies. La valeur est affinée au thème actif dans themes.js. */
   color-scheme:dark light;
-  --bg:#101418;
-  --surface:#1a2027;
-  --surface-2:#222a33;
-  --surface-3:#2a3440;
-  --border:#33404d;
-  --text:#f3f5f7;
-  --muted:#98a4b1;
+  /* Les gris sont strictement neutres : R = G = B. Le thème précédent
+     decalait chaque teinte vers le bleu (16/20/24 sur le fond, jusqu'a 51/64/77
+     sur la bordure), et l'ecart croit avec la profondeur — les elements les
+     plus visibles etaient donc les plus bleus, ce qui donnait au theme une
+     teinte bleute. Chaque couleur garde la moyenne de ses canaux d'origine, la
+     luminosite est donc inchangee et le contraste avec le texte reste le
+     meme. Egaliser les canaux baisse legerement la luminance reelle — le bleu
+     y compte moins que le rouge — donc le texte et le gris attenue remontent
+     un cran, ce qui laisse le contraste texte/fond et texte/surface au-dessus
+     de ce qu'il etait (17.2:1 et 15.2:1). */
+  --bg:#141414;
+  --surface:#202020;
+  --surface-2:#2a2a2a;
+  --surface-3:#353535;
+  --border:#404040;
+  --text:#f7f7f7;
+  --muted:#ababab;
   --accent:#4f8f89;
   --danger:#b85c5c;
   --success:#3cf59b;
