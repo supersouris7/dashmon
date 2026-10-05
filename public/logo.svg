@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Dashmon">
+  <!--
+    Logo simplifié du bandeau.
+
+    Le dessin complet existe en PNG (logo.png) et sert de favicon et d'icône du
+    dépôt, où il dispose de plusieurs centaines de pixels. Le bandeau, lui,
+    affiche ce logo dans 34x34 : à cette taille la visière, les yeux détaillés
+    et la bouche disparaissent en bouillie de pixels. Cette version ne garde que
+    ce qui se lit : la silhouette ronde turquoise, les deux cornes jaunes, les
+    deux yeux.
+
+    Dessiné à plat, sans dégradé ni ombre, et en traits épais : c'est ce qui
+    tient quand le logo descend à 24 pixels.
+  -->
+
+  <!-- Les cornes passent derriere le corps, comme sur le dessin complet. -->
+  <g fill="#f7c843">
+    <path d="M12 24c-5-5-4-14 3-19 6 6 5 14-1 19z"/>
+    <path d="M52 24c5-5 4-14-3-19-6 6-5 14 1 19z"/>
+  </g>
+
+  <circle cx="32" cy="37" r="24" fill="#2fc4ad"/>
+
+  <g fill="#ffffff">
+    <circle cx="24" cy="33" r="7"/>
+    <circle cx="40" cy="33" r="7"/>
+  </g>
+  <g fill="#12203a">
+    <circle cx="24" cy="33" r="3.2"/>
+    <circle cx="40" cy="33" r="3.2"/>
+  </g>
+</svg>
