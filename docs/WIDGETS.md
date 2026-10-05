@@ -119,6 +119,53 @@ Add a token through the `GITHUB_TOKEN` environment variable if you need more —
 see [.env.example](../.env.example) and the
 [deployment guide](../deploy/DEPLOYMENT.md).
 
+## Uptime Kuma
+
+**Shows** one line per status page: the page name and how many monitors are up.
+Green while everything is up, red as soon as one monitor is down. A planned
+maintenance is not a failure, so it stays green. The tooltip adds the detail —
+*how many* in total, and which monitors are down.
+
+**Configuration**
+
+- **url** — the instance address, e.g. `https://kuma.example.lan`. A scheme is
+  optional; without one, Dashmon tries `https` then `http`.
+- **slug1** — the first status page slug: the last segment of the page URL, so
+  `https://kuma.example.lan/status/services` means `services`.
+- **slug2** — an optional second page, for when you publish several.
+
+Uptime Kuma has no REST API for its monitors — everything goes through
+socket.io after login — but its status pages expose two JSON endpoints, which is
+what the widget reads. No key, no dependency.
+
+Two things catch people out, and the tooltip reports both instead of leaving you
+guessing:
+
+- only monitors sitting in a **public group** of the status page are visible. A
+  monitor you never added to the page stays invisible, which looks exactly like
+  an empty page;
+- an **unknown slug** answers `200` with an empty list rather than an error,
+  which is why the widget tells a wrong slug from a genuinely empty page.
+
+## Ping
+
+**Shows** the usual green / red dot — no metric, no extra line.
+
+**Configuration**
+
+- **host** — the IP or hostname to test. It may carry a port
+  (`nas.example.lan:445`).
+- **port** — the TCP port to connect to. `0` means 80, or 443 when the service
+  URL is `https`. It takes priority over a port written in the host.
+
+This is **not** an ICMP ping. Node has no ICMP socket, the image ships no `ping`
+binary, and a raw ICMP socket needs a privilege the container does not have. The
+widget resolves the name, then opens a TCP connection: it answers "is this
+service reachable?", without touching the image or the container's permissions.
+Port 80 on a machine that does not serve HTTP therefore shows red even though
+the machine is up — which is why the error names the port that was actually
+tried.
+
 ## web — the default one
 
 Every service without an explicit widget uses this one. It performs a plain HTTP
