@@ -974,7 +974,11 @@ async function main(){
 
   // sanitizeUrl exige un schema : une adresse nue doit etre completee, sinon le
   // widget s'annonçait "adresse manquante" alors que le champ etait rempli.
-  check("kuma : adresse nue completee en http", kuma.normalizeBase("kuma.exemple.lan"), "http://kuma.exemple.lan");
+  check("kuma : adresse nue completee en https", kuma.normalizeBase("kuma.exemple.lan"), "https://kuma.exemple.lan");
+  check("kuma : sans schema, https puis http sont essayes",
+    kuma.candidateBases("kuma.exemple.lan"), ["https://kuma.exemple.lan", "http://kuma.exemple.lan"]);
+  check("kuma : schema explicite = un seul essai",
+    kuma.candidateBases("http://kuma.exemple.lan"), ["http://kuma.exemple.lan"]);
   check("kuma : schema https conserve", kuma.normalizeBase("https://kuma.exemple.lan"), "https://kuma.exemple.lan");
   check("kuma : adresse vide", kuma.normalizeBase("  "), "");
 
@@ -1047,6 +1051,27 @@ async function main(){
     api: async () => { throw new Error("timeout"); }
   }));
   check("kuma : erreur reseau signalee", [unreachable.ok, unreachable.error], [false, "noMonitors (timeout)"]);
+
+  // Sans schema, le widget tente https puis http : une instance servie en
+  // clair sur son port derriere un proxy TLS ne doit pas etre declaree morte
+  // parce que le premier essai a echoue.
+  const tried = [];
+  const schemeFallback = await kuma.check(Object.assign(kumaCtx(kumaPage, kumaBeats, { url: "kuma.exemple.lan" }), {
+    api: async base => {
+      tried.push(base);
+      if (base.startsWith("https:")) throw new Error("ECONNREFUSED");
+      return kumaBeats;
+    }
+  }));
+  check("kuma : repli https -> http si le premier echoue",
+    [schemeFallback.ok, schemeFallback.up, schemeFallback.down], [true, 2, 1]);
+  // Chaque adresse declenche deux appels (page + heartbeat) : on verifie les
+  // adresses distinctes rencontrees, pas le nombre d'appels.
+  const distinct = [...new Set(tried)];
+  check("kuma : les deux schemas ont bien ete essayes",
+    distinct.length === 2
+    && distinct.some(b => b.startsWith("https:"))
+    && distinct.some(b => b.startsWith("http:")), true);
 
   // Le renderer construit un DOM : on verifie son contrat, pas ses noeuds.
   const kumaModule = await import(pathToFileURL(path.join(WIDGETS, "uptimekuma", "client.mjs")).href);

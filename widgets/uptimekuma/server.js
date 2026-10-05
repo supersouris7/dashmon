@@ -63,49 +63,80 @@ function latest(list) {
 // sanitizeUrl exige un schema : "kuma.exemple.lan" seul y renvoie une chaine
 // vide, et le widget affichait alors "adresse manquante" alors meme que le
 // champ etait rempli. On complete donc avant de passer au validateur du core.
-function normalizeBase(raw) {
+//
+// Une adresse sans schema est essayee en https puis en http. Deviner un seul
+// protocole et se tromper eliminait la moitié des instances : Uptime Kuma est
+// souvent en clair sur son port, mais derriere un reverse proxy en TLS. Les
+// deux adresses ne sont essaiees que si la premiere ne rend rien.
+function candidateBases(raw) {
   const text = String(raw == null ? "" : raw).trim();
-  if (!text) return "";
-  return /^[a-z][a-z0-9+.-]*:\/\//i.test(text) ? text : "http://" + text;
+  if (!text) return [];
+  return /^[a-z][a-z0-9+.-]*:\/\//i.test(text)
+    ? [text]
+    : ["https://" + text, "http://" + text];
+}
+
+function normalizeBase(raw) {
+  return candidateBases(raw)[0] || "";
 }
 
 function reasonOf(error) {
   return String((error && error.message) || "").trim().slice(0, 120);
 }
 
-async function check(ctx) {
-  const base = ctx.sanitizeUrl(normalizeBase(ctx.config.url));
-  const slug = String(ctx.config.slug || "").trim();
-  if (!base || !slug) {
-    return { ok: false, up: null, down: null, total: null, error: ctx.t("missingConfig") };
-  }
-
+// Une tentative sur une adresse : les deux endpoints en parallele, aucun ne fait
+// echouer l'autre. Sur une version 1.x, /api/status-page/<slug> ne repond pas
+// du tout quand le slug est inconnu (le gestionnaire renvoie sans ecrire de
+// reponse) : sans parallelisme, ce premier appel bloquerait le second pendant
+// tout son delai.
+async function tryBase(ctx, base, slug) {
   const auth = ctx.config.password ? { user: slug, password: ctx.config.password } : undefined;
   const call = suffix => ctx.api(base, "/api/status-page/" + suffix + encodeURIComponent(slug), {
     timeout: TIMEOUT,
     basic: auth
   });
 
-  // Les deux appels partent en parallele et aucun ne fait echouer l'autre. Sur
-  // une version 1.x, /api/status-page/<slug> ne repond pas du tout quand le
-  // slug est inconnu (le gestionnaire renvoie sans ecrire de reponse) : sans
-  // parallelisme, ce premier appel bloquerait le second pendant tout son delai.
   const [pageResult, beatsResult] = await Promise.allSettled([call(""), call("heartbeat/")]);
 
   const page = pageResult.status === "fulfilled" ? pageResult.value : null;
   const beats = beatsResult.status === "fulfilled" ? beatsResult.value : null;
-  const failure = reasonOf(
-    pageResult.status === "rejected" ? pageResult.reason
-      : (beatsResult.status === "rejected" ? beatsResult.reason : null)
-  );
+  const list = (beats && beats.heartbeatList) || {};
 
   let monitors = monitorsFrom(page);
-  const list = (beats && beats.heartbeatList) || {};
   // Repli : si la page n'a pas ete lue, les cles de heartbeatList sont deja les
   // moniteurs. Les noms seront absents, mais les comptes restent justes.
   if (!monitors.length) {
     monitors = Object.keys(list).map(id => ({ id, name: "" }));
   }
+
+  const failure = reasonOf(
+    pageResult.status === "rejected" ? pageResult.reason
+      : (beatsResult.status === "rejected" ? beatsResult.reason : null)
+  );
+  return { monitors, list, failure };
+}
+
+async function check(ctx) {
+  const slug = String(ctx.config.slug || "").trim();
+  const bases = candidateBases(ctx.config.url)
+    .map(raw => ctx.sanitizeUrl(raw))
+    .filter(Boolean);
+  if (!bases.length || !slug) {
+    return { ok: false, up: null, down: null, total: null, error: ctx.t("missingConfig") };
+  }
+
+  // Une adresse sans schema est essaiee en https puis en http : le second essai
+  // n'a lieu que si le premier n'a rendu aucun moniteur.
+  let attempt = null;
+  let failure = "";
+  for (const base of bases) {
+    attempt = await tryBase(ctx, base, slug);
+    failure = attempt.failure || failure;
+    if (attempt.monitors.length) break;
+  }
+
+  const monitors = attempt.monitors;
+  const list = attempt.list;
 
   if (!monitors.length) {
     // Aucun moniteur. La raison est presque toujours un slug errone ou des
@@ -145,4 +176,4 @@ async function check(ctx) {
   };
 }
 
-module.exports = { check, latest, monitorsFrom, normalizeBase };
+module.exports = { check, latest, monitorsFrom, candidateBases, normalizeBase };
