@@ -1,42 +1,32 @@
 // Rendu de la tuile Uptime Kuma (cote navigateur).
 //
-// Deux lignes : les moniteurs en ligne en vert, les moniteurs hors ligne en
-// rouge, toutes deux en gras. En mode petites icones, les deux compteurs se
-// suivent sur une seule ligne, avec un espace entre eux.
+// Une ligne par page de statut configuree : le nom de la page et son nombre de
+// moniteurs en ligne. La ligne est verte quand tout est en ligne, rouge des
+// qu'un moniteur tombe ou que la page n'a pas pu etre lue. Aucun seuil : deux
+// etats, pas trois.
 //
-// Les styles sont poses en ligne plutot que dans une feuille client.css : le
-// centre de la tuile (une colonne) et sa version sur une ligne sont les seuls
-// points qui doivent tenir, et ne pas dependre d'une feuille injectee evite
-// qu'un cache Navigateur Perpille les deux lignes. Le centre de la tuile pose
-// la classe small-icons avant de construire les cartes, donc le mode se lit ici
-// directement.
+// En mode petites icones, les lignes se suivent sur une seule ligne.
+//
+// Les styles sont poses en ligne plutot que dans une feuille client.css : ne pas
+// dependre d'une feuille injectee evite qu'un cache navigateur fige la mise en
+// page. Le centre de la tuile pose la classe small-icons avant de construire les
+// cartes, donc le mode se lit ici directement.
 
 function isSmallIcons() {
   const board = document.getElementById("dashboard");
   return !!board && board.classList.contains("small-icons");
 }
 
-// Seuil d'alerte : nombre de moniteurs hors ligne au-dela duquel la ligne passe
-// au rouge. En dessous, elle reste grise — un moniteur tombe par fois n'est pas
-// une panne, et une tuile rouge en permanence n'apprend plus rien. 0 par defaut
-// des que la couleur reste neutre tant que le seuil n'est pasfranchi.
-export const DEFAULT_THRESHOLD = 1;
-
-export function thresholdOf(config) {
-  const raw = config ? config.threshold : null;
-  if (raw == null || raw === "") return DEFAULT_THRESHOLD;
-  const value = Number(raw);
-  return Number.isFinite(value) && value >= 0 ? Math.trunc(value) : DEFAULT_THRESHOLD;
+export function pageColor(healthy) {
+  return healthy ? "var(--success)" : "var(--error)";
 }
 
-// La couleur porte le sens : rouge quand la panne est au-dela du seuil, gris en
-// dessous. Le nombre reste affiche dans les deux cas, on ne cache jamais une
-// information — seule la couleur se calme.
-export function downColor(down, threshold) {
-  const value = Number(down);
-  const limit = Number(threshold);
-  if (!Number.isFinite(value)) return "var(--muted)";
-  return value > limit ? "var(--error)" : "var(--muted)";
+// null ne vaut pas zero : Number(null) vaut 0, qui est "fini", et une page
+// illisible s'afficherait "infra 0 up" au lieu d'un tiret. Le test exclut donc
+// null explicitement avant de regarder le nombre.
+export function countText(up, label) {
+  if (up == null || !Number.isFinite(Number(up))) return "—";
+  return Number(up) + " " + label;
 }
 
 export function element(ctx) {
@@ -51,39 +41,38 @@ export function element(ctx) {
   box.style.gap = small ? "8px" : "2px";
   box.style.minWidth = "0";
 
-  const known = !!info
-    && Number.isFinite(Number(info.up))
-    && Number.isFinite(Number(info.down));
-
-  const up = known ? Number(info.up) : null;
-  const down = known ? Number(info.down) : null;
-
-  // L'intitule d'abord, le chiffre ensuite : "en ligne 8", "hors ligne 2".
-  const line = (label, value, color) => {
+  const line = (text, color, title) => {
     const span = document.createElement("span");
     span.style.fontSize = "11px";
     span.style.fontWeight = "700";
     span.style.lineHeight = "1.4";
     span.style.whiteSpace = "nowrap";
     span.style.color = color;
-    span.textContent = value == null ? "—" : label + " " + value;
+    span.textContent = text;
+    if (title) span.title = title;
     return span;
   };
 
-  box.append(
-    line(t("up"), up, "var(--success)"),
-    line(t("down"), down, downColor(down == null ? NaN : down, thresholdOf(ctx.config)))
-  );
-
-  const parts = [t("name")];
-  if (known) {
-    parts.push(up + " " + t("up") + " · " + down + " " + t("down"));
-    const names = Array.isArray(info.downNames) ? info.downNames.filter(Boolean) : [];
-    if (names.length) parts.push(names.join(", "));
-  } else {
-    parts.push((info && info.error) || t("missingConfig"));
+  const pages = info && Array.isArray(info.pages) ? info.pages : [];
+  if (!pages.length) {
+    box.append(line("—", "var(--muted)", (info && info.error) || t("missingConfig")));
+    box.title = t("name") + " · " + ((info && info.error) || t("missingConfig"));
+    return box;
   }
-  box.title = parts.join(" · ");
 
+  for (const page of pages) {
+    // Le nom vient de la page de statut, pas du slug : l'utilisateur reconnait
+    // "Services" tout de suite, "services" dans une tuile de 60 px beaucoup
+    // moins.
+    const count = countText(page.up, t("up"));
+    const detail = page.error
+      ? page.error
+      : t("name") + " · " + page.up + "/" + page.total + " " + t("up");
+    box.append(line(page.name + " " + count, pageColor(page.healthy), detail));
+  }
+
+  box.title = pages
+    .map(page => page.name + " · " + (page.error || (page.up + "/" + page.total + " " + t("up"))))
+    .join(" · ");
   return box;
 }

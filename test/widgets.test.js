@@ -967,7 +967,7 @@ async function main(){
   check("ping : glyphe down", pingModule.statusIcon("down"), "fa-solid fa-circle-xmark");
   check("ping : glyphe pending", pingModule.statusIcon("pending"), "fa-regular fa-circle");
 
-  // --- Widget Uptime Kuma : comptes en ligne / hors ligne ------------------
+// --- Widget Uptime Kuma : une ligne par page de statut --------------------
   // Aucun acces reseau : check() est exerce sur un faux client qui repond comme
   // le ferait la page de statut d'Uptime Kuma.
   const kuma = require("../widgets/uptimekuma/server.js");
@@ -979,7 +979,6 @@ async function main(){
     kuma.candidateBases("kuma.exemple.lan"), ["https://kuma.exemple.lan", "http://kuma.exemple.lan"]);
   check("kuma : schema explicite = un seul essai",
     kuma.candidateBases("http://kuma.exemple.lan"), ["http://kuma.exemple.lan"]);
-  check("kuma : schema https conserve", kuma.normalizeBase("https://kuma.exemple.lan"), "https://kuma.exemple.lan");
   check("kuma : adresse vide", kuma.normalizeBase("  "), "");
 
   check("kuma : dernier heartbeat garde",
@@ -988,89 +987,135 @@ async function main(){
     kuma.latest([{ status: 0, time: "2026-01-01 12:00:00" }, { status: 1, time: "2026-01-01 10:00:00" }]).status, 0);
   check("kuma : serie vide", kuma.latest([]), null);
 
-  const kumaCtx = (page, beats, config) => ({
-    config: Object.assign({ type: "uptimekuma", url: "https://kuma.exemple.lan", slug: "kuma" }, config),
+  // Le nom affiche vient du titre de la page de statut, pas du slug.
+  check("kuma : le titre de la page est prefere au slug",
+    kuma.titleOf({ config: { title: "Mes services" } }, "services"), "Mes services");
+  check("kuma : sans titre, on garde le slug", kuma.titleOf({}, "services"), "services");
+
+  // Deux moniteurs en ligne, un hors ligne, un en maintenance.
+  const beatsOf = statuses => {
+    const out = {};
+    Object.keys(statuses).forEach((id, index) => {
+      out[id] = [{ status: statuses[id], time: "2026-01-01 10:0" + index + ":00" }];
+    });
+    return { heartbeatList: out };
+  };
+  const pageOf = monitors => ({
+    config: { title: "Mes services" },
+    publicGroupList: [{ monitorList: monitors }]
+  });
+  const goodPage = pageOf([{ id: 10, name: "Site" }, { id: 11, name: "NAS" }]);
+
+  // Le faux client repond du slug demande : c'est ce qui permet de tester deux
+  // pages differentes sur la meme instance.
+  const kumaCtx = (config, responder) => ({
+    config: Object.assign({ type: "uptimekuma", url: "https://kuma.exemple.lan" }, config),
     service: { name: "kuma" },
     sanitizeUrl: value => (/^https?:\/\//.test(value) ? value : ""),
     t: key => key,
-    api: async (_base, path) => {
-      if (path.startsWith("/api/status-page/heartbeat/")) {
-        if (beats instanceof Error) throw beats;
-        return beats;
-      }
-      if (page instanceof Error) throw page;
-      return page;
-    }
+    api: async (_base, path) => responder(path)
   });
 
-  const kumaPage = {
-    publicGroupList: [{
-      monitorList: [
-        { id: 10, name: "Site" },
-        { id: 11, name: "NAS" },
-        { id: 12, name: "Plex" },
-        { id: 13, name: "B copier" }
-      ]
-    }]
-  };
-  const kumaBeats = {
-    heartbeatList: {
-      10: [{ status: 1, time: "2026-01-01 10:00:00" }],
-      11: [{ status: 1, time: "2026-01-01 10:00:00" }],
-      12: [{ status: 0, time: "2026-01-01 10:00:00" }],
-      13: [{ status: 3, time: "2026-01-01 10:00:00" }]
+  const responder = pages => path => {
+    const isHeartbeat = path.startsWith("/api/status-page/heartbeat/");
+    const slug = decodeURIComponent(isHeartbeat
+      ? path.slice("/api/status-page/heartbeat/".length)
+      : path.slice("/api/status-page/".length));
+    const entry = pages[slug];
+    if (!entry) {
+      const notFound = new Error("Status Page Not Found");
+      notFound.status = 404;
+      throw notFound;
     }
+    if (entry instanceof Error) throw entry;
+    // L'API sert deux contenus distincts : la page d'un cote, les etats de
+    // l'autre. Renvoyer la page pour les deux ferait croire a zero etat.
+    return isHeartbeat ? entry.beats : entry.page;
   };
-  const counted = await kuma.check(kumaCtx(kumaPage, kumaBeats, {}));
-  check("kuma : 2 en ligne, 1 hors ligne, 1 maintenance non compte",
-    [counted.ok, counted.up, counted.down, counted.total], [true, 2, 1, 4]);
-  check("kuma : le nom du moniteur hors ligne est remonte", counted.downNames, ["Plex"]);
 
-  // Repli : si la page de statut ne repond pas, les cles de heartbeatList
-  // suffisent a compter, sans les noms.
-  const fallback = await kuma.check(kumaCtx(new Error("404"), kumaBeats, {}));
-  check("kuma : repli sur heartbeatList si la page ne repond pas",
-    [fallback.ok, fallback.up, fallback.down, fallback.total], [true, 2, 1, 4]);
+  const onePage = await kuma.check(kumaCtx({ slug1: "services" }, responder({
+    services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 1 }) }
+  })));
+  check("kuma : une page configuree = une ligne",
+    [onePage.ok, onePage.pages.length], [true, 1]);
+  check("kuma : tout en ligne = vert",
+    [onePage.pages[0].name, onePage.pages[0].up, onePage.pages[0].healthy],
+    ["Mes services", 2, true]);
 
-  // Un 404 de la page de statut = slug errone ; une panne reseau, elle, n'a pas
-  // de code HTTP et ne doit donc pas etre rapportee comme un mauvais slug.
-  const notFound = new Error("Status Page Not Found");
-  notFound.status = 404;
-  const wrongSlug = await kuma.check(kumaCtx(notFound, { heartbeatList: {} }, {}));
-  check("kuma : slug inconnu distingue d'une page vide",
-    [wrongSlug.ok, wrongSlug.up, wrongSlug.error],
-    [false, null, "badSlug (Status Page Not Found)"]);
-  const emptyPage = await kuma.check(kumaCtx({ publicGroupList: [] }, { heartbeatList: {} }, {}));
+  const oneDown = await kuma.check(kumaCtx({ slug1: "services" }, responder({
+    services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 0 }) }
+  })));
+  check("kuma : un seul moniteur hors ligne fait rouge la page",
+    [oneDown.ok, oneDown.pages[0].up, oneDown.pages[0].down, oneDown.pages[0].healthy],
+    [false, 1, 1, false]);
+  check("kuma : le nom du moniteur hors ligne est conserve",
+    oneDown.pages[0].downNames, ["NAS"]);
+
+  // La maintenance n'est pas une panne : la page reste verte.
+  const maintenance = await kuma.check(kumaCtx({ slug1: "services" }, responder({
+    services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 3 }) }
+  })));
+  check("kuma : une maintenance ne fait pas rougir la page",
+    [maintenance.ok, maintenance.pages[0].up, maintenance.pages[0].healthy], [true, 1, true]);
+
+  // Deux pages : une ligne chacune, et la tuile suit le pire etat.
+  const twoPages = await kuma.check(kumaCtx({ slug1: "services", slug2: "infra" }, responder({
+    services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 1 }) },
+    infra: { page: { config: { title: "Infrastructure" }, publicGroupList: [{ monitorList: [{ id: 20, name: "Routeur" }] }] },
+      beats: beatsOf({ 20: 0 }) }
+  })));
+  check("kuma : deux pages = deux lignes", twoPages.pages.length, 2);
+  check("kuma : les deux noms de page sont affiches",
+    twoPages.pages.map(page => page.name), ["Mes services", "Infrastructure"]);
+  check("kuma : la tuile entiere rouge des qu'une page l'est",
+    [twoPages.pages[0].healthy, twoPages.pages[1].healthy, twoPages.ok], [true, false, false]);
+
+  // Une page absente ne doit pas empecher l'autre de s'afficher.
+  const oneMissing = await kuma.check(kumaCtx({ slug1: "services", slug2: "absente" }, responder({
+    services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 1 }) }
+  })));
+  check("kuma : une page introuvable n'efface pas l'autre",
+    [oneMissing.pages.length, oneMissing.pages[0].healthy], [2, true]);
+  check("kuma : slug inconnu signale sans code superflu",
+    oneMissing.pages[1].error, "badSlug (Status Page Not Found)");
+
+  const emptyPage = await kuma.check(kumaCtx({ slug1: "vide" }, responder({
+    vide: { page: { config: { title: "Vide" }, publicGroupList: [] }, beats: { heartbeatList: {} } }
+  })));
   check("kuma : page repondante mais vide = aucun moniteur public",
-    [emptyPage.ok, emptyPage.error], [false, "noMonitors"]);
-  const unreachable = await kuma.check(Object.assign(kumaCtx(null, null, {}), {
-    api: async () => { throw new Error("timeout"); }
-  }));
+    emptyPage.pages[0].error, "noMonitors");
+
+  const down = await kuma.check(kumaCtx({ slug1: "services" }, responder({
+    services: new Error("timeout")
+  })));
   check("kuma : panne reseau, pas un mauvais slug",
-    [unreachable.ok, unreachable.error], [false, "unreachable (timeout)"]);
+    [down.pages[0].error, down.pages[0].healthy], ["unreachable (timeout)", false]);
 
-  // Moniteurs hors groupe public : la page les ignore, les comptes restent justes.
-  const notPublished = await kuma.check(kumaCtx({ publicGroupList: [] }, kumaBeats, {}));
-  check("kuma : page sans groupe public, repli sur les etats",
-    [notPublished.ok, notPublished.total], [true, 4]);
-
-  const noConfig = await kuma.check(kumaCtx(null, null, { url: "", slug: "" }));
+  const noConfig = await kuma.check(kumaCtx({}, responder({})));
   check("kuma : config incomplete signalee",
-    [noConfig.ok, noConfig.up, noConfig.error], [false, null, "missingConfig"]);
+    [noConfig.ok, noConfig.pages.length, noConfig.error], [false, 0, "missingConfig"]);
 
-  // Sans schema, le widget tente https puis http : une instance servie en
-  // clair sur son port derriere un proxy TLS ne doit pas etre declaree morte
-  // parce que le premier essai a echoue.
+  const noSecond = await kuma.check(kumaCtx({ slug1: "services", slug2: "  " }, responder({
+    services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 1 }) }
+  })));
+  check("kuma : une seconde page vide est ignoree", noSecond.pages.length, 1);
+
+  // Sans schema, le widget tente https puis http. Il faut remplacer "api" pour
+  // voir l'adresse : kumaCtx appelle sinon son responder avec le seul chemin.
   const tried = [];
-  const schemeFallback = await kuma.check(Object.assign(kumaCtx(kumaPage, kumaBeats, { url: "kuma.exemple.lan" }), {
-    api: async base => {
-      tried.push(base);
-      if (base.startsWith("https:")) throw new Error("ECONNREFUSED");
-      return kumaBeats;
+  const good = { page: goodPage, beats: beatsOf({ 10: 1, 11: 1 }) };
+  const schemeFallback = await kuma.check(Object.assign(
+    kumaCtx({ slug1: "services", url: "kuma.exemple.lan" }, path => responder({ services: good })(path)),
+    {
+      api: async (base, path) => {
+        tried.push(base);
+        if (base.startsWith("https:")) throw new Error("ECONNREFUSED");
+        return responder({ services: good })(path);
+      }
     }
-  }));
+  ));
   check("kuma : repli https -> http si le premier echoue",
-    [schemeFallback.ok, schemeFallback.up, schemeFallback.down], [true, 2, 1]);
+    [schemeFallback.ok, schemeFallback.pages[0].healthy], [true, true]);
   // Chaque adresse declenche deux appels (page + heartbeat) : on verifie les
   // adresses distinctes rencontrees, pas le nombre d'appels.
   const distinct = [...new Set(tried)];
@@ -1079,22 +1124,18 @@ async function main(){
     && distinct.some(b => b.startsWith("https:"))
     && distinct.some(b => b.startsWith("http:")), true);
 
-  // Le renderer construit un DOM : on verifie son contrat, pas ses noeuds.
+  // Le renderer : deux lignes, une couleur par page.
   const kumaModule = await import(pathToFileURL(path.join(WIDGETS, "uptimekuma", "client.mjs")).href);
   check("kuma : le client expose un rendu sur mesure", typeof kumaModule.element, "function");
+  check("kuma : page verte", kumaModule.pageColor(true), "var(--success)");
+  check("kuma : page rouge", kumaModule.pageColor(false), "var(--error)");
 
-  // Seuil d'alerte : la couleur porte le sens, pas le compte.
-  check("kuma : seuil par defaut = 1", kumaModule.thresholdOf({}), 1);
-  check("kuma : seuil explicite respecte", kumaModule.thresholdOf({ threshold: 3 }), 3);
-  check("kuma : seuil a zero accepte", kumaModule.thresholdOf({ threshold: 0 }), 0);
-  check("kuma : seuil aberrant retombe sur le defaut", kumaModule.thresholdOf({ threshold: "abc" }), 1);
-  check("kuma : 0 down reste gris", kumaModule.downColor(0, 1), "var(--muted)");
-  check("kuma : 1 down sous le seuil reste gris", kumaModule.downColor(1, 1), "var(--muted)");
-  check("kuma : 2 down au-dessus du seuil devient rouge", kumaModule.downColor(2, 1), "var(--error)");
-  check("kuma : seuil 0 : un seul down suffit", kumaModule.downColor(1, 0), "var(--error)");
-  check("kuma : seuil 2 : 5 down rouge", kumaModule.downColor(5, 2), "var(--error)");
-  check("kuma : valeur inconnue grise", kumaModule.downColor(NaN, 1), "var(--muted)");
-
+  // Une page illisible ne doit pas s'afficher "0 en ligne" : Number(null)
+  // vaut 0, qui est fini, le test d'etat doit donc exclure null explicitement.
+  check("kuma : page illisible = tiret, pas 0", kumaModule.countText(null, "up"), "—");
+  check("kuma : page en lecture = tiret", kumaModule.countText(undefined, "up"), "—");
+  check("kuma : compte normal", kumaModule.countText(12, "up"), "12 up");
+  check("kuma : zero reste zero", kumaModule.countText(0, "up"), "0 up");
   if (failures) {
     console.error(failures + " échec(s)");
     process.exit(1);

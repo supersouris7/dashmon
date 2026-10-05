@@ -1,38 +1,32 @@
 "use strict";
-// Widget "uptimekuma" : combien de moniteurs sont en ligne sur une page de
-// statut Uptime Kuma.
+// Widget "uptimekuma" : une ligne par page de statut, verte quand tout va bien,
+// rouge des qu'un moniteur tombe.
 //
 // Uptime Kuma n'a pas d'API REST pour ses moniteurs : tout passe par socket.io
 // apres authentification. Les pages de statut, en revanche, exposent deux
 // endpoints JSON, sans installation ni dependance :
 //
-//   GET /api/status-page/:slug           -> groupes, moniteurs et leurs noms
+//   GET /api/status-page/:slug           -> titre de la page, groupes, moniteurs
 //   GET /api/status-page/heartbeat/:slug  -> l'etat actuel, par moniteur
 //
-// Les deux filtrent sur les groupes "public" de la page : un moniteur absent de
-// la page de statut, ou dans un groupe non public, n'apparait pas. C'est la
-// raison la plus frequente d'une liste vide, avec un slug errone.
+// Les deux filtrent sur les groupes "public" : un moniteur absent de la page de
+// statut, ou dans un groupe non public, n'apparait pas.
 //
-// Les deux appels sont faits independamment et l'un ne fait pas echouer l'autre
-// : une version d'Uptime Kuma qui n'expose pas l'un des deux reste utilisable.
-// Le widget ne mesure aucun temps de reponse — il ne fait que recopier ce que
-// Kuma sait deja.
+// Le widget suit deux pages (deux slugs) et ne renvoie qu'un verdict par page :
+// tout en ligne, ou pas. Il n'y a pas de seuil intermediaire — une couleur
+// par page suffit, et un compteur "hors ligne" de plus alourdissait la tuile
+// pour rien. Le detail (combien, et lesquels) reste dans l'info-bulle.
 
 const TIMEOUT = 6000;
 
 // Etat d'un moniteur dans heartbeatList. Meme convention que le badge officiel
-// d'Uptime Kuma : 2 (pending) et 3 (maintenance) ne sont comptes ni en ligne
-// ni hors ligne.
-const STATUS = {
-  0: "down",
-  1: "up",
-  2: "pending",
-  3: "maintenance"
-};
+// d'Uptime Kuma : 2 (pending) et 3 (maintenance) ne sont pas des pannes.
+const DOWN = new Set([0]);
+const UP = 1;
 
-// Moniteurs de la page : la liste vient de publicGroupList[].monitorList[], un
-// groupe par ligne. Les identifiants sont normalises en chaine, car les cles de
-// heartbeatList sont des chaines alors que la page renvoie des nombres.
+// Moniteurs de la page : la liste vient de publicGroupList[].monitorList[]. Les
+// identifiants sont normalises en chaine, car les cles de heartbeatList sont des
+// chaines alors que la page renvoie des nombres.
 function monitorsFrom(page) {
   const out = [];
   const seen = new Set();
@@ -47,6 +41,13 @@ function monitorsFrom(page) {
     }
   }
   return out;
+}
+
+// Titre affiche : celui de la page de statut. A defaut du slug, qui reste
+// lisible, plutot que d'un nom vide sur la tuile.
+function titleOf(page, slug) {
+  const title = String((page && page.config && page.config.title) || "").trim();
+  return title || slug;
 }
 
 // Dernier point connu d'un moniteur : heartbeatList contient les derniers
@@ -65,9 +66,9 @@ function latest(list) {
 // champ etait rempli. On complete donc avant de passer au validateur du core.
 //
 // Une adresse sans schema est essayee en https puis en http. Deviner un seul
-// protocole et se tromper eliminait la moitié des instances : Uptime Kuma est
-// souvent en clair sur son port, mais derriere un reverse proxy en TLS. Les
-// deux adresses ne sont essaiees que si la premiere ne rend rien.
+// protocole et se tromper eliminait la moitie des instances : Uptime Kuma est
+// souvent en clair sur son port, mais derriere un reverse proxy en TLS. Le
+// second essai n'a lieu que si le premier ne rend rien.
 function candidateBases(raw) {
   const text = String(raw == null ? "" : raw).trim();
   if (!text) return [];
@@ -84,16 +85,14 @@ function reasonOf(error) {
   return String((error && error.message) || "").trim().slice(0, 120);
 }
 
-// Une tentative sur une adresse : les deux endpoints en parallele, aucun ne fait
-// echouer l'autre. Sur une version 1.x, /api/status-page/<slug> ne repond pas
-// du tout quand le slug est inconnu (le gestionnaire renvoie sans ecrire de
+// Lecture d'une page sur une adresse : les deux endpoints en parallele, aucun ne
+// fait echouer l'autre. Sur une version 1.x, /api/status-page/<slug> ne repond
+// pas du tout quand le slug est inconnu (le gestionnaire renvoie sans ecrire de
 // reponse) : sans parallelisme, ce premier appel bloquerait le second pendant
 // tout son delai.
-async function tryBase(ctx, base, slug) {
-  const auth = ctx.config.password ? { user: slug, password: ctx.config.password } : undefined;
+async function readPage(ctx, base, slug) {
   const call = suffix => ctx.api(base, "/api/status-page/" + suffix + encodeURIComponent(slug), {
-    timeout: TIMEOUT,
-    basic: auth
+    timeout: TIMEOUT
   });
 
   const [pageResult, beatsResult] = await Promise.allSettled([call(""), call("heartbeat/")]);
@@ -104,7 +103,7 @@ async function tryBase(ctx, base, slug) {
 
   let monitors = monitorsFrom(page);
   // Repli : si la page n'a pas ete lue, les cles de heartbeatList sont deja les
-  // moniteurs. Les noms seront absents, mais les comptes restent justes.
+  // moniteurs. Les noms seront absents, mais le verdict, lui, reste juste.
   if (!monitors.length) {
     monitors = Object.keys(list).map(id => ({ id, name: "" }));
   }
@@ -118,72 +117,93 @@ async function tryBase(ctx, base, slug) {
     pageFailed ? pageResult.reason
       : (beatsResult.status === "rejected" ? beatsResult.reason : null)
   );
-  return { monitors, list, pageFailed, pageStatus, failure };
+  return { monitors, list, title: titleOf(page, slug), pageFailed, pageStatus, failure };
 }
 
-async function check(ctx) {
-  const slug = String(ctx.config.slug || "").trim();
-  const bases = candidateBases(ctx.config.url)
-    .map(raw => ctx.sanitizeUrl(raw))
-    .filter(Boolean);
-  if (!bases.length || !slug) {
-    return { ok: false, up: null, down: null, total: null, error: ctx.t("missingConfig") };
-  }
-
-  // Une adresse sans schema est essaiee en https puis en http : le second essai
-  // n'a lieu que si le premier n'a rendu aucun moniteur.
-  let attempt = null;
-  let failure = "";
-  for (const base of bases) {
-    attempt = await tryBase(ctx, base, slug);
-    failure = attempt.failure || failure;
-    if (attempt.monitors.length) break;
-  }
-
-  const monitors = attempt.monitors;
-  const list = attempt.list;
-
-  if (!monitors.length) {
+// Verdict d'une page : vert seulement si tout est en ligne et qu'on a reellement
+// pu lire la page. Une page illisible est rouge — on ne declare pas la bonne
+// sante d'une information qu'on n'a pas su obtenir.
+function verdictOf(slug, attempt, ctx) {
+  if (!attempt.monitors.length) {
     // Trois cas tres differents, et Uptime Kuma ne les distingue pas : pour un
     // slug inconnu, /api/status-page/heartbeat/<slug> repond 200 avec un
     // heartbeatList vide au lieu d'une erreur. Sans cette distinction, un
-    // identifiant errone s'affichait comme "aucun moniteur", donc comme une
-    // page vide — un message qui envoyait chercher au mauvais endroit.
+    // identifiant errone s'affichait comme une page sans moniteur.
     const message = attempt.pageStatus >= 400
       ? ctx.t("badSlug")
       : (attempt.pageFailed ? ctx.t("unreachable") : ctx.t("noMonitors"));
     return {
-      ok: false,
+      slug,
+      name: slug,
+      healthy: false,
       up: null,
-      down: null,
       total: null,
-      error: message + (failure ? " (" + failure + ")" : "")
+      down: null,
+      downNames: [],
+      error: message + (attempt.failure ? " (" + attempt.failure + ")" : "")
     };
   }
 
   let up = 0;
   let down = 0;
   const downNames = [];
-  let unknown = 0;
-
-  for (const monitor of monitors) {
-    const state = STATUS[Number((latest(list[monitor.id]) || {}).status)];
-    if (state === "up") up++;
-    else if (state === "down") {
+  for (const monitor of attempt.monitors) {
+    const beat = latest(attempt.list[monitor.id]);
+    const status = Number(beat && beat.status);
+    if (status === UP) up++;
+    else if (DOWN.has(status)) {
       down++;
       if (monitor.name) downNames.push(monitor.name);
-    } else unknown++;
+    }
   }
 
   return {
-    ok: true,
+    slug,
+    name: attempt.title,
+    healthy: down === 0,
     up,
+    total: attempt.monitors.length,
     down,
-    unknown,
-    total: monitors.length,
     downNames: downNames.slice(0, 4),
     error: ""
   };
 }
 
-module.exports = { check, latest, monitorsFrom, candidateBases, normalizeBase };
+async function readOnFirstWorkingBase(ctx, slug) {
+  // Une adresse sans schema est essaiee en https puis en http : le second essai
+  // n'a lieu que si le premier n'a rendu aucun moniteur.
+  let attempt = null;
+  for (const base of candidateBases(ctx.config.url)) {
+    const safe = ctx.sanitizeUrl(base);
+    if (!safe) continue;
+    attempt = await readPage(ctx, safe, slug);
+    if (attempt.monitors.length) break;
+  }
+  return attempt || { monitors: [], list: {}, title: slug, pageFailed: true, pageStatus: 0, failure: "" };
+}
+
+async function check(ctx) {
+  const slugs = [ctx.config.slug1, ctx.config.slug2]
+    .map(value => String(value == null ? "" : value).trim())
+    .filter(Boolean);
+  const hasBase = candidateBases(ctx.config.url).some(raw => !!ctx.sanitizeUrl(raw));
+
+  if (!hasBase || !slugs.length) {
+    return { ok: false, pages: [], error: ctx.t("missingConfig") };
+  }
+
+  // Les deux pages se lisent en parallele : elles sont independantes, et un
+  // identifiant errone sur l'une ne doit pas retarder l'autre.
+  const attempts = await Promise.all(slugs.map(slug => readOnFirstWorkingBase(ctx, slug)));
+  const pages = attempts.map((attempt, index) => verdictOf(slugs[index], attempt, ctx));
+
+  // La tuile entiere suit le pire etat : une seule page rouge suffit a
+  // signaler un probleme, sans qu'il faille survoler pour le voir.
+  return {
+    ok: pages.every(page => page.healthy),
+    pages,
+    error: ""
+  };
+}
+
+module.exports = { check, latest, monitorsFrom, titleOf, candidateBases, normalizeBase };

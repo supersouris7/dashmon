@@ -1,10 +1,10 @@
 {
   "id": "uptimekuma",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "label": { "fr": "Uptime Kuma", "en": "Uptime Kuma" },
   "description": {
-    "fr": "Compte les moniteurs en ligne et hors ligne d'une page de statut Uptime Kuma",
-    "en": "Counts the up and down monitors of an Uptime Kuma status page"
+    "fr": "Une ligne par page de statut : vert si tout est en ligne, rouge sinon",
+    "en": "One line per status page: green if everything is up, red otherwise"
   },
   "interval": 60000,
   "cacheKey": "config",
@@ -15,39 +15,29 @@
       "name": "Uptime Kuma",
       "url": "Adresse de l'instance",
       "urlPlaceholder": "https://kuma.exemple.lan",
-      "slug": "Identifiant de la page de statut",
-      "slugPlaceholder": "default, ou l'identifiant dans l'URL /status/…",
-      "threshold": "Seuil d’alerte",
-      "password": "Mot de passe de la page (si privée)",
-      "passwordConfigured": "Mot de passe enregistré (laisser vide pour ne pas le changer)",
+      "slug1": "Première page de statut",
+      "slug1Placeholder": "services",
+      "slug2": "Seconde page de statut (facultatif)",
+      "slug2Placeholder": "infrastructure",
       "up": "en ligne",
-      "down": "hors ligne",
-      "monitor": "moniteur",
-      "monitors": "moniteurs",
       "missingConfig": "Adresse ou page de statut manquante",
       "noMonitors": "Aucun moniteur public sur cette page",
-      "badSlug": "Page de statut introuvable — vérifiez l’identifiant",
-      "unreachable": "Instance injoignable",
-      "error": "Uptime Kuma"
+      "badSlug": "Page de statut introuvable",
+      "unreachable": "Instance injoignable"
     },
     "en": {
       "name": "Uptime Kuma",
       "url": "Instance address",
       "urlPlaceholder": "https://kuma.example.lan",
-      "slug": "Status page slug",
-      "slugPlaceholder": "default, or the id in the /status/… URL",
-      "threshold": "Alert threshold",
-      "password": "Status page password (if private)",
-      "passwordConfigured": "Password saved (leave empty to keep it)",
+      "slug1": "First status page",
+      "slug1Placeholder": "services",
+      "slug2": "Second status page (optional)",
+      "slug2Placeholder": "infrastructure",
       "up": "up",
-      "down": "down",
-      "monitor": "monitor",
-      "monitors": "monitors",
       "missingConfig": "Missing address or status page",
       "noMonitors": "No public monitor on this page",
-      "badSlug": "Status page not found — check the slug",
-      "unreachable": "Instance unreachable",
-      "error": "Uptime Kuma"
+      "badSlug": "Status page not found",
+      "unreachable": "Instance unreachable"
     }
   },
   "config": [
@@ -59,25 +49,18 @@
       "placeholder": "urlPlaceholder"
     },
     {
-      "key": "slug",
+      "key": "slug1",
       "type": "text",
-      "label": "slug",
+      "label": "slug1",
       "maxLength": 100,
-      "placeholder": "slugPlaceholder"
+      "placeholder": "slug1Placeholder"
     },
     {
-      "key": "password",
-      "type": "secret",
-      "label": "password",
-      "maxLength": 200
-    },
-    {
-      "key": "threshold",
-      "type": "number",
-      "label": "threshold",
-      "default": 1,
-      "min": 0,
-      "max": 999
+      "key": "slug2",
+      "type": "text",
+      "label": "slug2",
+      "maxLength": 100,
+      "placeholder": "slug2Placeholder"
     }
   ]
 }
