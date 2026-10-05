@@ -86,19 +86,18 @@ async function check(ctx) {
     basic: auth
   });
 
-  let page = null;
-  let beats = null;
-  let failure = "";
-  try {
-    page = await call("");
-  } catch (error) {
-    failure = reasonOf(error);
-  }
-  try {
-    beats = await call("heartbeat/");
-  } catch (error) {
-    failure = failure || reasonOf(error);
-  }
+  // Les deux appels partent en parallele et aucun ne fait echouer l'autre. Sur
+  // une version 1.x, /api/status-page/<slug> ne repond pas du tout quand le
+  // slug est inconnu (le gestionnaire renvoie sans ecrire de reponse) : sans
+  // parallelisme, ce premier appel bloquerait le second pendant tout son delai.
+  const [pageResult, beatsResult] = await Promise.allSettled([call(""), call("heartbeat/")]);
+
+  const page = pageResult.status === "fulfilled" ? pageResult.value : null;
+  const beats = beatsResult.status === "fulfilled" ? beatsResult.value : null;
+  const failure = reasonOf(
+    pageResult.status === "rejected" ? pageResult.reason
+      : (beatsResult.status === "rejected" ? beatsResult.reason : null)
+  );
 
   let monitors = monitorsFrom(page);
   const list = (beats && beats.heartbeatList) || {};
