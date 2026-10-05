@@ -17,6 +17,12 @@ function isSmallIcons() {
   return !!board && board.classList.contains("small-icons");
 }
 
+// "up" n'est pas traduit, volontairement : c'est le mot que tout le monde lit
+// dans un outil de supervision, et "en ligne" doublerait la largeur de la tuile
+// pour dire la meme chose. Le manifeste ne declare donc aucune chaine "up" —
+// si on la reintroduisait, elle serait traduite par erreur.
+const UP = "up";
+
 export function pageColor(healthy) {
   return healthy ? "var(--success)" : "var(--error)";
 }
@@ -64,15 +70,15 @@ export function element(ctx) {
     // Le nom vient de la page de statut, pas du slug : l'utilisateur reconnait
     // "Services" tout de suite, "services" dans une tuile de 60 px beaucoup
     // moins.
-    const count = countText(page.up, t("up"));
+    const count = countText(page.up, UP);
     const detail = page.error
       ? page.error
-      : t("name") + " · " + page.up + "/" + page.total + " " + t("up");
+      : t("name") + " · " + page.up + "/" + page.total + " " + UP;
     box.append(line(page.name + " " + count, pageColor(page.healthy), detail));
   }
 
   box.title = pages
-    .map(page => page.name + " · " + (page.error || (page.up + "/" + page.total + " " + t("up"))))
+    .map(page => page.name + " · " + (page.error || (page.up + "/" + page.total + " " + UP)))
     .join(" · ");
   return box;
 }

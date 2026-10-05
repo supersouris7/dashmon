@@ -1136,6 +1136,13 @@ async function main(){
   check("kuma : page en lecture = tiret", kumaModule.countText(undefined, "up"), "—");
   check("kuma : compte normal", kumaModule.countText(12, "up"), "12 up");
   check("kuma : zero reste zero", kumaModule.countText(0, "up"), "0 up");
+
+  // "up" n'est pas traduit, dans aucune langue : le manifeste ne doit donc pas
+  // declarer de chaine "up", sinon elle serait traduite en "en ligne" et la
+  // tuile doublerait de largeur.
+  const kumaManifest = JSON.parse(fs.readFileSync(path.join(WIDGETS, "uptimekuma", "manifest.json"), "utf8"));
+  check("kuma : aucune chaine traduite pour le mot up",
+    ["fr", "en"].every(lang => !Object.prototype.hasOwnProperty.call(kumaManifest.strings[lang], "up")), true);
   if (failures) {
     console.error(failures + " échec(s)");
     process.exit(1);

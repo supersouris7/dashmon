@@ -126,6 +126,10 @@ Green while everything is up, red as soon as one monitor is down. A planned
 maintenance is not a failure, so it stays green. The tooltip adds the detail —
 *how many* in total, and which monitors are down.
 
+The counter keeps the English word `up` in both languages: it is what a
+monitoring tool is expected to say, and *en ligne* would double the tile width
+to mean the same thing.
+
 **Configuration**
 
 - **url** — the instance address, e.g. `https://kuma.example.lan`. A scheme is
