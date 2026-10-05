@@ -109,11 +109,16 @@ async function tryBase(ctx, base, slug) {
     monitors = Object.keys(list).map(id => ({ id, name: "" }));
   }
 
+  const pageFailed = pageResult.status === "rejected";
+  // Une erreur HTTP porte son code (error.status), une panne reseau n'en porte
+  // pas : c'est ce qui permet de ne pas confondre un slug errone avec une
+  // instance injoignable.
+  const pageStatus = pageFailed ? Number(pageResult.reason && pageResult.reason.status) || 0 : 0;
   const failure = reasonOf(
-    pageResult.status === "rejected" ? pageResult.reason
+    pageFailed ? pageResult.reason
       : (beatsResult.status === "rejected" ? beatsResult.reason : null)
   );
-  return { monitors, list, failure };
+  return { monitors, list, pageFailed, pageStatus, failure };
 }
 
 async function check(ctx) {
@@ -139,15 +144,20 @@ async function check(ctx) {
   const list = attempt.list;
 
   if (!monitors.length) {
-    // Aucun moniteur. La raison est presque toujours un slug errone ou des
-    // moniteurs hors groupe public : on la dit, plutot que d'afficher
-    // "0 en ligne", qui ferait croire a une panne generale.
+    // Trois cas tres differents, et Uptime Kuma ne les distingue pas : pour un
+    // slug inconnu, /api/status-page/heartbeat/<slug> repond 200 avec un
+    // heartbeatList vide au lieu d'une erreur. Sans cette distinction, un
+    // identifiant errone s'affichait comme "aucun moniteur", donc comme une
+    // page vide — un message qui envoyait chercher au mauvais endroit.
+    const message = attempt.pageStatus >= 400
+      ? ctx.t("badSlug")
+      : (attempt.pageFailed ? ctx.t("unreachable") : ctx.t("noMonitors"));
     return {
       ok: false,
       up: null,
       down: null,
       total: null,
-      error: ctx.t("noMonitors") + (failure ? " (" + failure + ")" : "")
+      error: message + (failure ? " (" + failure + ")" : "")
     };
   }
 

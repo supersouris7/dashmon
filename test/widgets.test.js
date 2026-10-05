@@ -1032,11 +1032,22 @@ async function main(){
   check("kuma : repli sur heartbeatList si la page ne repond pas",
     [fallback.ok, fallback.up, fallback.down, fallback.total], [true, 2, 1, 4]);
 
-  // Mauvais slug : aucun moniteur, et la raison est affichee.
-  const wrongSlug = await kuma.check(kumaCtx(new Error("Status Page Not Found"), { heartbeatList: {} }, {}));
-  check("kuma : page vide signalee avec la raison",
+  // Un 404 de la page de statut = slug errone ; une panne reseau, elle, n'a pas
+  // de code HTTP et ne doit donc pas etre rapportee comme un mauvais slug.
+  const notFound = new Error("Status Page Not Found");
+  notFound.status = 404;
+  const wrongSlug = await kuma.check(kumaCtx(notFound, { heartbeatList: {} }, {}));
+  check("kuma : slug inconnu distingue d'une page vide",
     [wrongSlug.ok, wrongSlug.up, wrongSlug.error],
-    [false, null, "noMonitors (Status Page Not Found)"]);
+    [false, null, "badSlug (Status Page Not Found)"]);
+  const emptyPage = await kuma.check(kumaCtx({ publicGroupList: [] }, { heartbeatList: {} }, {}));
+  check("kuma : page repondante mais vide = aucun moniteur public",
+    [emptyPage.ok, emptyPage.error], [false, "noMonitors"]);
+  const unreachable = await kuma.check(Object.assign(kumaCtx(null, null, {}), {
+    api: async () => { throw new Error("timeout"); }
+  }));
+  check("kuma : panne reseau, pas un mauvais slug",
+    [unreachable.ok, unreachable.error], [false, "unreachable (timeout)"]);
 
   // Moniteurs hors groupe public : la page les ignore, les comptes restent justes.
   const notPublished = await kuma.check(kumaCtx({ publicGroupList: [] }, kumaBeats, {}));
@@ -1046,11 +1057,6 @@ async function main(){
   const noConfig = await kuma.check(kumaCtx(null, null, { url: "", slug: "" }));
   check("kuma : config incomplete signalee",
     [noConfig.ok, noConfig.up, noConfig.error], [false, null, "missingConfig"]);
-
-  const unreachable = await kuma.check(Object.assign(kumaCtx(null, null, {}), {
-    api: async () => { throw new Error("timeout"); }
-  }));
-  check("kuma : erreur reseau signalee", [unreachable.ok, unreachable.error], [false, "noMonitors (timeout)"]);
 
   // Sans schema, le widget tente https puis http : une instance servie en
   // clair sur son port derriere un proxy TLS ne doit pas etre declaree morte

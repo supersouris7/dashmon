@@ -25,7 +25,9 @@
       "monitor": "moniteur",
       "monitors": "moniteurs",
       "missingConfig": "Adresse ou page de statut manquante",
-      "noMonitors": "Aucun moniteur trouvé sur cette page",
+      "noMonitors": "Aucun moniteur public sur cette page",
+      "badSlug": "Page de statut introuvable — vérifiez l’identifiant",
+      "unreachable": "Instance injoignable",
       "error": "Uptime Kuma"
     },
     "en": {
@@ -42,7 +44,9 @@
       "monitor": "monitor",
       "monitors": "monitors",
       "missingConfig": "Missing address or status page",
-      "noMonitors": "No monitor found on this page",
+      "noMonitors": "No public monitor on this page",
+      "badSlug": "Status page not found — check the slug",
+      "unreachable": "Instance unreachable",
       "error": "Uptime Kuma"
     }
   },
