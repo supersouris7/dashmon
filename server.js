@@ -414,6 +414,25 @@ app.get("/healthz",(_req,res)=>{
 // l'image, elle, est a jour. Cette route n'est qu'un objet JSON, jamais mise en
 // cache, et elle renvoie aussi la valeur brute du SHA d'image : c'est le seul
 // point de controle qui ne puisse pas mentir.
+// Le dossier /app vient-il d'un montage de l'hote plutot que de l'image ?
+// C'est la cause la plus frequente d'un deploiement ou "le code est a jour
+// mais la version affichee reste ancienne" : l'image fournit les variables
+// d'environnement (dont le SHA) tandis que le code vient du bind mount, donc
+// un git pull sur l'hote change les fichiers sans changer l'etiquette.
+// On ne renvoie qu'un booleen : les chemins de l'hote n'ont rien a faire dans
+// une reponse d'API.
+function appIsMounted() {
+  try {
+    const info = fs.readFileSync("/proc/self/mountinfo", "utf8");
+    return info.split("\n").some(line => {
+      const parts = line.split(" ");
+      return parts.length > 4 && (parts[4] === "/app" || parts[4].startsWith("/app/"));
+    });
+  } catch (_error) {
+    return null;
+  }
+}
+
 app.get("/api/version",(_req,res)=>{
   res.set("Cache-Control","no-store");
   res.json({
@@ -424,6 +443,9 @@ app.get("/api/version",(_req,res)=>{
     // tag : sur une image "unstable" il reste fige, ce qui est sans rapport
     // avec l'etat reel du deploiement.
     packageVersion:require("./package.json").version,
+    // true quand le code vient d'un montage de l'hote : dans ce cas l'image ne
+    // peut pas decrire le code qui s'execute.
+    appMounted:appIsMounted(),
     startedAt:STARTED_AT
   });
 });
