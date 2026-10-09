@@ -288,7 +288,6 @@ export const DEFAULT_WEB_LINKS=[
   {"name":"GitHub","url":"https://github.com","icon":"fa-brands fa-github"}
 ];
 
-export const DEFAULT_BANNER_URL="https://github.com/supersouris7";
 export const DEFAULT_FAVICON="/logo.png";
 
 // Libellé stable (indépendant de la langue) pour le groupe des services sans
@@ -312,8 +311,6 @@ export const state = {
   webLinksSeedVersion: 0,
   smallIcons: false,
   hostsDisplay: "name",
-  bannerIcon: true,
-  bannerUrl: DEFAULT_BANNER_URL,
   favicon: "",
   faviconEnabled: true,
   editServices: [],
@@ -481,8 +478,6 @@ export function normalizeConfig(cfg={}){
         icon:sanitizeIconClass(link.icon)
       })),
     webLinksSeedVersion:Number.isFinite(Number(cfg.webLinksSeedVersion)) ? Number(cfg.webLinksSeedVersion) : 0,
-    bannerIcon:cfg.bannerIcon!==false,
-    bannerUrl:sanitizeUrl(cfg.bannerUrl||"") || DEFAULT_BANNER_URL,
     favicon:sanitizeFavicon(cfg.favicon),
     faviconEnabled:cfg.faviconEnabled!==false
   };

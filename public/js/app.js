@@ -1,10 +1,10 @@
 // Point d'entrée : initialisation, menu principal, modals (éditeur/apparence), événements globaux.
-import { state, normalizeConfig, normalizeViewPrefs, isTypingTarget, sanitizeUrl, DEFAULT_BANNER_URL } from "./state.js";
+import { state, normalizeConfig, normalizeViewPrefs, isTypingTarget, sanitizeUrl } from "./state.js";
 import { patchConfig } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
 import { render, updateViewButton, updateIconsButton, updateOpenModeMenu, updateGroupModeMenu,
   updateSortModeMenu, setGroupMode, getCollapseAllState, updateCollapseAllButton,
-  applyBanner, applyFavicon, updateStatusIndicators } from "./render.js";
+  applyFavicon, updateStatusIndicators } from "./render.js";
 import { applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater, t } from "./i18n.js";
 import {
   loadThemes, applyTheme, setTheme, currentTheme, downloadTheme,
@@ -21,7 +21,7 @@ import {
   sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuAppearanceBtn, menuRefreshBtn,
   appearanceBackdrop, appearanceCloseBtn, appearanceDoneBtn, themeSelect,
   languageSelect, smallIconsSelect, hostsDisplaySelect, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
-  bannerIconSelect, bannerUrlInput, faviconInput, importFaviconBtn, resetFaviconBtn, faviconEnabledSelect,
+  faviconInput, importFaviconBtn, resetFaviconBtn, faviconEnabledSelect,
   themeImportInput, modalBackdrop, imageLibrary
 } from "./dom.js";
 
@@ -53,8 +53,6 @@ async function loadConfig(){
     state.usageCounts=cfg.usageCounts;
     state.webLinks=cfg.webLinks;
     state.webLinksSeedVersion=cfg.webLinksSeedVersion;
-    state.bannerIcon=cfg.bannerIcon;
-    state.bannerUrl=cfg.bannerUrl;
     state.favicon=cfg.favicon;
     state.faviconEnabled=cfg.faviconEnabled;
   }catch(error){
@@ -67,7 +65,6 @@ async function loadConfig(){
   updateGroupModeMenu();
   updateSortModeMenu();
   applyTheme();
-  applyBanner();
   applyFavicon();
   applyLanguage();
   render();
@@ -102,9 +99,6 @@ function openAppearance(){
   smallIconsSelect.value=state.smallIcons ? "1" : "0";
   hostsDisplaySelect.value=state.hostsDisplay==="icon" ? "icon" : "name";
   openModeSelect.value=state.openMode==="new" ? "new" : "same";
-  bannerIconSelect.value=state.bannerIcon ? "1" : "0";
-  bannerUrlInput.value=state.bannerUrl;
-  bannerUrlInput.disabled=!state.bannerIcon;
   faviconEnabledSelect.value=state.faviconEnabled!==false ? "1" : "0";
   updateThemeManageUI();
   appearanceBackdrop.classList.add("show");
@@ -240,22 +234,6 @@ hostsDisplaySelect.addEventListener("change",()=>{
 });
 
 openModeSelect.addEventListener("change",()=>setOpenMode(openModeSelect.value));
-
-bannerIconSelect.addEventListener("change",()=>{
-  state.bannerIcon=bannerIconSelect.value==="1";
-  bannerUrlInput.disabled=!state.bannerIcon;
-  applyBanner();
-  patchConfig({bannerIcon:state.bannerIcon});
-});
-
-const commitBannerUrl=()=>{
-  const value=sanitizeUrl(bannerUrlInput.value) || DEFAULT_BANNER_URL;
-  state.bannerUrl=value;
-  bannerUrlInput.value=value;
-  applyBanner();
-  patchConfig({bannerUrl:value});
-};
-bannerUrlInput.addEventListener("change",commitBannerUrl);
 
 importFaviconBtn.addEventListener("click",()=>faviconInput.click());
 

@@ -327,8 +327,6 @@ function ensureDataFiles(){
         webLinksCollapsed:false,
         smallIcons:false,
         hostsDisplay:"name",
-        bannerIcon:true,
-        bannerUrl:"https://github.com/supersouris7",
         favicon:""
       },null,2)+"\n","utf8");
     }
@@ -583,8 +581,6 @@ function buildConfigOutput(config){
         ? Number(config.webLinksSeedVersion) : 0,
       smallIcons:config.smallIcons===true,
       hostsDisplay:config.hostsDisplay==="icon" ? "icon" : "name",
-      bannerIcon:config.bannerIcon!==false,
-      bannerUrl:sanitizeUrl(config.bannerUrl||"") || "https://github.com/supersouris7",
       favicon:sanitizeFavicon(config.favicon),
       faviconEnabled:config.faviconEnabled!==false
   };

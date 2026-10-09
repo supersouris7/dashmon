@@ -110,7 +110,7 @@ editor — that value is then stored in `config.json`, so keep the volume privat
 ### What lives where
 
 - **On the server (`config.json`)** — your dashboard: services, categories, hosts,
-  web links, language, theme, banner, favicon, click counters.
+  web links, language, theme, favicon, click counters.
 - **In this browser only (`localStorage`)** — the layout: view mode, sort,
   grouping, how links open, collapsed sections, small icons. Nothing is written
   to disk and nothing is sent back, so **a layout never travels from one device to

@@ -3,7 +3,7 @@ import { state, clone, normalize, normalizeConfig, normalizeViewPrefs, compareNa
 import { t, applyLanguage } from "./i18n.js";
 import { saveConfig, putConfig, fetchConfig } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
-import { render, updateViewButton, updateIconsButton, updateOpenModeMenu, updateGroupModeMenu, updateSortModeMenu, applyBanner, applyFavicon } from "./render.js";
+import { render, updateViewButton, updateIconsButton, updateOpenModeMenu, updateGroupModeMenu, updateSortModeMenu, applyFavicon } from "./render.js";
 import { applyTheme } from "./themes.js";
 import { refreshHostMetrics } from "./metrics.js";
 import { openImageLibrary, renderImageManager } from "./images.js";
@@ -875,8 +875,6 @@ configImportInput.addEventListener("change",async()=>{
     state.language=imported.language;
     state.usageCounts={...imported.usageCounts};
     state.webLinks=clone(imported.webLinks);
-    state.bannerIcon=imported.bannerIcon;
-    state.bannerUrl=imported.bannerUrl;
     state.favicon=imported.favicon;
     state.faviconEnabled=imported.faviconEnabled!==false;
 
@@ -886,7 +884,6 @@ configImportInput.addEventListener("change",async()=>{
     state.editWebLinks=clone(state.webLinks);
 
     applyTheme();
-    applyBanner();
     applyFavicon();
   applyLanguage();
   updateViewButton();

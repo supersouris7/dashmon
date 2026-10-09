@@ -89,15 +89,6 @@ main{
   display:block;
 }
 
-html.banner-off .app-logo{
-  display:none;
-}
-
-html.banner-off .toolbar{
-  grid-template-columns:minmax(240px,520px) 1fr 48px 48px 48px 48px;
-  grid-template-areas:"search metrics view icons collapse more";
-}
-
 .search-box{
   grid-area:search;
   position:relative;

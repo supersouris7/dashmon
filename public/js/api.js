@@ -22,8 +22,6 @@ export function saveConfig(immediate=false){
       usageCounts:state.usageCounts,
       webLinks:state.webLinks,
       webLinksSeedVersion:state.webLinksSeedVersion,
-      bannerIcon:state.bannerIcon,
-      bannerUrl:state.bannerUrl,
       favicon:state.favicon,
       faviconEnabled:state.faviconEnabled
     });
