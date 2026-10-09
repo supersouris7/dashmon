@@ -540,13 +540,12 @@ export function normalizeConfig(cfg={}){
     favicon:sanitizeFavicon(cfg.favicon),
     faviconEnabled:cfg.faviconEnabled!==false
   };
-  // Categories et hotes partagent la MEME palette : si chacun recevait la sienne,
-  // une couleur attribuee a une categorie pourrait revenir sur un hote, et le
-  // liseret ne signifierait plus rien. L'affectation se fait donc apres coup,
-  // sur le resultat, avec un seul ensemble de couleurs deja prises.
-  const used=new Set();
-  assignTileColors(normalized.categories,used);
-  assignTileColors(normalized.hosts,used);
+  // Categories et hotes ont chacun LEUR palette : une couleur d'hote peut
+  // legitimement etre la meme qu'une couleur de categorie. Les deux listes
+  // sont donc traitees separement, sans ensemble partage — lier les deux
+  // forcerait a changer une couleur d'un cote des que l'autre evolue.
+  assignTileColors(normalized.categories,new Set());
+  assignTileColors(normalized.hosts,new Set());
   return normalized;
 }
 

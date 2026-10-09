@@ -262,14 +262,14 @@ async function main(){
   ok("couleur : trois couleurs distinctes",
     new Set(cats.map(c => c.color)).size === 3, JSON.stringify(cats));
 
-  // Categories et hotes partagent la palette : sinon une couleur de categorie
-  // peut revenir sur un hote, et le liseret ne signifie plus rien.
-  const shared = new Set();
-  assign(cats, shared);
-  const hostsList = [{ name: "nas" }];
-  assign(hostsList, shared);
-  ok("couleur : l'hote ne reprend pas une couleur de categorie",
-    !cats.some(c => c.color === hostsList[0].color), JSON.stringify(hostsList));
+  // Categories et hotes n'ont AUCUN lien de couleur : les deux listes sont
+  // traitees separement, donc une couleur d'hote peut legitimement reprendre
+  // celle d'une categorie.
+  const hostColors = [{ name: "nas" }, { name: "pve" }];
+  assign(hostColors, new Set());
+  ok("couleur : un hote peut porter la meme couleur qu'une categorie",
+    hostColors[0].color === cats[0].color,
+    "categorie=" + cats[0].color + " hote=" + hostColors[0].color);
 
   const kept = [{ name: "D", color: "#ef476f" }, { name: "E" }];
   assign(kept, new Set());

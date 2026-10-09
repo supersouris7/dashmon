@@ -570,36 +570,24 @@ export function renderCategoryEditor(){
       renderServiceEditor();
     });
 
-    row.append(drag,name,picker,createColorPicker(category,index,()=>state.editHosts),remove);
+    row.append(drag,name,picker,createColorPicker(category),remove);
     makeDraggable(row,state.editCategories,index,renderCategoryEditor);
     categoryEditor.appendChild(row);
   });
 }
 
-// Chaque categorie et chaque hote porte TOUJOURS une couleur : l'utilisateur
-// peut la changer, mais il n'y a jamais de "sans couleur". Une tuile sans
-// couleur se confondait avec une section non configuree, et la lecture d'un
-// tableau de bord devenait ambigue.
-//
-// L'affectation automatique prend la premiere teinte libre de la palette, dans
-// l'ordre, en évitant celles deja portees par une autre categorie ou un autre
-// hote. Si la palette est epuisee (plus de dix elements colores), on reboucle
-// sur les teintes deja utilisees plutot que de laisser un element sans
-// couleur — mieux vaut une couleur partagee qu'une section invisible.
-function autoColor(item, others){
-  const used=new Set();
-  for(const other of (others||[])){
-    if(other!==item && other.color) used.add(other.color);
-  }
-  const free=TILE_COLORS.filter(color=>color && !used.has(color));
-  return free[0] || TILE_COLORS.find(color=>color) || "";
+// Premiere teinte libre de la palette. La fonction ne regarde que la liste
+// qu'on lui donne : chaque categorie et chaque hote est traite independamment,
+// donc les doublons restent possibles.
+function autoColor(){
+  return TILE_COLORS.find(Boolean) || "";
 }
 
 // Bouton de couleur : un carre de 28 px qui ouvre la palette. Un menu
 // deroulant de 110 px dans une ligne de reglages deja chargee finissait par
 // chevaucher les champs voisins ; le carre, lui, ne prend pas plus de place
 // que l'icone qu'il remplace.
-function createColorPicker(item,index,getOthers){
+function createColorPicker(item){
   const wrap=document.createElement("div");
   wrap.className="color-picker";
 
@@ -614,20 +602,15 @@ function createColorPicker(item,index,getOthers){
   palette.className="color-palette";
   palette.hidden=true;
 
-  const used=new Set();
-  for(const other of (getOthers() || [])){
-    if(other!==item && other.color) used.add(other.color);
-  }
-
-  // L'affectation automatique a lieu a l'ouverture de l'editeur, pas au
-  // rendu : la valeur doit etre enregistree avec le reste, sinon elle
-  // disparaitrait au prochain rechargement.
-  if(!item.color || used.has(item.color)) {
-    item.color=autoColor(item,getOthers());
+  // Les doublons sont autorises : deux categories peuvent porter la meme
+  // couleur si c'est un choix, et surtout une couleur d'hote n'a rien a voir
+  // avec celle d'une categorie. On n'exclut donc rien de la palette.
+  if(!item.color) {
+    item.color=autoColor();
     button.style.setProperty("--swatch",item.color);
   }
 
-  TILE_COLORS.filter(color=>color && !used.has(color)).forEach(color=>{
+  TILE_COLORS.filter(Boolean).forEach(color=>{
     const swatch=document.createElement("button");
     swatch.type="button";
     swatch.className="color-chip";
@@ -821,7 +804,7 @@ export function renderHostEditor(){
       renderServiceEditor();
     });
 
-    row.append(drag,name,picker,createColorPicker(host,index,()=>state.editCategories),monitor,type,params,auth,remove);
+    row.append(drag,name,picker,createColorPicker(host),monitor,type,params,auth,remove);
     makeDraggable(row,state.editHosts,index,()=>{
       renderHostEditor();
       renderServiceEditor();
