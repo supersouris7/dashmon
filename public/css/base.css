@@ -369,16 +369,15 @@ main{
 
 }
 
-/* Couleur de categorie ou d'hote. Elle agit a trois endroits, dans tous les
-   themes : le liseré de la tuile, la tuile elle-meme au survol, et le titre
-   de la categorie. La classe .tinted est ce qui distingue une section
-   coloree : sans elle, --tile-color vaudrait transparent et la bordure
-   disparaitrait au lieu de redevenir celle du theme. */
-.section.tinted .card{
+/* Couleur de categorie ou d'hote. Elle n'agit qu'au survol : une grille de
+   tuiles rebadigee en permanence est illisible, la couleur perdrait son sens
+   de signal. Au survol, le liseré et un fond legerement teinte disent a quelle
+   categorie appartient la tuile, et le titre reprend la teinte en permanence.
+   La classe .tinted distingue une section coloree : sans elle, --tile-color
+   vaudrait transparent et la bordure disparaitrait. */
+.section.tinted .card:hover,
+.cards > .card.tinted:hover{
   border-color:var(--tile-color);
-}
-
-.section.tinted .card:hover{
   background:color-mix(in srgb, var(--tile-color) 9%, var(--surface));
 }
 

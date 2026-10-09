@@ -133,6 +133,18 @@ export function focusHostGroup(hostName){
   saveViewPrefs({groupMode:"host",collapsed:state.collapsed});
 }
 
+// Couleur d'une tuile en affichage a plat : il n'y a pas de section, donc rien
+// a quoi heriter. La regle reste celle du mode actif — couleur de l'hote quand
+// l'affichage est par hote, couleur de la categorie sinon — pour que le
+// passage d'un mode a l'autre ne change pas les couleurs.
+function tileColorFor(service){
+  const name=(service&&((service.host||"").trim()||FALLBACK_HOST))||"";
+  const target=state.groupMode==="host"
+    ? state.hosts.find(host=>host.name===name)
+    : getCategory((service&&service.category)||"");
+  return sanitizeTileColor((target||{}).color);
+}
+
 function createCard(service){
   const card=document.createElement("a");
   card.className="card";
@@ -444,7 +456,16 @@ export function render(){
 
     [...filtered]
       .sort(compareServices)
-      .forEach(s=>cards.appendChild(createCard(s)));
+      .forEach(service=>{
+        const card=createCard(service);
+        // Mode a plat : la tuile porte sa propre couleur, faute de section.
+        const color=tileColorFor(service);
+        if(color){
+          card.classList.add("tinted");
+          card.style.setProperty("--tile-color",color);
+        }
+        cards.appendChild(card);
+      });
 
     dashboard.appendChild(cards);
     return;

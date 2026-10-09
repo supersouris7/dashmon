@@ -595,52 +595,82 @@ function autoColor(item, others){
   return free[0] || TILE_COLORS.find(color=>color) || "";
 }
 
-// Selecteur de couleur d'une categorie ou d'un hote.
-//
-// Pas de doublon : une couleur deja portee par une autre categorie ou un autre
-// hote sort de la liste. Deux elements de la meme couleur rendraient la lecture
-// ambigue — on ne saurait plus a quoi la couleur se rapporte.
+// Bouton de couleur : un carre de 28 px qui ouvre la palette. Un menu
+// deroulant de 110 px dans une ligne de reglages deja chargee finissait par
+// chevaucher les champs voisins ; le carre, lui, ne prend pas plus de place
+// que l'icone qu'il remplace.
 function createColorPicker(item,index,getOthers){
-  const wrap=document.createElement("label");
+  const wrap=document.createElement("div");
   wrap.className="color-picker";
 
-  const select=document.createElement("select");
-  select.className="edit-select";
+  const button=document.createElement("button");
+  button.type="button";
+  button.className="color-swatch-btn";
+  button.title=t("colorSwatch");
+  button.setAttribute("aria-label",t("colorSwatch"));
+  button.style.setProperty("--swatch",item.color||"transparent");
+
+  const palette=document.createElement("div");
+  palette.className="color-palette";
+  palette.hidden=true;
 
   const used=new Set();
   for(const other of (getOthers() || [])){
     if(other!==item && other.color) used.add(other.color);
   }
 
-  TILE_COLORS.filter(color=>color && !used.has(color)).forEach(color=>{
-    const option=document.createElement("option");
-    option.value=color;
-    option.textContent=t("colorSwatch");
-    option.style.color=color;
-    select.appendChild(option);
-  });
-
   // L'affectation automatique a lieu a l'ouverture de l'editeur, pas au
   // rendu : la valeur doit etre enregistree avec le reste, sinon elle
   // disparaitrait au prochain rechargement.
   if(!item.color || used.has(item.color)) {
-    item.color=autoColor(item,(getOthers() || []).concat([item]));
+    item.color=autoColor(item,getOthers());
+    button.style.setProperty("--swatch",item.color);
   }
-  select.value=item.color;
 
-  // La pastille se pose sur l'enveloppe : le select garde ainsi une seule
-  // source de verite pour la valeur choisie.
-  wrap.style.setProperty("--swatch",item.color || "transparent");
-
-  select.addEventListener("change",()=>{
-    item.color=sanitizeTileColor(select.value);
-    renderCategoryEditor();
-    renderHostEditor();
+  TILE_COLORS.filter(color=>color && !used.has(color)).forEach(color=>{
+    const swatch=document.createElement("button");
+    swatch.type="button";
+    swatch.className="color-chip";
+    swatch.style.setProperty("--chip",color);
+    swatch.title=t("colorSwatch");
+    swatch.setAttribute("aria-label",color);
+    if(color===item.color) swatch.classList.add("current");
+    swatch.addEventListener("click",event=>{
+      event.stopPropagation();
+      item.color=sanitizeTileColor(color);
+      closeColorPalette();
+      renderCategoryEditor();
+      renderHostEditor();
+    });
+    palette.appendChild(swatch);
   });
 
-  wrap.appendChild(select);
+  button.addEventListener("click",event=>{
+    event.stopPropagation();
+    const open=palette.hidden;
+    closeColorPalette();
+    palette.hidden=!open;
+    button.classList.toggle("open",open);
+  });
+
+  wrap.append(button,palette);
   return wrap;
 }
+
+// Une seule palette ouverte a la fois, et un clic hors palette la ferme.
+function closeColorPalette(){
+  for(const palette of document.querySelectorAll(".color-palette:not([hidden])")){
+    palette.hidden=true;
+  }
+  for(const button of document.querySelectorAll(".color-swatch-btn.open")){
+    button.classList.remove("open");
+  }
+}
+
+document.addEventListener("click",closeColorPalette);
+document.addEventListener("keydown",event=>{
+  if(event.key==="Escape") closeColorPalette();
+});
 
 export function renderHostEditor(){
   hostEditor.innerHTML="";

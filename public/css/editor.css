@@ -122,7 +122,7 @@ body.modal-open{
   /* Cinquieme colonne pour le selecteur de couleur : sans elle, l'element
      deborde dans une colonne implicite et la ligne sort de sa largeur
      (width:max-content), ce qui fausse toute la mise en page des reglages. */
-  grid-template-columns:30px minmax(160px,200px) 44px 110px 38px;
+  grid-template-columns:30px minmax(160px,200px) 44px 28px 38px;
   gap:8px;
   align-items:center;
   width:max-content;
@@ -455,7 +455,7 @@ body.modal-open{
 
 @media(max-width:560px){
   .category-row{
-    grid-template-columns:24px minmax(0,1fr) 42px 96px 38px;
+    grid-template-columns:24px minmax(0,1fr) 42px 28px 38px;
     gap:6px;
   }
   .edit-tab{
@@ -517,32 +517,61 @@ body.modal-open{
   outline-offset:2px;
 }
 
-/* Selecteur de couleur, place a cote du nom d'une categorie ou d'un hote. La
-   pastille montre la teinte reelle : c'est plus rapide a choisir qu'un nom,
-   et elle reste lisible sur fond sombre comme sur fond clair. */
+/* Selecteur de couleur : un carre de 28 px qui ouvre la palette. */
 .color-picker{
+  position:relative;
   display:flex;
   align-items:center;
 }
 
-.color-picker .edit-select{
-  min-width:104px;
+.color-swatch-btn{
+  width:28px;
+  height:28px;
+  min-height:28px;
+  padding:0;
+  border:1px solid var(--border);
+  border-radius:4px;
+  background:var(--swatch,var(--surface-2));
+  box-shadow:inset 0 0 0 1px rgba(128,128,128,.35);
   cursor:pointer;
 }
 
-.color-picker::before{
-  content:"";
-  width:12px;
-  height:12px;
-  border-radius:3px;
-  margin-right:6px;
-  flex:0 0 auto;
-  background:var(--swatch, transparent);
-  box-shadow:inset 0 0 0 1px rgba(128,128,128,.45);
+.color-swatch-btn.open{
+  outline:2px solid var(--accent);
+  outline-offset:1px;
 }
 
-/* Sans couleur : hachure plutot qu'un carre vide, sinon on ne distingue pas
-   "aucune couleur" d'une couleur qui n'a pas encore ete chargee. */
-.color-picker[data-empty="1"]::before{
-  background:repeating-linear-gradient(45deg,transparent 0 3px,rgba(128,128,128,.5) 3px 4px);
+.color-palette{
+  position:absolute;
+  top:calc(100% + 6px);
+  left:0;
+  z-index:60;
+  display:grid;
+  grid-template-columns:repeat(5,22px);
+  gap:5px;
+  padding:7px;
+  border:1px solid var(--border);
+  border-radius:5px;
+  background:var(--surface);
+  box-shadow:0 6px 18px rgba(0,0,0,.35);
+}
+
+.color-palette[hidden]{
+  display:none;
+}
+
+.color-chip{
+  width:22px;
+  height:22px;
+  min-height:22px;
+  padding:0;
+  border:1px solid rgba(128,128,128,.45);
+  border-radius:4px;
+  background:var(--chip);
+  cursor:pointer;
+}
+
+.color-chip.current{
+  outline:2px solid var(--text);
+  outline-offset:1px;
 }
