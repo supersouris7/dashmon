@@ -219,6 +219,15 @@ function sanitizeText(value, max = 100) {
     .slice(0, max);
 }
 
+// Couleur de tuille : uniquement un hexadecimal, rien d'autre. La valeur part
+// dans un attribut style du DOM, donc une couleur "fonctionnelle" (var(...),
+// url(...)) serait un vecteur d'injection de CSS. "#" est refuse aussi : on
+// n'accepte que la notation que le selecteur de l'editeur produit.
+function sanitizeColor(value) {
+  const s = String(value || "").trim().toLowerCase();
+  return /^#[0-9a-f]{6}$/.test(s) ? s : "";
+}
+
 function sanitizeUrl(url) {
   try {
     const u = new URL(String(url || ""));
@@ -524,7 +533,8 @@ function buildConfigOutput(config){
       categories:Array.isArray(config.categories)
         ? config.categories.slice(0,50).map(cat=>({
             name:sanitizeText(cat.name,100),
-            icon:sanitizeIconClass(cat.icon)
+            icon:sanitizeIconClass(cat.icon),
+            color:sanitizeColor(cat.color)
           }))
         : [],
       hosts:Array.isArray(config.hosts)
@@ -536,6 +546,7 @@ function buildConfigOutput(config){
               id:sanitizeText(host.id,64) || "host-"+crypto.randomBytes(6).toString("hex"),
               name:sanitizeText(host.name,100),
               icon:sanitizeIconClass(host.icon),
+              color:sanitizeColor(host.color),
               monitoring:{
                 enabled:host.monitoring?.enabled===true,
                 type:["local","linux","proxmox"].includes(host.monitoring?.type)

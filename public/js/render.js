@@ -1,5 +1,5 @@
 // Rendu de Dashmon (cartes, groupes, mode d'affichage) et état des boutons du menu.
-import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, DEFAULT_FAVICON, FALLBACK_HOST } from "./state.js";
+import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, sanitizeTileColor, DEFAULT_FAVICON, FALLBACK_HOST } from "./state.js";
 import { t } from "./i18n.js";
 import { bumpUsage } from "./api.js";
 import { saveViewPrefs } from "./view-prefs.js";
@@ -209,6 +209,18 @@ function createSection(categoryName,categoryServices,groupType="category"){
   const collapseKey=`${groupType}:${categoryName}`;
   const section=document.createElement("section");
   section.className="section";
+  // La couleur se pose sur la section, pas sur chaque tuile : les services
+  // heritent, et le mode d'affichage n'a rien a faire ici — createSection
+  // resout deja la categorie OU l'hote selon le mode actif. Les deux themes
+  // "colores" n'en font que le fond, les autres se contentent du liseret.
+  const tileColor=sanitizeTileColor(category.color);
+  // La classe "tinted" est ce qui distingue une section coloree : sans elle,
+  // --tile-color vaudrait transparent et la bordure disparaitrait au lieu de
+  // rester celle du theme.
+  if(tileColor){
+    section.classList.add("tinted");
+    section.style.setProperty("--tile-color",tileColor);
+  }
   if(state.collapsed[collapseKey] ?? state.collapsed[categoryName]) section.classList.add("collapsed");
 
   const header=document.createElement("button");

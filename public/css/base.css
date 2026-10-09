@@ -348,6 +348,17 @@ main{
 
 }
 
+/* Couleur de categorie ou d'hote. Par defaut, une categorie coloree ne fait
+   qu'un liseret : les themes actuels gardent leurs surfaces grises, et seule la
+   bordure rappelle la couleur. Les deux themes "colores" surchargent cette regle
+   dans leur propre CSS pour teindre le fond et ajouter l'ombre du bouton.
+   La classe .tinted est indispensable : sans elle, --tile-color vaudrait
+   transparent et la bordure disparaitrait au lieu de redevenir celle du
+   theme. */
+.section.tinted .card{
+  border-color:var(--tile-color);
+}
+
 .card:hover{
   transform:translateY(-1px);
   border-color:var(--muted);

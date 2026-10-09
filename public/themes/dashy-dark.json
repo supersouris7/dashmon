@@ -1,0 +1,23 @@
+{
+  "id": "dashy-dark",
+  "name": "Colore (sombre)",
+  "author": "native",
+  "description": "TUILES COLOREES sur fond noir, style Dashy",
+  "version": "1.0.0",
+  "variables": {
+    "bg": "#1b1c1d",
+    "surface": "#232427",
+    "surface-2": "#2b2c30",
+    "surface-3": "#333438",
+    "border": "#3b3d42",
+    "text": "#f2f2f2",
+    "muted": "#9a9aa0",
+    "accent": "#54bff7",
+    "danger": "#b85c5c",
+    "success": "#3cf59b",
+    "error": "#ff4d6d",
+    "warning": "#f5c542",
+    "shadow": "0 2px 6px rgba(0,0,0,.28)"
+  },
+  "css": "[data-theme=\"dashy-dark\"] .section.tinted .card{\n  /* Dashy teinte le fond de la tuile et pose une ombre dessous ; le melange\n     garde le texte lisible quelle que soit la teinte choisie. */\n  background:color-mix(in srgb, var(--tile-color) 22%, var(--surface));\n  border-color:color-mix(in srgb, var(--tile-color) 45%, var(--border));\n  box-shadow:0 2px 6px rgba(0,0,0,.35);\n  transition:transform .12s ease,box-shadow .12s ease,background .12s ease;\n}\n\n[data-theme=\"dashy-dark\"] .section.tinted .card:hover{\n  background:color-mix(in srgb, var(--tile-color) 30%, var(--surface));\n  box-shadow:0 4px 12px rgba(0,0,0,.45);\n}\n\n/* Effet bouton : la tuile s'enfonce au clic. translateY compense l'ombre\n   pour que la bascule paraisse venue du fond et non d'un glissement. */\n[data-theme=\"dashy-dark\"] .section.tinted .card:active{\n  transform:translateY(1px);\n  box-shadow:0 1px 2px rgba(0,0,0,.4);\n}\n\n[data-theme=\"dashy-dark\"] .service-icon{\n  filter:none !important;\n  opacity:1;\n}\n\n[data-theme=\"dashy-dark\"] .section-header{\n  color:var(--muted);\n}\n\n[data-theme=\"dashy-dark\"] .category-icon{\n  color:var(--tile-color, var(--accent));\n}"
+}

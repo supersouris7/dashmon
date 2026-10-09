@@ -367,6 +367,35 @@ export function sanitizeIconClass(icon) {
   return "fa-solid fa-folder";
 }
 
+// Palette de couleurs de tuile. Dix teintes espacees dans le cercle
+// chromatique : deux categories voisines n'ont pas deux teintes voisins, ce
+// qui rend la lecture d'un tableau de bord immediate. La premiere entree,
+// vide, signifie "pas de couleur" — une categorie sans couleur reste sur le
+// fond du theme, comme aujourd'hui.
+export const TILE_COLORS = [
+  "",
+  "#7eaaee",
+  "#06d6a0",
+  "#ffd166",
+  "#ef476f",
+  "#a78bfa",
+  "#f78c6b",
+  "#06b6d4",
+  "#c3e88d",
+  "#ff6b9d",
+  "#94a3b8"
+];
+
+const COLOR_RE = /^#[0-9a-f]{6}$/;
+
+// Meme regle que le serveur : la valeur finit dans un attribut style, donc
+// seules les 6 positions hexadecimales passent. On refuse "#abc" pour que la
+// palette affichee et la valeur enregistree aient toujours la meme forme.
+export function sanitizeTileColor(value) {
+  const s = String(value == null ? "" : value).trim().toLowerCase();
+  return COLOR_RE.test(s) ? s : "";
+}
+
 function sanitizeImagePath(p) {
   const s = String(p || "").trim();
   const m = s.match(/^icons\/([a-zA-Z0-9._-]+)\.png$/);
@@ -444,13 +473,15 @@ export function normalizeConfig(cfg={}){
     categories:(Array.isArray(cfg.categories) ? clone(cfg.categories) : clone(DEFAULT_CATEGORIES))
       .map(cat=>({
         name:sanitizeText(cat.name,100),
-        icon:sanitizeIconClass(cat.icon)
+        icon:sanitizeIconClass(cat.icon),
+        color:sanitizeTileColor(cat.color)
       })),
     hosts:Array.isArray(cfg.hosts) && cfg.hosts.length
       ? cfg.hosts.map(host=>({
           id:sanitizeText(host.id,64),
           name:sanitizeText(host.name,100),
           icon:sanitizeIconClass(host.icon),
+          color:sanitizeTileColor(host.color),
           monitoring:{
             enabled:host.monitoring?.enabled===true,
             type:["local","linux","proxmox"].includes(host.monitoring?.type) ? host.monitoring.type : "local",
