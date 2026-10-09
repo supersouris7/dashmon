@@ -15,8 +15,14 @@ function renderHostMetrics(){
   }
 
   const visibleHosts=monitoredHosts.slice(0,3);
+  // La couleur compte dans la decision de reconstruction : elle n'est posee
+  // qu'a la creation de la tuile, donc changer la couleur d'un hote doit
+  // rebuilding, sinon la nouvelle ne s'afficherait qu'au prochain
+  // rechargement de la page.
+  const colorOf=host=>sanitizeTileColor((state.hosts.find(h=>h.name===host.name)||{}).color);
   const needsRebuild=(hostMetrics.children.length!==visibleHosts.length)
-    || [...hostMetrics.children].some((box,i)=>box.dataset?.host!==visibleHosts[i]?.name);
+    || [...hostMetrics.children].some((box,i)=>box.dataset?.host!==visibleHosts[i]?.name
+      || (box.dataset?.color||"")!==colorOf(visibleHosts[i]));
 
   if(needsRebuild || hostMetrics.dataset.built!=="1"){
     hostMetrics.dataset.built="1";
@@ -32,8 +38,10 @@ function renderHostMetrics(){
       // La tuile CPU/RAM porte la couleur de son hote, comme les tuiles de
       // services en affichage par hote. Elle vit dans le bandeau, hors des
       // sections, donc elle doit recevoir la couleur explicitement : heriter
-      // de --tile-color ne fonctionnerait pas ici.
-      const hostColor=sanitizeTileColor((state.hosts.find(h=>h.name===host.name)||{}).color);
+      // de --tile-color ne fonctionnerait pas ici. La couleur est aussi
+      // notee dans data-color, c'est elle que la reconstruction compare.
+      const hostColor=colorOf(host);
+      box.dataset.color=hostColor;
       if(hostColor){
         box.classList.add("tinted");
         box.style.setProperty("--tile-color",hostColor);
@@ -79,7 +87,11 @@ function renderHostMetrics(){
     const box=[...hostMetrics.children].find(el=>el.dataset?.host===host.name);
     if(!box) return;
 
-    box.className=`host-metric ${metric?.ok===false ? "error" : ""}`;
+    // On NE reassigne pas className en entier ici : la classe "tinted", posee
+    // a la construction de la tuile, disparaitrait a chaque rafraichissement et
+    // le liseré de la couleur de l'hote avec elle. On ne touche donc qu'a la
+    // classe d'erreur.
+    box.classList.toggle("error",metric?.ok===false);
     box.title=metric?.error || host.name;
 
     const fills=box.querySelectorAll(".host-metric-fill");
