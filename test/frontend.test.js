@@ -248,6 +248,51 @@ async function main(){
     else globalThis.localStorage = realStorage;
   }
 
+  // — Couleur des tuiles : toujours attribuee, jamais en double ————————
+  // Une categorie ou un hote sans couleur se confondait avec une section non
+  // configuree. L'affectation se fait a la normalisation, donc elle doit
+  // fonctionner meme sans jamais ouvrir l'editeur.
+  const stateModule = await import(pathToFileURL(path.join(JS_DIR, "state.js")).href);
+  const PALETTE = stateModule.TILE_COLORS;
+  const assign = stateModule.assignTileColors;
+  const cats = [{ name: "A" }, { name: "B" }, { name: "C" }];
+  assign(cats, new Set());
+  ok("couleur : attribuee quand elle manque",
+    cats.every(c => c.color && PALETTE.includes(c.color)), JSON.stringify(cats));
+  ok("couleur : trois couleurs distinctes",
+    new Set(cats.map(c => c.color)).size === 3, JSON.stringify(cats));
+
+  // Categories et hotes partagent la palette : sinon une couleur de categorie
+  // peut revenir sur un hote, et le liseret ne signifie plus rien.
+  const shared = new Set();
+  assign(cats, shared);
+  const hostsList = [{ name: "nas" }];
+  assign(hostsList, shared);
+  ok("couleur : l'hote ne reprend pas une couleur de categorie",
+    !cats.some(c => c.color === hostsList[0].color), JSON.stringify(hostsList));
+
+  const kept = [{ name: "D", color: "#ef476f" }, { name: "E" }];
+  assign(kept, new Set());
+  ok("couleur : le choix de l'utilisateur est conserve",
+    kept[0].color === "#ef476f", kept[0].color);
+
+  // Palette epuisee : on reboucle plutot que de laisser un element sans
+  // couleur.
+  const many = Array.from({ length: 14 }, (_, i) => ({ name: "x" + i }));
+  assign(many, new Set());
+  ok("couleur : palette epuisee, tout le monde a une couleur",
+    many.every(c => c.color), many.filter(c => !c.color).length + " sans couleur");
+
+  const dirty = [{ name: "F", color: "red" }, { name: "G", color: "var(--x)" }];
+  assign(dirty, new Set());
+  ok("couleur : valeur non hexadecimale remplacee",
+    dirty.every(c => /^#[0-9a-f]{6}$/.test(c.color)), JSON.stringify(dirty));
+
+  ok("couleur : validation refuse rgb()",
+    stateModule.sanitizeTileColor("rgb(1,2,3)") === "");
+  ok("couleur : validation refuse la forme courte #abc",
+    stateModule.sanitizeTileColor("#abc") === "");
+
   if (failures) {
     console.error(failures + " échec(s)");
     process.exit(1);

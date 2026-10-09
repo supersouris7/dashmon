@@ -1,5 +1,5 @@
 // Statut des services et métriques CPU/RAM des hôtes (boucles de rafraîchissement).
-import { state, sanitizeIconClass } from "./state.js";
+import { state, sanitizeIconClass, sanitizeTileColor } from "./state.js";
 import { render, focusHostGroup, updateStatusIndicators } from "./render.js";
 import { t } from "./i18n.js";
 import { hostMetrics, refreshBar, menuRefreshBtn } from "./dom.js";
@@ -28,6 +28,16 @@ function renderHostMetrics(){
       box.className="host-metric";
       box.dataset.host=host.name;
       box.title=host.name;
+
+      // La tuile CPU/RAM porte la couleur de son hote, comme les tuiles de
+      // services en affichage par hote. Elle vit dans le bandeau, hors des
+      // sections, donc elle doit recevoir la couleur explicitement : heriter
+      // de --tile-color ne fonctionnerait pas ici.
+      const hostColor=sanitizeTileColor((state.hosts.find(h=>h.name===host.name)||{}).color);
+      if(hostColor){
+        box.classList.add("tinted");
+        box.style.setProperty("--tile-color",hostColor);
+      }
 
       const name=document.createElement("div");
       name.className="host-metric-name";

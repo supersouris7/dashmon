@@ -396,6 +396,34 @@ export function sanitizeTileColor(value) {
   return COLOR_RE.test(s) ? s : "";
 }
 
+// Toute categorie et tout hote porte une couleur, meme si l'utilisateur n'a
+// rien choisi : une tuile sans couleur se confondait avec une section non
+// configuree. L'affectation se fait ici, a la normalisation, et non dans
+// l'editeur — sinon le liseret resterait absent tant que l'on n'aurait pas
+// ouvert les reglages, et la valeur risquerait de ne jamais etre enregistree.
+//
+// On prend la premiere teinte libre, dans l'ordre. La palette epuisee (plus de
+// dix elements colores), on reboucle sur les deja utilisees : mieux vaut une
+// couleur partagee qu'une section sans couleur du tout.
+export function assignTileColors(items, used) {
+  const taken = used instanceof Set ? used : new Set(used || []);
+  for (const item of Array.isArray(items) ? items : []) {
+    const current = sanitizeTileColor(item && item.color);
+    if (current && !taken.has(current)) {
+      item.color = current;
+      taken.add(current);
+      continue;
+    }
+    // Soit aucune couleur, soit une couleur deja attribuee ailleurs : on
+    // cherche la prochaine libre.
+    const free = TILE_COLORS.filter(color => color && !taken.has(color))[0];
+    const assigned = free || TILE_COLORS.find(color => color) || "";
+    if (item) item.color = assigned;
+    if (assigned) taken.add(assigned);
+  }
+  return taken;
+}
+
 function sanitizeImagePath(p) {
   const s = String(p || "").trim();
   const m = s.match(/^icons\/([a-zA-Z0-9._-]+)\.png$/);
@@ -457,7 +485,7 @@ export function normalizeConfig(cfg={}){
   const derivedHosts=[...new Set(
     normalizedServices.map(service=>(service.host||"").trim()).filter(Boolean)
   )].map(name=>({name,icon:"fa-solid fa-server"}));
-  return {
+  const normalized={
     ...normalizeViewPrefs(cfg),
     services:normalizedServices.map(svc=>({
       name:sanitizeText(svc.name,100),
@@ -512,6 +540,14 @@ export function normalizeConfig(cfg={}){
     favicon:sanitizeFavicon(cfg.favicon),
     faviconEnabled:cfg.faviconEnabled!==false
   };
+  // Categories et hotes partagent la MEME palette : si chacun recevait la sienne,
+  // une couleur attribuee a une categorie pourrait revenir sur un hote, et le
+  // liseret ne signifierait plus rien. L'affectation se fait donc apres coup,
+  // sur le resultat, avec un seul ensemble de couleurs deja prises.
+  const used=new Set();
+  assignTileColors(normalized.categories,used);
+  assignTileColors(normalized.hosts,used);
+  return normalized;
 }
 
 export function serviceUsageKey(service){

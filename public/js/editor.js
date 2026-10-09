@@ -576,15 +576,31 @@ export function renderCategoryEditor(){
   });
 }
 
+// Chaque categorie et chaque hote porte TOUJOURS une couleur : l'utilisateur
+// peut la changer, mais il n'y a jamais de "sans couleur". Une tuile sans
+// couleur se confondait avec une section non configuree, et la lecture d'un
+// tableau de bord devenait ambigue.
+//
+// L'affectation automatique prend la premiere teinte libre de la palette, dans
+// l'ordre, en évitant celles deja portees par une autre categorie ou un autre
+// hote. Si la palette est epuisee (plus de dix elements colores), on reboucle
+// sur les teintes deja utilisees plutot que de laisser un element sans
+// couleur — mieux vaut une couleur partagee qu'une section invisible.
+function autoColor(item, others){
+  const used=new Set();
+  for(const other of (others||[])){
+    if(other!==item && other.color) used.add(other.color);
+  }
+  const free=TILE_COLORS.filter(color=>color && !used.has(color));
+  return free[0] || TILE_COLORS.find(color=>color) || "";
+}
+
 // Selecteur de couleur d'une categorie ou d'un hote.
 //
 // Pas de doublon : une couleur deja portee par une autre categorie ou un autre
 // hote sort de la liste. Deux elements de la meme couleur rendraient la lecture
-// ambigue — on ne saurait plus a quoi la couleur se rapporte — et le tri par
-// couleur n'aurait plus de sens. L'option "sans couleur" reste toujours
-// disponible : elle ne compte pas comme une couleur attribuee, sinon on ne
-// pourrait plus decoordonner deux sections non colorees.
-function createColorPicker(item,index,getHosts){
+// ambigue — on ne saurait plus a quoi la couleur se rapporte.
+function createColorPicker(item,index,getOthers){
   const wrap=document.createElement("label");
   wrap.className="color-picker";
 
@@ -592,29 +608,30 @@ function createColorPicker(item,index,getHosts){
   select.className="edit-select";
 
   const used=new Set();
-  for(const other of state.editCategories){
-    if(other!==item && other.color) used.add(other.color);
-  }
-  const hosts=(getHosts && getHosts()) || [];
-  for(const other of hosts){
+  for(const other of (getOthers() || [])){
     if(other!==item && other.color) used.add(other.color);
   }
 
-  TILE_COLORS.forEach(color=>{
-    if(color && used.has(color)) return;
+  TILE_COLORS.filter(color=>color && !used.has(color)).forEach(color=>{
     const option=document.createElement("option");
     option.value=color;
-    option.textContent=color ? t("colorSwatch") : t("colorNone");
-    option.style.color=color || "";
+    option.textContent=t("colorSwatch");
+    option.style.color=color;
     select.appendChild(option);
   });
 
-  select.value=item.color || "";
-  if(select.value!==(item.color || "")) select.value="";
+  // L'affectation automatique a lieu a l'ouverture de l'editeur, pas au
+  // rendu : la valeur doit etre enregistree avec le reste, sinon elle
+  // disparaitrait au prochain rechargement.
+  if(!item.color || used.has(item.color)) {
+    item.color=autoColor(item,(getOthers() || []).concat([item]));
+  }
+  select.value=item.color;
+
   // La pastille se pose sur l'enveloppe : le select garde ainsi une seule
   // source de verite pour la valeur choisie.
   wrap.style.setProperty("--swatch",item.color || "transparent");
-  if(!item.color) wrap.dataset.empty="1"; else delete wrap.dataset.empty;
+
   select.addEventListener("change",()=>{
     item.color=sanitizeTileColor(select.value);
     renderCategoryEditor();

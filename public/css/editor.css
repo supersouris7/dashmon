@@ -119,7 +119,10 @@ body.modal-open{
 
 .category-row{
   display:grid;
-  grid-template-columns:30px minmax(180px,220px) 44px 38px;
+  /* Cinquieme colonne pour le selecteur de couleur : sans elle, l'element
+     deborde dans une colonne implicite et la ligne sort de sa largeur
+     (width:max-content), ce qui fausse toute la mise en page des reglages. */
+  grid-template-columns:30px minmax(160px,200px) 44px 110px 38px;
   gap:8px;
   align-items:center;
   width:max-content;
@@ -452,7 +455,7 @@ body.modal-open{
 
 @media(max-width:560px){
   .category-row{
-    grid-template-columns:24px minmax(0,1fr) 42px 38px;
+    grid-template-columns:24px minmax(0,1fr) 42px 96px 38px;
     gap:6px;
   }
   .edit-tab{
