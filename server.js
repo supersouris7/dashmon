@@ -437,6 +437,22 @@ app.get("/healthz",(_req,res)=>{
 // On ne renvoie qu'un booleen : les chemins de l'hote n'ont rien a faire dans
 // une reponse d'API. La fonction est declaree ici mais appelee plus haut, pour
 // construire le libelle du pied de page des le demarrage.
+// Un chemin est-il un point de montage du noyau ? C'est ce qui distingue une
+// donnee servie par un volume de ce qui n'est qu'un fichier de l'image. La
+// fonction est declaree ici mais appelee plus haut, pour construire le libelle
+// du pied de page des le demarrage.
+function isMountedPath(target) {
+  try {
+    const info = fs.readFileSync("/proc/self/mountinfo", "utf8");
+    return info.split("\n").some(line => {
+      const parts = line.split(" ");
+      return parts.length > 4 && parts[4] === target;
+    });
+  } catch (_error) {
+    return null;
+  }
+}
+
 function appIsMounted() {
   try {
     const info = fs.readFileSync("/proc/self/mountinfo", "utf8");
@@ -462,6 +478,16 @@ app.get("/api/version",(_req,res)=>{
     // avec l'etat reel du deploiement.
     packageVersion:require("./package.json").version,
     appMounted:APP_CODE_MOUNTED,
+    // true quand /app/data est montee separement. C'est LA question qui decide
+    // si l'on peut retirer le montage du code sans perdre la configuration :
+    // si les donnees sont a l'interieur du montage /app, les retirer les met
+    // hors du conteneur — elles restent sur le disque, mais plus rien ne les
+    // sert. Volume et donnees sont donc deux choses distinctes a verifier.
+    dataMounted:isMountedPath(DATA_DIR),
+    // Reperage de l'emplacement des donnees, utile avant une intervention sur
+    // les montages. Aucun chemin hote n'est renvoye : seulement une position
+    // dans la hierarchie du conteneur.
+    dataPath:DATA_DIR,
     startedAt:STARTED_AT
   });
 });
