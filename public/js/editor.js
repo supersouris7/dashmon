@@ -1017,8 +1017,15 @@ modalBackdrop.addEventListener("click",e=>{
 });
 
 saveBtn.addEventListener("click",async()=>{
+  // La couleur doit survivre a l'enregistrement : sans ce champ, elle
+  // disparaissait de config.json a chaque sauvegarde et l'attribution par
+  // defaut remettait toutes les categories a la meme teinte.
   const cleanedCategories=state.editCategories
-    .map(c=>({name:(c.name||"").trim(),icon:c.icon||"fa-solid fa-folder"}))
+    .map(c=>({
+      name:(c.name||"").trim(),
+      icon:c.icon||"fa-solid fa-folder",
+      color:sanitizeTileColor(c.color)
+    }))
     .filter(c=>c.name);
 
   const splitToken=(value)=>{
@@ -1033,9 +1040,10 @@ saveBtn.addEventListener("click",async()=>{
       const tokenId=splitToken(h.monitoring?.tokenId||h.monitoring?.tokenIdEnv);
       const tokenSecret=splitToken(h.monitoring?.tokenSecret||h.monitoring?.tokenSecretEnv);
       return {
-      id:String(h.id||"").trim().slice(0,64) || "host-"+Math.random().toString(36).slice(2,12),
-      name:(h.name||"").trim(),
-      icon:h.icon||"fa-solid fa-server",
+        id:String(h.id||"").trim().slice(0,64) || "host-"+Math.random().toString(36).slice(2,12),
+        name:(h.name||"").trim(),
+        icon:h.icon||"fa-solid fa-server",
+        color:sanitizeTileColor(h.color),
       monitoring:{
         enabled:h.monitoring?.enabled===true,
         type:["local","linux","proxmox"].includes(h.monitoring?.type) ? h.monitoring.type : "local",

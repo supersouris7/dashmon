@@ -293,6 +293,17 @@ async function main(){
   ok("couleur : validation refuse la forme courte #abc",
     stateModule.sanitizeTileColor("#abc") === "");
 
+  // L'editeur reconstruit les categories et les hotes avant l'enregistrement.
+  // Si ce nettoyage oublie le champ "color", la teinte disparait de
+  // config.json a chaque sauvegarde et l'attribution par defaut remet tout a
+  // la meme couleur — le symptome observe. Ce test lit le code de l'editeur et
+  // echoue si le champ cesse d'y etre copie.
+  const editorSrc = fs.readFileSync(path.join(JS_DIR, "editor.js"), "utf8");
+  ok("couleur : l'editeur conserve la couleur a l'enregistrement",
+    /color:sanitizeTileColor\(c\.color\)/.test(editorSrc)
+    && /color:sanitizeTileColor\(h\.color\)/.test(editorSrc),
+    "champs color absents du nettoyage avant sauvegarde");
+
   if (failures) {
     console.error(failures + " échec(s)");
     process.exit(1);
