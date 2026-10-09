@@ -24,7 +24,6 @@ export const themeSelect=document.getElementById("themeSelect");
 export const languageSelect=document.getElementById("languageSelect");
 export const smallIconsSelect=document.getElementById("smallIconsSelect");
 export const hostsDisplaySelect=document.getElementById("hostsDisplaySelect");
-export const appLogoImg=document.getElementById("appLogoImg");
 export const faviconLink=document.getElementById("faviconLink");
 export const faviconInput=document.getElementById("faviconInput");
 export const faviconEnabledSelect=document.getElementById("faviconEnabledSelect");

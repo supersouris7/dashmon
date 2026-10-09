@@ -367,11 +367,12 @@ export function sanitizeIconClass(icon) {
   return "fa-solid fa-folder";
 }
 
-// Palette de couleurs de tuile. Dix teintes espacees dans le cercle
-// chromatique : deux categories voisines n'ont pas deux teintes voisins, ce
-// qui rend la lecture d'un tableau de bord immediate. La premiere entree,
-// vide, signifie "pas de couleur" — une categorie sans couleur reste sur le
-// fond du theme, comme aujourd'hui.
+// Palette de couleurs de tuile. Dix teintes vives, espacees dans le cercle
+// chromatique : deux categories voisines n'ont pas deux teintes voisines, ce
+// qui rend la lecture d'un tableau de bord immediate. Toutes sont assez
+// claires pour porter un texte sombre dans les deux themes colores.
+// La premiere entree, vide, signifie "pas de couleur" — une categorie sans
+// couleur reste sur le fond du theme, comme aujourd'hui.
 export const TILE_COLORS = [
   "",
   "#7eaaee",
