@@ -1,5 +1,5 @@
 // Éditeur de configuration : services, catégories, hôtes, liens web, import/export config.
-import { state, clone, normalize, normalizeConfig, normalizeViewPrefs, compareNames } from "./state.js";
+import { state, clone, normalize, normalizeConfig, normalizeViewPrefs, compareNames, TILE_COLORS, sanitizeTileColor } from "./state.js";
 import { t, applyLanguage } from "./i18n.js";
 import { saveConfig, putConfig, fetchConfig } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
@@ -570,10 +570,59 @@ export function renderCategoryEditor(){
       renderServiceEditor();
     });
 
-    row.append(drag,name,picker,remove);
+    row.append(drag,name,picker,createColorPicker(category,index,()=>state.editHosts),remove);
     makeDraggable(row,state.editCategories,index,renderCategoryEditor);
     categoryEditor.appendChild(row);
   });
+}
+
+// Selecteur de couleur d'une categorie ou d'un hote.
+//
+// Pas de doublon : une couleur deja portee par une autre categorie ou un autre
+// hote sort de la liste. Deux elements de la meme couleur rendraient la lecture
+// ambigue — on ne saurait plus a quoi la couleur se rapporte — et le tri par
+// couleur n'aurait plus de sens. L'option "sans couleur" reste toujours
+// disponible : elle ne compte pas comme une couleur attribuee, sinon on ne
+// pourrait plus decoordonner deux sections non colorees.
+function createColorPicker(item,index,getHosts){
+  const wrap=document.createElement("label");
+  wrap.className="color-picker";
+
+  const select=document.createElement("select");
+  select.className="edit-select";
+
+  const used=new Set();
+  for(const other of state.editCategories){
+    if(other!==item && other.color) used.add(other.color);
+  }
+  const hosts=(getHosts && getHosts()) || [];
+  for(const other of hosts){
+    if(other!==item && other.color) used.add(other.color);
+  }
+
+  TILE_COLORS.forEach(color=>{
+    if(color && used.has(color)) return;
+    const option=document.createElement("option");
+    option.value=color;
+    option.textContent=color ? t("colorSwatch") : t("colorNone");
+    option.style.color=color || "";
+    select.appendChild(option);
+  });
+
+  select.value=item.color || "";
+  if(select.value!==(item.color || "")) select.value="";
+  // La pastille se pose sur l'enveloppe : le select garde ainsi une seule
+  // source de verite pour la valeur choisie.
+  wrap.style.setProperty("--swatch",item.color || "transparent");
+  if(!item.color) wrap.dataset.empty="1"; else delete wrap.dataset.empty;
+  select.addEventListener("change",()=>{
+    item.color=sanitizeTileColor(select.value);
+    renderCategoryEditor();
+    renderHostEditor();
+  });
+
+  wrap.appendChild(select);
+  return wrap;
 }
 
 export function renderHostEditor(){
@@ -725,7 +774,7 @@ export function renderHostEditor(){
       renderServiceEditor();
     });
 
-    row.append(drag,name,picker,monitor,type,params,auth,remove);
+    row.append(drag,name,picker,createColorPicker(host,index,()=>state.editCategories),monitor,type,params,auth,remove);
     makeDraggable(row,state.editHosts,index,()=>{
       renderHostEditor();
       renderServiceEditor();

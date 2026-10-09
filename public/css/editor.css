@@ -513,3 +513,33 @@ body.modal-open{
   outline:1px solid #56626e;
   outline-offset:2px;
 }
+
+/* Selecteur de couleur, place a cote du nom d'une categorie ou d'un hote. La
+   pastille montre la teinte reelle : c'est plus rapide a choisir qu'un nom,
+   et elle reste lisible sur fond sombre comme sur fond clair. */
+.color-picker{
+  display:flex;
+  align-items:center;
+}
+
+.color-picker .edit-select{
+  min-width:104px;
+  cursor:pointer;
+}
+
+.color-picker::before{
+  content:"";
+  width:12px;
+  height:12px;
+  border-radius:3px;
+  margin-right:6px;
+  flex:0 0 auto;
+  background:var(--swatch, transparent);
+  box-shadow:inset 0 0 0 1px rgba(128,128,128,.45);
+}
+
+/* Sans couleur : hachure plutot qu'un carre vide, sinon on ne distingue pas
+   "aucune couleur" d'une couleur qui n'a pas encore ete chargee. */
+.color-picker[data-empty="1"]::before{
+  background:repeating-linear-gradient(45deg,transparent 0 3px,rgba(128,128,128,.5) 3px 4px);
+}

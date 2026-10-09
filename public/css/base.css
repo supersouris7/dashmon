@@ -173,36 +173,41 @@ main{
   border-color:var(--muted);
 }
 
-/* Boutons de la barre d'action, a la Dashy : fond plein, texte fonce, et un
-   enfoncement au clic. Un bouton colore garde un contraste lisible parce
-   que la couleur du fond est claire (55 % de blanc melange a la teinte), et le
-   texte passe donc en presque noir — l'inverse du reste de l'interface. */
-.toolbar .icon-btn{
-  --btn-tint:var(--surface-3);
-  background:color-mix(in srgb, var(--btn-tint) 55%, white);
-  border-color:color-mix(in srgb, var(--btn-tint) 70%, var(--border));
-  color:#14161a;
-  border-radius:4px;
-  transition:transform .1s ease,box-shadow .1s ease,background .1s ease;
+/* Enfoncement : toute cible cliquable parait deja pressee au survol, et
+   davantage au clic. Une seule ombre etat "repose" suffit — la.version
+   enfoncee la remplace, ce qui donne l'impression que la cible descend dans
+   l'ecran plutot que de glisser. */
+.card,
+.icon-btn,
+.action-btn,
+.top-menu-item,
+.monitor-toggle,
+.small-icon-btn,
+.modal-close{
+  transition:transform .1s ease,box-shadow .1s ease,background .1s ease,border-color .1s ease;
 }
 
-.toolbar .icon-btn:hover{
-  background:color-mix(in srgb, var(--btn-tint) 72%, white);
-  box-shadow:0 2px 6px rgba(0,0,0,.18);
-}
-
-.toolbar .icon-btn:active{
-  /* L'enfoncement compense l'ombre : la bascule doit paraitre venir du fond. */
+.card:hover,
+.icon-btn:hover,
+.action-btn:hover,
+.top-menu-item:hover,
+.monitor-toggle:hover,
+.small-icon-btn:hover,
+.modal-close:hover{
   transform:translateY(1px);
-  box-shadow:0 1px 2px rgba(0,0,0,.22);
+  box-shadow:0 1px 2px rgba(0,0,0,.20);
 }
 
-/* Une teinte par bouton, dans l'ordre du bandeau : affichage, petites icones,
-   pliage, menu. */
-.toolbar #viewBtn{--btn-tint:#b06ff0}
-.toolbar #iconsBtn{--btn-tint:#4a90e2}
-.toolbar #collapseAllBtn{--btn-tint:#2ecc71}
-.toolbar .top-menu-wrap .icon-btn{--btn-tint:#f0e04a}
+.card:active,
+.icon-btn:active,
+.action-btn:active,
+.top-menu-item:active,
+.monitor-toggle:active,
+.small-icon-btn:active,
+.modal-close:active{
+  transform:translateY(2px);
+  box-shadow:none;
+}
 
 .top-menu-wrap{
   position:relative;
@@ -364,15 +369,23 @@ main{
 
 }
 
-/* Couleur de categorie ou d'hote. Par defaut, une categorie coloree ne fait
-   qu'un liseret : les themes actuels gardent leurs surfaces grises, et seule la
-   bordure rappelle la couleur. Les deux themes "colores" surchargent cette regle
-   dans leur propre CSS pour teindre le fond et ajouter l'ombre du bouton.
-   La classe .tinted est indispensable : sans elle, --tile-color vaudrait
-   transparent et la bordure disparaitrait au lieu de redevenir celle du
-   theme. */
+/* Couleur de categorie ou d'hote. Elle agit a trois endroits, dans tous les
+   themes : le liseré de la tuile, la tuile elle-meme au survol, et le titre
+   de la categorie. La classe .tinted est ce qui distingue une section
+   coloree : sans elle, --tile-color vaudrait transparent et la bordure
+   disparaitrait au lieu de redevenir celle du theme. */
 .section.tinted .card{
   border-color:var(--tile-color);
+}
+
+.section.tinted .card:hover{
+  background:color-mix(in srgb, var(--tile-color) 9%, var(--surface));
+}
+
+/* Titre de categorie : reprend la couleur de la section. */
+.section.tinted .category-icon,
+.section.tinted .category-name{
+  color:var(--tile-color);
 }
 
 .card:hover{
