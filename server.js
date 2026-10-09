@@ -54,7 +54,15 @@ const APP_VERSION = /^v?\d+(\.\d+){0,2}([-.][0-9A-Za-z.-]+)?$/.test(RELEASE)
 // le suffixe plutot que d'afficher un marqueur trompeur.
 const APP_COMMIT = (process.env.DASHMON_COMMIT || "").trim();
 const APP_COMMIT_SHORT = /^[0-9a-f]{7,40}$/.test(APP_COMMIT) ? APP_COMMIT.slice(0, 7) : "";
-const APP_LABEL = APP_COMMIT_SHORT ? APP_VERSION + " · " + APP_COMMIT_SHORT : APP_VERSION;
+// Le SHA vient de l'IMAGE. Si /app est monte depuis l'hote, le code execute
+// n'est pas celui de l'image : afficher ce SHA decrit donc un depot qui n'est
+// pas celui-la. Dans ce cas on ne montre que la version plutot qu'une etiquette
+// fausse — c'etait exactement ce qui se passait, avec un commit centenaire
+// alors que le code etait a jour.
+const APP_CODE_MOUNTED = appIsMounted();
+const APP_LABEL = APP_COMMIT_SHORT && !APP_CODE_MOUNTED
+  ? APP_VERSION + " · " + APP_COMMIT_SHORT
+  : APP_VERSION;
 // Instant de demarrage : sert a distinguer "l'image est ancienne" de "le
 // conteneur tourne depuis le dernier redemarrage sans avoir ete recree".
 const STARTED_AT = new Date().toISOString();
@@ -427,7 +435,8 @@ app.get("/healthz",(_req,res)=>{
 // d'environnement (dont le SHA) tandis que le code vient du bind mount, donc
 // un git pull sur l'hote change les fichiers sans changer l'etiquette.
 // On ne renvoie qu'un booleen : les chemins de l'hote n'ont rien a faire dans
-// une reponse d'API.
+// une reponse d'API. La fonction est declaree ici mais appelee plus haut, pour
+// construire le libelle du pied de page des le demarrage.
 function appIsMounted() {
   try {
     const info = fs.readFileSync("/proc/self/mountinfo", "utf8");
@@ -444,15 +453,15 @@ app.get("/api/version",(_req,res)=>{
   res.set("Cache-Control","no-store");
   res.json({
     version:APP_VERSION,
+    // Le commit de l'IMAGE. A lire avec appMounted : s'il vaut true, il
+    // decrit une image qui ne fournit pas le code en cours d'execution.
     commit:APP_COMMIT || "",
     commitShort:APP_COMMIT_SHORT,
     // Le champ "version" du paquet n'est mis a jour qu'a la publication d'un
     // tag : sur une image "unstable" il reste fige, ce qui est sans rapport
     // avec l'etat reel du deploiement.
     packageVersion:require("./package.json").version,
-    // true quand le code vient d'un montage de l'hote : dans ce cas l'image ne
-    // peut pas decrire le code qui s'execute.
-    appMounted:appIsMounted(),
+    appMounted:APP_CODE_MOUNTED,
     startedAt:STARTED_AT
   });
 });
