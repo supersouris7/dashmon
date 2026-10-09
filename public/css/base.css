@@ -58,7 +58,10 @@ main{
   right:0;
   z-index:20;
   display:grid;
-  grid-template-columns:minmax(190px,300px) 1fr 48px 48px 48px 48px;
+  /* Pas de colonne "logo" : le logo a ete retire du bandeau, et la recherche
+     recupere la place. Elle est elargie parce que le texte d'une categorie
+     assez longue ne tenait plus dans les 200 px d'origine. */
+  grid-template-columns:minmax(220px,340px) 1fr 48px 48px 48px 48px;
   grid-template-areas:"search metrics view icons collapse more";
   align-items:center;
   gap:10px;
@@ -169,6 +172,37 @@ main{
   background:var(--surface-2);
   border-color:var(--muted);
 }
+
+/* Boutons de la barre d'action, a la Dashy : fond plein, texte fonce, et un
+   enfoncement au clic. Un bouton colore garde un contraste lisible parce
+   que la couleur du fond est claire (55 % de blanc melange a la teinte), et le
+   texte passe donc en presque noir — l'inverse du reste de l'interface. */
+.toolbar .icon-btn{
+  --btn-tint:var(--surface-3);
+  background:color-mix(in srgb, var(--btn-tint) 55%, white);
+  border-color:color-mix(in srgb, var(--btn-tint) 70%, var(--border));
+  color:#14161a;
+  border-radius:4px;
+  transition:transform .1s ease,box-shadow .1s ease,background .1s ease;
+}
+
+.toolbar .icon-btn:hover{
+  background:color-mix(in srgb, var(--btn-tint) 72%, white);
+  box-shadow:0 2px 6px rgba(0,0,0,.18);
+}
+
+.toolbar .icon-btn:active{
+  /* L'enfoncement compense l'ombre : la bascule doit paraitre venir du fond. */
+  transform:translateY(1px);
+  box-shadow:0 1px 2px rgba(0,0,0,.22);
+}
+
+/* Une teinte par bouton, dans l'ordre du bandeau : affichage, petites icones,
+   pliage, menu. */
+.toolbar #viewBtn{--btn-tint:#b06ff0}
+.toolbar #iconsBtn{--btn-tint:#4a90e2}
+.toolbar #collapseAllBtn{--btn-tint:#2ecc71}
+.toolbar .top-menu-wrap .icon-btn{--btn-tint:#f0e04a}
 
 .top-menu-wrap{
   position:relative;
