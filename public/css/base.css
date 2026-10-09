@@ -381,9 +381,11 @@ main{
   background:color-mix(in srgb, var(--tile-color) 9%, var(--surface));
 }
 
-/* Titre de categorie : reprend la couleur de la section. */
-.section.tinted .category-icon,
-.section.tinted .category-name{
+/* Seule l'icone reprend la couleur de la section. L'intitule reste dans la
+   couleur du texte du theme : colorer le nom aussi rendrait le titre
+   illisible des que la teinte est sombre, et un bandeau de titres colores
+   serait bien plus bruyant qu'une rangee d'icones. */
+.section.tinted .category-icon{
   color:var(--tile-color);
 }
 
