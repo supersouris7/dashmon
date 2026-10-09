@@ -34,15 +34,11 @@
   border-color:var(--accent);
 }
 
-/* Le liseré de la tuile CPU/RAM montre la couleur de l'hote en permanence :
-   c'est le seul endroit ou l'hote est identifie hors du mode groupe, donc le
-   reperage doit rester visible au repos, contrairement aux tuiles de services
-   ou la couleur ne sert qu'au survol. */
-.host-metric.tinted{
-  border-color:var(--tile-color);
-}
-
+/* La couleur de l'hote n'apparait qu'au survol, comme sur les tuiles de
+   services : un bandeau dont les tuiles sont toutes colorées en permanence
+   perdrait tout signal. */
 .host-metric.tinted:hover{
+  border-color:var(--tile-color);
   background:color-mix(in srgb, var(--tile-color) 9%, var(--surface-2));
 }
 
