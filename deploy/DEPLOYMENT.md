@@ -135,6 +135,20 @@ If your monitored URLs use local names:
 
 3. Restart (`docker compose up -d`) and check the status pills turn green.
 
+> **This setting lives in the container definition, not in the image.** Anything
+> that recreates the container — `docker compose up`, Portainer's *Pull and
+> redeploy*, an update by Watchtower — rebuilds it, and `dns:` only survives if
+> it is still in your stack definition. If the pills that were green turn red
+> after a redeploy, the resolver is the first thing to check:
+>
+> ```sh
+> docker inspect dashmon --format '{{json .HostConfig.Dns}}'
+> ```
+>
+> An empty array means the setting is gone. Put it back in the stack definition
+> rather than applying it once on the running container, or it will keep
+> disappearing.
+
 Without a LAN DNS that knows the names, add explicit `extra_hosts` entries instead:
 
 ```yaml
