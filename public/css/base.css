@@ -427,6 +427,28 @@ main{
   text-overflow:ellipsis;
 }
 
+/* Tuile fortune : a la place de l'intitule, une phrase qui se replie sur
+   plusieurs lignes. Pas d'ellipsis, pas de pastille : la phrase tient dans la
+   largeur de la tuile, la hauteur suit. */
+.card.fortune{
+  cursor:pointer;
+  align-items:flex-start;
+}
+
+.fortune-text{
+  flex:1;
+  min-width:0;
+  font-size:14px;
+  line-height:1.45;
+  white-space:normal;
+  overflow:visible;
+}
+
+.card.fortune:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+
 .empty{
   padding:55px 20px;
   text-align:center;

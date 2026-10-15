@@ -494,6 +494,9 @@ export function normalizeConfig(cfg={}){
       url:sanitizeUrl(svc.url),
       icon:sanitizeImagePath(svc.icon),
       monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true,
+      // "fortune" = tuile sans URL ni pastille, qui affiche une phrase du jour.
+      // Toute autre valeur retombe sur une tuile de service classique.
+      kind:svc.kind==="fortune" ? "fortune" : "service",
       // Normalisation pilotee par le schema du widget (manifest). Un widget
       // inconnu est conserve tel quel : on ne perd jamais des reglages.
       widget:normalizeWidgetConfig(svc.widget)

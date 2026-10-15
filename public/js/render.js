@@ -5,6 +5,7 @@ import { bumpUsage } from "./api.js";
 import { saveViewPrefs } from "./view-prefs.js";
 import { hasWidget, renderWidget, widgetStatusKey } from "./widget-registry.js";
 import { effectiveStatus, statusIcon } from "./status.js";
+import { fortuneText, pickFortune, loadFortunes } from "./fortune.js";
 import {
   dashboard, searchInput, webLinksSection, webLinksHeader, webLinksList,
   viewBtn, iconsBtn, collapseAllBtn, openModeSelect, groupCategoryBtn,
@@ -145,7 +146,75 @@ function tileColorFor(service){
   return sanitizeTileColor((target||{}).color);
 }
 
+// Icone de tuile : PNG de la bibliotheque, ou cube par defaut si l'image
+// manque. Partage par les tuiles de service et les tuiles fortune.
+function appendTileIcon(card,service){
+  if(!service.icon){
+    const fallback=document.createElement("div");
+    fallback.className="service-fallback";
+    fallback.innerHTML='<i class="fa-solid fa-cube"></i>';
+    card.appendChild(fallback);
+    return;
+  }
+  const icon=document.createElement("img");
+  icon.className="service-icon";
+  icon.src=service.icon;
+  icon.alt="";
+  icon.onerror=()=>{
+    icon.remove();
+    const fallback=document.createElement("div");
+    fallback.className="service-fallback";
+    fallback.innerHTML='<i class="fa-solid fa-cube"></i>';
+    card.prepend(fallback);
+  };
+  card.appendChild(icon);
+}
+
+// Tuile fortune : pas d'intitule, pas de pastille, pas de lien. L'icone et la
+// phrase du jour suffisent ; un clic tire une autre phrase pour la journee.
+function createFortuneCard(service){
+  const card=document.createElement("div");
+  card.className="card fortune";
+  card.tabIndex=0;
+  card.setAttribute("role","button");
+  card.title=t("fortuneHint");
+
+  appendTileIcon(card,service);
+
+  const text=document.createElement("div");
+  text.className="fortune-text";
+  card.appendChild(text);
+
+  const paint=()=>{
+    text.textContent=fortuneText(service,state.language);
+  };
+  paint();
+
+  // Le jeu est charge en asynchrone : au premier rendu il peut etre vide, et la
+  // tuile se remplit seule des que le fichier est arrive.
+  loadFortunes().then(()=>{
+    if(card.isConnected) paint();
+  });
+
+  const next=event=>{
+    if(event) event.preventDefault();
+    text.textContent=pickFortune(service,state.language);
+  };
+  card.addEventListener("click",next);
+  card.addEventListener("keydown",event=>{
+    if(event.key!=="Enter" && event.key!==" ") return;
+    next(event);
+  });
+
+  return card;
+}
+
 function createCard(service){
+  // Une tuile fortune n'ouvre rien : elle affiche une phrase du jour et change
+  // de phrase au clic. Elle est rendue a part car ni URL, ni pastille, ni
+  // widget n'ont de sens ici.
+  if(service.kind==="fortune") return createFortuneCard(service);
+
   const card=document.createElement("a");
   card.className="card";
   card.href=safeHref(service.url);
@@ -159,25 +228,7 @@ function createCard(service){
     card.rel="noopener noreferrer";
   }
 
-  if(service.icon){
-    const icon=document.createElement("img");
-    icon.className="service-icon";
-    icon.src=service.icon;
-    icon.alt="";
-    icon.onerror=()=>{
-      icon.remove();
-      const fallback=document.createElement("div");
-      fallback.className="service-fallback";
-      fallback.innerHTML='<i class="fa-solid fa-cube"></i>';
-      card.prepend(fallback);
-    };
-    card.appendChild(icon);
-  }else{
-    const fallback=document.createElement("div");
-    fallback.className="service-fallback";
-    fallback.innerHTML='<i class="fa-solid fa-cube"></i>';
-    card.appendChild(fallback);
-  }
+  appendTileIcon(card,service);
 
   const title=document.createElement("div");
   title.className="card-title";

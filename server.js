@@ -562,6 +562,9 @@ function buildConfigOutput(config){
             url:sanitizeUrl(svc.url),
             icon:sanitizeImagePath(svc.icon),
             monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true,
+            // "fortune" = tuile sans URL ni pastille, qui affiche une phrase.
+            // Toute autre valeur retombe sur une tuile de service classique.
+            kind:svc.kind==="fortune" ? "fortune" : "service",
             widget:serializeWidget(svc.widget)
           }))
         : [],

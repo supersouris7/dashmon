@@ -1,0 +1,2002 @@
+[
+  {
+    "id": "message_127",
+    "fr": "Avant de prendre une décision, pense à ceux qu’elle va aussi toucher.",
+    "en": "Before making a decision, think about who else it will affect."
+  },
+  {
+    "id": "message_164",
+    "fr": "Si tu dis à quelqu’un qu’il compte pour toi, montre-le aussi dans tes actes.",
+    "en": "If you tell someone they matter to you, show it in your actions too."
+  },
+  {
+    "id": "message_194",
+    "fr": "Raconte ce qui s’est passé : tu verras peut-être mieux ce que tu en penses.",
+    "en": "Tell what happened: you may understand your own thoughts better."
+  },
+  {
+    "id": "message_043",
+    "fr": "Tu peux accepter un compliment sans le contredire.",
+    "en": "You can accept a compliment without arguing against it."
+  },
+  {
+    "id": "message_240",
+    "fr": "Réussis d’une façon dont tu n’auras pas honte ensuite.",
+    "en": "Succeed in a way you will not be ashamed of later."
+  },
+  {
+    "id": "message_100",
+    "fr": "Tu peux commencer par la partie la moins intimidante.",
+    "en": "You can begin with the least intimidating part."
+  },
+  {
+    "id": "message_328",
+    "fr": "Si tu veux être compris, utilise les mots que tu emploies dans une vraie conversation.",
+    "en": "If you want to be understood, use the words you use in a real conversation."
+  },
+  {
+    "id": "message_078",
+    "fr": "Une étape trop grande peut être divisée.",
+    "en": "A step that is too big can be divided."
+  },
+  {
+    "id": "message_084",
+    "fr": "Laisser une provocation sans réponse est aussi un choix.",
+    "en": "Leaving a provocation unanswered is a choice too."
+  },
+  {
+    "id": "message_236",
+    "fr": "Si le même problème revient, cherche sa cause au lieu de réparer encore le résultat.",
+    "en": "If the same problem returns, find its cause instead of fixing the result again."
+  },
+  {
+    "id": "message_246",
+    "fr": "Remercie aussi la personne qui t’aide sans se faire remarquer.",
+    "en": "Thank the person who helps you without drawing attention to it too."
+  },
+  {
+    "id": "message_009",
+    "fr": "Écris ce que tu sais déjà. Tu verras plus facilement ce qu’il te manque.",
+    "en": "Write what you already know. You will see what is missing more easily."
+  },
+  {
+    "id": "message_077",
+    "fr": "Une réponse réfléchie peut attendre quelques minutes.",
+    "en": "A thoughtful response can wait a few minutes."
+  },
+  {
+    "id": "message_299",
+    "fr": "Un désaccord ne suffit pas à invalider ton travail.",
+    "en": "Disagreement alone does not invalidate your work."
+  },
+  {
+    "id": "message_312",
+    "fr": "Utilise ce que tu as appris pour mieux choisir aujourd’hui.",
+    "en": "Use what you learned to make better choices today."
+  },
+  {
+    "id": "message_349",
+    "fr": "Un père peut montrer comment on change d’avis honnêtement.",
+    "en": "A father can show how to change one's mind honestly."
+  },
+  {
+    "id": "message_118",
+    "fr": "Sur YouTube aussi, garde ta voix plutôt que de jouer celle que tu crois attendue.",
+    "en": "On YouTube too, keep your own voice instead of playing the one you think is expected."
+  },
+  {
+    "id": "message_069",
+    "fr": "Travaille une compétence dont tu as réellement besoin.",
+    "en": "Practice a skill you actually need."
+  },
+  {
+    "id": "message_145",
+    "fr": "Pour finir à temps, fixe aussi une date pour chaque grande étape.",
+    "en": "To finish on time, set a date for each major step too."
+  },
+  {
+    "id": "message_066",
+    "fr": "Dis ce que tu n’acceptes pas avant de finir par en vouloir à tout le monde.",
+    "en": "Say what you will not accept before you end up resenting everyone."
+  },
+  {
+    "id": "message_167",
+    "fr": "La confiance n’exige pas de parler plus fort.",
+    "en": "Confidence does not require speaking louder."
+  },
+  {
+    "id": "message_290",
+    "fr": "Cherche ce que vous pouvez décider ensemble.",
+    "en": "Look for what you can decide together."
+  },
+  {
+    "id": "message_333",
+    "fr": "Si quelqu’un t’a parlé d’un moment important, demande-lui ensuite comment ça s’est passé.",
+    "en": "If someone told you about an important event, ask afterward how it went."
+  },
+  {
+    "id": "message_163",
+    "fr": "Vouloir t’améliorer ne veut pas dire que tu es mauvais aujourd’hui.",
+    "en": "Wanting to improve does not mean you are bad today."
+  },
+  {
+    "id": "message_006",
+    "fr": "Avant d’ouvrir une application, demande-toi ce que tu viens y faire.",
+    "en": "Before opening an app, ask what you came to do."
+  },
+  {
+    "id": "message_229",
+    "fr": "Pour travailler avec quelqu’un, dites clairement qui fait quoi.",
+    "en": "When working with someone, state clearly who does what."
+  },
+  {
+    "id": "message_102",
+    "fr": "Prépare à l’avance ce que tu dois faire pour moins hésiter au moment de commencer.",
+    "en": "Prepare what you need to do in advance so you hesitate less when starting."
+  },
+  {
+    "id": "message_260",
+    "fr": "Ne répète pas ce que quelqu’un t’a confié en privé.",
+    "en": "Do not repeat what someone told you in confidence."
+  },
+  {
+    "id": "message_151",
+    "fr": "Si ton choix est honnête et réfléchi, tu n’as pas à le cacher pour plaire.",
+    "en": "If your choice is honest and thoughtful, you do not need to hide it to please people."
+  },
+  {
+    "id": "message_114",
+    "fr": "Construis un quotidien qui correspond à ce que tu trouves important.",
+    "en": "Build a daily life that reflects what you consider important."
+  },
+  {
+    "id": "message_348",
+    "fr": "Avant de supprimer une erreur dans ton brouillon, regarde si elle t’a donné une idée.",
+    "en": "Before removing a mistake from your draft, see if it gave you an idea."
+  },
+  {
+    "id": "message_301",
+    "fr": "Une amitié mérite parfois une conversation inconfortable.",
+    "en": "A friendship sometimes deserves an uncomfortable conversation."
+  },
+  {
+    "id": "message_371",
+    "fr": "Dis aux gens que tu les apprécies. Ils ne le savent pas forcément.",
+    "en": "Tell people you appreciate them. They may not know."
+  },
+  {
+    "id": "message_083",
+    "fr": "La patience peut prendre la forme d’une nouvelle explication.",
+    "en": "Patience can take the form of a new explanation."
+  },
+  {
+    "id": "message_255",
+    "fr": "Essaie de finir avant de décider que l’idée ne vaut rien.",
+    "en": "Try finishing before deciding the idea is worthless."
+  },
+  {
+    "id": "message_395",
+    "fr": "Tu peux faire un petit projet et aller jusqu’au bout.",
+    "en": "You can make a small project and finish it."
+  },
+  {
+    "id": "message_139",
+    "fr": "Crée un objet, une phrase ou une solution dont tu es content.",
+    "en": "Create an object, sentence, or solution you feel good about."
+  },
+  {
+    "id": "message_010",
+    "fr": "Si tu veux aider, propose quelque chose de précis.",
+    "en": "If you want to help, offer something specific."
+  },
+  {
+    "id": "message_248",
+    "fr": "Quand tu te trompes, demande-toi ce que tu dois apprendre pour faire mieux.",
+    "en": "When you make a mistake, ask what you need to learn to do better."
+  },
+  {
+    "id": "message_343",
+    "fr": "Ne change pas d’objectif dès que le travail devient difficile.",
+    "en": "Do not change goals as soon as the work gets difficult."
+  },
+  {
+    "id": "message_121",
+    "fr": "Si tu as dit que tu rappellerais, rappelle.",
+    "en": "If you said you would call back, call back."
+  },
+  {
+    "id": "message_263",
+    "fr": "Tu peux dire ce que tu peux offrir et jusqu’où.",
+    "en": "You can say what you can offer and how far."
+  },
+  {
+    "id": "message_130",
+    "fr": "Avant de critiquer une habitude, demande pourquoi la personne fait ainsi.",
+    "en": "Before criticizing a habit, ask why the person does it that way."
+  },
+  {
+    "id": "message_369",
+    "fr": "Avant de lancer un projet, regarde le temps et les moyens qu’il demande.",
+    "en": "Before starting a project, look at the time and resources it needs."
+  },
+  {
+    "id": "message_320",
+    "fr": "Quand tu doutes de toi, repense à trois choses que tu as déjà réussi à faire.",
+    "en": "When you doubt yourself, recall three things you have already managed to do."
+  },
+  {
+    "id": "message_168",
+    "fr": "Si tu donnes une tâche à ton enfant, explique ce que tu attends de lui.",
+    "en": "If you give your child a task, explain what you expect."
+  },
+  {
+    "id": "message_239",
+    "fr": "Au lieu de te sentir inférieur, regarde ce que tu peux apprendre de cette personne.",
+    "en": "Instead of feeling inferior, look at what you can learn from that person."
+  },
+  {
+    "id": "message_219",
+    "fr": "Essaie cette idée avant de te demander comment elle pourrait rapporter de l’argent.",
+    "en": "Try that idea before asking how it could make money."
+  },
+  {
+    "id": "message_179",
+    "fr": "Fais dans ton quotidien ce que tu dis trouver important.",
+    "en": "Do in daily life what you say matters to you."
+  },
+  {
+    "id": "message_235",
+    "fr": "Un projet créatif peut te faire découvrir une capacité.",
+    "en": "A creative project can reveal an ability."
+  },
+  {
+    "id": "message_103",
+    "fr": "Cherche une nouvelle façon de résoudre un problème qui t’agace au quotidien.",
+    "en": "Find a new way to solve a problem that bothers you every day."
+  },
+  {
+    "id": "message_170",
+    "fr": "Tu peux parler d’un malaise avant qu’il devienne une rupture.",
+    "en": "You can discuss discomfort before it becomes a break."
+  },
+  {
+    "id": "message_071",
+    "fr": "Tes premières versions ont le droit d’être maladroites.",
+    "en": "Your first versions are allowed to be awkward."
+  },
+  {
+    "id": "message_286",
+    "fr": "Essaie une nouvelle activité avec quelqu’un que tu veux mieux connaître.",
+    "en": "Try a new activity with someone you want to know better."
+  },
+  {
+    "id": "message_254",
+    "fr": "Tu peux travailler sur ton projet même si personne ne t’applaudit.",
+    "en": "You can work on your project even if nobody applauds you."
+  },
+  {
+    "id": "message_287",
+    "fr": "Note ce qui ne te plaît pas dans un exemple : tu sauras mieux ce que tu veux faire.",
+    "en": "Note what you dislike in an example: you will better understand what you want to make."
+  },
+  {
+    "id": "message_113",
+    "fr": "Prépare le document que tu dois ouvrir demain.",
+    "en": "Prepare the document you need to open tomorrow."
+  },
+  {
+    "id": "message_218",
+    "fr": "Prends la décision que tu remets sans cesse à demain, ou fixe une date pour la prendre.",
+    "en": "Make the decision you keep postponing, or set a date to make it."
+  },
+  {
+    "id": "message_007",
+    "fr": "Ne renonce pas à poser une question simplement parce que tu as peur d’avoir l’air bête.",
+    "en": "Do not give up asking a question just because you fear looking foolish."
+  },
+  {
+    "id": "message_195",
+    "fr": "À la fin de la journée, regarde ce que tu as terminé, pas seulement le temps passé.",
+    "en": "At the end of the day, look at what you finished, not just the time spent."
+  },
+  {
+    "id": "message_338",
+    "fr": "Finis le paragraphe avant de chercher un nouvel outil.",
+    "en": "Finish the paragraph before looking for a new tool."
+  },
+  {
+    "id": "message_386",
+    "fr": "Une difficulté nouvelle peut demander un nouvel apprentissage.",
+    "en": "A new difficulty may call for new learning."
+  },
+  {
+    "id": "message_104",
+    "fr": "Juge une méthode sur plusieurs essais.",
+    "en": "Judge a method over several attempts."
+  },
+  {
+    "id": "message_005",
+    "fr": "Réussir compte. Garder la confiance des gens compte aussi.",
+    "en": "Success matters. Keeping people's trust matters too."
+  },
+  {
+    "id": "message_209",
+    "fr": "La colère n’ajoute pas de preuve à ton argument.",
+    "en": "Anger adds no evidence to your argument."
+  },
+  {
+    "id": "message_394",
+    "fr": "Une idée personnelle peut toucher d’autres personnes.",
+    "en": "A personal idea can resonate with others."
+  },
+  {
+    "id": "message_213",
+    "fr": "Demande à ton enfant ce qu’il a compris de ce que tu viens de dire.",
+    "en": "Ask your child what they understood from what you just said."
+  },
+  {
+    "id": "message_082",
+    "fr": "Avant de dire oui, regarde ce que tu as déjà promis.",
+    "en": "Before saying yes, look at what you have already promised."
+  },
+  {
+    "id": "message_012",
+    "fr": "Si tu attends quelque chose de l’autre, dis-le au lieu de le tester en silence.",
+    "en": "If you expect something from someone, say it instead of silently testing them."
+  },
+  {
+    "id": "message_075",
+    "fr": "Écris ce qui doit être fait avant de chercher comment.",
+    "en": "Write what needs doing before looking for how."
+  },
+  {
+    "id": "message_142",
+    "fr": "Ce soir, regarde ce que tu as réellement fait avancer.",
+    "en": "Tonight, look at what you actually moved forward."
+  },
+  {
+    "id": "message_362",
+    "fr": "Ne compte pas sur une seule réussite pour enfin te sentir à la hauteur.",
+    "en": "Do not rely on one achievement to finally feel good enough."
+  },
+  {
+    "id": "message_261",
+    "fr": "Choisis aujourd’hui une tâche qui améliorera vraiment ta situation.",
+    "en": "Choose one task today that will genuinely improve your situation."
+  },
+  {
+    "id": "message_269",
+    "fr": "Ton projet doit aussi améliorer ta vie, pas seulement remplir ton agenda.",
+    "en": "Your project should improve your life too, not just fill your calendar."
+  },
+  {
+    "id": "message_374",
+    "fr": "Quand tu termines une tâche, note ce que tu feras ensuite.",
+    "en": "When you finish a task, write down what you will do next."
+  },
+  {
+    "id": "message_364",
+    "fr": "Dis ce qui te touche avec des mots simples.",
+    "en": "Say what moves you in simple words."
+  },
+  {
+    "id": "message_242",
+    "fr": "Ne confonds pas hésitation et incapacité.",
+    "en": "Do not confuse hesitation with inability."
+  },
+  {
+    "id": "message_039",
+    "fr": "Avant d’accepter un nouveau projet, regarde ce que tu devras mettre de côté.",
+    "en": "Before accepting a new project, see what you will have to set aside."
+  },
+  {
+    "id": "message_188",
+    "fr": "Le ton d’un commentaire ne prouve pas sa justesse.",
+    "en": "A comment's tone does not prove its accuracy."
+  },
+  {
+    "id": "message_038",
+    "fr": "Note tes résultats pour voir si tu avances vraiment.",
+    "en": "Record your results to see whether you are actually progressing."
+  },
+  {
+    "id": "message_138",
+    "fr": "Donne un nom au blocage pour chercher une solution.",
+    "en": "Name the obstacle so you can seek a solution."
+  },
+  {
+    "id": "message_112",
+    "fr": "Montre à ton enfant comment faire avant de lui demander de le faire seul.",
+    "en": "Show your child how before asking them to do it alone."
+  },
+  {
+    "id": "message_185",
+    "fr": "Reprendre un projet arrêté est déjà une façon d’avancer.",
+    "en": "Resuming a paused project is already a way forward."
+  },
+  {
+    "id": "message_177",
+    "fr": "Avant de travailler plus, vérifie que tu travailles sur la bonne chose.",
+    "en": "Before working more, check that you are working on the right thing."
+  },
+  {
+    "id": "message_336",
+    "fr": "Un compliment fait plaisir, mais il ne te dit pas toujours quoi améliorer.",
+    "en": "A compliment feels good, but it does not always tell you what to improve."
+  },
+  {
+    "id": "message_150",
+    "fr": "Dessine, écris ou construis un premier essai pour mieux comprendre ton idée.",
+    "en": "Draw, write, or build a first attempt to understand your idea better."
+  },
+  {
+    "id": "message_313",
+    "fr": "Essaie d’abord la solution la plus simple qui pourrait fonctionner.",
+    "en": "Try the simplest solution that might work first."
+  },
+  {
+    "id": "message_175",
+    "fr": "Dans ce que tu crées, garde un détail que tu aimes vraiment.",
+    "en": "In what you create, keep one detail you truly like."
+  },
+  {
+    "id": "message_110",
+    "fr": "Fais avancer tes projets en tenant aussi tes engagements envers tes proches.",
+    "en": "Move your projects forward while keeping your commitments to loved ones too."
+  },
+  {
+    "id": "message_180",
+    "fr": "Être mal à l’aise avant d’essayer ne veut pas dire que ça se passera mal.",
+    "en": "Feeling uncomfortable before trying does not mean it will go badly."
+  },
+  {
+    "id": "message_293",
+    "fr": "Reconnais tes qualités avec autant de précision que tes défauts.",
+    "en": "Recognize your strengths as precisely as your weaknesses."
+  },
+  {
+    "id": "message_356",
+    "fr": "C’est agréable d’être apprécié. Tu n’as pas besoin de l’approbation de tous pour agir.",
+    "en": "Being appreciated feels good. You do not need everyone's approval to act."
+  },
+  {
+    "id": "message_140",
+    "fr": "Dans une discussion, cherche à résoudre le problème plutôt qu’à gagner.",
+    "en": "In a discussion, seek to solve the problem rather than win."
+  },
+  {
+    "id": "message_337",
+    "fr": "Quand tu parles de ce que tu ressens, utilise tes mots à toi.",
+    "en": "When speaking about your feelings, use your own words."
+  },
+  {
+    "id": "message_053",
+    "fr": "Si tu fais beaucoup d’efforts sans résultat, vérifie ta méthode.",
+    "en": "If you make a lot of effort without results, check your method."
+  },
+  {
+    "id": "message_314",
+    "fr": "Quand ton enfant te pose une question, arrête-toi un instant pour l’écouter.",
+    "en": "When your child asks a question, stop for a moment to listen."
+  },
+  {
+    "id": "message_044",
+    "fr": "Ne confonds pas assurance et compétence.",
+    "en": "Do not confuse confidence with competence."
+  },
+  {
+    "id": "message_076",
+    "fr": "Essaie la forme que tu n’oses pas encore montrer.",
+    "en": "Try the form you do not yet dare to show."
+  },
+  {
+    "id": "message_183",
+    "fr": "Ton enfant peut avoir besoin d’une question plutôt que d’une leçon.",
+    "en": "Your child may need a question rather than a lesson."
+  },
+  {
+    "id": "message_390",
+    "fr": "Prends une idée qui t’inspire et change-la pour qu’elle te ressemble.",
+    "en": "Take an idea that inspires you and change it to make it your own."
+  },
+  {
+    "id": "message_098",
+    "fr": "Dans ton planning, prévois aussi le passage qui sera le plus difficile.",
+    "en": "In your schedule, plan for the hardest part too."
+  },
+  {
+    "id": "message_206",
+    "fr": "Tu peux entendre un avis sans en faire ta règle.",
+    "en": "You can hear an opinion without making it your rule."
+  },
+  {
+    "id": "message_041",
+    "fr": "Les gens ne te jugent pas tous autant que tu l’imagines.",
+    "en": "People do not all judge you as much as you imagine."
+  },
+  {
+    "id": "message_355",
+    "fr": "Fais une petite chose concrète pour ce projet aujourd’hui.",
+    "en": "Do one small, concrete thing for this project today."
+  },
+  {
+    "id": "message_120",
+    "fr": "Choisis une distraction que tu vas fermer.",
+    "en": "Choose one distraction to close."
+  },
+  {
+    "id": "message_368",
+    "fr": "Tu peux être réservé et prendre ta place.",
+    "en": "You can be reserved and still take your place."
+  },
+  {
+    "id": "message_002",
+    "fr": "Ta franchise peut protéger le lien.",
+    "en": "Your honesty can protect the bond."
+  },
+  {
+    "id": "message_383",
+    "fr": "Une idée peut compter même si elle ne devient pas un grand projet.",
+    "en": "An idea can matter without becoming a major project."
+  },
+  {
+    "id": "message_049",
+    "fr": "Pour chaque date limite, écris ce qui doit être prêt ce jour-là.",
+    "en": "For each deadline, write what must be ready that day."
+  },
+  {
+    "id": "message_058",
+    "fr": "Demande à l’autre ce qu’il souhaite vraiment.",
+    "en": "Ask what the other person truly wants."
+  },
+  {
+    "id": "message_346",
+    "fr": "Définis un début que tu peux faire immédiatement.",
+    "en": "Define a beginning you can act on immediately."
+  },
+  {
+    "id": "message_266",
+    "fr": "Quand tu réussis, remarque aussi les efforts qui t’y ont amené.",
+    "en": "When you succeed, notice the efforts that got you there too."
+  },
+  {
+    "id": "message_376",
+    "fr": "Encourage aussi le courage de dire la vérité.",
+    "en": "Encourage the courage to tell the truth too."
+  },
+  {
+    "id": "message_318",
+    "fr": "Tu montres ta force aussi quand tu tiens une promesse difficile.",
+    "en": "You show strength when you keep a difficult promise too."
+  },
+  {
+    "id": "message_357",
+    "fr": "Partage ce que tu as créé sans laisser chaque réaction décider de sa valeur.",
+    "en": "Share what you made without letting every reaction decide its value."
+  },
+  {
+    "id": "message_271",
+    "fr": "Si la même difficulté revient, essaie une autre façon d’y répondre.",
+    "en": "If the same difficulty returns, try another way to respond."
+  },
+  {
+    "id": "message_351",
+    "fr": "Reconnais une tentative courageuse, même inaboutie.",
+    "en": "Recognize a courageous attempt, even when unfinished."
+  },
+  {
+    "id": "message_389",
+    "fr": "Une idée mérite parfois d’être vécue avant d’être racontée.",
+    "en": "An idea sometimes deserves to be lived before being told."
+  },
+  {
+    "id": "message_207",
+    "fr": "Retire une friction avant de te faire un reproche.",
+    "en": "Remove one obstacle before blaming yourself."
+  },
+  {
+    "id": "message_277",
+    "fr": "Crée avant de te demander comment tu seras perçu.",
+    "en": "Create before wondering how you will be perceived."
+  },
+  {
+    "id": "message_122",
+    "fr": "Une promesse tenue peut parler plus fort qu’une explication.",
+    "en": "A kept promise can speak louder than an explanation."
+  },
+  {
+    "id": "message_382",
+    "fr": "Une erreur décrit un moment, pas toute ta personne.",
+    "en": "A mistake describes a moment, not your whole person."
+  },
+  {
+    "id": "message_268",
+    "fr": "Ne donne pas à un inconnu le dernier mot sur ton projet.",
+    "en": "Do not give a stranger the final say on your project."
+  },
+  {
+    "id": "message_397",
+    "fr": "Avant de prendre un risque, comprends ce que tu peux gagner et perdre.",
+    "en": "Before taking a risk, understand what you could gain and lose."
+  },
+  {
+    "id": "message_055",
+    "fr": "Le courage consiste parfois à montrer un travail encore perfectible.",
+    "en": "Courage sometimes means showing work that can still improve."
+  },
+  {
+    "id": "message_214",
+    "fr": "Fais connaître ce qui compte pour toi.",
+    "en": "Let people know what matters to you."
+  },
+  {
+    "id": "message_181",
+    "fr": "Commence le travail avant de réorganiser tout ton bureau.",
+    "en": "Start the work before reorganizing your whole desk."
+  },
+  {
+    "id": "message_147",
+    "fr": "Essaie une version différente pour découvrir ce que tu préfères.",
+    "en": "Try a different version to discover what you prefer."
+  },
+  {
+    "id": "message_125",
+    "fr": "Pour avancer, il te manque peut-être un choix clair plutôt qu’un regain de motivation.",
+    "en": "To move forward, you may need a clear choice rather than renewed motivation."
+  },
+  {
+    "id": "message_360",
+    "fr": "Tu peux inventer une façon de faire adaptée à toi.",
+    "en": "You can invent a way of working that suits you."
+  },
+  {
+    "id": "message_119",
+    "fr": "Prépare ton espace pour pouvoir commencer sans chercher tes affaires.",
+    "en": "Prepare your space so you can start without searching for your things."
+  },
+  {
+    "id": "message_040",
+    "fr": "Fais connaître ce que tu apprécies dans sa façon d’agir.",
+    "en": "Let your child know what you appreciate in their actions."
+  },
+  {
+    "id": "message_146",
+    "fr": "Propose ton aide ou ton idée au lieu d’attendre qu’on te donne la parole.",
+    "en": "Offer your help or idea instead of waiting to be invited to speak."
+  },
+  {
+    "id": "message_022",
+    "fr": "Tu peux faire moins de choses et les mener plus loin.",
+    "en": "You can do fewer things and take them further."
+  },
+  {
+    "id": "message_090",
+    "fr": "Laisse ton enfant te montrer ce qu’il sait faire.",
+    "en": "Let your child show you what they can do."
+  },
+  {
+    "id": "message_073",
+    "fr": "Une pause dans ton parcours n’oblige pas à l’abandonner.",
+    "en": "A pause in your journey does not require abandoning it."
+  },
+  {
+    "id": "message_323",
+    "fr": "Laisse ton enfant explorer ses propres intérêts.",
+    "en": "Let your child explore their own interests."
+  },
+  {
+    "id": "message_190",
+    "fr": "Tu peux réussir tes projets et construire de bonnes relations.",
+    "en": "You can succeed in your projects and build good relationships."
+  },
+  {
+    "id": "message_158",
+    "fr": "Tu peux progresser sans te parler comme à un ennemi.",
+    "en": "You can improve without speaking to yourself as an enemy."
+  },
+  {
+    "id": "message_080",
+    "fr": "Tu peux être ambitieux sans mépriser les autres chemins.",
+    "en": "You can be ambitious without despising other paths."
+  },
+  {
+    "id": "message_344",
+    "fr": "Demande ce qui manque à ton explication.",
+    "en": "Ask what your explanation is missing."
+  },
+  {
+    "id": "message_136",
+    "fr": "Tu peux être sensible et savoir décider.",
+    "en": "You can be sensitive and know how to decide."
+  },
+  {
+    "id": "message_056",
+    "fr": "Une seule tentative ne suffit pas pour savoir ce dont tu es capable.",
+    "en": "One attempt is not enough to know what you are capable of."
+  },
+  {
+    "id": "message_253",
+    "fr": "Quand tu refais un essai, utilise ce que le précédent t’a appris.",
+    "en": "When trying again, use what the previous attempt taught you."
+  },
+  {
+    "id": "message_162",
+    "fr": "Ne suppose pas que tout un groupe pense la même chose.",
+    "en": "Do not assume an entire group thinks the same thing."
+  },
+  {
+    "id": "message_292",
+    "fr": "Garde une trace de tes intuitions, même incomplètes.",
+    "en": "Keep a record of your intuitions, even unfinished ones."
+  },
+  {
+    "id": "message_391",
+    "fr": "Sois régulier pour avancer sur ce qui compte pour toi.",
+    "en": "Be consistent to move forward on what matters to you."
+  },
+  {
+    "id": "message_019",
+    "fr": "Tu peux apprécier quelqu’un sans vouloir devenir lui.",
+    "en": "You can appreciate someone without wanting to become them."
+  },
+  {
+    "id": "message_045",
+    "fr": "Cherche ce qui manque réellement à la prochaine étape.",
+    "en": "Identify what the next step actually lacks."
+  },
+  {
+    "id": "message_256",
+    "fr": "Pour changer une habitude, choisis une règle facile à retenir.",
+    "en": "To change a habit, choose a rule that is easy to remember."
+  },
+  {
+    "id": "message_095",
+    "fr": "Tu peux réviser ton avis sans te renier.",
+    "en": "You can revise your view without betraying yourself."
+  },
+  {
+    "id": "message_033",
+    "fr": "La procrastination peut cacher une consigne mal définie.",
+    "en": "Procrastination can hide a poorly defined task."
+  },
+  {
+    "id": "message_148",
+    "fr": "L’honnêteté gagne à inclure ce que tu ignores.",
+    "en": "Honesty benefits from including what you do not know."
+  },
+  {
+    "id": "message_249",
+    "fr": "Décide de ce que tu vas arrêter pour mieux poursuivre.",
+    "en": "Decide what you will stop to move forward better."
+  },
+  {
+    "id": "message_197",
+    "fr": "Vérifie ce que tu sais avant de parler de quelqu’un.",
+    "en": "Check what you know before speaking about someone."
+  },
+  {
+    "id": "message_341",
+    "fr": "Tu peux être attentionné sans tout accepter.",
+    "en": "You can be considerate without accepting everything."
+  },
+  {
+    "id": "message_079",
+    "fr": "Une vieille idée peut rencontrer une expérience nouvelle.",
+    "en": "An old idea can meet a new experience."
+  },
+  {
+    "id": "message_304",
+    "fr": "Explique ton besoin avant qu’il devienne un reproche.",
+    "en": "Explain your need before it becomes a reproach."
+  },
+  {
+    "id": "message_087",
+    "fr": "Ce qui est important pour toi doit parfois passer avant le reste.",
+    "en": "What matters to you sometimes needs to come before everything else."
+  },
+  {
+    "id": "message_222",
+    "fr": "Tu peux faire preuve de fermeté sans perdre ta chaleur.",
+    "en": "You can be firm without losing your warmth."
+  },
+  {
+    "id": "message_226",
+    "fr": "Si tu dis vouloir changer, choisis un comportement à modifier dès aujourd’hui.",
+    "en": "If you say you want to change, choose one behavior to change today."
+  },
+  {
+    "id": "message_067",
+    "fr": "Si un sujet t’intéresse, essaie quelque chose au lieu de seulement y penser.",
+    "en": "If a topic interests you, try something instead of only thinking about it."
+  },
+  {
+    "id": "message_172",
+    "fr": "Une tâche désagréable peut avoir une fin claire.",
+    "en": "An unpleasant task can have a clear ending."
+  },
+  {
+    "id": "message_234",
+    "fr": "Au lieu de dire « tu ne m’aides jamais », demande l’aide dont tu as besoin.",
+    "en": "Instead of saying “you never help me,” ask for the help you need."
+  },
+  {
+    "id": "message_202",
+    "fr": "Une opinion reçue n’est pas une obligation.",
+    "en": "An opinion you receive is not an obligation."
+  },
+  {
+    "id": "message_048",
+    "fr": "Une question sur sa journée peut ouvrir son monde.",
+    "en": "A question about your child's day can open their world."
+  },
+  {
+    "id": "message_057",
+    "fr": "Si une remarque t’énerve, prends le temps de voir si elle contient quelque chose d’utile.",
+    "en": "If a remark angers you, take time to see whether it contains something useful."
+  },
+  {
+    "id": "message_059",
+    "fr": "Si tu reportes, donne une nouvelle date précise.",
+    "en": "If you postpone, set a specific new date."
+  },
+  {
+    "id": "message_123",
+    "fr": "Partage avec tes proches une chose utile que tu viens d’apprendre.",
+    "en": "Share something useful you just learned with your loved ones."
+  },
+  {
+    "id": "message_377",
+    "fr": "Demande un avis pour améliorer ton travail, pas pour savoir si tu as le droit de créer.",
+    "en": "Ask for feedback to improve your work, not to learn whether you have permission to create."
+  },
+  {
+    "id": "message_093",
+    "fr": "Fais un premier essai. Tu pourras ensuite l’améliorer.",
+    "en": "Make a first attempt. You can improve it afterward."
+  },
+  {
+    "id": "message_178",
+    "fr": "Avant de défendre une idée, demande-toi pourquoi tu y crois.",
+    "en": "Before defending an idea, ask why you believe it."
+  },
+  {
+    "id": "message_070",
+    "fr": "Une critique utile vise ce qui peut changer.",
+    "en": "Useful criticism targets what can change."
+  },
+  {
+    "id": "message_283",
+    "fr": "Choisis un engagement que tu veux vraiment tenir cette semaine.",
+    "en": "Choose one commitment you really want to keep this week."
+  },
+  {
+    "id": "message_295",
+    "fr": "Une excuse de père peut enseigner la responsabilité.",
+    "en": "A father's apology can teach responsibility."
+  },
+  {
+    "id": "message_270",
+    "fr": "Tu peux comprendre qu’une personne soit triste sans être d’accord avec tout ce qu’elle dit.",
+    "en": "You can understand someone's sadness without agreeing with everything they say."
+  },
+  {
+    "id": "message_342",
+    "fr": "Laisse ton expérience actuelle suffire pour commencer.",
+    "en": "Let your current experience be enough to begin."
+  },
+  {
+    "id": "message_208",
+    "fr": "Choisis un objectif que tu veux réellement atteindre, pas seulement montrer aux autres.",
+    "en": "Choose a goal you genuinely want to reach, not just show others."
+  },
+  {
+    "id": "message_329",
+    "fr": "Laisse-lui le droit d’apprendre autrement que toi.",
+    "en": "Allow your child to learn differently from you."
+  },
+  {
+    "id": "message_280",
+    "fr": "Laisse le téléphone hors du premier pas.",
+    "en": "Keep the phone out of your first step."
+  },
+  {
+    "id": "message_106",
+    "fr": "Une autorité calme peut rester très ferme.",
+    "en": "Calm authority can remain very firm."
+  },
+  {
+    "id": "message_340",
+    "fr": "Choisis ta première tâche la veille pour démarrer plus facilement.",
+    "en": "Choose your first task the night before to start more easily."
+  },
+  {
+    "id": "message_282",
+    "fr": "Une méthode doit pouvoir être utilisée les jours ordinaires.",
+    "en": "A method should work on ordinary days."
+  },
+  {
+    "id": "message_126",
+    "fr": "Tu peux être proche sans être identique.",
+    "en": "You can be close without being identical."
+  },
+  {
+    "id": "message_252",
+    "fr": "Tu peux parler d’un sujet connu en racontant ce que toi, tu y as remarqué.",
+    "en": "You can discuss a familiar topic by sharing what you noticed in it."
+  },
+  {
+    "id": "message_046",
+    "fr": "Une conversation importante mérite que tu sois pleinement là.",
+    "en": "An important conversation deserves your full presence."
+  },
+  {
+    "id": "message_204",
+    "fr": "Tu peux défendre ton point sans fermer la porte.",
+    "en": "You can defend your point without closing the door."
+  },
+  {
+    "id": "message_400",
+    "fr": "Réserve une heure à ce que tu repousses.",
+    "en": "Reserve an hour for what you keep postponing."
+  },
+  {
+    "id": "message_092",
+    "fr": "Dis honnêtement ce que tu veux dans une relation.",
+    "en": "Say honestly what you want in a relationship."
+  },
+  {
+    "id": "message_029",
+    "fr": "Dis tes attentes pour que l’autre puisse te répondre.",
+    "en": "State your expectations so the other person can respond."
+  },
+  {
+    "id": "message_251",
+    "fr": "Tu peux dire « je débute » sans dire « je suis nul ».",
+    "en": "You can say “I'm beginning” without saying “I'm useless.”"
+  },
+  {
+    "id": "message_303",
+    "fr": "Être père, c’est aussi penser aux petites choses dont ton enfant a besoin.",
+    "en": "Being a father also means remembering the small things your child needs."
+  },
+  {
+    "id": "message_317",
+    "fr": "Ne dis pas oui à quelque chose qui te met régulièrement mal à l’aise.",
+    "en": "Do not agree to something that regularly makes you uncomfortable."
+  },
+  {
+    "id": "message_047",
+    "fr": "Écris ce qui te fait peur : tu verras mieux ce que tu peux préparer.",
+    "en": "Write down what scares you: you will better see what you can prepare."
+  },
+  {
+    "id": "message_238",
+    "fr": "Choisis une exigence qui te fait avancer sans te rabaisser.",
+    "en": "Choose a standard that moves you forward without belittling you."
+  },
+  {
+    "id": "message_064",
+    "fr": "La franchise peut se dire sans brutalité.",
+    "en": "Honesty can be expressed without brutality."
+  },
+  {
+    "id": "message_388",
+    "fr": "Une relation forte n’exige pas de tout deviner.",
+    "en": "A strong relationship does not require guessing everything."
+  },
+  {
+    "id": "message_316",
+    "fr": "Après une explication, demande à ton enfant de te montrer ce qu’il a compris.",
+    "en": "After an explanation, ask your child to show what they understood."
+  },
+  {
+    "id": "message_311",
+    "fr": "Tu peux chercher l’excellence sans te condamner à chaque étape.",
+    "en": "You can pursue excellence without condemning yourself at every step."
+  },
+  {
+    "id": "message_221",
+    "fr": "Laisse les faits corriger ton interprétation.",
+    "en": "Let the facts correct your interpretation."
+  },
+  {
+    "id": "message_297",
+    "fr": "Tu peux reformuler une consigne sans hausser le ton.",
+    "en": "You can rephrase an instruction without raising your voice."
+  },
+  {
+    "id": "message_062",
+    "fr": "Choisis un défaut à travailler et un comportement précis à changer.",
+    "en": "Choose one weakness to work on and a specific behavior to change."
+  },
+  {
+    "id": "message_050",
+    "fr": "Montre comment on cherche sans prétendre tout savoir.",
+    "en": "Show how to investigate without pretending to know everything."
+  },
+  {
+    "id": "message_107",
+    "fr": "Si ton idée ne fonctionne pas en pratique, accepte de la revoir.",
+    "en": "If your idea does not work in practice, accept that it needs revision."
+  },
+  {
+    "id": "message_193",
+    "fr": "Transmets aussi la façon de chercher une réponse.",
+    "en": "Teach how to look for an answer too."
+  },
+  {
+    "id": "message_182",
+    "fr": "Précise le travail avant d’exiger plus de volonté.",
+    "en": "Clarify the work before demanding more willpower."
+  },
+  {
+    "id": "message_210",
+    "fr": "Une différence de goût n’est pas un défaut à corriger.",
+    "en": "A difference in taste is not a flaw to fix."
+  },
+  {
+    "id": "message_284",
+    "fr": "Tu peux garder ta dignité dans un résultat décevant.",
+    "en": "You can keep your dignity through a disappointing outcome."
+  },
+  {
+    "id": "message_201",
+    "fr": "Passe du projet imaginé à une première chose que tu peux montrer.",
+    "en": "Move from an imagined project to a first thing you can show."
+  },
+  {
+    "id": "message_001",
+    "fr": "Tes projets et tes relations peuvent se soutenir.",
+    "en": "Your projects and relationships can support one another."
+  },
+  {
+    "id": "message_003",
+    "fr": "Distingue la critique du travail du mépris de la personne.",
+    "en": "Distinguish criticism of the work from contempt for the person."
+  },
+  {
+    "id": "message_324",
+    "fr": "Une limite peut protéger sans effrayer.",
+    "en": "A boundary can protect without frightening."
+  },
+  {
+    "id": "message_037",
+    "fr": "Si ton projet devient trop compliqué, retire ce qui n’est pas nécessaire.",
+    "en": "If your project becomes too complicated, remove what is unnecessary."
+  },
+  {
+    "id": "message_026",
+    "fr": "Revois le plan quand sa réalité change.",
+    "en": "Revise the plan when its reality changes."
+  },
+  {
+    "id": "message_152",
+    "fr": "Avant de commencer, écris ce que tu veux avoir terminé à la fin.",
+    "en": "Before starting, write what you want finished by the end."
+  },
+  {
+    "id": "message_220",
+    "fr": "Demande ce que tu veux faire de ce que tu viens d’apprendre.",
+    "en": "Ask what you want to do with what you just learned."
+  },
+  {
+    "id": "message_018",
+    "fr": "Écoute le besoin derrière une formulation maladroite.",
+    "en": "Listen for the need behind awkward wording."
+  },
+  {
+    "id": "message_335",
+    "fr": "Avant de répondre pour plaire, demande-toi ce que tu penses vraiment.",
+    "en": "Before replying to please someone, ask what you really think."
+  },
+  {
+    "id": "message_232",
+    "fr": "Tu n’as pas à convaincre chaque personne qui passe.",
+    "en": "You do not have to convince every person who passes by."
+  },
+  {
+    "id": "message_241",
+    "fr": "Montre à quelqu’un qu’il compte en prenant des nouvelles de ce qui l’occupe.",
+    "en": "Show someone they matter by asking about what is on their mind."
+  },
+  {
+    "id": "message_054",
+    "fr": "Choisis une chose à terminer qui montrera que ton projet avance.",
+    "en": "Choose one thing to finish that will show your project is advancing."
+  },
+  {
+    "id": "message_061",
+    "fr": "Si tu promets un moment avec ton enfant, fixe quand il aura lieu.",
+    "en": "If you promise time with your child, set when it will happen."
+  },
+  {
+    "id": "message_358",
+    "fr": "Avant de dire « tu fais ça exprès », demande ce qui s’est passé.",
+    "en": "Before saying “you did that on purpose,” ask what happened."
+  },
+  {
+    "id": "message_008",
+    "fr": "Commence par un petit essai sur le sujet qui t’intéresse le plus.",
+    "en": "Start with a small experiment on the topic that interests you most."
+  },
+  {
+    "id": "message_099",
+    "fr": "Parle du geste précis que tu désapprouves.",
+    "en": "Speak about the specific action you disapprove of."
+  },
+  {
+    "id": "message_380",
+    "fr": "Une critique peut être pertinente et mal formulée.",
+    "en": "Criticism can be relevant and poorly expressed."
+  },
+  {
+    "id": "message_384",
+    "fr": "Ta présence peut compter plus qu’une solution immédiate.",
+    "en": "Your presence can matter more than an immediate solution."
+  },
+  {
+    "id": "message_052",
+    "fr": "Ne laisse pas une mauvaise matinée décider de ta journée.",
+    "en": "Do not let a bad morning decide your entire day."
+  },
+  {
+    "id": "message_223",
+    "fr": "Une histoire séduisante mérite des preuves.",
+    "en": "An appealing story deserves evidence."
+  },
+  {
+    "id": "message_396",
+    "fr": "Le regard des autres informe parfois ; il ne commande pas tout.",
+    "en": "Others' opinions can inform you; they need not command everything."
+  },
+  {
+    "id": "message_021",
+    "fr": "Ce qui fonctionne pour quelqu’un peut demander une adaptation.",
+    "en": "What works for someone may need adaptation."
+  },
+  {
+    "id": "message_315",
+    "fr": "Une première impression reste une première impression.",
+    "en": "A first impression remains a first impression."
+  },
+  {
+    "id": "message_392",
+    "fr": "Demande-toi pourquoi tu n’oses pas : manque de préparation ou peur du regard des autres ?",
+    "en": "Ask why you do not dare: lack of preparation or fear of others' opinions?"
+  },
+  {
+    "id": "message_385",
+    "fr": "Une curiosité commune peut devenir un souvenir fort.",
+    "en": "Shared curiosity can become a strong memory."
+  },
+  {
+    "id": "message_149",
+    "fr": "Observe ce qui te donne envie de fabriquer quelque chose.",
+    "en": "Notice what makes you want to make something."
+  },
+  {
+    "id": "message_257",
+    "fr": "Demande plutôt que d’attendre une devinette réussie.",
+    "en": "Ask instead of waiting for someone to guess correctly."
+  },
+  {
+    "id": "message_366",
+    "fr": "Quelques commentaires agressifs ne disent pas ce que tout le monde pense.",
+    "en": "A few aggressive comments do not tell you what everyone thinks."
+  },
+  {
+    "id": "message_035",
+    "fr": "Cherche ce que tu ressens vraiment devant ton travail.",
+    "en": "Look for what you really feel about your work."
+  },
+  {
+    "id": "message_231",
+    "fr": "Laisse une place aux efforts que l’autre fait réellement.",
+    "en": "Make room for the efforts the other person actually makes."
+  },
+  {
+    "id": "message_166",
+    "fr": "Fais avancer tes projets sans oublier les personnes qui comptent pour toi.",
+    "en": "Move your projects forward without forgetting the people who matter to you."
+  },
+  {
+    "id": "message_174",
+    "fr": "Demande des nouvelles de ce qui compte pour l’autre.",
+    "en": "Ask about what matters to the other person."
+  },
+  {
+    "id": "message_169",
+    "fr": "Choisis la loyauté quand tu parles d’un absent.",
+    "en": "Choose loyalty when speaking about someone absent."
+  },
+  {
+    "id": "message_359",
+    "fr": "Réparer demande parfois de changer une habitude.",
+    "en": "Repair sometimes requires changing a habit."
+  },
+  {
+    "id": "message_096",
+    "fr": "Tu peux proposer sans imposer.",
+    "en": "You can propose without imposing."
+  },
+  {
+    "id": "message_155",
+    "fr": "Explique ce qui compte pour toi assez clairement pour ouvrir une conversation.",
+    "en": "Explain what matters to you clearly enough to open a conversation."
+  },
+  {
+    "id": "message_034",
+    "fr": "Ne promets pas plus que ce que tu es prêt à faire.",
+    "en": "Do not promise more than you are willing to do."
+  },
+  {
+    "id": "message_020",
+    "fr": "Aide-le à nommer le problème qu’il rencontre.",
+    "en": "Help your child name the problem they face."
+  },
+  {
+    "id": "message_250",
+    "fr": "Cherche ce que tu ferais si le jugement pesait moins.",
+    "en": "Ask what you would do if judgment weighed less."
+  },
+  {
+    "id": "message_245",
+    "fr": "Demande le renseignement qui te manque.",
+    "en": "Ask for the information you lack."
+  },
+  {
+    "id": "message_262",
+    "fr": "Avant d’attribuer une intention, demande une explication.",
+    "en": "Before assigning an intention, ask for an explanation."
+  },
+  {
+    "id": "message_191",
+    "fr": "Transmets une valeur en racontant un choix concret.",
+    "en": "Teach a value by telling a concrete choice."
+  },
+  {
+    "id": "message_302",
+    "fr": "Si quelque chose te donne une idée, note-la et essaie une première version.",
+    "en": "If something gives you an idea, write it down and try a first version."
+  },
+  {
+    "id": "message_171",
+    "fr": "Tu peux soutenir quelqu’un sans décider à sa place.",
+    "en": "You can support someone without deciding for them."
+  },
+  {
+    "id": "message_101",
+    "fr": "Même si tu ne voulais pas blesser, écoute ce que l’autre a ressenti.",
+    "en": "Even if you did not mean to hurt someone, listen to how they felt."
+  },
+  {
+    "id": "message_347",
+    "fr": "Pour sortir une idée de ta tête, écris-la ou dessine-la.",
+    "en": "To get an idea out of your head, write it down or draw it."
+  },
+  {
+    "id": "message_184",
+    "fr": "Montre à ton enfant comment tu tiens un engagement.",
+    "en": "Show your child how you keep a commitment."
+  },
+  {
+    "id": "message_247",
+    "fr": "Une préparation sans fin peut devenir une fuite.",
+    "en": "Endless preparation can become an escape."
+  },
+  {
+    "id": "message_004",
+    "fr": "Quelqu’un qui te regarde n’est pas forcément en train de te critiquer.",
+    "en": "Someone looking at you is not necessarily criticizing you."
+  },
+  {
+    "id": "message_309",
+    "fr": "Quand tu penses « rien ne marche », regarde précisément ce qui a échoué.",
+    "en": "When you think “nothing works,” look specifically at what failed."
+  },
+  {
+    "id": "message_199",
+    "fr": "N’efface pas dix progrès à cause d’une remarque.",
+    "en": "Do not erase ten improvements because of one remark."
+  },
+  {
+    "id": "message_200",
+    "fr": "Après une déception, choisis ce que tu peux encore essayer.",
+    "en": "After a disappointment, choose what you can still try."
+  },
+  {
+    "id": "message_300",
+    "fr": "Le premier effort peut consister à choisir.",
+    "en": "The first effort can be making a choice."
+  },
+  {
+    "id": "message_157",
+    "fr": "La confiance se protège aussi quand on est déçu.",
+    "en": "Trust deserves protection even when you are disappointed."
+  },
+  {
+    "id": "message_224",
+    "fr": "Commence par écrire une ligne, envoyer une demande ou ouvrir le bon document.",
+    "en": "Start by writing a line, sending a request, or opening the right document."
+  },
+  {
+    "id": "message_028",
+    "fr": "Laisse ton enfant participer à une solution.",
+    "en": "Let your child take part in a solution."
+  },
+  {
+    "id": "message_105",
+    "fr": "On peut te trouver différent sans que tu aies à te corriger.",
+    "en": "People can find you different without you needing to fix yourself."
+  },
+  {
+    "id": "message_211",
+    "fr": "Demande ce qui a été difficile, pas seulement ce qui a réussi.",
+    "en": "Ask what was difficult, not just what went well."
+  },
+  {
+    "id": "message_354",
+    "fr": "Essaie seul une idée que tu ne te sens pas encore prêt à partager.",
+    "en": "Try an idea privately if you do not yet feel ready to share it."
+  },
+  {
+    "id": "message_258",
+    "fr": "Un silence public ne signifie pas un accord.",
+    "en": "Public silence does not mean agreement."
+  },
+  {
+    "id": "message_353",
+    "fr": "Quand tu es inquiet, parle de ta crainte avant de chercher un coupable.",
+    "en": "When you are worried, express your fear before looking for someone to blame."
+  },
+  {
+    "id": "message_322",
+    "fr": "Demande ce qui te plaît avant de demander ce qui manque.",
+    "en": "Ask what you like before asking what is missing."
+  },
+  {
+    "id": "message_144",
+    "fr": "Demande ce que tu évites vraiment dans ce projet.",
+    "en": "Ask what you are really avoiding in this project."
+  },
+  {
+    "id": "message_165",
+    "fr": "Le coût d’un projet inclut ce qu’il empêche.",
+    "en": "A project's cost includes what it prevents."
+  },
+  {
+    "id": "message_327",
+    "fr": "Propose quelques options à ton enfant et laisse-le choisir.",
+    "en": "Offer your child a few options and let them choose."
+  },
+  {
+    "id": "message_227",
+    "fr": "Quelle question te ferait reprendre maintenant ?",
+    "en": "What question would help you resume now?"
+  },
+  {
+    "id": "message_124",
+    "fr": "Une règle cohérente aide à savoir à quoi s’attendre.",
+    "en": "A consistent rule helps your child know what to expect."
+  },
+  {
+    "id": "message_094",
+    "fr": "Dis « j’ai raté cet essai » plutôt que « je rate toujours tout ».",
+    "en": "Say “this attempt failed” rather than “I always fail at everything.”"
+  },
+  {
+    "id": "message_173",
+    "fr": "Utilise ce que tu as appris pour aider quelqu’un qui rencontre la même difficulté.",
+    "en": "Use what you learned to help someone facing the same difficulty."
+  },
+  {
+    "id": "message_326",
+    "fr": "Un désaccord peut éclairer ce qui compte pour chacun.",
+    "en": "A disagreement can reveal what matters to each person."
+  },
+  {
+    "id": "message_305",
+    "fr": "Donne une chance à ce qui te plaît sans raison immédiate.",
+    "en": "Give a chance to what you like without an immediate reason."
+  },
+  {
+    "id": "message_365",
+    "fr": "Remplace « travailler dessus » par un résultat précis.",
+    "en": "Replace “work on it” with a specific outcome."
+  },
+  {
+    "id": "message_330",
+    "fr": "Si tu hésites à contacter quelqu’un, commence par écrire ton message.",
+    "en": "If you hesitate to contact someone, start by writing your message."
+  },
+  {
+    "id": "message_196",
+    "fr": "Demande « que dois-je améliorer ? » plutôt que de conclure « je suis nul ».",
+    "en": "Ask “what should I improve?” instead of concluding “I'm useless.”"
+  },
+  {
+    "id": "message_156",
+    "fr": "Choisis une direction pour ce projet au lieu de laisser toutes les options ouvertes.",
+    "en": "Choose a direction for this project instead of leaving every option open."
+  },
+  {
+    "id": "message_296",
+    "fr": "Crée quelque chose à ta façon, même si ce n’est pas la mode.",
+    "en": "Create something your way, even if it is not fashionable."
+  },
+  {
+    "id": "message_189",
+    "fr": "Un travail peu remarqué peut quand même être bon et utile.",
+    "en": "Work that gets little attention can still be good and useful."
+  },
+  {
+    "id": "message_279",
+    "fr": "Si une question te travaille, écris ce que tu aimerais comprendre.",
+    "en": "If a question stays on your mind, write what you would like to understand."
+  },
+  {
+    "id": "message_345",
+    "fr": "Tu peux refuser une opportunité qui brouille ton cap.",
+    "en": "You can refuse an opportunity that blurs your direction."
+  },
+  {
+    "id": "message_291",
+    "fr": "Une remarque juste peut être donnée au mauvais moment.",
+    "en": "A fair remark can be given at the wrong time."
+  },
+  {
+    "id": "message_273",
+    "fr": "Ton enfant mérite de connaître le sens de tes décisions.",
+    "en": "Your child deserves to understand the purpose of your decisions."
+  },
+  {
+    "id": "message_378",
+    "fr": "Prends le temps de comprendre avant de te défendre.",
+    "en": "Take time to understand before defending yourself."
+  },
+  {
+    "id": "message_143",
+    "fr": "Un malentendu peut survivre à plusieurs silences.",
+    "en": "A misunderstanding can survive several silences."
+  },
+  {
+    "id": "message_160",
+    "fr": "Quand tu hésites entre deux tâches, choisis celle qui sert le mieux ton objectif.",
+    "en": "When choosing between two tasks, pick the one that best serves your goal."
+  },
+  {
+    "id": "message_117",
+    "fr": "Tu peux te présenter sans t’excuser d’être là.",
+    "en": "You can introduce yourself without apologizing for being there."
+  },
+  {
+    "id": "message_331",
+    "fr": "Laisse un essai te surprendre avant de le corriger.",
+    "en": "Let an experiment surprise you before correcting it."
+  },
+  {
+    "id": "message_289",
+    "fr": "Tu peux faire une version pour comprendre et une autre pour partager.",
+    "en": "You can make one version to understand and another to share."
+  },
+  {
+    "id": "message_259",
+    "fr": "Tu peux approfondir une idée simple.",
+    "en": "You can explore a simple idea deeply."
+  },
+  {
+    "id": "message_265",
+    "fr": "Tu peux réduire la durée et tenir le rendez-vous.",
+    "en": "You can shorten the session and keep the appointment."
+  },
+  {
+    "id": "message_025",
+    "fr": "Une critique n’a pas à occuper toute ta mémoire.",
+    "en": "A criticism does not need to occupy your whole memory."
+  },
+  {
+    "id": "message_129",
+    "fr": "Fais un choix que tu peux expliquer sans inventer d’excuse.",
+    "en": "Make a choice you can explain without inventing an excuse."
+  },
+  {
+    "id": "message_203",
+    "fr": "L’écoute devient utile quand tu vérifies ce que tu as compris.",
+    "en": "Listening becomes useful when you check your understanding."
+  },
+  {
+    "id": "message_399",
+    "fr": "Tu peux être visible sans jouer un personnage.",
+    "en": "You can be visible without playing a character."
+  },
+  {
+    "id": "message_159",
+    "fr": "Demande-toi si tes exigences améliorent ton travail ou t’empêchent de le finir.",
+    "en": "Ask whether your standards improve your work or prevent you from finishing it."
+  },
+  {
+    "id": "message_264",
+    "fr": "Exprime ton besoin sans accuser l’autre de l’ignorer.",
+    "en": "Express your need without accusing someone of ignoring it."
+  },
+  {
+    "id": "message_109",
+    "fr": "Ne transforme pas un manque d’expérience en manque de valeur.",
+    "en": "Do not turn a lack of experience into a lack of worth."
+  },
+  {
+    "id": "message_017",
+    "fr": "Travaille le détail qui donne envie de continuer.",
+    "en": "Develop the detail that makes you want to continue."
+  },
+  {
+    "id": "message_141",
+    "fr": "Une limite respectée protège la qualité du lien.",
+    "en": "A respected boundary protects the quality of the bond."
+  },
+  {
+    "id": "message_161",
+    "fr": "Décris ce qu’une vie réussie signifie pour toi, au-delà de l’argent et du regard des autres.",
+    "en": "Describe what a successful life means to you beyond money and others' opinions."
+  },
+  {
+    "id": "message_060",
+    "fr": "Respecte ce que l’autre ne souhaite pas raconter.",
+    "en": "Respect what the other person does not wish to tell."
+  },
+  {
+    "id": "message_244",
+    "fr": "Essaie une activité ou rencontre une personne qui te fait découvrir autre chose.",
+    "en": "Try an activity or meet someone who helps you discover something different."
+  },
+  {
+    "id": "message_267",
+    "fr": "Évite de confondre une difficulté avec un manque d’effort.",
+    "en": "Avoid confusing difficulty with a lack of effort."
+  },
+  {
+    "id": "message_031",
+    "fr": "Si tu dis toujours oui pour être apprécié, entraîne-toi à refuser une petite demande.",
+    "en": "If you always say yes to be liked, practice refusing a small request."
+  },
+  {
+    "id": "message_063",
+    "fr": "Un avis ferme peut rester ouvert aux faits.",
+    "en": "A firm opinion can remain open to facts."
+  },
+  {
+    "id": "message_215",
+    "fr": "Ton enfant retiendra aussi ce qu’il te voit faire, pas seulement tes conseils.",
+    "en": "Your child will remember what they see you do, not just your advice."
+  },
+  {
+    "id": "message_135",
+    "fr": "Une création peut commencer par ce qui t’agace.",
+    "en": "A creation can start with what bothers you."
+  },
+  {
+    "id": "message_212",
+    "fr": "Ta confiance peut grandir pendant l’action.",
+    "en": "Your confidence can grow while you act."
+  },
+  {
+    "id": "message_128",
+    "fr": "Une difficulté mérite d’être comprise avant d’être corrigée.",
+    "en": "A difficulty deserves understanding before correction."
+  },
+  {
+    "id": "message_186",
+    "fr": "Choisis une petite habitude qui t’aidera à atteindre un objectif important.",
+    "en": "Choose a small habit that will help you reach an important goal."
+  },
+  {
+    "id": "message_332",
+    "fr": "Quand ton enfant réussit quelque chose, montre-lui que tu es heureux pour lui.",
+    "en": "When your child achieves something, show you are happy for them."
+  },
+  {
+    "id": "message_016",
+    "fr": "Si tu manques de moyens, cherche ce que tu peux faire avec ce que tu as.",
+    "en": "If you lack resources, look at what you can do with what you have."
+  },
+  {
+    "id": "message_375",
+    "fr": "Choisis les mots qui rendent la discussion possible.",
+    "en": "Choose words that make discussion possible."
+  },
+  {
+    "id": "message_352",
+    "fr": "Ta progression n’a pas besoin d’être spectaculaire pour être réelle.",
+    "en": "Your progress need not be spectacular to be real."
+  },
+  {
+    "id": "message_065",
+    "fr": "Crée avec ce que tu as appris dans ta propre vie.",
+    "en": "Create with what you have learned in your own life."
+  },
+  {
+    "id": "message_237",
+    "fr": "Tu peux rester fidèle à un objectif en changeant de chemin.",
+    "en": "You can stay true to a goal while changing paths."
+  },
+  {
+    "id": "message_132",
+    "fr": "Fais aujourd’hui une chose qui correspond à ce que tu dis croire.",
+    "en": "Do one thing today that matches what you say you believe."
+  },
+  {
+    "id": "message_205",
+    "fr": "Ton enfant peut apprendre la persévérance en te voyant recommencer.",
+    "en": "Your child can learn perseverance by watching you try again."
+  },
+  {
+    "id": "message_216",
+    "fr": "Fixe le moment où la recherche doit devenir essai.",
+    "en": "Set the point when research must become an experiment."
+  },
+  {
+    "id": "message_217",
+    "fr": "Fais remarquer le progrès que ton enfant ne voit pas encore.",
+    "en": "Point out progress your child cannot yet see."
+  },
+  {
+    "id": "message_068",
+    "fr": "Pour ta chaîne, ose partager une idée que tu as vraiment pris le temps de comprendre.",
+    "en": "For your channel, dare to share an idea you have truly taken time to understand."
+  },
+  {
+    "id": "message_367",
+    "fr": "Laisse ton enfant reconnaître ce qu’il a réussi.",
+    "en": "Let your child recognize what they achieved."
+  },
+  {
+    "id": "message_072",
+    "fr": "Cherche ce qui est vérifiable dans ce qu’on te dit.",
+    "en": "Look for what can be verified in what you are told."
+  },
+  {
+    "id": "message_319",
+    "fr": "Ta certitude mérite autant d’examen que ton doute.",
+    "en": "Your certainty deserves as much examination as your doubt."
+  },
+  {
+    "id": "message_187",
+    "fr": "Si tu as peur de mal faire, entraîne-toi d’abord sans chercher à montrer le résultat.",
+    "en": "If you fear doing badly, practice first without trying to show the result."
+  },
+  {
+    "id": "message_011",
+    "fr": "Tu peux répondre fermement sans humilier.",
+    "en": "You can respond firmly without humiliating anyone."
+  },
+  {
+    "id": "message_306",
+    "fr": "Tu as le droit d’essayer avant d’être légitime aux yeux de tous.",
+    "en": "You have the right to try before everyone considers you qualified."
+  },
+  {
+    "id": "message_339",
+    "fr": "La popularité d’un avis ne le rend pas exact.",
+    "en": "An opinion's popularity does not make it accurate."
+  },
+  {
+    "id": "message_321",
+    "fr": "Tu peux expliquer ton avis sans exiger que l’autre l’adopte.",
+    "en": "You can explain your opinion without demanding the other person adopt it."
+  },
+  {
+    "id": "message_310",
+    "fr": "Tu peux demander de la réciprocité clairement.",
+    "en": "You can ask for reciprocity clearly."
+  },
+  {
+    "id": "message_373",
+    "fr": "Tu peux être un repère sans avoir une réponse immédiate.",
+    "en": "You can be a source of guidance without having an immediate answer."
+  },
+  {
+    "id": "message_154",
+    "fr": "Une étiquette ferme souvent une enquête trop tôt.",
+    "en": "A label often ends an inquiry too soon."
+  },
+  {
+    "id": "message_086",
+    "fr": "Ta manière de traiter les autres transmet quelque chose.",
+    "en": "The way you treat others teaches something."
+  },
+  {
+    "id": "message_228",
+    "fr": "Tourner une vidéo peut être un exercice de clarté et de courage.",
+    "en": "Filming a video can be an exercise in clarity and courage."
+  },
+  {
+    "id": "message_097",
+    "fr": "Prépare le geste courageux au lieu d’attendre de ne plus avoir peur.",
+    "en": "Prepare the courageous action instead of waiting to feel no fear."
+  },
+  {
+    "id": "message_111",
+    "fr": "Une réparation peut commencer par reconnaître la blessure.",
+    "en": "Repair can start by acknowledging the hurt."
+  },
+  {
+    "id": "message_233",
+    "fr": "Tu vois un comportement, pas toute une personne.",
+    "en": "You see a behavior, not a whole person."
+  },
+  {
+    "id": "message_015",
+    "fr": "Avant d’aider quelqu’un, précise ce que tu peux faire pour éviter de te sentir obligé de tout gérer.",
+    "en": "Before helping someone, clarify what you can do so you do not feel obliged to handle everything."
+  },
+  {
+    "id": "message_030",
+    "fr": "Prépare un modèle ou une liste qui te fera gagner du temps la prochaine fois.",
+    "en": "Prepare a template or checklist that will save time next time."
+  },
+  {
+    "id": "message_370",
+    "fr": "Demande-toi ce que ton objectif va t’apprendre, pas seulement ce qu’il va te rapporter.",
+    "en": "Ask what your goal will teach you, not just what it will give you."
+  },
+  {
+    "id": "message_137",
+    "fr": "Demande si l’autre est prêt à entendre ton retour.",
+    "en": "Ask whether the other person is ready for your feedback."
+  },
+  {
+    "id": "message_108",
+    "fr": "Choisis les avis qui méritent une modification.",
+    "en": "Choose which opinions deserve a change."
+  },
+  {
+    "id": "message_013",
+    "fr": "Dans un désaccord, réponds au problème sans attaquer la personne.",
+    "en": "In a disagreement, address the problem without attacking the person."
+  },
+  {
+    "id": "message_276",
+    "fr": "Crée une petite solution à un problème que tu rencontres souvent.",
+    "en": "Create a small solution to a problem you often face."
+  },
+  {
+    "id": "message_014",
+    "fr": "Un jugement rapide mérite une deuxième question.",
+    "en": "A quick judgment deserves a second question."
+  },
+  {
+    "id": "message_051",
+    "fr": "Tu peux demander comment faire même si tu as honte de ne pas savoir.",
+    "en": "You can ask how to do something even if you feel ashamed of not knowing."
+  },
+  {
+    "id": "message_372",
+    "fr": "Vérifie ce qui a vraiment été dit avant d’accuser quelqu’un de se contredire.",
+    "en": "Check what was actually said before accusing someone of contradicting themselves."
+  },
+  {
+    "id": "message_225",
+    "fr": "Avant de choisir, demande-toi ce que toi, tu veux vraiment.",
+    "en": "Before choosing, ask what you really want."
+  },
+  {
+    "id": "message_074",
+    "fr": "Avant de juger une situation, regarde les détails qui pourraient changer ton avis.",
+    "en": "Before judging a situation, look for details that could change your view."
+  },
+  {
+    "id": "message_275",
+    "fr": "Tu peux créer avec sérieux sans perdre le plaisir.",
+    "en": "You can create seriously without losing enjoyment."
+  },
+  {
+    "id": "message_192",
+    "fr": "Décide comment tu vérifieras que le travail est bien fait.",
+    "en": "Decide how you will check that the work is done properly."
+  },
+  {
+    "id": "message_198",
+    "fr": "Tu peux aider une seule personne et faire quelque chose qui compte.",
+    "en": "You can help one person and do something that matters."
+  },
+  {
+    "id": "message_023",
+    "fr": "Laisse quelqu’un évoluer au-delà de ta première idée.",
+    "en": "Let someone grow beyond your first impression."
+  },
+  {
+    "id": "message_361",
+    "fr": "Après une erreur, montre le chemin de la réparation.",
+    "en": "After a mistake, show the path to repair."
+  },
+  {
+    "id": "message_036",
+    "fr": "Ce que tu partages peut aider quelqu’un à faire un choix réel.",
+    "en": "What you share can help someone make a real choice."
+  },
+  {
+    "id": "message_363",
+    "fr": "Tu peux condamner un acte sans inventer une histoire entière.",
+    "en": "You can condemn an action without inventing an entire story."
+  },
+  {
+    "id": "message_081",
+    "fr": "Choisis cinq minutes de travail réel.",
+    "en": "Choose five minutes of real work."
+  },
+  {
+    "id": "message_350",
+    "fr": "Aide la personne à faire elle-même plutôt que de tout faire à sa place.",
+    "en": "Help the person do it themselves instead of doing everything for them."
+  },
+  {
+    "id": "message_027",
+    "fr": "Demande sur quels critères repose le jugement.",
+    "en": "Ask what criteria the judgment rests on."
+  },
+  {
+    "id": "message_024",
+    "fr": "Si quelqu’un trouve une solution, reconnais que l’idée vient de lui.",
+    "en": "If someone finds a solution, acknowledge that the idea was theirs."
+  },
+  {
+    "id": "message_398",
+    "fr": "Parle de tes projets avec tes proches et demande-leur aussi où ils en sont.",
+    "en": "Talk about your projects with loved ones and ask about theirs too."
+  },
+  {
+    "id": "message_032",
+    "fr": "Encourage ton enfant à faire des efforts sans lui imposer tes propres rêves.",
+    "en": "Encourage your child to make an effort without imposing your own dreams."
+  },
+  {
+    "id": "message_272",
+    "fr": "Ne transforme pas l’organisation en nouveau projet.",
+    "en": "Do not turn organizing into another project."
+  },
+  {
+    "id": "message_085",
+    "fr": "Utilise ce que tu apprends sur un vrai problème.",
+    "en": "Use what you learn on a real problem."
+  },
+  {
+    "id": "message_134",
+    "fr": "Tu peux aimer tes projets et donner une vraie place aux gens que tu aimes.",
+    "en": "You can love your projects and make real room for the people you love."
+  },
+  {
+    "id": "message_116",
+    "fr": "Dis à quelqu’un l’effet positif qu’il a sur ta vie.",
+    "en": "Tell someone the positive effect they have on your life."
+  },
+  {
+    "id": "message_298",
+    "fr": "Une action imparfaite peut révéler la bonne question.",
+    "en": "An imperfect action can reveal the right question."
+  },
+  {
+    "id": "message_325",
+    "fr": "Tu peux être sûr de toi sans chercher à le prouver à tout le monde.",
+    "en": "You can be confident without trying to prove it to everyone."
+  },
+  {
+    "id": "message_288",
+    "fr": "Pose la question au lieu de mettre l’autre à l’épreuve.",
+    "en": "Ask the question instead of testing the other person."
+  },
+  {
+    "id": "message_274",
+    "fr": "Une personne qui a fait une erreur ne se résume pas à cette erreur.",
+    "en": "Someone who made a mistake is not defined by that mistake."
+  },
+  {
+    "id": "message_294",
+    "fr": "Un père peut être ferme sans devenir inaccessible.",
+    "en": "A father can be firm without becoming unapproachable."
+  },
+  {
+    "id": "message_115",
+    "fr": "Tu peux prendre ton enfant au sérieux sans lui donner toutes les décisions.",
+    "en": "You can take your child seriously without handing over every decision."
+  },
+  {
+    "id": "message_381",
+    "fr": "Une relation mérite des actes à la hauteur de tes paroles.",
+    "en": "A relationship deserves actions that match your words."
+  },
+  {
+    "id": "message_042",
+    "fr": "Une relation saine laisse place à des avis différents.",
+    "en": "A healthy relationship leaves room for different opinions."
+  },
+  {
+    "id": "message_089",
+    "fr": "Si tu n’es pas sûr de tenir une promesse à ton enfant, dis-le avant de promettre.",
+    "en": "If you are unsure you can keep a promise to your child, say so before promising."
+  },
+  {
+    "id": "message_230",
+    "fr": "Essaie une façon de faire différente de celle que tu utilises toujours.",
+    "en": "Try a way of doing things different from the one you always use."
+  },
+  {
+    "id": "message_307",
+    "fr": "Quand tu racontes quelque chose, cherche à être juste plutôt qu’à impressionner.",
+    "en": "When telling something, aim to be accurate rather than impressive."
+  },
+  {
+    "id": "message_153",
+    "fr": "Observe les moments où tu te détournes du travail.",
+    "en": "Notice when you turn away from the work."
+  },
+  {
+    "id": "message_091",
+    "fr": "Tu peux lancer une tentative avant d’avoir confiance.",
+    "en": "You can begin an attempt before feeling confident."
+  },
+  {
+    "id": "message_131",
+    "fr": "Choisis une petite chose que tu n’oses pas faire et prépare-toi à l’essayer.",
+    "en": "Choose one small thing you do not dare to do and prepare to try it."
+  },
+  {
+    "id": "message_379",
+    "fr": "Fixe un niveau de qualité qui t’aide à finir un bon travail.",
+    "en": "Set a quality standard that helps you finish good work."
+  },
+  {
+    "id": "message_281",
+    "fr": "Ta valeur ne se décide pas dans le regard d’un inconnu.",
+    "en": "Your worth is not decided by a stranger's opinion."
+  },
+  {
+    "id": "message_088",
+    "fr": "Le contexte peut changer le sens d’un geste.",
+    "en": "Context can change the meaning of an action."
+  },
+  {
+    "id": "message_393",
+    "fr": "La tâche évitée mérite un premier geste minuscule.",
+    "en": "The task you avoid deserves a tiny first step."
+  },
+  {
+    "id": "message_334",
+    "fr": "Tu peux simplifier une tâche sans renoncer au résultat.",
+    "en": "You can simplify a task without giving up the outcome."
+  },
+  {
+    "id": "message_285",
+    "fr": "Avant d’ajouter un objectif, regarde les engagements que tu as déjà pris.",
+    "en": "Before adding a goal, look at the commitments you already made."
+  },
+  {
+    "id": "message_176",
+    "fr": "Tu peux apprendre à ton enfant à demander de l’aide.",
+    "en": "You can teach your child to ask for help."
+  },
+  {
+    "id": "message_278",
+    "fr": "Une journée remplie peut encore manquer de direction.",
+    "en": "A full day can still lack direction."
+  },
+  {
+    "id": "message_243",
+    "fr": "Dans une relation, dis clairement ce que tu veux et ce que tu ne veux pas.",
+    "en": "In a relationship, state clearly what you want and do not want."
+  },
+  {
+    "id": "message_133",
+    "fr": "Si tu n’arrives pas à expliquer une idée, commence par un dessin ou un exemple.",
+    "en": "If you cannot explain an idea, start with a drawing or an example."
+  },
+  {
+    "id": "message_308",
+    "fr": "Un geste de tendresse peut accompagner une limite.",
+    "en": "An affectionate gesture can accompany a boundary."
+  },
+  {
+    "id": "message_387",
+    "fr": "Une liste d’idées ne remplace pas une idée réalisée.",
+    "en": "A list of ideas does not replace a realized idea."
+  }
+]

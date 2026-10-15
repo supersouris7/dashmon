@@ -135,6 +135,12 @@ export function renderServiceEditor(){
     row.className="service-row";
     row._serviceRef=service;
 
+    // Une tuile fortune n'a ni URL a surveiller, ni pastille, ni widget : ces
+    // trois champs sont masques plutot que desactives, pour que la ligne garde
+    // la meme grille que les autres.
+    const isFortune=service.kind==="fortune";
+    if(isFortune) row.classList.add("fortune-row");
+
     const name=document.createElement("input");
     name.className="edit-input";
     name.placeholder=t("nameLabel");
@@ -192,6 +198,7 @@ export function renderServiceEditor(){
     url.placeholder=t("urlLabel");
     url.value=service.url||"";
     url.addEventListener("input",()=>state.editServices[index].url=url.value);
+    if(isFortune) url.classList.add("row-hidden");
 
     const iconField=document.createElement("div");
     iconField.className="image-field icon-only-field";
@@ -246,9 +253,30 @@ export function renderServiceEditor(){
       renderServiceEditor();
     });
 
+    // Le genre de tuile : service classique, ou fortune (phrase du jour, sans
+    // URL ni pastille). Il pilote quels champs ci-dessus ont un sens, et vient
+    // donc avant les autres controles de la ligne.
+    const kindSelect=document.createElement("select");
+    kindSelect.className="edit-select service-kind";
+    kindSelect.title=t("kindLabel");
+    [[ "service", t("kindService") ],
+      [ "fortune", t("kindFortune") ]].forEach(([value,label])=>{
+      const option=document.createElement("option");
+      option.value=value;
+      option.textContent=label;
+      kindSelect.appendChild(option);
+    });
+    kindSelect.value=isFortune ? "fortune" : "service";
+    kindSelect.addEventListener("change",()=>{
+      state.editServices[index].kind=kindSelect.value;
+      renderServiceEditor();
+    });
+
     const actions=document.createElement("div");
     actions.className="service-actions";
-    actions.append(iconField,monitor,remove);
+    actions.append(kindSelect,iconField,monitor,remove);
+    // La pastille n'a pas de sens sur une tuile fortune : rien a surveiller.
+    if(isFortune) monitor.classList.add("row-hidden");
 
     const widgetWrap=document.createElement("div");
     widgetWrap.className="service-widget";
@@ -287,6 +315,9 @@ export function renderServiceEditor(){
       }
     });
     widgetWrap.appendChild(widgetConfigBtn);
+    // Le menu de widgets n'a pas de sens non plus : une fortune n'est ni
+    // surveillee ni interrogee.
+    if(isFortune) widgetWrap.classList.add("row-hidden");
 
     row.append(name,host,category,url,actions,widgetWrap);
     serviceEditor.appendChild(row);
@@ -859,6 +890,7 @@ addServiceBtn.addEventListener("click",()=>{
     url:"",
     icon:"",
     monitor:true,
+    kind:"service",
     widget:null
   };
   state.editServices.push(newService);
@@ -1070,6 +1102,8 @@ saveBtn.addEventListener("click",async()=>{
       url:(service.url||"").trim(),
       icon:(service.icon||"").trim(),
       monitor:service.monitor===false ? false : service.monitor==="soft" ? "soft" : true,
+      // "fortune" = tuile sans URL ni pastille, qui affiche une phrase du jour.
+      kind:service.kind==="fortune" ? "fortune" : "service",
       // Serialisation pilotee par le schema du manifest : plus aucune liste
       // de champs ecrite a la main, donc plus de widget perdu a l'enregistrement.
       widget:normalizeWidgetConfig(service.widget)
