@@ -147,7 +147,7 @@ function tileColorFor(service){
 }
 
 // Icone de tuile : PNG de la bibliotheque, ou cube par defaut si l'image
-// manque. Partage par les tuiles de service et les tuiles fortune.
+// manque.
 function appendTileIcon(card,service){
   if(!service.icon){
     const fallback=document.createElement("div");
@@ -172,21 +172,25 @@ function appendTileIcon(card,service){
 
 // Tuile fortune : pas d'intitule, pas de pastille, pas de lien. L'icone et la
 // phrase du jour suffisent ; un clic tire une autre phrase pour la journee.
-function createFortuneCard(service){
+// "key" est l'identite stable de la tuile (ici le type special).
+function createFortuneCard(key){
   const card=document.createElement("div");
   card.className="card fortune";
   card.tabIndex=0;
   card.setAttribute("role","button");
   card.title=t("fortuneHint");
 
-  appendTileIcon(card,service);
+  const icon=document.createElement("div");
+  icon.className="service-fallback";
+  icon.innerHTML='<i class="fa-solid fa-cookie-bite"></i>';
+  card.appendChild(icon);
 
   const text=document.createElement("div");
   text.className="fortune-text";
   card.appendChild(text);
 
   const paint=()=>{
-    text.textContent=fortuneText(service,state.language);
+    text.textContent=fortuneText(key,state.language);
   };
   paint();
 
@@ -198,7 +202,7 @@ function createFortuneCard(service){
 
   const next=event=>{
     if(event) event.preventDefault();
-    text.textContent=pickFortune(service,state.language);
+    text.textContent=pickFortune(key,state.language);
   };
   card.addEventListener("click",next);
   card.addEventListener("keydown",event=>{
@@ -210,11 +214,6 @@ function createFortuneCard(service){
 }
 
 function createCard(service){
-  // Une tuile fortune n'ouvre rien : elle affiche une phrase du jour et change
-  // de phrase au clic. Elle est rendue a part car ni URL, ni pastille, ni
-  // widget n'ont de sens ici.
-  if(service.kind==="fortune") return createFortuneCard(service);
-
   const card=document.createElement("a");
   card.className="card";
   card.href=safeHref(service.url);
@@ -265,7 +264,7 @@ function createCard(service){
   return card;
 }
 
-function createSection(categoryName,categoryServices,groupType="category"){
+function createSection(categoryName,categoryServices,groupType="category",specialCard=null){
   const category=groupType==="host"
     ? (state.hosts.find(host=>host.name===categoryName) || {name:categoryName,icon:"fa-solid fa-server"})
     : getCategory(categoryName);
@@ -323,6 +322,10 @@ function createSection(categoryName,categoryServices,groupType="category"){
   [...categoryServices]
     .sort(compareServices)
     .forEach(s=>cards.appendChild(createCard(s)));
+
+  // La tuile speciale vit dans la section de sa categorie : elle apparait donc
+  // meme quand aucun service ne la peuple.
+  if(specialCard) cards.appendChild(specialCard);
 
   body.appendChild(cards);
   section.append(header,body);
@@ -464,12 +467,47 @@ function groupLabel(name){
   return state.groupMode==="host" && name===FALLBACK_HOST ? t("noHost") : name;
 }
 
+// Tuile speciale : une seule par tableau de bord, placee dans la categorie
+// choisie. En affichage par hote, elle rejoint le groupe "sans hote". Elle suit
+// aussi la recherche, comme les services.
+function specialTileVisible(){
+  if(!state.specialTile) return false;
+  const query=normalize(searchInput.value);
+  if(!query) return true;
+  return normalize(state.specialTile.category).includes(query);
+}
+
+function specialGroupName(){
+  if(!specialTileVisible()) return "";
+  return state.groupMode==="host" ? FALLBACK_HOST : (state.specialTile.category||"Autres");
+}
+
+function createSpecialCard(){
+  const tile=state.specialTile;
+  if(!tile) return null;
+  if(tile.type==="fortune") return createFortuneCard(tile.type);
+  return null;
+}
+
+// Couleur de la tuile speciale en affichage a plat : meme regle que les
+// services, resolue sur le groupe qui l'accueille.
+function specialTileColor(){
+  if(state.groupMode==="host"){
+    const host=state.hosts.find(item=>item.name===FALLBACK_HOST);
+    return sanitizeTileColor((host||{}).color);
+  }
+  return sanitizeTileColor((getCategory(state.specialTile.category)||{}).color);
+}
+
 function getVisibleGroupNames(){
   const filtered=state.services.filter(serviceMatchesQuery);
   const field=state.groupMode==="host" ? "host" : "category";
-  return [...new Set(
+  const names=[...new Set(
     filtered.map(service=>(service[field]||"").trim() || groupFallbackName())
   )];
+  const extra=specialGroupName();
+  if(extra && !names.includes(extra)) names.push(extra);
+  return names;
 }
 
 function sortGroupNames(names){
@@ -490,10 +528,12 @@ export function render(){
   dashboard.classList.toggle("small-icons",state.smallIcons);
 
   const filtered=state.services.filter(serviceMatchesQuery);
+  const specialGroup=specialGroupName();
+  const special=specialGroup ? createSpecialCard() : null;
 
   dashboard.innerHTML="";
 
-  if(!filtered.length){
+  if(!filtered.length && !special){
     const empty=document.createElement("div");
     empty.className="empty";
     empty.textContent=t("noServices");
@@ -518,6 +558,15 @@ export function render(){
         cards.appendChild(card);
       });
 
+    if(special){
+      const color=specialTileColor();
+      if(color){
+        special.classList.add("tinted");
+        special.style.setProperty("--tile-color",color);
+      }
+      cards.appendChild(special);
+    }
+
     dashboard.appendChild(cards);
     return;
   }
@@ -525,14 +574,14 @@ export function render(){
   if(state.groupMode==="host"){
     sortGroupNames(getVisibleGroupNames()).forEach((hostName,index)=>{
       const items=filtered.filter(s=>((s.host||"").trim()||FALLBACK_HOST)===hostName);
-      const section=createSection(hostName,items,"host");
+      const section=createSection(hostName,items,"host",specialGroup===hostName ? special : null);
       section.dataset.rank=String(index);
       dashboard.appendChild(section);
     });
   }else{
     sortGroupNames(getVisibleGroupNames()).forEach((categoryName,index)=>{
       const items=filtered.filter(s=>(s.category||"Autres")===categoryName);
-      const section=createSection(categoryName,items,"category");
+      const section=createSection(categoryName,items,"category",specialGroup===categoryName ? special : null);
       section.dataset.rank=String(index);
       dashboard.appendChild(section);
     });

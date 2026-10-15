@@ -1,9 +1,12 @@
 // Tuile « Fortune Cookie » : une phrase par jour, sans intitulé ni pastille.
 //
 // La phrase du jour est deterministe : elle sort du jour et de l'identite de la
-// tuile, jamais d'un hasard au chargement. Deux consequences utiles : la meme
-// tuile affiche la meme phrase toute la journee (un rechargement ne la change
-// pas), et deux tuiles fortune n'affichent pas la meme phrase.
+// tuile, jamais d'un hasard au chargement. La meme tuile affiche donc la meme
+// phrase toute la journee, et un rechargement ne la change pas.
+//
+// L'identite est le type de la tuile speciale ("fortune"), pour qu'il y ait une
+// seule memoire par tableau de bord. Une identite sous forme d'objet reste
+// acceptee pour ne pas casser d'anciens appels.
 //
 // Un clic tire une autre phrase. Ce choix est memorise dans le navigateur, avec
 // le jour qui l'a produit : le lendemain la memoire est invalidee et la tuile
@@ -16,6 +19,13 @@ const MESSAGES_URL="/fortune-messages.json";
 
 let messages=[];
 let loading=null;
+
+// Identite stable d'une tuile : le type s'il est donne tel quel, sinon la
+// concatenation nom/hote/categorie (anciens appels).
+function asKey(identity){
+  if(typeof identity==="string") return identity;
+  return [(identity&&identity.name)||"",(identity&&identity.host)||"",(identity&&identity.category)||""].join("|");
+}
 
 function storage(){
   try{
@@ -46,8 +56,8 @@ export function hashString(text){
   return hash>>>0;
 }
 
-export function fortuneKey(service){
-  return [(service&&service.name)||"",(service&&service.host)||"",(service&&service.category)||""].join("|");
+export function fortuneKey(identity){
+  return asKey(identity);
 }
 
 // Phrases validees au chargement : le fichier est livre avec le depot, mais un
@@ -146,17 +156,17 @@ export function currentFortuneIndex(key,day=dayStamp()){
   return hashString(`${day}|${key}`)%messages.length;
 }
 
-export function fortuneText(service,language,day=dayStamp()){
-  const index=currentFortuneIndex(fortuneKey(service),day);
+export function fortuneText(identity,language,day=dayStamp()){
+  const index=currentFortuneIndex(asKey(identity),day);
   if(index<0) return "";
   return phraseOf(messages[index],language);
 }
 
 // Tirage d'une autre phrase. Le tour complet revient sur la phrase memorisee,
 // pour ne jamais boucler indefiniment quand il ne reste qu'un message.
-export function pickFortune(service,language,day=dayStamp()){
+export function pickFortune(identity,language,day=dayStamp()){
   if(messages.length<1) return "";
-  const key=fortuneKey(service);
+  const key=asKey(identity);
   const current=currentFortuneIndex(key,day);
   const offset=hashString(`${day}|${key}|${Math.random()}`)%messages.length;
   const next=(current+1+offset)%messages.length;

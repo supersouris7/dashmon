@@ -17,6 +17,7 @@ export function saveConfig(immediate=false){
       services:state.services,
       categories:state.categories,
       hosts:state.hosts,
+      specialTile:state.specialTile,
       theme:state.theme,
       language:state.language,
       usageCounts:state.usageCounts,

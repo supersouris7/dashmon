@@ -376,24 +376,6 @@
   align-self:center;
 }
 
-/* Selecteur de genre de tuile : meme hauteur que les boutons voisins, mais
-   plus large car il porte un libelle. */
-.service-row .service-actions .service-kind{
-  width:150px;
-  min-width:150px;
-  height:34px;
-  flex:0 0 150px;
-  font-size:13px;
-  padding:0 8px;
-}
-
-/* Champs sans sens sur une tuile fortune (URL, pastille, widget) : retires de
-   la ligne. Les zones de la grille sont declarees explicitement, les autres
-   champs de la meme rangee continuent donc de dormir a la bonne place. */
-.service-row .row-hidden{
-  display:none;
-}
-
 .service-row .service-actions .icon-only-field,
 .service-row .service-actions .monitor-toggle,
 .service-row .service-actions .small-icon-btn{

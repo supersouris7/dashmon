@@ -122,30 +122,31 @@ From the built-in sample configuration:
 
 The `icons/portainer.png` PNG was imported through the **Images** tab.
 
-## Fortune Cookie tiles
+## Special tiles (widgets)
 
-A tile whose `kind` is `fortune` is not a service: it has no URL, no status
-check and no widget. It shows its icon plus one phrase a day, and a click draws
-another phrase for the rest of the day.
+The dashboard can carry a single special tile, enabled in the **Widgets** tab of
+the editor. A special tile is not a service: it has no URL, no status check and
+no widget. Today the only type is **Fortune Cookie**, which shows a phrase a day
+and draws another phrase on click.
 
-Set `kind` from the editor, with the *Type de tuile* selector on the service row.
+Toggle it with the checkbox, then pick the category it lives in. The category is
+mandatory; without one it falls back to the first category (or "Autres").
 
 ```json
-{ "name": "Veine", "kind": "fortune", "icon": "icons/cookie.png",
-  "category": "Divers", "monitor": true }
+"specialTile": { "type": "fortune", "category": "Divers" }
 ```
 
-- `name` only identifies the tile in the editor and in the search. It is not
-  displayed.
-- `icon` works as usual: upload a PNG in the **Images** tab.
-- The URL, status pill and widget selectors are hidden on a fortune row, because
-  none of them apply.
+- One special tile per dashboard: enabling one replaces any other.
+- `category` chooses the section the tile is displayed in. In host view it joins
+  the "sans hôte" group.
+- The tile has no name and no icon of its own, hence nothing to set beyond the
+  checkbox and the category.
 
-**How the phrase is chosen.** The day of the reader (local, not UTC) and the
-tile identity are hashed into an index, so the phrase is stable for the whole
-day and two fortune tiles rarely show the same one. A click overrides that
-choice in the browser, tagged with the day that produced it: the next day the
-tag no longer matches, the tile falls back to the phrase of the day.
+**How the phrase is chosen.** The day of the reader (local, not UTC) and the tile
+identity (its type, `fortune`) are hashed into an index, so the phrase is stable
+for the whole day. A click overrides that choice in the browser, tagged with the
+day that produced it: the next day the tag no longer matches, the tile falls back
+to the phrase of the day.
 
 Phrases live in `public/fortune-messages.json`, with `fr` and `en` text per
 entry. Adding an entry there needs no code change. If a language is missing on

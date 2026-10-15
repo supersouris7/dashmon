@@ -374,6 +374,47 @@ body.modal-open{
   border-top:1px solid var(--border);
 }
 
+/* Onglet Widgets : une tuile speciale s'active par une case a cocher, puis
+   expose ses options (ici la seule : la categorie d'affichage). */
+.widget-hint{
+  margin:0 0 4px;
+  font-size:14px;
+  line-height:1.5;
+  color:var(--muted);
+}
+
+.widget-row{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:12px;
+}
+
+.widget-toggle{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.widget-toggle input{
+  width:18px;
+  height:18px;
+  accent-color:var(--accent);
+  cursor:pointer;
+}
+
+.widget-toggle i{
+  color:var(--accent);
+}
+
+.special-tile-category{
+  min-width:180px;
+  max-width:260px;
+}
+
 @media (max-width:560px){
   .widget-cfg-field{
     grid-template-columns:1fr;

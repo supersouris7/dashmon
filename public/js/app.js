@@ -12,7 +12,7 @@ import {
 } from "./themes.js";
 import { startStatusLoop, startHostMetricsLoop, refreshHostMetrics, setupVisibilityPause, manualRefresh } from "./metrics.js";
 import { openEditor, closeEditor, renderServiceEditor, renderCategoryEditor,
-  renderHostEditor, renderWebLinksEditor } from "./editor.js";
+  renderHostEditor, renderWebLinksEditor, renderWidgetsEditor } from "./editor.js";
 import { closeImageLibrary } from "./images.js";
 import { loadWidgetRegistry } from "./widget-registry.js";
 import {
@@ -37,6 +37,7 @@ async function loadConfig(){
     state.services=cfg.services;
     state.categories=cfg.categories;
     state.hosts=cfg.hosts;
+    state.specialTile=cfg.specialTile;
     // Disposition de l'écran : ce navigateur prime, la config serveur sert de
     // valeur initiale (premier chargement, ou navigateur tout neuf).
     const viewPrefs=normalizeViewPrefs(Object.assign(pickViewPrefs(cfg),loadViewPrefs()));
@@ -207,6 +208,7 @@ languageSelect.addEventListener("change",()=>{
   renderCategoryEditor();
   renderHostEditor();
   renderWebLinksEditor();
+  renderWidgetsEditor();
   patchConfig({language:state.language});
 });
 

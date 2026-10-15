@@ -552,7 +552,29 @@ function serializeWidget(widget){
     : widgetCore.preserveWidget(widget);
 }
 
+// Tuiles speciales acceptees : une seule active a la fois, d'ou un objet unique.
+// Doit rester identique a public/js/state.js (SPECIAL_TILE_TYPES).
+const SPECIAL_TILE_TYPES=new Set(["fortune"]);
+
+// Le type inconnu est refuse (la tuile disparait) ; la categorie est obligatoire
+// et retombe sur la premiere categorie, ou "Autres" s'il n'y en a aucune.
+function sanitizeSpecialTile(raw,categories){
+  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
+  const type=typeof raw.type==="string" ? raw.type : "";
+  if(!SPECIAL_TILE_TYPES.has(type)) return null;
+  const names=(categories||[]).map(cat=>sanitizeText(cat.name,100)).filter(Boolean);
+  const category=sanitizeText(raw.category,100) || names[0] || "Autres";
+  return {type,category};
+}
+
 function buildConfigOutput(config){
+  const categories=Array.isArray(config.categories)
+    ? config.categories.slice(0,50).map(cat=>({
+        name:sanitizeText(cat.name,100),
+        icon:sanitizeIconClass(cat.icon),
+        color:sanitizeColor(cat.color)
+      }))
+    : [];
   return {
       services:Array.isArray(config.services)
         ? config.services.slice(0,200).map(svc=>({
@@ -562,19 +584,14 @@ function buildConfigOutput(config){
             url:sanitizeUrl(svc.url),
             icon:sanitizeImagePath(svc.icon),
             monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true,
-            // "fortune" = tuile sans URL ni pastille, qui affiche une phrase.
-            // Toute autre valeur retombe sur une tuile de service classique.
-            kind:svc.kind==="fortune" ? "fortune" : "service",
             widget:serializeWidget(svc.widget)
           }))
         : [],
-      categories:Array.isArray(config.categories)
-        ? config.categories.slice(0,50).map(cat=>({
-            name:sanitizeText(cat.name,100),
-            icon:sanitizeIconClass(cat.icon),
-            color:sanitizeColor(cat.color)
-          }))
-        : [],
+      categories,
+      // Tuile speciale unique du tableau de bord, placee dans une categorie.
+      // Le type est verifie contre la liste blanche ; la categorie est
+      // obligatoire, on retombe sur la premiere definie faute de mieux.
+      specialTile:sanitizeSpecialTile(config.specialTile,categories),
       hosts:Array.isArray(config.hosts)
         ? config.hosts.slice(0,50).map(host=>{
             const tokenEnv=String(host.monitoring?.tokenEnv||"").trim();

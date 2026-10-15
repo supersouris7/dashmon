@@ -312,7 +312,8 @@ async function main(){
       { id: "m3", fr: "Phrase trois", en: "Phrase three" }
     ]);
 
-    const service = { name: "Veine", host: "", category: "Divers" };
+    // L'identite d'une tuile speciale est son type : une seule memoire.
+    const tileKey = "fortune";
 
     ok("fortune : le fichier livre contient des phrases",
       fs.existsSync(path.join(PUBLIC_DIR, "fortune-messages.json")));
@@ -321,47 +322,45 @@ async function main(){
     ok("fortune : le jour est au format AAAA-MM-JJ",
       /^\d{4}-\d{2}-\d{2}$/.test(fortune.dayStamp(new Date(2026, 0, 5))));
 
-    const today = fortune.fortuneText(service, "fr");
+    ok("fortune : l'identite est le type de la tuile",
+      fortune.fortuneKey(tileKey) === tileKey);
+
+    const today = fortune.fortuneText(tileKey, "fr");
     ok("fortune : une phrase s'affiche", today.length > 0, today);
-    ok("fortune : la langue suit le reglage", fortune.fortuneText(service, "en") !== ""
-      && /Phrase (one|two|three)/.test(fortune.fortuneText(service, "en")),
-      fortune.fortuneText(service, "en"));
+    ok("fortune : la langue suit le reglage", fortune.fortuneText(tileKey, "en") !== ""
+      && /Phrase (one|two|three)/.test(fortune.fortuneText(tileKey, "en")),
+      fortune.fortuneText(tileKey, "en"));
 
     // Deterministe : un rechargement ne doit pas changer la phrase du jour.
     ok("fortune : la phrase du jour est stable",
-      fortune.fortuneText(service, "fr") === today);
-
-    // Deux tuiles ne doivent pas afficher la meme phrase.
-    const other = { name: "Autre", host: "", category: "Divers" };
-    ok("fortune : deux tuiles peuvent differer",
-      typeof fortune.fortuneText(other, "fr") === "string");
+      fortune.fortuneText(tileKey, "fr") === today);
 
     // Le clic change la phrase, et le choix survit au rechargement.
-    const before = fortune.fortuneText(service, "fr");
+    const before = fortune.fortuneText(tileKey, "fr");
     let changed = false;
     for (let i = 0; i < 12 && !changed; i++) {
-      changed = fortune.pickFortune(service, "fr") !== before;
+      changed = fortune.pickFortune(tileKey, "fr") !== before;
     }
     ok("fortune : le clic change de phrase", changed);
     ok("fortune : le choix est memorise",
-      fortune.fortuneText(service, "fr") !== before,
-      fortune.fortuneText(service, "fr"));
+      fortune.fortuneText(tileKey, "fr") !== before,
+      fortune.fortuneText(tileKey, "fr"));
 
     // Une entree d'un autre jour doit etre ignoree : la tuile repart sur la
     // phrase du jour, pas sur un choix d'hier.
-    const key = fortune.fortuneKey(service);
+    const key = fortune.fortuneKey(tileKey);
     const yesterday = fortune.dayStamp(new Date(2020, 0, 1));
     globalThis.localStorage.setItem("dashmon.fortune",
       JSON.stringify({ [key]: { day: yesterday, index: 0 } }));
     ok("fortune : une phrase d'hier est ignoree",
-      fortune.fortuneText(service, "fr") === today,
-      fortune.fortuneText(service, "fr"));
+      fortune.fortuneText(tileKey, "fr") === today,
+      fortune.fortuneText(tileKey, "fr"));
 
     // Un fichier tri defaillant ne doit pas casser le rendu.
     fortune.setFortunes([{ id: "x" }, null, { fr: "seule" }]);
     ok("fortune : un fichier invalide est filtre",
-      fortune.fortuneText(service, "fr") === "seule",
-      fortune.fortuneText(service, "fr"));
+      fortune.fortuneText(tileKey, "fr") === "seule",
+      fortune.fortuneText(tileKey, "fr"));
 
     // Stockage indisponible : le clic doit rester fonctionnel.
     globalThis.localStorage = {
@@ -369,38 +368,58 @@ async function main(){
       setItem: () => { throw new Error("bloqué"); }
     };
     ok("fortune : stockage indisponible = repli silencieux",
-      typeof fortune.pickFortune(service, "fr") === "string"
-      && fortune.fortuneText(service, "fr") !== "");
+      typeof fortune.pickFortune(tileKey, "fr") === "string"
+      && fortune.fortuneText(tileKey, "fr") !== "");
   } finally {
     if (fortuneRealStorage === undefined) delete globalThis.localStorage;
     else globalThis.localStorage = fortuneRealStorage;
   }
 
-  // --- 6. Le champ kind traverse les quatre listes blanches ---------------
-  // Un champ ajoute a un service et oublie dans une seule liste blanche est
-  // efface a l'enregistrement : la tuile revient silencieusement a son type
-  // par defaut. Les quatre endroits sont donc verifies ici.
-  const kindState = await import(pathToFileURL(path.join(JS_DIR, "state.js")).href);
-  ok("fortune : kind normalise par state.js",
-    kindState.normalizeConfig({ services: [{ name: "F", kind: "fortune" }] }).services[0].kind,
-    "fortune");
-  ok("fortune : kind inconnu retombe sur service",
-    kindState.normalizeConfig({ services: [{ name: "F", kind: "bidon" }] }).services[0].kind,
-    "service");
+  // --- 6. La tuile speciale traverse les listes blanches -------------------
+  // Une tuile speciale est unique et vit hors des services. Le type est verifie
+  // contre une liste blanche, et la categorie est obligatoire (defaut sinon).
+  const specialState = await import(pathToFileURL(path.join(JS_DIR, "state.js")).href);
 
-  const editorSrcForKind = fs.readFileSync(path.join(JS_DIR, "editor.js"), "utf8");
-  const serverSrcForKind = fs.readFileSync(path.join(ROOT, "server.js"), "utf8");
-  ok("fortune : kind conserve a l'enregistrement (editeur)",
-    /kind:service\.kind==="fortune" \? "fortune" : "service"/.test(editorSrcForKind));
-  ok("fortune : kind conserve a l'enregistrement (serveur)",
-    /kind:svc\.kind==="fortune" \? "fortune" : "service"/.test(serverSrcForKind));
+  ok("tuile speciale : normalisee par state.js",
+    JSON.stringify(specialState.normalizeConfig({
+      categories: [{ name: "Divers" }],
+      specialTile: { type: "fortune", category: "Divers" }
+    }).specialTile),
+    JSON.stringify({ type: "fortune", category: "Divers" }));
+
+  ok("tuile speciale : type inconnu ignore",
+    specialState.normalizeConfig({ specialTile: { type: "bidon" } }).specialTile === null);
+
+  ok("tuile speciale : categorie obligatoire, 'Autres' sinon",
+    specialState.normalizeConfig({ specialTile: { type: "fortune" } }).specialTile.category,
+    "Autres");
+
+  ok("tuile speciale : la premiere categorie sert de defaut",
+    specialState.normalizeConfig({
+      categories: [{ name: "Divers" }],
+      specialTile: { type: "fortune" }
+    }).specialTile.category,
+    "Divers");
+
+  const editorSrcForSpecial = fs.readFileSync(path.join(JS_DIR, "editor.js"), "utf8");
+  const serverSrcForSpecial = fs.readFileSync(path.join(ROOT, "server.js"), "utf8");
+
+  ok("tuile speciale : conservee a l'enregistrement (editeur)",
+    /state\.specialTile=cleanedSpecialTile/.test(editorSrcForSpecial));
+  ok("tuile speciale : conservee a l'enregistrement (serveur)",
+    /specialTile:sanitizeSpecialTile\(config\.specialTile,categories\)/.test(serverSrcForSpecial));
+
+  // Le genre par service n'existe plus : la tuile fortune est une tuile
+  // speciale unique, pas un service.
+  ok("tuile speciale : le champ kind par service a disparu",
+    !/kind:service\.kind/.test(editorSrcForSpecial) && !/kind:svc\.kind/.test(serverSrcForSpecial));
 
   // L'editeur reconstruit les categories et les hotes avant l'enregistrement.
   // Si ce nettoyage oublie le champ "color", la teinte disparait de
   // config.json a chaque sauvegarde et l'attribution par defaut remet tout a
   // la meme couleur — le symptome observe. Ce test lit le code de l'editeur et
   // echoue si le champ cesse d'y etre copie.
-  const editorSrc = editorSrcForKind;
+  const editorSrc = editorSrcForSpecial;
   ok("couleur : l'editeur conserve la couleur a l'enregistrement",
     /color:sanitizeTileColor\(c\.color\)/.test(editorSrc)
     && /color:sanitizeTileColor\(h\.color\)/.test(editorSrc),

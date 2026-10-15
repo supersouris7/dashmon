@@ -45,6 +45,7 @@ export const webLinksSection=document.getElementById("webLinksSection");
 export const webLinksHeader=document.getElementById("webLinksHeader");
 export const webLinksList=document.getElementById("webLinksList");
 export const webLinksEditor=document.getElementById("webLinksEditor");
+export const widgetsEditor=document.getElementById("widgetsEditor");
 export const addServiceBtn=document.getElementById("addServiceBtn");
 export const addCategoryBtn=document.getElementById("addCategoryBtn");
 export const addHostBtn=document.getElementById("addHostBtn");

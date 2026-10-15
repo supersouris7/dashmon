@@ -1,5 +1,5 @@
 // Éditeur de configuration : services, catégories, hôtes, liens web, import/export config.
-import { state, clone, normalize, normalizeConfig, normalizeViewPrefs, compareNames, TILE_COLORS, sanitizeTileColor } from "./state.js";
+import { state, clone, normalize, normalizeConfig, normalizeViewPrefs, compareNames, TILE_COLORS, sanitizeTileColor, normalizeSpecialTile } from "./state.js";
 import { t, applyLanguage } from "./i18n.js";
 import { saveConfig, putConfig, fetchConfig } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
@@ -13,7 +13,7 @@ import {
   fieldTitle, visibleFields, inheritWidgetConfig, normalizeWidgetConfig, isEncryptedSecret
 } from "./widget-registry.js";
 import {
-  serviceEditor, categoryEditor, hostEditor, webLinksEditor,
+  serviceEditor, categoryEditor, hostEditor, webLinksEditor, widgetsEditor,
   editorSearch, editorCategoryFilter, editorHostFilter,
   modalBackdrop, closeBtn, cancelBtn, saveBtn,
   addServiceBtn, addCategoryBtn, addWebLinkBtn, addHostBtn,
@@ -135,12 +135,6 @@ export function renderServiceEditor(){
     row.className="service-row";
     row._serviceRef=service;
 
-    // Une tuile fortune n'a ni URL a surveiller, ni pastille, ni widget : ces
-    // trois champs sont masques plutot que desactives, pour que la ligne garde
-    // la meme grille que les autres.
-    const isFortune=service.kind==="fortune";
-    if(isFortune) row.classList.add("fortune-row");
-
     const name=document.createElement("input");
     name.className="edit-input";
     name.placeholder=t("nameLabel");
@@ -198,7 +192,6 @@ export function renderServiceEditor(){
     url.placeholder=t("urlLabel");
     url.value=service.url||"";
     url.addEventListener("input",()=>state.editServices[index].url=url.value);
-    if(isFortune) url.classList.add("row-hidden");
 
     const iconField=document.createElement("div");
     iconField.className="image-field icon-only-field";
@@ -253,30 +246,9 @@ export function renderServiceEditor(){
       renderServiceEditor();
     });
 
-    // Le genre de tuile : service classique, ou fortune (phrase du jour, sans
-    // URL ni pastille). Il pilote quels champs ci-dessus ont un sens, et vient
-    // donc avant les autres controles de la ligne.
-    const kindSelect=document.createElement("select");
-    kindSelect.className="edit-select service-kind";
-    kindSelect.title=t("kindLabel");
-    [[ "service", t("kindService") ],
-      [ "fortune", t("kindFortune") ]].forEach(([value,label])=>{
-      const option=document.createElement("option");
-      option.value=value;
-      option.textContent=label;
-      kindSelect.appendChild(option);
-    });
-    kindSelect.value=isFortune ? "fortune" : "service";
-    kindSelect.addEventListener("change",()=>{
-      state.editServices[index].kind=kindSelect.value;
-      renderServiceEditor();
-    });
-
     const actions=document.createElement("div");
     actions.className="service-actions";
-    actions.append(kindSelect,iconField,monitor,remove);
-    // La pastille n'a pas de sens sur une tuile fortune : rien a surveiller.
-    if(isFortune) monitor.classList.add("row-hidden");
+    actions.append(iconField,monitor,remove);
 
     const widgetWrap=document.createElement("div");
     widgetWrap.className="service-widget";
@@ -315,9 +287,6 @@ export function renderServiceEditor(){
       }
     });
     widgetWrap.appendChild(widgetConfigBtn);
-    // Le menu de widgets n'a pas de sens non plus : une fortune n'est ni
-    // surveillee ni interrogee.
-    if(isFortune) widgetWrap.classList.add("row-hidden");
 
     row.append(name,host,category,url,actions,widgetWrap);
     serviceEditor.appendChild(row);
@@ -555,6 +524,85 @@ export function renderWebLinksEditor(){
   });
 }
 
+// Tuiles speciales (widgets) du tableau de bord : une seule active a la fois.
+// Chaque type s'active par une case a cocher, puis porte ses propres options.
+// Ajouter un widget = une entree dans ce tableau.
+const SPECIAL_TILES=[
+  {type:"fortune", icon:"fa-solid fa-cookie-bite", labelKey:"specialTileFortune"}
+];
+
+// Categorie d'affichage d'une tuile speciale : celle demandee si elle existe
+// encore, sinon la premiere definie, sinon "Autres". Elle est obligatoire.
+function validSpecialCategory(preferred){
+  const names=[...new Set(state.editCategories.map(c=>c.name).filter(Boolean))];
+  return names.includes(preferred) ? preferred : (names[0]||"Autres");
+}
+
+export function renderWidgetsEditor(){
+  widgetsEditor.innerHTML="";
+
+  const hint=document.createElement("p");
+  hint.className="widget-hint";
+  hint.textContent=t("specialTileHint");
+  widgetsEditor.appendChild(hint);
+
+  SPECIAL_TILES.forEach(def=>{
+    const active=!!(state.editSpecialTile && state.editSpecialTile.type===def.type);
+
+    const row=document.createElement("div");
+    row.className="widget-row";
+
+    const label=document.createElement("label");
+    label.className="widget-toggle";
+
+    const check=document.createElement("input");
+    check.type="checkbox";
+    check.checked=active;
+    check.addEventListener("change",()=>{
+      // Une seule tuile speciale par tableau de bord : activer celle-ci
+      // remplace toute autre selection.
+      state.editSpecialTile=check.checked
+        ? {type:def.type, category:validSpecialCategory(state.editSpecialTile && state.editSpecialTile.category)}
+        : null;
+      renderWidgetsEditor();
+    });
+
+    const icon=document.createElement("i");
+    icon.className=def.icon;
+
+    const text=document.createElement("span");
+    text.textContent=t(def.labelKey);
+
+    label.append(check,icon,text);
+    row.appendChild(label);
+
+    if(active){
+      // Options du type : ici la seule reglable, la categorie d'affichage.
+      const category=document.createElement("select");
+      category.className="edit-select special-tile-category";
+      category.title=t("specialTileCategory");
+
+      const names=[...new Set(state.editCategories.map(c=>c.name).filter(Boolean))];
+      if(!names.length) names.push("Autres");
+      names.forEach(name=>{
+        const option=document.createElement("option");
+        option.value=name;
+        option.textContent=name;
+        category.appendChild(option);
+      });
+      category.value=validSpecialCategory(state.editSpecialTile.category);
+      state.editSpecialTile.category=category.value;
+      category.addEventListener("change",()=>{
+        state.editSpecialTile.category=category.value;
+      });
+
+      row.appendChild(category);
+    }
+
+    widgetsEditor.appendChild(row);
+  });
+}
+
 export function renderCategoryEditor(){
   categoryEditor.innerHTML="";
 
@@ -582,6 +630,9 @@ export function renderCategoryEditor(){
           service.category=next;
         }
       });
+      if(state.editSpecialTile && state.editSpecialTile.category===previous){
+        state.editSpecialTile.category=next;
+      }
     });
 
     const picker=createIconPicker(category,index);
@@ -597,8 +648,12 @@ export function renderCategoryEditor(){
       state.editServices.forEach(service=>{
         if(service.category===removedName) service.category="Autres";
       });
+      if(state.editSpecialTile && state.editSpecialTile.category===removedName){
+        state.editSpecialTile.category=state.editCategories[0]?.name||"Autres";
+      }
       renderCategoryEditor();
       renderServiceEditor();
+      renderWidgetsEditor();
     });
 
     row.append(drag,name,picker,createColorPicker(category),remove);
@@ -851,6 +906,7 @@ export function openEditor(){
   state.editCategories=clone(state.categories);
   state.editHosts=clone(state.hosts);
   state.editWebLinks=clone(state.webLinks);
+  state.editSpecialTile=clone(state.specialTile);
   editorSearch.value="";
   editorCategoryFilter.value="";
   editorHostFilter.value="";
@@ -858,6 +914,7 @@ export function openEditor(){
   renderCategoryEditor();
   renderHostEditor();
   renderWebLinksEditor();
+  renderWidgetsEditor();
   modalBackdrop.classList.add("show");
   modalBackdrop.setAttribute("aria-hidden","false");
   document.body.classList.add("modal-open");
@@ -890,7 +947,6 @@ addServiceBtn.addEventListener("click",()=>{
     url:"",
     icon:"",
     monitor:true,
-    kind:"service",
     widget:null
   };
   state.editServices.push(newService);
@@ -971,6 +1027,7 @@ configImportInput.addEventListener("change",async()=>{
     state.services=clone(imported.services);
     state.categories=clone(imported.categories);
     state.hosts=clone(imported.hosts);
+    state.specialTile=clone(imported.specialTile);
     // La disposition de l'écran n'est pas dans le fichier importé : elle reste
     // celle de ce navigateur, comme pour un simple rechargement.
     const viewPrefs=normalizeViewPrefs(Object.assign(pickViewPrefs(imported),loadViewPrefs()));
@@ -993,6 +1050,7 @@ configImportInput.addEventListener("change",async()=>{
     state.editCategories=clone(state.categories);
     state.editHosts=clone(state.hosts);
     state.editWebLinks=clone(state.webLinks);
+    state.editSpecialTile=clone(state.specialTile);
 
     applyTheme();
     applyFavicon();
@@ -1006,6 +1064,7 @@ configImportInput.addEventListener("change",async()=>{
     renderCategoryEditor();
     renderHostEditor();
     renderWebLinksEditor();
+    renderWidgetsEditor();
     render();
     refreshHostMetrics();
   }catch(error){
@@ -1102,8 +1161,6 @@ saveBtn.addEventListener("click",async()=>{
       url:(service.url||"").trim(),
       icon:(service.icon||"").trim(),
       monitor:service.monitor===false ? false : service.monitor==="soft" ? "soft" : true,
-      // "fortune" = tuile sans URL ni pastille, qui affiche une phrase du jour.
-      kind:service.kind==="fortune" ? "fortune" : "service",
       // Serialisation pilotee par le schema du manifest : plus aucune liste
       // de champs ecrite a la main, donc plus de widget perdu a l'enregistrement.
       widget:normalizeWidgetConfig(service.widget)
@@ -1118,10 +1175,20 @@ saveBtn.addEventListener("click",async()=>{
     }))
     .filter(link=>link.name && link.url);
 
+  // Tuile speciale : le type est verifie par normalizeSpecialTile, et la
+  // categorie est ramenee a une categorie existante car elle est obligatoire.
+  const specialCategory=(state.editSpecialTile && cleanedCategories.some(c=>c.name===state.editSpecialTile.category))
+    ? state.editSpecialTile.category
+    : (cleanedCategories[0]?.name||"Autres");
+  const cleanedSpecialTile=state.editSpecialTile
+    ? normalizeSpecialTile({type:state.editSpecialTile.type, category:specialCategory}, cleanedCategories)
+    : null;
+
   state.services=cleanedServices;
   state.categories=cleanedCategories;
   state.hosts=cleanedHosts;
   state.webLinks=cleanedWebLinks;
+  state.specialTile=cleanedSpecialTile;
 
   const validCollapsedKeys=new Set([
     ...state.categories.map(c=>`category:${c.name}`),

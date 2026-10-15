@@ -317,6 +317,8 @@ export const state = {
   editCategories: [],
   editHosts: [],
   editWebLinks: [],
+  specialTile: null,
+  editSpecialTile: null,
   serviceStatus: {},
   hostMetricsData: [],
   statusTimer: null,
@@ -478,6 +480,24 @@ export function normalizeViewPrefs(cfg={}){
   };
 }
 
+// Tuiles speciales du tableau de bord : une seule peut etre active a la fois,
+// d'ou un objet unique et non une liste. "fortune" est la seule pour l'instant.
+export const SPECIAL_TILE_TYPES=Object.freeze(["fortune"]);
+
+// La categorie est obligatoire : sans valeur, on retombe sur la premiere
+// categorie definie, ou "Autres" s'il n'y en a aucune. Une tuile speciale dont
+// le type n'est pas reconnu est ignoree plutot que rendue n'importe comment.
+export function normalizeSpecialTile(raw,categories){
+  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
+  const type=typeof raw.type==="string" ? raw.type : "";
+  if(!SPECIAL_TILE_TYPES.includes(type)) return null;
+  const names=(Array.isArray(categories) ? categories : [])
+    .map(cat=>cat && cat.name)
+    .filter(Boolean);
+  const category=sanitizeText(raw.category,100) || names[0] || "Autres";
+  return {type,category};
+}
+
 export function normalizeConfig(cfg={}){
   const normalizedServices=Array.isArray(cfg.services)
     ? clone(cfg.services)
@@ -485,6 +505,12 @@ export function normalizeConfig(cfg={}){
   const derivedHosts=[...new Set(
     normalizedServices.map(service=>(service.host||"").trim()).filter(Boolean)
   )].map(name=>({name,icon:"fa-solid fa-server"}));
+  const normalizedCategories=(Array.isArray(cfg.categories) ? clone(cfg.categories) : clone(DEFAULT_CATEGORIES))
+    .map(cat=>({
+      name:sanitizeText(cat.name,100),
+      icon:sanitizeIconClass(cat.icon),
+      color:sanitizeTileColor(cat.color)
+    }));
   const normalized={
     ...normalizeViewPrefs(cfg),
     services:normalizedServices.map(svc=>({
@@ -494,19 +520,14 @@ export function normalizeConfig(cfg={}){
       url:sanitizeUrl(svc.url),
       icon:sanitizeImagePath(svc.icon),
       monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true,
-      // "fortune" = tuile sans URL ni pastille, qui affiche une phrase du jour.
-      // Toute autre valeur retombe sur une tuile de service classique.
-      kind:svc.kind==="fortune" ? "fortune" : "service",
       // Normalisation pilotee par le schema du widget (manifest). Un widget
       // inconnu est conserve tel quel : on ne perd jamais des reglages.
       widget:normalizeWidgetConfig(svc.widget)
     })),
-    categories:(Array.isArray(cfg.categories) ? clone(cfg.categories) : clone(DEFAULT_CATEGORIES))
-      .map(cat=>({
-        name:sanitizeText(cat.name,100),
-        icon:sanitizeIconClass(cat.icon),
-        color:sanitizeTileColor(cat.color)
-      })),
+    categories:normalizedCategories,
+    // Tuile speciale unique du tableau de bord (phrase du jour...), placee dans
+    // une categorie. Absente = aucune.
+    specialTile:normalizeSpecialTile(cfg.specialTile,normalizedCategories),
     hosts:Array.isArray(cfg.hosts) && cfg.hosts.length
       ? cfg.hosts.map(host=>({
           id:sanitizeText(host.id,64),
