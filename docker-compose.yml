@@ -17,6 +17,9 @@ services:
       TRUST_PROXY: ${TRUST_PROXY:-0}
       # 1 uniquement si vos hôtes surveillés ont des certificats auto-signés
       DASHBOARD_INSECURE_TLS: ${DASHBOARD_INSECURE_TLS:-0}
+      # Bundle PEM d'autorités privées monté en lecture seule (voir §7 de
+      # deploy/DEPLOYMENT.md) : /certs/ca-bundle.pem
+      NODE_EXTRA_CA_CERTS: ${NODE_EXTRA_CA_CERTS:-}
       DASHBOARD_TOKEN_ENVS: ${DASHBOARD_TOKEN_ENVS:-}
       PROXMOX_TOKEN_ID: ${PROXMOX_TOKEN_ID:-}
       PROXMOX_TOKEN_SECRET: ${PROXMOX_TOKEN_SECRET:-}
@@ -31,6 +34,8 @@ services:
     # (Docker ne connaît pas votre DNS LAN), pointez vers votre résolveur :
     #   dns:
     #     - 192.0.2.53
+    # Bundle d'autorités privées pour les certificats de vos services :
+    #   - /opt/dashmon/ca-bundle.pem:/certs/ca-bundle.pem:ro
 
 volumes:
   dashmon-data:

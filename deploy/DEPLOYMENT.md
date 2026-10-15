@@ -159,6 +159,75 @@ Without a LAN DNS that knows the names, add explicit `extra_hosts` entries inste
 Checks connect to your LAN directly (over the bridge network), so make sure the
 monitored machines answer on their LAN IP — reverse proxies included.
 
+## 7. Private CA certificates
+
+Status checks run inside the container, so Node must trust the authority that
+signed the certificates of your monitored services. When it does not, the check
+fails with:
+
+```
+unable to verify the first certificate
+```
+
+Find out which authority actually issued the certificate (use the IP so the test
+does not depend on DNS, which is the previous section):
+
+```sh
+openssl s_client -connect 192.0.2.104:443 -servername service.exemple.lan -showcerts </dev/null
+```
+
+The `issuer=` line names the authority — read the `CN=` field. Mount **that**
+certificate. Trusting a different authority, even one signed for the same
+services, changes nothing.
+
+Export it as PEM, then build a bundle so several authorities can be trusted at
+once (`NODE_EXTRA_CA_CERTS` takes a single file):
+
+```bash
+mkdir -p /opt/dashmon
+cp ./autorite-racine.pem /opt/dashmon/
+cp ./autorite-secondaire.pem /opt/dashmon/
+cat /opt/dashmon/autorite-racine.pem /opt/dashmon/autorite-secondaire.pem > /opt/dashmon/ca-bundle.pem
+chmod 644 /opt/dashmon/ca-bundle.pem
+```
+
+Then mount only that file:
+
+```yaml
+    environment:
+      NODE_EXTRA_CA_CERTS: /certs/ca-bundle.pem
+
+    volumes:
+      - dashmon-data:/app/data
+      - /opt/dashmon/ca-bundle.pem:/certs/ca-bundle.pem:ro
+```
+
+Verify without the dashboard:
+
+```sh
+docker exec dashmon node -e "require('https').get('https://service.exemple.lan/',r=>console.log('OK',r.statusCode)).on('error',e=>console.log('ERREUR',e.message))"
+```
+
+`NODE_EXTRA_CA_CERTS` *adds* to the roots bundled with Node, so public sites keep
+working.
+
+> **Ne montez jamais le dossier qui contient vos clés privées.** Un dossier de
+> certificats contient généralement aussi les clés de chaque service, et
+> éventuellement celle de l'autorité. Seul le certificat de l'CA est nécessaire,
+> et ce point vaut aussi pour les sauvegardes : une CA compromise permet de
+> signer un certificat pour n'importe lequel de vos services.
+>
+> Ne placez pas non plus une CA privée dans le `Dockerfile` : l'image est
+> publiée publiquement.
+
+If `openssl s_client` returns a single certificate where you expected a chain,
+the server is not sending its intermediate. Either complete `ssl_trusted_certificate`
+in its reverse proxy configuration, or add the intermediate to `ca-bundle.pem`.
+
+`DASHBOARD_INSECURE_TLS=1` remains available as a last resort for self-signed
+certificates. It disables verification for **every** outgoing request, including
+public sites, so prefer a bundle.
+
 ## Notes
 
 - No embedded secrets: `config.json` only contains public examples, tokens are referenced
