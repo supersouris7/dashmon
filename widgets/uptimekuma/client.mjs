@@ -49,7 +49,9 @@ export function element(ctx) {
 
   const line = (text, color, title) => {
     const span = document.createElement("span");
-    span.style.fontSize = "11px";
+    // Taille alignee sur .widget-badge / .widget-time : ce widget pose son DOM
+    // a la main, il ne profite donc pas de la feuille du coeur.
+    span.style.fontSize = "12px";
     span.style.fontWeight = "700";
     span.style.lineHeight = "1.4";
     span.style.whiteSpace = "nowrap";
