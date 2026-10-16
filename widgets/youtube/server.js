@@ -19,6 +19,12 @@ const MAX_BODY = 6 * 1024 * 1024;
 // Page de la chaine : le "about" est la page qui porte le compteur d'abonnes.
 const ABOUT = "/about";
 
+// Depuis l'EEE, YouTube renvoie un mur de consentement (redirection vers
+// consent.youtube.com) au lieu de la page de la chaine : aucun compteur n'y
+// figure. Le cookie public SOCS l'accepte une fois pour toutes et fait servir
+// la page normale. Sans lui, le widget ne marche pas depuis une IP europeenne.
+const CONSENT_COOKIE = "SOCS=CAISEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg";
+
 async function fetchChannel(ctx, username) {
   const page = await ctx.api(BASE_URL, channelPath(username) + ABOUT, {
     raw: true,
@@ -28,7 +34,8 @@ async function fetchChannel(ctx, username) {
       // La reponse est du HTML : sans cet Accept, l'API JSON par defaut
       // ferait echouer la requete.
       Accept: "text/html,application/xhtml+xml",
-      "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8"
+      "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
+      Cookie: CONSENT_COOKIE
     }
   });
   const html = String((page && page.body) || "");
