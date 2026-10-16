@@ -66,7 +66,9 @@ par ce widget, même si un plugin réclame le slot `link`.
 
 Ce mécanisme permet d'**ajouter un type de lien sans toucher au cœur** : un
 plugin `defaultFor: "link"` n'est jamais choisi par l'utilisateur (il est
-`hidden`), le plugin de la métrique (YouTube, GitHub…) l'est. Un seul plugin
+`hidden`). Les plugins de métrique qui n'ont pas de renderer de tuile le sont
+aussi : YouTube, Docker Hub et GitHub alimentent les **compteurs du bandeau
+« Liens web »**, pas le menu des widgets. Un seul plugin
 peut revendiquer un slot : si deux manifests le demandent, le second est refusé
 et l'erreur apparaît dans les logs.
 

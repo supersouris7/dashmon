@@ -12,10 +12,10 @@ It applies immediately, no restart.
 | [Duplicati](#duplicati) | Last backup OK/NOK and its date | API password |
 | [AdGuard Home](#adguard-home) | Blocked queries, as a percentage | protocol, URL, user, password |
 | [Lichess](#lichess) | ELO rating and one-month evolution | username, variant |
-| [YouTube](#youtube) | Subscriber count of a channel | channel handle |
-| [Docker Hub](#docker-hub) | Pull count of a repository | repository |
-| [GitHub](#github) | Stars, forks, issues or watchers | repository, metric |
 | [web](#web-the-default-one) | Up / down dot for a plain link | *nothing* |
+
+GitHub, Docker Hub and YouTube are **not** tile widgets: they power the counters
+of the **web-links banner**. See [Web-link counters](#web-link-counters).
 
 ---
 
@@ -81,43 +81,30 @@ the tile.
 
 Uses the public Lichess API — no token.
 
-## YouTube
+## Web-link counters
 
-**Shows** the subscriber count of a channel.
+A **web link** (the banner at the top of the dashboard) can show a public number
+next to its name. In the web-link editor, set its **counter** and pick a target:
+the name then reads *GitHub (109)*, *YouTube (3000)*.
 
-**Configuration**
+| Counter | Shows | Target |
+| --- | --- | --- |
+| GitHub | stars of a repository | `owner/name` |
+| Docker Hub | pulls of a repository | `name` or `owner/name` |
+| YouTube | subscribers of a channel | `@handle`, a full URL, or a `UC…` id |
 
-- **username** — the channel as `@handle`, a full URL, or a `UC…` channel id.
+Numbers are shown as-is — no thousands separator. A counter stays hidden (the
+name shows alone) until its value is available, and reappears on its own.
 
-Read from the channel's **public page**, so no API key or Google account is
-needed.
+Each counter reads a **public source**, so no token is required:
 
-## Docker Hub
-
-**Shows** the pull count of a public repository.
-
-**Configuration**
-
-- **repo** — the repository, e.g. `supersouris7/dashmon`.
-
-No token required, which also means it is subject to Docker Hub's public rate
-limits.
-
-## GitHub
-
-**Shows** a single GitHub statistic, chosen by you.
-
-**Configuration**
-
-- **repo** — `owner/name`, e.g. `supersouris7/dashmon`.
-- **metric** — `Stars`, `Forks`, `Open issues` or `Watchers`.
-
-Uses the anonymous GitHub API (60 requests/hour per IP). On rate limit the tile
-shows a neutral *"GitHub API rate limit"* state rather than a false outage.
-
-Add a token through the `GITHUB_TOKEN` environment variable if you need more —
-see [.env.example](../.env.example) and the
-[deployment guide](../deploy/DEPLOYMENT.md).
+- **YouTube** is read from the channel's public page — no API key or Google account.
+- **Docker Hub** needs no token, so it is subject to Docker Hub's public rate limits.
+- **GitHub** uses the anonymous API (60 requests/hour per IP). On rate limit the
+  value is simply not shown rather than reported as zero. Add a token through the
+  `GITHUB_TOKEN` environment variable if you need more — see
+  [.env.example](../.env.example) and the
+  [deployment guide](../deploy/DEPLOYMENT.md).
 
 ## Uptime Kuma
 
@@ -179,10 +166,11 @@ probe of the link and keeps the familiar green / red dot. Nothing to configure.
 
 ## How failures are displayed
 
-A widget that measures a **third-party** site (YouTube, Docker Hub, GitHub) can
-fail for reasons that have nothing to do with your service — a quota, a rate
-limit, an API change. In that case the tile goes **neutral**, not red: Dashmon
-does not want to cry outage for someone else's problem.
+A widget that measures a **third-party** site — or one of the offline web-link
+counters (YouTube, Docker Hub, GitHub) — can fail for reasons that have nothing
+to do with your service: a quota, a rate limit, an API change. In that case the
+tile goes **neutral**, not red, and a counter shows nothing rather than a fake
+zero: Dashmon does not want to cry outage for someone else's problem.
 
 The link itself is still status-checked on its own.
 

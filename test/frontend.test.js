@@ -87,15 +87,16 @@ async function main(){
     ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "web", "youtube"]);
   ok("registre client : metadonnees disponibles", !!registry.getWidgetMeta("docker"));
   ok("registre client : widget inconnu -> null", registry.getWidgetMeta("inconnu") === null);
-  // Le plugin de sondage des liens est interne au moteur : il ne doit pas
-  // apparaitre dans le menu des widgets propose a l'utilisateur.
+  // Les sources des compteurs de liens (GitHub, Docker Hub, YouTube) sont aussi
+  // internes au moteur : elles ne doivent pas apparaitre dans le menu des
+  // widgets de tuile.
   check("registre client : le menu ne propose pas les plugins internes",
     registry.listWidgetMetas().map(m => m.id),
-    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "youtube"]);
+    ["adguard", "docker", "duplicati", "lichess", "ping", "uptimekuma"]);
   ok("registre client : le plugin interne reste interrogeable (config, libelles)",
     !!registry.getWidgetMeta("web") && registry.widgetLabel(registry.getWidgetMeta("web"), "fr") === "Lien");
-  // Les nouveaux widgets de liens sont bien des choix possibles, avec leur
-  // schema de config pour l'editeur.
+  // Les compteurs de liens gardent leur schema de config, meme internes : c'est
+  // lui qui decrit les champs du compteur dans l'editeur des liens web.
   const githubMeta = registry.getWidgetMeta("github");
   check("registre client : schema GitHub", githubMeta.config.map(f => f.key), ["repo", "metric"]);
   check("registre client : options de la statistique GitHub",
@@ -413,6 +414,42 @@ async function main(){
   // speciale unique, pas un service.
   ok("tuile speciale : le champ kind par service a disparu",
     !/kind:service\.kind/.test(editorSrcForSpecial) && !/kind:svc\.kind/.test(serverSrcForSpecial));
+
+  // --- 6b. Compteurs du bandeau "Liens web" -----------------------------
+  // Un lien web peut porter un compteur public (etoiles GitHub, pulls Docker
+  // Hub, abonnes YouTube). La cible est obligatoire, le type est valide contre
+  // une liste blanche, et le chiffre est relu depuis l'entree de statut du
+  // backend widget correspondant.
+  check("compteur de lien : type valide normalise",
+    specialState.normalizeLinkCounter({ type: "github", target: "owner/name" }),
+    { type: "github", target: "owner/name" });
+
+  ok("compteur de lien : type inconnu refuse",
+    specialState.normalizeLinkCounter({ type: "bidon", target: "x/y" }) === null);
+
+  ok("compteur de lien : cible obligatoire",
+    specialState.normalizeLinkCounter({ type: "github", target: "  " }) === null);
+
+  ok("compteur de lien : conserve dans la config normalisee",
+    JSON.stringify(specialState.normalizeConfig({
+      webLinks: [{ name: "GitHub", url: "https://github.com/a/b", icon: "x", counter: { type: "github", target: "a/b" } }]
+    }).webLinks[0].counter),
+    JSON.stringify({ type: "github", target: "a/b" }));
+
+  check("compteur de lien : valeur GitHub lue dans 'value'",
+    specialState.linkCounterValue({ type: "github" }, { ok: true, value: 109 }), 109);
+  check("compteur de lien : valeur Docker Hub lue dans 'pulls'",
+    specialState.linkCounterValue({ type: "dockerhub" }, { ok: true, pulls: 12000 }), 12000);
+  check("compteur de lien : valeur YouTube lue dans 'subscribers'",
+    specialState.linkCounterValue({ type: "youtube" }, { ok: true, subscribers: 3000 }), 3000);
+  ok("compteur de lien : aucune valeur quand le statut a echoue",
+    specialState.linkCounterValue({ type: "github" }, { ok: false }) === null);
+
+  ok("compteur de lien : valide a l'enregistrement (editeur)",
+    /counter:normalizeLinkCounter\(link\.counter\)/.test(editorSrcForSpecial));
+  ok("compteur de lien : conserve a l'enregistrement (serveur)",
+    /counter:sanitizeLinkCounter\(link\.counter\)/.test(serverSrcForSpecial)
+    && /linkCounterService\(link\)/.test(serverSrcForSpecial));
 
   // L'editeur reconstruit les categories et les hotes avant l'enregistrement.
   // Si ce nettoyage oublie le champ "color", la teinte disparait de

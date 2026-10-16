@@ -1,5 +1,5 @@
 // Rendu de Dashmon (cartes, groupes, mode d'affichage) et état des boutons du menu.
-import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, sanitizeTileColor, DEFAULT_FAVICON, FALLBACK_HOST } from "./state.js";
+import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, sanitizeTileColor, DEFAULT_FAVICON, FALLBACK_HOST, linkCounterValue } from "./state.js";
 import { t } from "./i18n.js";
 import { bumpUsage } from "./api.js";
 import { saveViewPrefs } from "./view-prefs.js";
@@ -25,6 +25,23 @@ export function applyFavicon(){
 
 function safeHref(url){
   return /^https?:\/\//.test(url) ? url : "#";
+}
+
+// Chiffre affiche dans le bandeau : "(3000)" quand le compteur est disponible,
+// rien sinon. Nombre brut, sans separateur de milliers, pour rester compact sous
+// les yeux. Le nom du lien reste seul tant que la mesure n'est pas revenue,
+// plutot que d'afficher un zero trompeur.
+function linkCounterText(link){
+  if(!link.counter) return "";
+  const value=linkCounterValue(link.counter,state.serviceStatus[link.url]);
+  return value==null ? "" : `(${value})`;
+}
+
+function updateWebLinkCounters(){
+  document.querySelectorAll(".web-link-counter[data-url]").forEach(counter=>{
+    const link=state.webLinks.find(item=>item.url===counter.dataset.url);
+    counter.textContent=link ? linkCounterText(link) : "";
+  });
 }
 
 function statusTitle(monitor, info){
@@ -440,6 +457,15 @@ function renderWebLinks(){
     name.className="web-link-name";
     name.textContent=link.name||t("unnamedLink");
     a.appendChild(name);
+
+    if(link.counter){
+      const counter=document.createElement("span");
+      counter.className="web-link-counter";
+      counter.dataset.url=link.url;
+      counter.textContent=linkCounterText(link);
+      a.appendChild(counter);
+    }
+
     webLinksList.appendChild(a);
   });
 }
@@ -659,4 +685,5 @@ export function updateStatusIndicators(){
       || state.services.find(s=>(sanitizeUrl(s.url)||s.url)===wrap.dataset.url);
     applyWidgetStatus(wrap,service,info);
   });
+  updateWebLinkCounters();
 }

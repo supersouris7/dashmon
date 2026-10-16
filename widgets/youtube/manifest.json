@@ -9,6 +9,7 @@
   "interval": 21600000,
   "cacheKey": "service",
   "probe": true,
+  "hidden": true,
   "server": "server.js",
   "strings": {
     "fr": {

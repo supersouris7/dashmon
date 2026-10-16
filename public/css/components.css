@@ -774,11 +774,20 @@ body.is-refreshing .widget-status{animation:refreshPulse 1.15s ease-in-out infin
 
 .web-link-name{font-size:14px;font-weight:600}
 
-.web-link-row{display:grid;grid-template-columns:32px minmax(150px,1fr) minmax(250px,1.5fr) 38px 38px;gap:8px;align-items:center}
+.web-link-counter{font-size:13px;font-weight:500;opacity:.7}
+
+.web-link-row{display:grid;grid-template-columns:32px minmax(150px,1fr) minmax(250px,1.5fr) minmax(150px,1fr) 38px 38px;gap:8px;align-items:center}
+
+.web-link-counter-wrap{display:flex;align-items:center;gap:6px;min-width:0}
+
+.web-link-counter-wrap .web-link-counter-type{flex:0 0 auto;width:auto;max-width:170px}
+
+.web-link-counter-wrap .web-link-counter-target{flex:1 1 auto;width:auto;min-width:0}
 
 @media (max-width:700px){
   .web-link-row{grid-template-columns:32px minmax(0,1fr) 38px 38px}
   .web-link-row .web-link-url{grid-column:2 / -1}
+  .web-link-row .web-link-counter-wrap{grid-column:2 / -1}
 }
 
 .web-link-row .icon-picker{

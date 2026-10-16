@@ -552,6 +552,23 @@ function serializeWidget(widget){
     : widgetCore.preserveWidget(widget);
 }
 
+// Compteurs du bandeau "Liens web" : un lien peut afficher un chiffre public
+// (etoiles GitHub, pulls Docker Hub, abonnes YouTube) a cote de son nom. Les
+// types autorises sont exactement les widgets capables de fournir ce chiffre.
+// Doit rester identique a public/js/state.js (LINK_COUNTER_TYPES).
+const WEB_LINK_COUNTER_TYPES=new Set(["github","dockerhub","youtube"]);
+
+// La cible (depot ou chaine) est obligatoire : un compteur sans cible ne peut
+// rien mesurer. Un type inconnu est refuse, le lien reste alors sans compteur.
+function sanitizeLinkCounter(raw){
+  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
+  const type=typeof raw.type==="string" ? raw.type.trim() : "";
+  if(!WEB_LINK_COUNTER_TYPES.has(type)) return null;
+  const target=sanitizeText(raw.target,200);
+  if(!target) return null;
+  return {type,target};
+}
+
 // Tuiles speciales acceptees : une seule active a la fois, d'ou un objet unique.
 // Doit rester identique a public/js/state.js (SPECIAL_TILE_TYPES).
 const SPECIAL_TILE_TYPES=new Set(["fortune"]);
@@ -639,7 +656,8 @@ function buildConfigOutput(config){
         ? config.webLinks.slice(0,100).map(link=>({
             name:sanitizeText(link.name,100),
             url:sanitizeUrl(link.url),
-            icon:sanitizeIconClass(link.icon)
+            icon:sanitizeIconClass(link.icon),
+            counter:sanitizeLinkCounter(link.counter)
           }))
         : [],
       webLinksCollapsed:config.webLinksCollapsed===true,
@@ -1014,6 +1032,25 @@ async function checkService(service){
   console.warn(`${ts()} Aucun plugin ne surveille ${service.url} — lien non contrôlé`);
 }
 
+// Service virtuel pour un lien web porteur d'un compteur : le bandeau emprunte
+// le backend du widget correspondant (github/dockerhub/youtube), donc le core
+// ne connait aucun nouveau type de sonde. Le chiffre atterrit dans statusCache
+// sous la cle de l'URL du lien, que le client relit pour l'afficher.
+function linkCounterService(link){
+  const counter=link && link.counter;
+  const url=link && sanitizeUrl(link.url);
+  if(!counter || !url) return null;
+  if(counter.type==="github") return {url,widget:{type:"github",repo:counter.target,metric:"stars"}};
+  if(counter.type==="dockerhub") return {url,widget:{type:"dockerhub",repo:counter.target}};
+  if(counter.type==="youtube") return {url,widget:{type:"youtube",username:counter.target}};
+  return null;
+}
+
+function linkCounterServices(config){
+  const links=Array.isArray(config.webLinks) ? config.webLinks : [];
+  return links.map(linkCounterService).filter(Boolean);
+}
+
 async function refreshStatuses(force=false){
   let config;
   try{
@@ -1023,11 +1060,15 @@ async function refreshStatuses(force=false){
   }
 
   const services=Array.isArray(config.services) ? config.services : [];
+  // Les liens web porteurs d'un compteur sont surveilles comme des services
+  // virtuels : meme boucle, meme cache, meme purge. Sans quoi leur entree de
+  // statut serait purgee a chaque cycle et le compteur disparaitrait du bandeau.
+  const monitored=services.concat(linkCounterServices(config));
   // Purge des entrées de cache devenues orphelines et des mémoires internes
   // des widgets (jetons, historiques) : chaque widget purge ce qu'il veut via
   // son hook purge(), le core ne connaît aucun widget.
-  widgetCore.purge(services);
-  const due=force ? services : services.filter(svc=>{
+  widgetCore.purge(monitored);
+  const due=force ? monitored : monitored.filter(svc=>{
     const cache=statusCache[serviceCacheKey(svc)];
     return !(cache && cache.lastCheck && (Date.now()-cache.lastCheck) < checkInterval(svc));
   });

@@ -18,8 +18,10 @@ you stop guessing whether *that* thing is working.
 - **One page, your whole lab** — group by category or by host, search, three view
   modes (rows / columns / full), icons or names.
 - **Live widgets, not just green/red dots** — Docker, Duplicati, AdGuard, Lichess,
-  YouTube, Docker Hub, GitHub, Uptime Kuma and Ping report straight onto the tile.
+  Uptime Kuma and Ping report straight onto the tile.
   → [widget catalog](docs/WIDGETS.md)
+- **Web-link counters** — show GitHub stars, Docker Hub pulls or YouTube
+  subscribers right in the web-links banner, e.g. *GitHub (109)*.
 - **Real status monitoring** — an up/down pill per URL, refreshed automatically.
 - **Host metrics** — CPU and RAM from the local machine, a tiny Linux agent
   (`/metrics`), or Proxmox with a read-only API token.
@@ -44,16 +46,14 @@ you were about to open a second tab for anyway.
 | **Duplicati** | Did the last backup succeed, and when? |
 | **AdGuard** | Share of DNS queries your blocker filtered out. |
 | **Lichess** | Your ELO rating and how it moved over the past month. |
-| **YouTube** | Subscriber count of a channel, read from the public page — no API key. |
-| **Docker Hub** | Pull count, stars and last push of a repository. |
-| **GitHub** | Stars, forks, open issues or watchers — whichever you want to track. |
 | **Uptime Kuma** | One line per status page, green while everything is up, red as soon as one monitor is down. |
 | **Ping** | Whether an IP or a host answers — the familiar dot, no extra line. |
 
 A service with **no** widget stays a plain link, probed as usual with its green
-or red dot. Widgets that measure a *third-party* site (YouTube, Docker Hub,
-GitHub) degrade to a neutral tile on quota or rate-limit errors instead of
-faking an outage.
+or red dot. GitHub, Docker Hub and YouTube are not tile widgets: they drive the
+**web-links banner counters** instead — give a web link a counter and its name
+shows the number, e.g. *YouTube (3000)*. A counter that reads a *third-party*
+site shows nothing on quota or rate-limit errors instead of faking a zero.
 
 **→ [docs/WIDGETS.md](docs/WIDGETS.md) — the full catalog: what each widget
 displays, how to configure it, and which secrets it needs.**

@@ -1,5 +1,5 @@
 // Éditeur de configuration : services, catégories, hôtes, liens web, import/export config.
-import { state, clone, normalize, normalizeConfig, normalizeViewPrefs, compareNames, TILE_COLORS, sanitizeTileColor, normalizeSpecialTile } from "./state.js";
+import { state, clone, normalize, normalizeConfig, normalizeViewPrefs, compareNames, TILE_COLORS, sanitizeTileColor, normalizeSpecialTile, normalizeLinkCounter, LINK_COUNTER_TYPES } from "./state.js";
 import { t, applyLanguage } from "./i18n.js";
 import { saveConfig, putConfig, fetchConfig } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
@@ -496,6 +496,54 @@ export function renderWebLinksEditor(){
 
     const iconPicker=createWebLinkIconPicker(link,index);
 
+    const counterWrap=document.createElement("div");
+    counterWrap.className="web-link-counter-wrap";
+
+    const currentCounter=link.counter && LINK_COUNTER_TYPES.includes(link.counter.type)
+      ? link.counter
+      : null;
+
+    const counterType=document.createElement("select");
+    counterType.className="edit-select web-link-counter-type";
+    counterType.title=t("linkCounterLabel");
+    [["",t("linkCounterNone")],
+      ["github",t("linkCounterGitHub")],
+      ["dockerhub",t("linkCounterDockerHub")],
+      ["youtube",t("linkCounterYoutube")]].forEach(([value,label])=>{
+      const option=document.createElement("option");
+      option.value=value;
+      option.textContent=label;
+      counterType.appendChild(option);
+    });
+    counterType.value=currentCounter ? currentCounter.type : "";
+
+    const counterTarget=document.createElement("input");
+    counterTarget.className="edit-input web-link-counter-target";
+    counterTarget.value=currentCounter ? currentCounter.target : "";
+    counterTarget.hidden=!currentCounter;
+    const targetPlaceholder=type=>t(type==="youtube" ? "linkCounterChannelPlaceholder" : "linkCounterRepoPlaceholder");
+    counterTarget.placeholder=targetPlaceholder(currentCounter ? currentCounter.type : "");
+
+    counterType.addEventListener("change",()=>{
+      const type=counterType.value;
+      if(!type){
+        state.editWebLinks[index].counter=null;
+        counterTarget.hidden=true;
+        counterTarget.value="";
+        return;
+      }
+      state.editWebLinks[index].counter={type,target:counterTarget.value||""};
+      counterTarget.hidden=false;
+      counterTarget.placeholder=targetPlaceholder(type);
+    });
+    counterTarget.addEventListener("input",()=>{
+      if(state.editWebLinks[index].counter){
+        state.editWebLinks[index].counter.target=counterTarget.value;
+      }
+    });
+
+    counterWrap.append(counterType,counterTarget);
+
     const del=document.createElement("button");
     del.className="small-icon-btn delete-btn";
     del.type="button";
@@ -519,7 +567,7 @@ export function renderWebLinksEditor(){
       renderWebLinksEditor();
     });
 
-    row.append(drag,name,url,iconPicker,del);
+    row.append(drag,name,url,counterWrap,iconPicker,del);
     webLinksEditor.appendChild(row);
   });
 }
@@ -981,7 +1029,7 @@ addCategoryBtn.addEventListener("click",()=>{
 });
 
 addWebLinkBtn.addEventListener("click",()=>{
-  state.editWebLinks.push({name:"",url:"",icon:"fa-solid fa-globe"});
+  state.editWebLinks.push({name:"",url:"",icon:"fa-solid fa-globe",counter:null});
   renderWebLinksEditor();
   requestAnimationFrame(()=>{
     const rows=[...webLinksEditor.querySelectorAll(".web-link-row")];
@@ -1171,7 +1219,8 @@ saveBtn.addEventListener("click",async()=>{
     .map(link=>({
       name:(link.name||"").trim(),
       url:(link.url||"").trim(),
-      icon:(link.icon||"").trim()
+      icon:(link.icon||"").trim(),
+      counter:normalizeLinkCounter(link.counter)
     }))
     .filter(link=>link.name && link.url);
 

@@ -498,6 +498,34 @@ export function normalizeSpecialTile(raw,categories){
   return {type,category};
 }
 
+// Compteurs du bandeau "Liens web" : un lien peut afficher un chiffre public
+// (etoiles GitHub, pulls Docker Hub, abonnes YouTube) a cote de son nom. Les
+// types autorises sont exactement les widgets capables de fournir ce chiffre.
+// Doit rester identique a server.js (WEB_LINK_COUNTER_TYPES).
+export const LINK_COUNTER_TYPES=Object.freeze(["github","dockerhub","youtube"]);
+
+// La cible (depot ou chaine) est obligatoire : un compteur sans cible ne peut
+// rien mesurer, on l'ignore plutot que d'afficher un chiffre trompeur.
+export function normalizeLinkCounter(raw){
+  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
+  const type=typeof raw.type==="string" ? raw.type.trim() : "";
+  if(!LINK_COUNTER_TYPES.includes(type)) return null;
+  const target=sanitizeText(raw.target,200);
+  if(!target) return null;
+  return {type,target};
+}
+
+// Champ de l'entree de statut ou se trouve le chiffre a afficher, par type de
+// compteur. C'est le contrat des backends widgets correspondants : GitHub
+// publie "value" (la metrique choisie), Docker Hub "pulls", YouTube
+// "subscribers". Renvoie null quand le chiffre n'est pas disponible.
+export function linkCounterValue(counter,status){
+  if(!counter || !status || status.ok!==true) return null;
+  const field=counter.type==="dockerhub" ? "pulls" : counter.type==="youtube" ? "subscribers" : "value";
+  const value=Number(status[field]);
+  return Number.isFinite(value) ? value : null;
+}
+
 export function normalizeConfig(cfg={}){
   const normalizedServices=Array.isArray(cfg.services)
     ? clone(cfg.services)
@@ -558,7 +586,8 @@ export function normalizeConfig(cfg={}){
       .map(link=>({
         name:sanitizeText(link.name,100),
         url:sanitizeUrl(link.url),
-        icon:sanitizeIconClass(link.icon)
+        icon:sanitizeIconClass(link.icon),
+        counter:normalizeLinkCounter(link.counter)
       })),
     webLinksSeedVersion:Number.isFinite(Number(cfg.webLinksSeedVersion)) ? Number(cfg.webLinksSeedVersion) : 0,
     favicon:sanitizeFavicon(cfg.favicon),

@@ -82,13 +82,16 @@ async function main(){
       !!(item.label.fr && item.label.en));
   }
 
-  check("registre : le plugin de lien est interne au moteur",
-    registry.publicList().filter(w => w.hidden).map(w => w.id), ["web"]);
+  check("registre : les plugins internes du moteur",
+    registry.publicList().filter(w => w.hidden).map(w => w.id),
+    ["dockerhub", "github", "web", "youtube"]);
   check("registre : un lien nu est pris en charge par le plugin \"link\"",
     registry.bySlot("link") && registry.bySlot("link").id, "web");
-  check("registre : les widgets de liens sont proposes a l'utilisateur",
+  // GitHub, Docker Hub et YouTube ne sont pas des widgets de tuile : ce sont les
+  // sources des compteurs du bandeau "Liens web", donc internes au moteur.
+  check("registre : les compteurs de liens ne sont pas des widgets de tuile",
     registry.publicList().filter(w => !w.hidden).map(w => w.id),
-    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "youtube"]);
+    ["adguard", "docker", "duplicati", "lichess", "ping", "uptimekuma"]);
 
   // Le template est bien un modele exploitable, mais volontairement hors registre.
   ok("template : present sur disque mais non charge",
