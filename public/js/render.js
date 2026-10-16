@@ -180,9 +180,19 @@ function createFortuneCard(key){
   card.setAttribute("role","button");
   card.title=t("fortuneHint");
 
-  const icon=document.createElement("div");
-  icon.className="service-fallback";
-  icon.innerHTML='<img src="images/fortunecookie.png" alt="Fortune Cookie" style="max-width:100%;max-height:100%;object-fit:contain;">';
+  // Meme traitement qu'une icône de service : `.service-icon` sans fond ni
+  // bordure, contrairement a `.service-fallback` qui encadre un glyphe.
+  const icon=document.createElement("img");
+  icon.className="service-icon";
+  icon.src="images/fortunecookie.png";
+  icon.alt="Fortune Cookie";
+  icon.onerror=()=>{
+    icon.remove();
+    const fallback=document.createElement("div");
+    fallback.className="service-fallback";
+    fallback.innerHTML='<i class="fa-solid fa-cookie-bite"></i>';
+    card.prepend(fallback);
+  };
   card.appendChild(icon);
 
   const text=document.createElement("div");
