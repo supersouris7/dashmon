@@ -292,6 +292,30 @@ export const DEFAULT_WEB_LINKS=[
 // hôte : les clefs collapsed reposent dessus. Affiché via t("noHost").
 export const FALLBACK_HOST="Sans hôte";
 
+export const WEB_LINK_COLORS=Object.freeze({
+  dark:"#272c33",
+  "pastel-red":"#f2a3a3",
+  blue:"#2457a7",
+  green:"#84c59a",
+  orange:"#f4ae64",
+  purple:"#7545a0"
+});
+
+export function normalizeWebLinksColor(value){
+  return Object.hasOwn(WEB_LINK_COLORS,value) ? value : "dark";
+}
+
+export function webLinksColors(value){
+  const background=WEB_LINK_COLORS[normalizeWebLinksColor(value)];
+  const channels=background.slice(1).match(/../g).map(hex=>{
+    const channel=parseInt(hex,16)/255;
+    return channel<=0.04045 ? channel/12.92 : ((channel+0.055)/1.055)**2.4;
+  });
+  const luminance=channels[0]*0.2126+channels[1]*0.7152+channels[2]*0.0722;
+  const foreground=(luminance+0.05)/0.05>=1.05/(luminance+0.05) ? "#000000" : "#ffffff";
+  return {background,foreground};
+}
+
 export const state = {
   services: [],
   categories: [],
@@ -305,6 +329,8 @@ export const state = {
   sortMode: "alphabetical",
   usageCounts: {},
   webLinks: [],
+  webLinksColor: "dark",
+  webLinksHidden: false,
   webLinksSeedVersion: 0,
   smallIcons: false,
   editServices: [],
@@ -446,7 +472,7 @@ function normalizeCollapsed(collapsed){
 // navigateur ne puisse pas casser le rendu.
 export const VIEW_PREF_KEYS=Object.freeze([
   "viewMode","sortMode","groupMode","openMode",
-  "smallIcons","collapsed"
+  "smallIcons","collapsed","webLinksHidden"
 ]);
 
 export function normalizeViewPrefs(cfg={}){
@@ -456,6 +482,7 @@ export function normalizeViewPrefs(cfg={}){
     groupMode:cfg.groupMode==="host" ? "host" : "category",
     sortMode:cfg.sortMode==="usage" ? "usage" : "alphabetical",
     smallIcons:cfg.smallIcons===true,
+    webLinksHidden:cfg.webLinksHidden===true,
     collapsed:normalizeCollapsed(cfg.collapsed)
   };
 }
@@ -576,7 +603,8 @@ export function normalizeConfig(cfg={}){
         icon:sanitizeIconClass(link.icon),
         counter:normalizeLinkCounter(link.counter)
       })),
-    webLinksSeedVersion:Number.isFinite(Number(cfg.webLinksSeedVersion)) ? Number(cfg.webLinksSeedVersion) : 0
+    webLinksSeedVersion:Number.isFinite(Number(cfg.webLinksSeedVersion)) ? Number(cfg.webLinksSeedVersion) : 0,
+    webLinksColor:normalizeWebLinksColor(cfg.webLinksColor)
   };
   // Categories et hotes ont chacun LEUR palette : une couleur d'hote peut
   // legitimement etre la meme qu'une couleur de categorie. Les deux listes

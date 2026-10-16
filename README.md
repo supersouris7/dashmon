@@ -103,9 +103,12 @@ Config, icons and themes live in the `dashmon-data` volume (`/app/data`) — bac
 that volume up and you're done. Configure widget credentials in the editor;
 see `.env.example` for the optional encryption key.
 
-Web links stay visible in a dark gray banner above the toolbar. The search
-field sits immediately before the action buttons on the right. The tab uses
-the default Dashmon icon.
+Web links sit in a fixed banner above the toolbar. Choose one of six colors in
+**Appearance**; text and icons automatically switch to black or white for contrast.
+The cross hides the banner, and the small link tab at the top right restores it.
+Visibility is remembered per browser. The search field and action buttons scroll
+with the page; the icon-size button is the sole control for small/large icons.
+The tab uses the default Dashmon icon.
 
 ### What lives where
 

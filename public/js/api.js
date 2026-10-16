@@ -10,7 +10,7 @@ export function saveConfig(immediate=false){
 
   const run=()=>{
     // Volontairement pas de collapsed/viewMode/sortMode/groupMode/openMode/
-    // smallIcons : la disposition de l'écran
+    // smallIcons/webLinksHidden : la disposition de l'écran
     // vit dans le navigateur (view-prefs.js), elle n'est ni lue ni écrite par
     // le serveur. Le PUT sert la configuration et les préférences d'apparence.
     const payload=JSON.stringify({
@@ -22,6 +22,7 @@ export function saveConfig(immediate=false){
       language:state.language,
       usageCounts:state.usageCounts,
       webLinks:state.webLinks,
+      webLinksColor:state.webLinksColor,
       webLinksSeedVersion:state.webLinksSeedVersion
     });
     configSaveChain=configSaveChain

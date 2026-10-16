@@ -67,7 +67,9 @@
     <div class="web-links-inner">
       <div id="webLinksList" class="web-links-list"></div>
     </div>
+    <button id="hideWebLinksBtn" class="web-links-close" type="button" title="Masquer les liens web" aria-label="Masquer les liens web"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
   </section>
+  <button id="restoreWebLinksBtn" class="web-links-restore" type="button" title="Afficher les liens web" aria-label="Afficher les liens web" aria-controls="webLinksSection" hidden><i class="fa-solid fa-link" aria-hidden="true"></i></button>
 
   <div class="toolbar">
     <div class="search-box">
@@ -293,13 +295,17 @@
         </select>
       </label>
 
-      <div class="appearance-field">
-        <span id="smallIconsFieldLabel">Mode petites icônes</span>
-        <select id="smallIconsSelect" class="edit-select">
-          <option value="0" id="smallIconsOptionOff">Grandes icônes</option>
-          <option value="1" id="smallIconsOptionOn">Petites icônes</option>
+      <label class="appearance-field">
+        <span id="webLinksColorLabel">Couleur des liens web</span>
+        <select id="webLinksColorSelect" class="edit-select">
+          <option value="dark" id="webLinksColorDark">Gris foncé</option>
+          <option value="pastel-red" id="webLinksColorRed">Rouge pastel</option>
+          <option value="blue" id="webLinksColorBlue">Bleu</option>
+          <option value="green" id="webLinksColorGreen">Vert</option>
+          <option value="orange" id="webLinksColorOrange">Orange</option>
+          <option value="purple" id="webLinksColorPurple">Violet</option>
         </select>
-      </div>
+      </label>
 
       <div class="appearance-field">
         <span id="openModeFieldLabel">Ouverture des liens</span>

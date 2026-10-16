@@ -209,7 +209,7 @@ async function main(){
 
     check("prefs : la liste des cles est stable", stateModule.VIEW_PREF_KEYS.slice(),
       ["viewMode", "sortMode", "groupMode", "openMode",
-        "smallIcons", "collapsed"]);
+        "smallIcons", "collapsed", "webLinksHidden"]);
 
     // Rien d'ecrit tant que l'utilisateur n'a rien change.
     check("prefs : navigateur neuf = aucune preference", prefs.loadViewPrefs(), {});
@@ -217,6 +217,24 @@ async function main(){
     saved.set("dashmon.view", JSON.stringify({ viewMode: "rows", webLinksCollapsed: true, hostsDisplay: "icon" }));
     check("prefs : anciens reglages retires ignores", prefs.loadViewPrefs(), { viewMode: "rows" });
     saved.clear();
+
+    prefs.saveViewPrefs({ webLinksHidden: true, webLinksColor: "blue" });
+    check("prefs : masquage local sans couleur globale", prefs.loadViewPrefs(), { webLinksHidden: true });
+    saved.clear();
+    check("prefs : masquage invalide ignore", stateModule.normalizeViewPrefs({ webLinksHidden: "true" }).webLinksHidden, false);
+
+    check("liens : six couleurs", Object.keys(stateModule.WEB_LINK_COLORS),
+      ["dark", "pastel-red", "blue", "green", "orange", "purple"]);
+    check("liens : couleur invalide recalee", stateModule.normalizeWebLinksColor("invalid"), "dark");
+    check("liens : rouge pastel conserve", stateModule.normalizeConfig({webLinksColor:"pastel-red"}).webLinksColor, "pastel-red");
+    for(const color of Object.keys(stateModule.WEB_LINK_COLORS)){
+      const { background, foreground }=stateModule.webLinksColors(color);
+      const rgb=background.slice(1).match(/../g).map(v=>parseInt(v,16)/255)
+        .map(v=>v<=0.04045 ? v/12.92 : ((v+0.055)/1.055)**2.4);
+      const luminance=rgb[0]*0.2126+rgb[1]*0.7152+rgb[2]*0.0722;
+      const contrast=foreground==="#000000" ? (luminance+0.05)/0.05 : 1.05/(luminance+0.05);
+      ok("liens : contraste lisible "+color, ["#000000","#ffffff"].includes(foreground) && contrast>=4.5);
+    }
 
     const legacy = stateModule.normalizeConfig({
       hosts: [{ name: "Hote", icon: "fa-solid fa-server", color: "#123456", monitoring: { enabled: true, type: "local" } }],

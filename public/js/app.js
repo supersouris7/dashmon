@@ -1,10 +1,10 @@
 // Point d'entrée : initialisation, menu principal, modals (éditeur/apparence), événements globaux.
-import { state, normalizeConfig, normalizeViewPrefs, isTypingTarget, sanitizeUrl } from "./state.js";
+import { state, normalizeConfig, normalizeViewPrefs, isTypingTarget, sanitizeUrl, normalizeWebLinksColor } from "./state.js";
 import { patchConfig } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
 import { render, updateViewButton, updateIconsButton, updateOpenModeMenu, updateGroupModeMenu,
   updateSortModeMenu, setGroupMode, getCollapseAllState, updateCollapseAllButton,
-  updateStatusIndicators } from "./render.js";
+  updateStatusIndicators, updateWebLinksAppearance } from "./render.js";
 import { applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater } from "./i18n.js";
 import {
   loadThemes, applyTheme, setTheme, currentTheme, downloadTheme,
@@ -20,7 +20,7 @@ import {
   openModeSelect, groupCategoryBtn, groupHostBtn,
   sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuAppearanceBtn, menuRefreshBtn,
   appearanceBackdrop, appearanceCloseBtn, appearanceDoneBtn, themeSelect,
-  languageSelect, smallIconsSelect, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
+  languageSelect, webLinksColorSelect, webLinksSection, restoreWebLinksBtn, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
   themeImportInput, modalBackdrop, imageLibrary
 } from "./dom.js";
 
@@ -46,6 +46,8 @@ async function loadConfig(){
     state.groupMode=viewPrefs.groupMode;
     state.sortMode=viewPrefs.sortMode;
     state.smallIcons=viewPrefs.smallIcons;
+    state.webLinksHidden=viewPrefs.webLinksHidden;
+    state.webLinksColor=cfg.webLinksColor;
     state.theme=cfg.theme;
     state.language=cfg.language;
     state.usageCounts=cfg.usageCounts;
@@ -80,16 +82,17 @@ function setOpenMode(mode){
 }
 
 function setToolbarHeight(){
-  const bar=document.querySelector(".top-bar");
-  const target=bar||document.querySelector(".toolbar");
-  const rect=target.getBoundingClientRect();
-  const bottom=Math.max(0,rect.bottom);
+  const linksHeight=Math.max(webLinksSection.getBoundingClientRect().height,restoreWebLinksBtn.getBoundingClientRect().height);
+  document.documentElement.style.setProperty("--web-links-h",linksHeight+"px");
+  const rect=document.querySelector(".toolbar").getBoundingClientRect();
+  const bottom=Math.max(linksHeight,rect.bottom,0);
   document.documentElement.style.setProperty("--toolbar-h",bottom+"px");
-  document.documentElement.style.setProperty("--top-bar-h",bottom+"px");
 }
 
 window.addEventListener("resize",setToolbarHeight);
-new ResizeObserver(setToolbarHeight).observe(document.querySelector(".top-bar"));
+window.addEventListener("scroll",setToolbarHeight,{passive:true});
+const headerObserver=new ResizeObserver(setToolbarHeight);
+for(const element of [webLinksSection,restoreWebLinksBtn,document.querySelector(".toolbar")]) headerObserver.observe(element);
 
 function openAppearance(){
   setToolbarHeight();
@@ -98,7 +101,7 @@ function openAppearance(){
     themeSelect.value=state.theme;
   }
   languageSelect.value=state.language;
-  smallIconsSelect.value=state.smallIcons ? "1" : "0";
+  webLinksColorSelect.value=state.webLinksColor;
   openModeSelect.value=state.openMode==="new" ? "new" : "same";
   updateThemeManageUI();
   appearanceBackdrop.classList.add("show");
@@ -211,18 +214,15 @@ languageSelect.addEventListener("change",()=>{
   patchConfig({language:state.language});
 });
 
-smallIconsSelect.addEventListener("change",()=>{
-  state.smallIcons=smallIconsSelect.value==="1";
-  render();
-  updateIconsButton();
-  saveViewPrefs({smallIcons:state.smallIcons});
+webLinksColorSelect.addEventListener("change",()=>{
+  state.webLinksColor=normalizeWebLinksColor(webLinksColorSelect.value);
+  updateWebLinksAppearance();
+  patchConfig({webLinksColor:state.webLinksColor});
 });
 
-// Raccourci du mode petites icônes dans le bandeau. Le select du panneau
-// d'apparence doit suivre, sinon les deux se contredisent a l'ecran.
+// Le bouton est l'unique commande du mode petites icones.
 iconsBtn.addEventListener("click",()=>{
   state.smallIcons=!state.smallIcons;
-  smallIconsSelect.value=state.smallIcons ? "1" : "0";
   render();
   updateIconsButton();
   saveViewPrefs({smallIcons:state.smallIcons});

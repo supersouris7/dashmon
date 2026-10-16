@@ -1,5 +1,5 @@
 // Rendu de Dashmon (cartes, groupes, mode d'affichage) et état des boutons du menu.
-import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, sanitizeTileColor, FALLBACK_HOST, linkCounterValue, compactCount } from "./state.js";
+import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, sanitizeTileColor, FALLBACK_HOST, linkCounterValue, compactCount, webLinksColors } from "./state.js";
 import { t } from "./i18n.js";
 import { bumpUsage } from "./api.js";
 import { saveViewPrefs } from "./view-prefs.js";
@@ -8,6 +8,7 @@ import { effectiveStatus, statusIcon } from "./status.js";
 import { fortuneText, pickFortune, loadFortunes } from "./fortune.js";
 import {
   dashboard, searchInput, webLinksSection, webLinksList,
+  hideWebLinksBtn, restoreWebLinksBtn,
   viewBtn, iconsBtn, collapseAllBtn, openModeSelect, groupCategoryBtn,
   groupHostBtn, sortAlphabeticalBtn, sortUsageBtn
 } from "./dom.js";
@@ -78,8 +79,7 @@ export function updateViewButton(){
   }
 }
 
-// Le mode petites icônes existe déjà dans le panneau d'apparence ; ce bouton en
-// est le raccourci. Le libellé annonce l'état courant et le glyphe change, comme
+// Le bouton regle la taille des icones. Le libelle annonce l'etat courant et le glyphe change, comme
 // le bouton d'affichage : les flèches rentrent quand les icônes rétrécissent et
 // sortent quand elles grossissent, donc le bouton montre l'action, pas l'état.
 export function updateIconsButton(){
@@ -391,15 +391,37 @@ function reorderDashboardSections(animate=false, forceExpand=null, onDone=null, 
   });
 }
 
+export function updateWebLinksAppearance(){
+  const {background,foreground}=webLinksColors(state.webLinksColor);
+  for(const element of [webLinksSection,restoreWebLinksBtn]){
+    element.style.backgroundColor=background;
+    element.style.color=foreground;
+  }
+  webLinksSection.style.display=state.webLinks.length && !state.webLinksHidden ? "flex" : "none";
+  restoreWebLinksBtn.hidden=!state.webLinks.length || !state.webLinksHidden;
+}
+
+hideWebLinksBtn.addEventListener("click",()=>{
+  state.webLinksHidden=true;
+  saveViewPrefs({webLinksHidden:true});
+  updateWebLinksAppearance();
+  restoreWebLinksBtn.focus();
+});
+
+restoreWebLinksBtn.addEventListener("click",()=>{
+  state.webLinksHidden=false;
+  saveViewPrefs({webLinksHidden:false});
+  updateWebLinksAppearance();
+  hideWebLinksBtn.focus();
+});
+
 function renderWebLinks(){
+  updateWebLinksAppearance();
   webLinksList.innerHTML="";
 
   if(!state.webLinks.length){
-    webLinksSection.style.display="none";
     return;
   }
-
-  webLinksSection.style.display="block";
 
   state.webLinks.forEach(link=>{
     const a=document.createElement("a");

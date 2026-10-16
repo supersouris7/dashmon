@@ -7,7 +7,7 @@ import {
   groupCategoryBtn, groupHostBtn, sortMenuLabel,
   sortAlphabeticalBtn, sortUsageBtn, editorTitle, closeBtn, editorSearch,
   cancelBtn, saveBtn, imageLibraryTitle, widgetConfigTitle, closeImageLibraryBtn,
-  menuRefreshBtn
+  menuRefreshBtn, hideWebLinksBtn, restoreWebLinksBtn
 } from "./dom.js";
 
 const UI_TEXT={
@@ -123,7 +123,15 @@ const UI_TEXT={
     exportTheme:"Exporter",
     deleteTheme:"Supprimer le thème",
     manageThemes:"Gestion des thèmes",
-    smallIconsFieldLabel:"Mode petites icônes",
+    webLinksColorLabel:"Couleur des liens web",
+    webLinksColorDark:"Gris foncé",
+    webLinksColorRed:"Rouge pastel",
+    webLinksColorBlue:"Bleu",
+    webLinksColorGreen:"Vert",
+    webLinksColorOrange:"Orange",
+    webLinksColorPurple:"Violet",
+    hideWebLinks:"Masquer les liens web",
+    restoreWebLinks:"Afficher les liens web",
     smallIconsOptionOff:"Grandes icônes",
     smallIconsOptionOn:"Petites icônes",
   },
@@ -239,7 +247,15 @@ const UI_TEXT={
     exportTheme:"Export",
     deleteTheme:"Delete theme",
     manageThemes:"Theme management",
-    smallIconsFieldLabel:"Small icon mode",
+    webLinksColorLabel:"Web links color",
+    webLinksColorDark:"Dark gray",
+    webLinksColorRed:"Pastel red",
+    webLinksColorBlue:"Blue",
+    webLinksColorGreen:"Green",
+    webLinksColorOrange:"Orange",
+    webLinksColorPurple:"Purple",
+    hideWebLinks:"Hide web links",
+    restoreWebLinks:"Show web links",
     smallIconsOptionOff:"Large icons",
     smallIconsOptionOn:"Small icons",
   }
@@ -269,6 +285,10 @@ export function applyLanguage(){
   appearanceDoneBtn.textContent=t("close");
   appearanceCloseBtn.title=t("close");
   searchInput.placeholder=t("search");
+  for(const [button,key] of [[hideWebLinksBtn,"hideWebLinks"],[restoreWebLinksBtn,"restoreWebLinks"]]){
+    button.title=t(key);
+    button.setAttribute("aria-label",t(key));
+  }
   document.getElementById("supportLabel").textContent=t("support");
 
   const labels=[...topMenu.querySelectorAll(".top-menu-label")];
@@ -342,9 +362,8 @@ export function applyLanguage(){
     ["openModeFieldLabel","openModeFieldLabel"],
     ["openModeOptionSame","sameTab"],
     ["openModeOptionNew","newTab"],
-    ["smallIconsFieldLabel","smallIconsFieldLabel"],
-    ["smallIconsOptionOff","smallIconsOptionOff"],
-    ["smallIconsOptionOn","smallIconsOptionOn"],
+    ...["webLinksColorLabel","webLinksColorDark","webLinksColorRed","webLinksColorBlue",
+      "webLinksColorGreen","webLinksColorOrange","webLinksColorPurple"].map(key=>[key,key]),
   ];
   appearanceLabels.forEach(([id,key])=>{
     const el=document.getElementById(id);
