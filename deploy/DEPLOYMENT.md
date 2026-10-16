@@ -12,7 +12,7 @@ With Compose:
 
 ```bash
 cp .env.example .env
-# edit .env: DASHBOARD_PASSWORD, tokens…
+# edit .env: DASHBOARD_PASSWORD, DASHMON_MASTER_KEY…
 docker compose up -d
 ```
 
@@ -21,9 +21,11 @@ Or directly:
 ```bash
 docker run -d --name dashmon -p 8080:8080 \
   -v dashmon-data:/app/data \
-  -e DASHBOARD_PASSWORD=change_me \
+  -e DASHBOARD_PASSWORD \
   supersouris7/dashmon:latest
 ```
+
+Set `DASHBOARD_PASSWORD` in your shell environment before running the command.
 
 → http://localhost:8080
 
@@ -61,9 +63,6 @@ See `.env.example`. The most important:
 | `DASHBOARD_PASSWORD` | empty | HTTP Basic Auth for `/api/*` endpoints (recommended online) |
 | `TRUST_PROXY` | `0` | `1` only if nginx terminates HTTPS in front of the container |
 | `DASHBOARD_INSECURE_TLS` | empty | `1` if your monitored hosts use self-signed certificates |
-| `PROXMOX_TOKEN_ID` / `PROXMOX_TOKEN_SECRET` | empty | Proxmox API tokens (read-only) |
-| `LINUX_METRICS_TOKEN` | empty | Token for the Linux `/metrics` HTTP agent |
-| `DASHBOARD_TOKEN_ENVS` | empty | Additional allowed token variable names |
 | `DASHMON_MASTER_KEY` | empty | AES-256-GCM master key to encrypt widget secrets (e.g. Duplicati password) in `config.json` |
 
 ### Widget secrets (Duplicati…)
@@ -85,11 +84,8 @@ openssl rand -base64 32
 [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
 ```
 
-Then add it to `.env` (Compose) or the container environment:
-
-```bash
-DASHMON_MASTER_KEY=paste-the-generated-key
-```
+Then assign the generated value to `DASHMON_MASTER_KEY` in `.env` (Compose)
+or in the container environment.
 
 Behaviour:
 
@@ -246,7 +242,6 @@ public sites, so prefer a bundle.
 
 ## Notes
 
-- No embedded secrets: `config.json` only contains public examples, tokens are referenced
-  by environment variable (allowlist `DASHBOARD_TOKEN_ENVS`), and widget passwords are
+- No embedded secrets: the bundled `config.json` only contains public examples. Widget passwords are
   AES-256-GCM encrypted when `DASHMON_MASTER_KEY` is set (plain text otherwise).
 - Logs: `docker logs dashmon`.

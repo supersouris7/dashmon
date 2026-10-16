@@ -1,5 +1,5 @@
 // Rendu de Dashmon (cartes, groupes, mode d'affichage) et état des boutons du menu.
-import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, sanitizeTileColor, DEFAULT_FAVICON, FALLBACK_HOST, linkCounterValue, compactCount } from "./state.js";
+import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, sanitizeTileColor, FALLBACK_HOST, linkCounterValue, compactCount } from "./state.js";
 import { t } from "./i18n.js";
 import { bumpUsage } from "./api.js";
 import { saveViewPrefs } from "./view-prefs.js";
@@ -7,21 +7,10 @@ import { hasWidget, renderWidget, widgetStatusKey } from "./widget-registry.js";
 import { effectiveStatus, statusIcon } from "./status.js";
 import { fortuneText, pickFortune, loadFortunes } from "./fortune.js";
 import {
-  dashboard, searchInput, webLinksSection, webLinksHeader, webLinksList,
+  dashboard, searchInput, webLinksSection, webLinksList,
   viewBtn, iconsBtn, collapseAllBtn, openModeSelect, groupCategoryBtn,
-  groupHostBtn, sortAlphabeticalBtn, sortUsageBtn,
-  faviconLink
+  groupHostBtn, sortAlphabeticalBtn, sortUsageBtn
 } from "./dom.js";
-
-export function applyFavicon(){
-  if(!faviconLink) return;
-  const enabled=state.faviconEnabled!==false;
-  if(!enabled){
-    faviconLink.href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'/>";
-    return;
-  }
-  faviconLink.href=state.favicon || DEFAULT_FAVICON;
-}
 
 function safeHref(url){
   return /^https?:\/\//.test(url) ? url : "#";
@@ -123,32 +112,6 @@ export function setGroupMode(mode){
   updateGroupModeMenu();
   render();
   saveViewPrefs({groupMode:state.groupMode});
-}
-
-export function focusHostGroup(hostName){
-  state.groupMode="host";
-
-  Object.keys(state.collapsed).forEach(key=>{
-    if(key.startsWith("category:")) delete state.collapsed[key];
-  });
-
-  const hostNames=new Set([
-    ...state.hosts.map(host=>host.name),
-    FALLBACK_HOST
-  ]);
-  state.services.forEach(service=>{
-    hostNames.add((service.host||"").trim() || FALLBACK_HOST);
-  });
-
-  hostNames.forEach(name=>{
-    state.collapsed[`host:${name}`]=name!==hostName;
-  });
-  state.collapsed[`host:${hostName}`]=false;
-
-  updateGroupModeMenu();
-  render();
-  updateCollapseAllButton();
-  saveViewPrefs({groupMode:"host",collapsed:state.collapsed});
 }
 
 // Couleur d'une tuile en affichage a plat : il n'y a pas de section, donc rien
@@ -429,7 +392,6 @@ function reorderDashboardSections(animate=false, forceExpand=null, onDone=null, 
 }
 
 function renderWebLinks(){
-  webLinksSection.classList.toggle("collapsed",state.webLinksCollapsed);
   webLinksList.innerHTML="";
 
   if(!state.webLinks.length){
@@ -469,20 +431,6 @@ function renderWebLinks(){
     webLinksList.appendChild(a);
   });
 }
-
-webLinksHeader.addEventListener("click",()=>{
-  state.webLinksCollapsed=!state.webLinksCollapsed;
-  renderWebLinks();
-  saveViewPrefs({webLinksCollapsed:state.webLinksCollapsed});
-});
-
-webLinksSection.addEventListener("click",e=>{
-  if(e.target.closest(".web-link")) return;
-  if(e.target.closest("#webLinksHeader")) return;
-  state.webLinksCollapsed=!state.webLinksCollapsed;
-  renderWebLinks();
-  saveViewPrefs({webLinksCollapsed:state.webLinksCollapsed});
-});
 
 function serviceMatchesQuery(service){
   const query=normalize(searchInput.value);

@@ -16,15 +16,13 @@ No account, no cloud, no database. One small Node.js container, one page, and
 you stop guessing whether *that* thing is working.
 
 - **One page, your whole lab** — group by category or by host, search, three view
-  modes (rows / columns / full), icons or names.
+  modes (rows / columns / full), small or large icons.
 - **Live widgets, not just green/red dots** — Docker, Duplicati, AdGuard, Lichess,
   Uptime Kuma and Ping report straight onto the tile.
   → [widget catalog](docs/WIDGETS.md)
 - **Web-link counters** — show GitHub stars, Docker Hub pulls or YouTube
   subscribers right in the web-links banner, e.g. *GitHub (109)*.
 - **Real status monitoring** — an up/down pill per URL, refreshed automatically.
-- **Host metrics** — CPU and RAM from the local machine, a tiny Linux agent
-  (`/metrics`), or Proxmox with a read-only API token.
 - **Themes** — dark and light built in, plus your own custom themes and CSS.
 - **Two languages** — English and French, throughout the interface.
 - **Learns your habits** — services you open often float to the top.
@@ -98,19 +96,21 @@ publishing Docker images.
 1. Click **Edit Dashmon** and add your services (name, URL, icon, category, host).
 2. Turn on **Status monitoring** for the services you want a pill on.
 3. Give a service a **widget** — that's where the live numbers appear.
-4. Add hosts to monitor CPU and RAM (`local`, a Linux `/metrics` agent, or Proxmox).
+4. Add hosts to organize services by machine, with their own icons and colors.
 5. Adjust the theme and language under **Appearance**.
 
 Config, icons and themes live in the `dashmon-data` volume (`/app/data`) — back
-that volume up and you're done. The bundled `config.json` contains sample data
-only; API tokens are referenced by environment variable, see `.env.example`.
-(For Proxmox you may instead paste the token ID and secret directly in the host
-editor — that value is then stored in `config.json`, so keep the volume private.)
+that volume up and you're done. Configure widget credentials in the editor;
+see `.env.example` for the optional encryption key.
+
+Web links stay visible in a dark gray banner above the toolbar. The search
+field sits immediately before the action buttons on the right. The tab uses
+the default Dashmon icon.
 
 ### What lives where
 
 - **On the server (`config.json`)** — your dashboard: services, categories, hosts,
-  web links, language, theme, favicon, click counters.
+  web links, language, theme, click counters.
 - **In this browser only (`localStorage`)** — the layout: view mode, sort,
   grouping, how links open, collapsed sections, small icons. Nothing is written
   to disk and nothing is sent back, so **a layout never travels from one device to

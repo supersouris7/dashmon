@@ -104,7 +104,8 @@ async function main(){
   check("registre client : libelle traduit du champ depot",
     registry.fieldLabel(githubMeta, githubMeta.config[0], "fr"), "Dépôt");
   check("registre client : placeholder traduit du depot",
-    registry.fieldPlaceholder(githubMeta, githubMeta.config[0], "en"), "surfeon/Dashmon");
+    registry.fieldPlaceholder({ ...githubMeta, strings: { en: { repoPlaceholder: "owner/name" } } },
+      githubMeta.config[0], "en"), "owner/name");
 
   const dockerMeta = registry.getWidgetMeta("docker");
   check("registre client : libelle traduit", registry.widgetLabel(dockerMeta, "fr"), "Docker");
@@ -143,15 +144,16 @@ async function main(){
   check("registre client : select hors options -> defaut",
     registry.normalizeWidgetConfig({ type: "lichess", username: "exemple", variant: "torpedo" }),
     { type: "lichess", username: "exemple", variant: "" });
+  const encryptedSecret = "aes1." + require("crypto").randomBytes(32).toString("base64");
   check("registre client : secret chiffre non touche",
-    registry.normalizeWidgetConfig({ type: "duplicati", password: "aes1.abc.def.ghi" }).password, "aes1.abc.def.ghi");
+    registry.normalizeWidgetConfig({ type: "duplicati", password: encryptedSecret }).password, encryptedSecret);
   check("registre client : widget inconnu conserve intact",
     registry.normalizeWidgetConfig({ type: "tiers", foo: "bar" }), { type: "tiers", foo: "bar" });
   check("registre client : pas de widget -> null", registry.normalizeWidgetConfig(null), null);
   check("registre client : config neuve = defauts du manifest",
     registry.defaultWidgetConfig("docker"), { type: "docker", mode: "local", url: "" });
   check("registre client : changement de type conserve les cles communes",
-    registry.inheritWidgetConfig("adguard", { type: "adguard", username: "u", password: "aes1.x" }).username, "u");
+    registry.inheritWidgetConfig("adguard", { type: "adguard", username: "exemple", password: encryptedSecret }).username, "exemple");
 
   // Cle de statut : publiee par le serveur, jamais recomposee par le client.
   check("registre client : cle de statut publiee",
@@ -207,10 +209,22 @@ async function main(){
 
     check("prefs : la liste des cles est stable", stateModule.VIEW_PREF_KEYS.slice(),
       ["viewMode", "sortMode", "groupMode", "openMode",
-        "smallIcons", "hostsDisplay", "collapsed", "webLinksCollapsed"]);
+        "smallIcons", "collapsed"]);
 
     // Rien d'ecrit tant que l'utilisateur n'a rien change.
     check("prefs : navigateur neuf = aucune preference", prefs.loadViewPrefs(), {});
+
+    saved.set("dashmon.view", JSON.stringify({ viewMode: "rows", webLinksCollapsed: true, hostsDisplay: "icon" }));
+    check("prefs : anciens reglages retires ignores", prefs.loadViewPrefs(), { viewMode: "rows" });
+    saved.clear();
+
+    const legacy = stateModule.normalizeConfig({
+      hosts: [{ name: "Hote", icon: "fa-solid fa-server", color: "#123456", monitoring: { enabled: true, type: "local" } }],
+      faviconEnabled: false, webLinksCollapsed: true
+    });
+    check("config : hote conserve sans supervision", [legacy.hosts[0].name, legacy.hosts[0].color, legacy.hosts[0].monitoring],
+      ["Hote", "#123456", undefined]);
+    check("config : options retirees ignorees", [legacy.faviconEnabled, legacy.webLinksCollapsed], [undefined, undefined]);
 
     prefs.saveViewPrefs({ viewMode: "rows" });
     check("prefs : la disposition est relue", prefs.loadViewPrefs().viewMode, "rows");

@@ -6,8 +6,8 @@ import {
   appearanceCloseBtn, searchInput, topMenu,
   groupCategoryBtn, groupHostBtn, sortMenuLabel,
   sortAlphabeticalBtn, sortUsageBtn, editorTitle, closeBtn, editorSearch,
-  cancelBtn, saveBtn, imageLibraryTitle, widgetConfigTitle, closeImageLibraryBtn, webLinksHeader,
-  webLinksSection, menuRefreshBtn
+  cancelBtn, saveBtn, imageLibraryTitle, widgetConfigTitle, closeImageLibraryBtn,
+  menuRefreshBtn
 } from "./dom.js";
 
 const UI_TEXT={
@@ -67,7 +67,6 @@ const UI_TEXT={
     search:"app, catégories, hôtes…",
     collapseAll:"Tout plier",
     expandAll:"Tout déplier",
-    focusHost:"Afficher uniquement cet hôte",
     sameTab:"Même onglet",
     newTab:"Nouvel onglet",
     openModeFieldLabel:"Ouverture des liens",
@@ -87,20 +86,7 @@ const UI_TEXT={
     categoryName:"Nom de catégorie",
     colorSwatch:"Couleur",
     hostName:"Nom de l’hôte",
-    noParameters:"Aucun",
-    noAuthentication:"Aucune",
     newHost:"Nouvel hôte",
-    hostMonitoringEnabled:"Supervision CPU/RAM activée",
-    hostMonitoringDisabled:"Supervision CPU/RAM désactivée",
-    hostMonitoringType:"Type de supervision",
-    hostTypeLocal:"Local",
-    hostTypeLinux:"Linux",
-    hostTypeProxmox:"Proxmox",
-    proxmoxUrl:"URL Proxmox (ex. https://pve.example.com:8006)",
-    metricsUrl:"URL métriques Linux JSON (ex. http://linux.local/metrics)",
-    bearerTokenEnv:"Variable du token Bearer (facultatif)",
-    proxmoxTokenIdEnv:"Token ID : collez la valeur ou le nom d'env (défaut PROXMOX_TOKEN_ID)",
-    proxmoxTokenSecretEnv:"Token secret : collez la valeur ou le nom d'env (défaut PROXMOX_TOKEN_SECRET)",
     imageLibraryTitle:"Images PNG",
     searchEditor:"Rechercher une application...",
     noServices:"Aucun service trouvé.",
@@ -131,8 +117,6 @@ const UI_TEXT={
     viewRows:"Affichage en lignes",
     viewColumns:"Affichage en colonnes",
     viewPlain:"Affichage sans catégories",
-    collapseWebLinks:"Replier les liens",
-    expandWebLinks:"Déplier les liens",
     nativeThemes:"Thèmes natifs",
     customThemes:"Thèmes personnalisés",
     importTheme:"Importer un thème",
@@ -142,16 +126,6 @@ const UI_TEXT={
     smallIconsFieldLabel:"Mode petites icônes",
     smallIconsOptionOff:"Grandes icônes",
     smallIconsOptionOn:"Petites icônes",
-    hostsDisplayFieldLabel:"Affichage des hôtes",
-    hostsDisplayOptionName:"Par intitulé",
-    hostsDisplayOptionIcon:"Par icône",
-    faviconFieldLabel:"Favicon (.ico)",
-    faviconOptionOn:"Activée",
-    faviconOptionOff:"Désactivée",
-    importFaviconLabel:"Importer",
-    resetFaviconLabel:"Réinitialiser",
-    faviconFormatError:"Seuls les fichiers .ico sont acceptés.",
-    faviconTooLarge:"Favicon trop volumineux (max 256 Ko).",
   },
   en:{
     editDashboardTitle:"Edit Dashmon",
@@ -209,7 +183,6 @@ const UI_TEXT={
     search:"app, categories, hosts…",
     collapseAll:"Collapse all",
     expandAll:"Expand all",
-    focusHost:"Show only this host",
     sameTab:"Same tab",
     newTab:"New tab",
     openModeFieldLabel:"Link opening",
@@ -229,20 +202,7 @@ const UI_TEXT={
     categoryName:"Category name",
     colorSwatch:"Color",
     hostName:"Host name",
-    noParameters:"None",
-    noAuthentication:"None",
     newHost:"New host",
-    hostMonitoringEnabled:"CPU/RAM monitoring enabled",
-    hostMonitoringDisabled:"CPU/RAM monitoring disabled",
-    hostMonitoringType:"Monitoring type",
-    hostTypeLocal:"Local",
-    hostTypeLinux:"Linux",
-    hostTypeProxmox:"Proxmox",
-    proxmoxUrl:"Proxmox URL (e.g. https://pve.example.com:8006)",
-    metricsUrl:"Linux JSON metrics URL (e.g. http://linux.local/metrics)",
-    bearerTokenEnv:"Bearer token environment variable (optional)",
-    proxmoxTokenIdEnv:"Token ID: paste the value or env. var name (default PROXMOX_TOKEN_ID)",
-    proxmoxTokenSecretEnv:"Token secret: paste the value or env. var name (default PROXMOX_TOKEN_SECRET)",
     imageLibraryTitle:"PNG images",
     searchEditor:"Search an application...",
     noServices:"No services found.",
@@ -273,8 +233,6 @@ const UI_TEXT={
     viewRows:"Rows view",
     viewColumns:"Columns view",
     viewPlain:"Plain view",
-    collapseWebLinks:"Collapse web links",
-    expandWebLinks:"Expand web links",
     nativeThemes:"Native themes",
     customThemes:"Custom themes",
     importTheme:"Import theme",
@@ -284,16 +242,6 @@ const UI_TEXT={
     smallIconsFieldLabel:"Small icon mode",
     smallIconsOptionOff:"Large icons",
     smallIconsOptionOn:"Small icons",
-    hostsDisplayFieldLabel:"Hosts display",
-    hostsDisplayOptionName:"By name",
-    hostsDisplayOptionIcon:"By icon",
-    faviconFieldLabel:"Favicon (.ico)",
-    faviconOptionOn:"Enabled",
-    faviconOptionOff:"Disabled",
-    importFaviconLabel:"Import",
-    resetFaviconLabel:"Reset",
-    faviconFormatError:"Only .ico files are accepted.",
-    faviconTooLarge:"Favicon too large (max 256 KB).",
   }
 };
 
@@ -379,10 +327,6 @@ export function applyLanguage(){
   widgetConfigTitle.textContent=t("widgetConfigTitle");
   closeImageLibraryBtn.title=t("close");
 
-  const webLinksToggleText=state.webLinksCollapsed ? t("expandWebLinks") : t("collapseWebLinks");
-  webLinksHeader.title=webLinksToggleText;
-  webLinksHeader.setAttribute("aria-label",webLinksToggleText);
-
   const manageLabels=[
     ["themeManageLabel","manageThemes"],
     ["importThemeBtnLabel","importBtn"],
@@ -401,14 +345,6 @@ export function applyLanguage(){
     ["smallIconsFieldLabel","smallIconsFieldLabel"],
     ["smallIconsOptionOff","smallIconsOptionOff"],
     ["smallIconsOptionOn","smallIconsOptionOn"],
-    ["hostsDisplayFieldLabel","hostsDisplayFieldLabel"],
-    ["hostsDisplayOptionName","hostsDisplayOptionName"],
-    ["hostsDisplayOptionIcon","hostsDisplayOptionIcon"],
-    ["faviconFieldLabel","faviconFieldLabel"],
-    ["faviconOptionOn","faviconOptionOn"],
-    ["faviconOptionOff","faviconOptionOff"],
-    ["importFaviconLabel","importFaviconLabel"],
-    ["resetFaviconLabel","resetFaviconLabel"]
   ];
   appearanceLabels.forEach(([id,key])=>{
     const el=document.getElementById(id);

@@ -4,13 +4,13 @@ import { patchConfig } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
 import { render, updateViewButton, updateIconsButton, updateOpenModeMenu, updateGroupModeMenu,
   updateSortModeMenu, setGroupMode, getCollapseAllState, updateCollapseAllButton,
-  applyFavicon, updateStatusIndicators } from "./render.js";
-import { applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater, t } from "./i18n.js";
+  updateStatusIndicators } from "./render.js";
+import { applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater } from "./i18n.js";
 import {
   loadThemes, applyTheme, setTheme, currentTheme, downloadTheme,
   importThemeFile, deleteCustomTheme, applyThemeLabels
 } from "./themes.js";
-import { startStatusLoop, startHostMetricsLoop, refreshHostMetrics, setupVisibilityPause, manualRefresh } from "./metrics.js";
+import { startStatusLoop, setupVisibilityPause, manualRefresh } from "./metrics.js";
 import { openEditor, closeEditor, renderServiceEditor, renderCategoryEditor,
   renderHostEditor, renderWebLinksEditor, renderWidgetsEditor } from "./editor.js";
 import { closeImageLibrary } from "./images.js";
@@ -20,8 +20,7 @@ import {
   openModeSelect, groupCategoryBtn, groupHostBtn,
   sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuAppearanceBtn, menuRefreshBtn,
   appearanceBackdrop, appearanceCloseBtn, appearanceDoneBtn, themeSelect,
-  languageSelect, smallIconsSelect, hostsDisplaySelect, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
-  faviconInput, importFaviconBtn, resetFaviconBtn, faviconEnabledSelect,
+  languageSelect, smallIconsSelect, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
   themeImportInput, modalBackdrop, imageLibrary
 } from "./dom.js";
 
@@ -46,16 +45,12 @@ async function loadConfig(){
     state.openMode=viewPrefs.openMode;
     state.groupMode=viewPrefs.groupMode;
     state.sortMode=viewPrefs.sortMode;
-    state.webLinksCollapsed=viewPrefs.webLinksCollapsed;
     state.smallIcons=viewPrefs.smallIcons;
-    state.hostsDisplay=viewPrefs.hostsDisplay;
     state.theme=cfg.theme;
     state.language=cfg.language;
     state.usageCounts=cfg.usageCounts;
     state.webLinks=cfg.webLinks;
     state.webLinksSeedVersion=cfg.webLinksSeedVersion;
-    state.favicon=cfg.favicon;
-    state.faviconEnabled=cfg.faviconEnabled;
   }catch(error){
     console.error("Chargement de config.json impossible",error);
   }
@@ -66,10 +61,9 @@ async function loadConfig(){
   updateGroupModeMenu();
   updateSortModeMenu();
   applyTheme();
-  applyFavicon();
   applyLanguage();
   render();
-  startHostMetricsLoop();
+  setToolbarHeight();
 }
 
 function closeTopMenu(){
@@ -86,9 +80,16 @@ function setOpenMode(mode){
 }
 
 function setToolbarHeight(){
-  const rect=document.querySelector(".toolbar").getBoundingClientRect();
-  document.documentElement.style.setProperty("--toolbar-h",Math.max(0,rect.bottom)+"px");
+  const bar=document.querySelector(".top-bar");
+  const target=bar||document.querySelector(".toolbar");
+  const rect=target.getBoundingClientRect();
+  const bottom=Math.max(0,rect.bottom);
+  document.documentElement.style.setProperty("--toolbar-h",bottom+"px");
+  document.documentElement.style.setProperty("--top-bar-h",bottom+"px");
 }
+
+window.addEventListener("resize",setToolbarHeight);
+new ResizeObserver(setToolbarHeight).observe(document.querySelector(".top-bar"));
 
 function openAppearance(){
   setToolbarHeight();
@@ -98,9 +99,7 @@ function openAppearance(){
   }
   languageSelect.value=state.language;
   smallIconsSelect.value=state.smallIcons ? "1" : "0";
-  hostsDisplaySelect.value=state.hostsDisplay==="icon" ? "icon" : "name";
   openModeSelect.value=state.openMode==="new" ? "new" : "same";
-  faviconEnabledSelect.value=state.faviconEnabled!==false ? "1" : "0";
   updateThemeManageUI();
   appearanceBackdrop.classList.add("show");
   appearanceBackdrop.setAttribute("aria-hidden","false");
@@ -229,51 +228,7 @@ iconsBtn.addEventListener("click",()=>{
   saveViewPrefs({smallIcons:state.smallIcons});
 });
 
-hostsDisplaySelect.addEventListener("change",()=>{
-  state.hostsDisplay=hostsDisplaySelect.value==="icon" ? "icon" : "name";
-  refreshHostMetrics();
-  saveViewPrefs({hostsDisplay:state.hostsDisplay});
-});
-
 openModeSelect.addEventListener("change",()=>setOpenMode(openModeSelect.value));
-
-importFaviconBtn.addEventListener("click",()=>faviconInput.click());
-
-faviconInput.addEventListener("change",()=>{
-  const file=faviconInput.files?.[0];
-  faviconInput.value="";
-  if(!file) return;
-  if(!/\.ico$/i.test(file.name)){
-    alert(t("faviconFormatError"));
-    return;
-  }
-  if(file.size>256*1024){
-    alert(t("faviconTooLarge"));
-    return;
-  }
-  const reader=new FileReader();
-  reader.onload=()=>{
-    const result=String(reader.result||"");
-    const comma=result.indexOf(",");
-    if(comma<0) return;
-    state.favicon=`data:image/x-icon;base64,${result.slice(comma+1)}`;
-    applyFavicon();
-    patchConfig({favicon:state.favicon});
-  };
-  reader.readAsDataURL(file);
-});
-
-resetFaviconBtn.addEventListener("click",()=>{
-  state.favicon="";
-  applyFavicon();
-  patchConfig({favicon:""});
-});
-
-faviconEnabledSelect.addEventListener("change",()=>{
-  state.faviconEnabled=faviconEnabledSelect.value==="1";
-  applyFavicon();
-  patchConfig({faviconEnabled:state.faviconEnabled});
-});
 
 resetUsageBtn.addEventListener("click",()=>{
   state.usageCounts={};

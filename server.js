@@ -7,9 +7,6 @@ const express = require("express");
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
-const http = require("http");
-const https = require("https");
-const os = require("os");
 const httpClient = require("./lib/http");
 const { WidgetCore } = require("./lib/widget-core");
 
@@ -80,23 +77,6 @@ const INSECURE_TLS = process.env.DASHBOARD_INSECURE_TLS === "1";
 const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "";
 // Delai maximal d'une sonde de statut, partage par le core et les plugins.
 const STATUS_TIMEOUT = 4000;
-
-const TOKEN_ENV_ALLOWLIST = new Set([
-  "PROXMOX_TOKEN_ID",
-  "PROXMOX_TOKEN_SECRET",
-  "LINUX_METRICS_TOKEN",
-  ...String(process.env.DASHBOARD_TOKEN_ENVS||"").split(",")
-    .map(s=>s.trim().toUpperCase())
-    .filter(s=>/^[A-Z_][A-Z0-9_]*$/.test(s))
-]);
-
-if (!DASHBOARD_PASSWORD) {
-  const populated=[...TOKEN_ENV_ALLOWLIST].filter(name=>process.env[name]);
-  if (populated.length) {
-    console.warn(`${ts()} ⚠ ATTENTION : Dashmon est lancé SANS mot de passe (DASHBOARD_PASSWORD vide) alors que des tokens sensibles sont chargés (${populated.join(", ")}).`);
-    console.warn(`${ts()} ⚠ N'\u00e9ditez pas la config depuis des machines non fiables, et exposez Dashmon derrière un proxy HTTPS + mot de passe.`);
-  }
-}
 
 app.use((_req, res, next) => {
   res.set("X-Content-Type-Options", "nosniff");
@@ -194,9 +174,6 @@ function rateLimitGet(req, res, next) {
   next();
 }
 
-// /api/host-metrics déclenche des requêtes HTTP sortantes vers les hôtes :
-// borné pour éviter d'être utilisé comme relais d'amplification (SSRF).
-app.use("/api/host-metrics", rateLimitGet);
 app.use("/api/status", rateLimitGet);
 
 if (DASHBOARD_PASSWORD) {
@@ -314,12 +291,6 @@ const widgetCore = new WidgetCore({
 });
 httpClient.configure({ insecure: INSECURE_TLS, timeout: STATUS_TIMEOUT });
 
-function sanitizeFavicon(value) {
-  const s = String(value || "").trim();
-  if (!s || s.length > 350000) return "";
-  return /^data:image\/[a-z0-9.+-]+;base64,[a-z0-9+/=]+$/i.test(s) ? s : "";
-}
-
 function ensureDataFiles(){
   fs.mkdirSync(DATA_DIR,{recursive:true});
   fs.mkdirSync(ICONS_DIR,{recursive:true});
@@ -341,10 +312,7 @@ function ensureDataFiles(){
         groupMode:"category",
         theme:"dark",
         webLinks:[],
-        webLinksCollapsed:false,
-        smallIcons:false,
-        hostsDisplay:"name",
-        favicon:""
+        smallIcons:false
       },null,2)+"\n","utf8");
     }
   }
@@ -353,7 +321,16 @@ function ensureDataFiles(){
 ensureDataFiles();
 
 function readConfig(){
-  return JSON.parse(fs.readFileSync(CONFIG_FILE,"utf8"));
+  const config=JSON.parse(fs.readFileSync(CONFIG_FILE,"utf8"));
+  // Les anciens reglages retires ne sont plus exposes ni recopies lors d'une
+  // sauvegarde. Le fichier existant reste lisible sans migration destructive.
+  for(const key of ["favicon","faviconEnabled","hostsDisplay","webLinksCollapsed"]){
+    delete config[key];
+  }
+  if(Array.isArray(config.hosts)){
+    config.hosts.forEach(host=>{ if(host && typeof host==="object") delete host.monitoring; });
+  }
+  return config;
 }
 
 // NOTE : aucun hôte d'exemple n'est injecté — la config est celle de
@@ -375,7 +352,6 @@ function ensureWebLinksSeeded(){
   if(currentVersion>=WEB_LINKS_SEED_VERSION) return;
 
   config.webLinks=DEFAULT_WEB_LINKS;
-  config.webLinksCollapsed=false;
   config.webLinksSeedVersion=WEB_LINKS_SEED_VERSION;
 
   try {
@@ -611,26 +587,11 @@ function buildConfigOutput(config){
       specialTile:sanitizeSpecialTile(config.specialTile,categories),
       hosts:Array.isArray(config.hosts)
         ? config.hosts.slice(0,50).map(host=>{
-            const tokenEnv=String(host.monitoring?.tokenEnv||"").trim();
-            const tokenIdEnv=String(host.monitoring?.tokenIdEnv||"").trim();
-            const tokenSecretEnv=String(host.monitoring?.tokenSecretEnv||"").trim();
             return {
               id:sanitizeText(host.id,64) || "host-"+crypto.randomBytes(6).toString("hex"),
               name:sanitizeText(host.name,100),
               icon:sanitizeIconClass(host.icon),
-              color:sanitizeColor(host.color),
-              monitoring:{
-                enabled:host.monitoring?.enabled===true,
-                type:["local","linux","proxmox"].includes(host.monitoring?.type)
-                  ? host.monitoring.type : "local",
-                url:sanitizeUrl(host.monitoring?.url||""),
-                node:sanitizeText(host.monitoring?.node||"",50),
-                tokenEnv:TOKEN_ENV_ALLOWLIST.has(tokenEnv) ? tokenEnv : "",
-                tokenIdEnv:TOKEN_ENV_ALLOWLIST.has(tokenIdEnv) ? tokenIdEnv : "",
-                tokenSecretEnv:TOKEN_ENV_ALLOWLIST.has(tokenSecretEnv) ? tokenSecretEnv : "",
-                tokenId:sanitizeText(host.monitoring?.tokenId||"",2000),
-                tokenSecret:sanitizeText(host.monitoring?.tokenSecret||"",2000)
-              }
+              color:sanitizeColor(host.color)
             };
           })
         : [],
@@ -660,13 +621,9 @@ function buildConfigOutput(config){
             counter:sanitizeLinkCounter(link.counter)
           }))
         : [],
-      webLinksCollapsed:config.webLinksCollapsed===true,
       webLinksSeedVersion:Number.isFinite(Number(config.webLinksSeedVersion))
         ? Number(config.webLinksSeedVersion) : 0,
-      smallIcons:config.smallIcons===true,
-      hostsDisplay:config.hostsDisplay==="icon" ? "icon" : "name",
-      favicon:sanitizeFavicon(config.favicon),
-      faviconEnabled:config.faviconEnabled!==false
+      smallIcons:config.smallIcons===true
   };
 }
 
@@ -987,22 +944,13 @@ app.delete("/api/themes/:id",(req,res)=>{
 });
 
 app.get("/",(_req,res)=>{
-  let faviconHref="/logo.png";
-  try{
-    const cfg=readConfig();
-    if(cfg.faviconEnabled!==false){
-      faviconHref=sanitizeFavicon(cfg.favicon) || "/logo.png";
-    }else{
-      faviconHref="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'/>";
-    }
-  }catch(_error){}
   // La page doit toujours etre revalidee : elle porte le libelle de version du
   // pied de page et les references des scripts. Sans cet en-tete, un
   // navigateur garde le HTML en cache et affiche une version perimee alors que
   // les scripts, eux, sont bien charges a jour. Les routes API sont deja en
   // no-store pour la meme raison.
   res.set("Cache-Control","no-store");
-  res.type("html").send(INDEX_HTML.replace("{{FAVICON_HREF}}",faviconHref));
+  res.type("html").send(INDEX_HTML);
 });
 app.use(express.static(PUBLIC_DIR));
 
@@ -1084,273 +1032,6 @@ async function refreshStatuses(force=false){
     if(cache) cache.lastCheck=Date.now();
   });
 }
-
-function readCpuTimes(){
-  return os.cpus().reduce((acc,cpu)=>{
-    const times=cpu.times||{};
-    acc.idle+=Number(times.idle||0);
-    acc.total+=Object.values(times).reduce((sum,value)=>sum+Number(value||0),0);
-    return acc;
-  },{idle:0,total:0});
-}
-
-let previousCpuTimes=readCpuTimes();
-
-function getLocalMetrics(){
-  const current=readCpuTimes();
-  const idleDelta=current.idle-previousCpuTimes.idle;
-  const totalDelta=current.total-previousCpuTimes.total;
-  previousCpuTimes=current;
-
-  const cpu=totalDelta>0 ? (1-(idleDelta/totalDelta))*100 : 0;
-  const totalMem=os.totalmem();
-  const freeMem=os.freemem();
-  const ram=totalMem>0 ? ((totalMem-freeMem)/totalMem)*100 : 0;
-
-  return {
-    cpu:Math.max(0,Math.min(100,cpu)),
-    ram:Math.max(0,Math.min(100,ram))
-  };
-}
-
-function getEnvValue(name,fallbackName){
-  const candidates=[String(name||"").trim(),String(fallbackName||"").trim()];
-  for(const candidate of candidates){
-    if(candidate && TOKEN_ENV_ALLOWLIST.has(candidate)){
-      return process.env[candidate]||"";
-    }
-  }
-  return "";
-}
-
-function requestJsonMetrics(urlValue,tokenEnv){
-  return new Promise((resolve,reject)=>{
-    if(!urlValue) return reject(new Error("URL de métriques manquante"));
-
-    let target;
-    try{
-      target=new URL(urlValue);
-    }catch(_error){
-      return reject(new Error("URL de métriques invalide"));
-    }
-
-    const headers={Accept:"application/json"};
-    const token=getEnvValue(tokenEnv);
-    if(token) headers.Authorization=`Bearer ${token}`;
-
-    const client=target.protocol==="http:" ? http : https;
-    const req=client.request(target,{
-      method:"GET",
-      headers,
-      rejectUnauthorized:!INSECURE_TLS,
-      timeout:4000
-    },response=>{
-      let body="";
-      response.setEncoding("utf8");
-      response.on("data",chunk=>{
-        body+=chunk;
-        if(body.length>512*1024) req.destroy(new Error("Réponse trop volumineuse"));
-      });
-      response.on("end",()=>{
-        if(response.statusCode<200 || response.statusCode>=300){
-          return reject(new Error(`Métriques HTTP ${response.statusCode}`));
-        }
-        try{
-          const data=JSON.parse(body);
-          const cpu=Number(data.cpu);
-          const ram=Number(data.ram);
-          if(!Number.isFinite(cpu) || !Number.isFinite(ram)){
-            return reject(new Error("Le JSON doit contenir cpu et ram en pourcentage"));
-          }
-          resolve({
-            cpu:Math.max(0,Math.min(100,cpu)),
-            ram:Math.max(0,Math.min(100,ram))
-          });
-        }catch(error){
-          reject(error.message?.includes("cpu et ram") ? error : new Error("Réponse métriques JSON invalide"));
-        }
-      });
-    });
-    req.on("timeout",()=>req.destroy(new Error("timeout")));
-    req.on("error",reject);
-    req.end();
-  });
-}
-
-function pveRequest(base,tokenId,tokenSecret,apiPath){
-  return new Promise((resolve,reject)=>{
-    let target;
-    try{
-      target=new URL(`${base}${apiPath}`);
-    }catch(_error){
-      return reject(new Error("URL Proxmox invalide"));
-    }
-
-    const client=target.protocol==="http:" ? http : https;
-    const req=client.request(target,{
-      method:"GET",
-      headers:{
-        Authorization:`PVEAPIToken=${tokenId}=${tokenSecret}`,
-        Accept:"application/json"
-      },
-      rejectUnauthorized:!INSECURE_TLS,
-      timeout:4000
-    },response=>{
-      let body="";
-      response.setEncoding("utf8");
-      response.on("data",chunk=>{
-        body+=chunk;
-        if(body.length>1024*1024) req.destroy(new Error("Réponse trop volumineuse"));
-      });
-      response.on("end",()=>{
-        if(response.statusCode<200 || response.statusCode>=300){
-          return reject(new Error(`Proxmox HTTP ${response.statusCode}`));
-        }
-        try{
-          resolve(JSON.parse(body));
-        }catch(_error){
-          reject(new Error("Réponse Proxmox invalide"));
-        }
-      });
-    });
-
-    req.on("timeout",()=>req.destroy(new Error("timeout")));
-    req.on("error",reject);
-    req.end();
-  });
-}
-
-async function getProxmoxMetrics(host){
-  const urlValue=(host.monitoring?.url||"").trim();
-  let node=(host.monitoring?.node||"").trim();
-  const tokenId=getEnvValue(host.monitoring?.tokenIdEnv,"PROXMOX_TOKEN_ID")
-    || String(host.monitoring?.tokenId||"").trim();
-  const tokenSecret=getEnvValue(host.monitoring?.tokenSecretEnv,"PROXMOX_TOKEN_SECRET")
-    || String(host.monitoring?.tokenSecret||"").trim();
-
-  if(!urlValue) throw new Error("URL Proxmox manquante");
-  if(!tokenId || !tokenSecret) throw new Error("Token Proxmox non configuré");
-
-  const base=urlValue.replace(/\/+$/,"");
-
-  const listProxmoxNodes=async()=>{
-    try{
-      const list=await pveRequest(base,tokenId,tokenSecret,"/api2/json/nodes");
-      return list?.data||[];
-    }catch(_error){
-      return null;
-    }
-  };
-
-  // Nœud auto-détecté : le champ n'est plus demandé dans l'éditeur. Premier
-  // nœud en ligne (repli sur "pve") ; un nœud configuré d'anciennes versions
-  // qui n'existe plus (renommé/supprimé) est ignoré au profit du premier en ligne.
-  const nodes=await listProxmoxNodes();
-  const online=(nodes||[]).filter(entry=>entry?.status==="online");
-  const configured=node && (nodes||[]).some(entry=>String(entry.node||"")===node)
-    ? node : "";
-  node=configured
-    || (online.length ? String(online[0].node||"").trim() : "")
-    || "pve";
-
-  const payload=await pveRequest(base,tokenId,tokenSecret,
-    `/api2/json/nodes/${encodeURIComponent(node)}/status`);
-
-  const data=payload?.data||{};
-  const cpu=Number(data.cpu)*100;
-  const memory=data.memory||{};
-  const used=Number(memory.used);
-  const total=Number(memory.total);
-  const ram=total>0 ? (used/total)*100 : NaN;
-
-  if(!Number.isFinite(cpu) || !Number.isFinite(ram)){
-    throw new Error("Métriques Proxmox incomplètes");
-  }
-
-  return {
-    cpu:Math.max(0,Math.min(100,cpu)),
-    ram:Math.max(0,Math.min(100,ram))
-  };
-}
-
-const HOST_METRICS_TTL=10000;
-let hostMetricsCache={ts:0,payload:null};
-let hostMetricsInflight=null;
-
-app.get("/api/host-metrics",async(_req,res)=>{
-  if(hostMetricsCache.payload && Date.now()-hostMetricsCache.ts < HOST_METRICS_TTL){
-    return res.set("Cache-Control","no-store").json(hostMetricsCache.payload);
-  }
-
-  // Déduplication des requêtes simultanées : un seul refresh partagé,
-  // les navigateurs concurrents reçoivent la même promesse.
-  if(hostMetricsInflight){
-    try{
-      const payload=await hostMetricsInflight;
-      return res.set("Cache-Control","no-store").json(payload);
-    }catch(_error){
-      return res.status(500).json({error:"Lecture des métriques impossible"});
-    }
-  }
-
-  let config;
-  try{
-    config=readConfig();
-  }catch(error){
-    return res.status(500).json({error:"Lecture de config.json impossible"});
-  }
-
-  const hosts=Array.isArray(config.hosts)
-    ? config.hosts.filter(host=>host?.monitoring?.enabled===true)
-    : [];
-
-  const localMetrics=getLocalMetrics();
-
-  const refresh=Promise.all(hosts.map(async host=>{
-    try{
-      const allowedTypes=["local","linux","proxmox"];
-      const type=allowedTypes.includes(host.monitoring?.type) ? host.monitoring.type : "local";
-      let metrics;
-      if(type==="proxmox"){
-        metrics=await getProxmoxMetrics(host);
-      }else if(type==="linux"){
-        metrics=await requestJsonMetrics(
-          (host.monitoring?.url||"").trim(),
-          (host.monitoring?.tokenEnv||"").trim()
-        );
-      }else{
-        metrics=localMetrics;
-      }
-      return {
-        name:host.name||"Hôte",
-        type,
-        ok:true,
-        cpu:metrics.cpu,
-        ram:metrics.ram
-      };
-    }catch(error){
-      return {
-        name:host.name||"Hôte",
-        type:host.monitoring?.type||"local",
-        ok:false,
-        error:error.message
-      };
-    }
-  })).then(results=>({hosts:results}));
-
-  hostMetricsInflight=refresh;
-  try{
-    const payload=await refresh;
-    hostMetricsCache={ts:Date.now(),payload};
-    res.set("Cache-Control","no-store");
-    res.json(payload);
-  }catch(error){
-    console.error("Refresh métriques:",error);
-    res.status(500).json({error:"Lecture des métriques impossible"});
-  }finally{
-    if(hostMetricsInflight===refresh) hostMetricsInflight=null;
-  }
-});
 
 app.get("/api/status",(_req,res)=>{
   res.set("Cache-Control","no-store");

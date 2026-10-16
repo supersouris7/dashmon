@@ -51,18 +51,17 @@ main{
   flex:1;
 }
 
-.toolbar{
+.top-bar{
   position:fixed;
   top:0;
   left:0;
   right:0;
   z-index:20;
-  display:grid;
-  /* Pas de colonne "logo" : le logo a ete retire du bandeau, et la recherche
-     recupere la place. Elle est elargie parce que le texte d'une categorie
-     assez longue ne tenait plus dans les 200 px d'origine. */
-  grid-template-columns:minmax(220px,340px) 1fr 48px 48px 48px 48px;
-  grid-template-areas:"search metrics view icons collapse more";
+}
+
+.toolbar{
+  display:flex;
+  justify-content:flex-end;
   align-items:center;
   gap:10px;
   box-sizing:border-box;
@@ -70,12 +69,13 @@ main{
   background:var(--bg);
 }
 
-@media(min-width:921px){
-  main{padding-top:68px}
-}
+main{padding-top:var(--top-bar-h,112px)}
+
+.toolbar > .icon-btn,
+.toolbar > .top-menu-wrap{flex:0 0 auto}
 
 .search-box{
-  grid-area:search;
+  flex:0 1 340px;
   position:relative;
   min-width:0;
   height:40px;

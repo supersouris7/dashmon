@@ -288,8 +288,6 @@ export const DEFAULT_WEB_LINKS=[
   {"name":"GitHub","url":"https://github.com","icon":"fa-brands fa-github"}
 ];
 
-export const DEFAULT_FAVICON="/logo.png";
-
 // Libellé stable (indépendant de la langue) pour le groupe des services sans
 // hôte : les clefs collapsed reposent dessus. Affiché via t("noHost").
 export const FALLBACK_HOST="Sans hôte";
@@ -307,12 +305,8 @@ export const state = {
   sortMode: "alphabetical",
   usageCounts: {},
   webLinks: [],
-  webLinksCollapsed: false,
   webLinksSeedVersion: 0,
   smallIcons: false,
-  hostsDisplay: "name",
-  favicon: "",
-  faviconEnabled: true,
   editServices: [],
   editCategories: [],
   editHosts: [],
@@ -320,9 +314,7 @@ export const state = {
   specialTile: null,
   editSpecialTile: null,
   serviceStatus: {},
-  hostMetricsData: [],
   statusTimer: null,
-  hostMetricsTimer: null,
   themes: { native: [], custom: [] }
 };
 
@@ -432,16 +424,6 @@ function sanitizeImagePath(p) {
   return m ? `icons/${m[1]}.png` : "";
 }
 
-// Doit rester identique à server.js (sanitizeFavicon) pour éviter des
-// divergences à l'enregistrement (le serveur écraserait sinon le champ).
-export const MAX_FAVICON_BYTES=350000;
-
-function sanitizeFavicon(value){
-  const s=String(value||"").trim();
-  if(!s || s.length>MAX_FAVICON_BYTES) return "";
-  return /^data:image\/[a-z0-9.+-]+;base64,[a-z0-9+/=]+$/i.test(s) ? s : "";
-}
-
 function normalizeCollapsed(collapsed){
   if(!collapsed || typeof collapsed!=="object" || Array.isArray(collapsed)) return {};
   const out={...collapsed};
@@ -464,7 +446,7 @@ function normalizeCollapsed(collapsed){
 // navigateur ne puisse pas casser le rendu.
 export const VIEW_PREF_KEYS=Object.freeze([
   "viewMode","sortMode","groupMode","openMode",
-  "smallIcons","hostsDisplay","collapsed","webLinksCollapsed"
+  "smallIcons","collapsed"
 ]);
 
 export function normalizeViewPrefs(cfg={}){
@@ -473,9 +455,7 @@ export function normalizeViewPrefs(cfg={}){
     openMode:cfg.openMode==="new" ? "new" : "same",
     groupMode:cfg.groupMode==="host" ? "host" : "category",
     sortMode:cfg.sortMode==="usage" ? "usage" : "alphabetical",
-    webLinksCollapsed:cfg.webLinksCollapsed===true,
     smallIcons:cfg.smallIcons===true,
-    hostsDisplay:cfg.hostsDisplay==="icon" ? "icon" : "name",
     collapsed:normalizeCollapsed(cfg.collapsed)
   };
 }
@@ -580,23 +560,11 @@ export function normalizeConfig(cfg={}){
           id:sanitizeText(host.id,64),
           name:sanitizeText(host.name,100),
           icon:sanitizeIconClass(host.icon),
-          color:sanitizeTileColor(host.color),
-          monitoring:{
-            enabled:host.monitoring?.enabled===true,
-            type:["local","linux","proxmox"].includes(host.monitoring?.type) ? host.monitoring.type : "local",
-            url:sanitizeUrl(host.monitoring?.url||""),
-            node:sanitizeText(host.monitoring?.node||"",50),
-            tokenEnv:sanitizeText(host.monitoring?.tokenEnv||"",50),
-            tokenIdEnv:sanitizeText(host.monitoring?.tokenIdEnv||"",50),
-            tokenSecretEnv:sanitizeText(host.monitoring?.tokenSecretEnv||"",50),
-            tokenId:sanitizeText(host.monitoring?.tokenId||"",2000),
-            tokenSecret:sanitizeText(host.monitoring?.tokenSecret||"",2000)
-          }
+          color:sanitizeTileColor(host.color)
         }))
       : derivedHosts.map(host=>({
           ...host,
-          id:host.id||"host-"+Math.random().toString(36).slice(2,10),
-          monitoring:host.monitoring || {enabled:false,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}
+          id:host.id||"host-"+Math.random().toString(36).slice(2,10)
         })),
     theme:typeof cfg.theme==="string" && cfg.theme.trim() ? cfg.theme.trim() : "dark",
     language:cfg.language==="en" ? "en" : "fr",
@@ -608,9 +576,7 @@ export function normalizeConfig(cfg={}){
         icon:sanitizeIconClass(link.icon),
         counter:normalizeLinkCounter(link.counter)
       })),
-    webLinksSeedVersion:Number.isFinite(Number(cfg.webLinksSeedVersion)) ? Number(cfg.webLinksSeedVersion) : 0,
-    favicon:sanitizeFavicon(cfg.favicon),
-    faviconEnabled:cfg.faviconEnabled!==false
+    webLinksSeedVersion:Number.isFinite(Number(cfg.webLinksSeedVersion)) ? Number(cfg.webLinksSeedVersion) : 0
   };
   // Categories et hotes ont chacun LEUR palette : une couleur d'hote peut
   // legitimement etre la meme qu'une couleur de categorie. Les deux listes

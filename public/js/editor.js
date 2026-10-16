@@ -3,9 +3,8 @@ import { state, clone, normalize, normalizeConfig, normalizeViewPrefs, compareNa
 import { t, applyLanguage } from "./i18n.js";
 import { saveConfig, putConfig, fetchConfig } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
-import { render, updateViewButton, updateIconsButton, updateOpenModeMenu, updateGroupModeMenu, updateSortModeMenu, applyFavicon } from "./render.js";
+import { render, updateViewButton, updateIconsButton, updateOpenModeMenu, updateGroupModeMenu, updateSortModeMenu } from "./render.js";
 import { applyTheme } from "./themes.js";
-import { refreshHostMetrics } from "./metrics.js";
 import { openImageLibrary, renderImageManager } from "./images.js";
 import { createIconPicker, createHostIconPicker, createWebLinkIconPicker } from "./icons.js";
 import {
@@ -793,10 +792,6 @@ export function renderHostEditor(){
   hostEditor.innerHTML="";
 
   state.editHosts.forEach((host,index)=>{
-    host.monitoring=host.monitoring && typeof host.monitoring==="object"
-      ? host.monitoring
-      : {enabled:false,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""};
-
     const row=document.createElement("div");
     row.className="host-row";
 
@@ -821,107 +816,6 @@ export function renderHostEditor(){
 
     const picker=createHostIconPicker(host,index);
 
-    const monitor=document.createElement("button");
-    monitor.className=`monitor-toggle host-monitor-toggle ${host.monitoring.enabled ? "active" : ""}`;
-    monitor.type="button";
-    monitor.title=host.monitoring.enabled ? t("hostMonitoringEnabled") : t("hostMonitoringDisabled");
-    monitor.innerHTML='<i class="fa-solid fa-chart-simple"></i>';
-    monitor.addEventListener("click",()=>{
-      state.editHosts[index].monitoring.enabled=!state.editHosts[index].monitoring.enabled;
-      renderHostEditor();
-    });
-
-    const type=document.createElement("select");
-    type.className="edit-select host-monitor-type";
-    type.title=t("hostMonitoringType");
-    [
-      ["local",t("hostTypeLocal")],
-      ["linux",t("hostTypeLinux")],
-      ["proxmox",t("hostTypeProxmox")]
-    ].forEach(([value,label])=>{
-      const option=document.createElement("option");
-      option.value=value;
-      option.textContent=label;
-      type.appendChild(option);
-    });
-    type.value=host.monitoring.type||"local";
-
-    const params=document.createElement("div");
-    params.className="host-params";
-
-    const auth=document.createElement("div");
-    auth.className="host-auth";
-
-    const url=document.createElement("input");
-    url.className="edit-input";
-    url.value=host.monitoring.url||"";
-
-    const node=document.createElement("input");
-    node.className="edit-input";
-    node.value=host.monitoring.node||"";
-
-    const tokenEnv=document.createElement("input");
-    tokenEnv.className="edit-input";
-    tokenEnv.value=host.monitoring.tokenEnv||"";
-
-    const tokenIdEnv=document.createElement("input");
-    tokenIdEnv.className="edit-input";
-    tokenIdEnv.value=host.monitoring.tokenId||host.monitoring.tokenIdEnv||"";
-
-    const tokenSecretEnv=document.createElement("input");
-    tokenSecretEnv.className="edit-input";
-    tokenSecretEnv.value=host.monitoring.tokenSecret||host.monitoring.tokenSecretEnv||"";
-
-    const updateTypeFields=()=>{
-      params.innerHTML="";
-      auth.innerHTML="";
-      const currentType=type.value;
-
-      if(currentType==="local"){
-        const none=document.createElement("span");
-        none.className="host-no-params";
-        none.textContent=t("noParameters");
-        params.appendChild(none);
-
-        const localAuth=document.createElement("span");
-        localAuth.className="host-no-params";
-        localAuth.textContent=t("noAuthentication");
-        auth.appendChild(localAuth);
-        return;
-      }
-
-      if(currentType==="proxmox"){
-        url.placeholder=t("proxmoxUrl");
-        url.title=t("proxmoxUrl");
-        tokenIdEnv.placeholder=t("proxmoxTokenIdEnv");
-        tokenIdEnv.title=t("proxmoxTokenIdEnv");
-        tokenSecretEnv.placeholder=t("proxmoxTokenSecretEnv");
-        tokenSecretEnv.title=t("proxmoxTokenSecretEnv");
-        params.appendChild(url);
-        auth.append(tokenIdEnv,tokenSecretEnv);
-        return;
-      }
-
-      url.placeholder=t("metricsUrl");
-      url.title=t("metricsUrl");
-      tokenEnv.placeholder=t("bearerTokenEnv");
-      tokenEnv.title=t("bearerTokenEnv");
-      params.appendChild(url);
-      auth.appendChild(tokenEnv);
-    };
-    updateTypeFields();
-
-    type.addEventListener("change",()=>{
-      state.editHosts[index].monitoring.type=type.value;
-      updateTypeFields();
-      refreshEditorHostFilter();
-    });
-    url.addEventListener("input",()=>state.editHosts[index].monitoring.url=url.value);
-    node.addEventListener("input",()=>state.editHosts[index].monitoring.node=node.value);
-    tokenEnv.addEventListener("input",()=>state.editHosts[index].monitoring.tokenEnv=tokenEnv.value);
-    tokenIdEnv.addEventListener("input",()=>{state.editHosts[index].monitoring.tokenIdEnv=tokenIdEnv.value;state.editHosts[index].monitoring.tokenId="";});
-    tokenSecretEnv.addEventListener("input",()=>{state.editHosts[index].monitoring.tokenSecretEnv=tokenSecretEnv.value;state.editHosts[index].monitoring.tokenSecret="";});
-
     const remove=document.createElement("button");
     remove.className="small-icon-btn delete-btn";
     remove.type="button";
@@ -938,7 +832,7 @@ export function renderHostEditor(){
       renderServiceEditor();
     });
 
-    row.append(drag,name,picker,createColorPicker(host),monitor,type,params,auth,remove);
+    row.append(drag,name,picker,createColorPicker(host),remove);
     makeDraggable(row,state.editHosts,index,()=>{
       renderHostEditor();
       renderServiceEditor();
@@ -1038,7 +932,7 @@ addWebLinkBtn.addEventListener("click",()=>{
 });
 
 addHostBtn.addEventListener("click",()=>{
-  const newHost={id:"host-"+Math.random().toString(36).slice(2,12),name:t("newHost"),icon:"fa-solid fa-server",monitoring:{enabled:true,type:"local",url:"",node:"",tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",tokenId:"",tokenSecret:""}};
+  const newHost={id:"host-"+Math.random().toString(36).slice(2,12),name:t("newHost"),icon:"fa-solid fa-server"};
   state.editHosts.push(newHost);
   renderHostEditor();
   renderServiceEditor();
@@ -1084,15 +978,11 @@ configImportInput.addEventListener("change",async()=>{
     state.openMode=viewPrefs.openMode;
     state.groupMode=viewPrefs.groupMode;
     state.sortMode=viewPrefs.sortMode;
-    state.webLinksCollapsed=viewPrefs.webLinksCollapsed;
     state.smallIcons=viewPrefs.smallIcons;
-    state.hostsDisplay=viewPrefs.hostsDisplay;
     state.theme=imported.theme;
     state.language=imported.language;
     state.usageCounts={...imported.usageCounts};
     state.webLinks=clone(imported.webLinks);
-    state.favicon=imported.favicon;
-    state.faviconEnabled=imported.faviconEnabled!==false;
 
     state.editServices=clone(state.services);
     state.editCategories=clone(state.categories);
@@ -1101,7 +991,6 @@ configImportInput.addEventListener("change",async()=>{
     state.editSpecialTile=clone(state.specialTile);
 
     applyTheme();
-    applyFavicon();
   applyLanguage();
   updateViewButton();
   updateIconsButton();
@@ -1114,7 +1003,6 @@ configImportInput.addEventListener("change",async()=>{
     renderWebLinksEditor();
     renderWidgetsEditor();
     render();
-    refreshHostMetrics();
   }catch(error){
     console.error("Import de configuration impossible",error);
     alert("Fichier de configuration invalide.");
@@ -1167,35 +1055,13 @@ saveBtn.addEventListener("click",async()=>{
     }))
     .filter(c=>c.name);
 
-  const splitToken=(value)=>{
-    const trimmed=String(value||"").trim();
-    return /^[A-Z_][A-Z0-9_]*$/.test(trimmed)
-      ? {alias:trimmed, literal:""}
-      : {alias:"", literal:trimmed};
-  };
-
   const cleanedHosts=state.editHosts
-    .map(h=>{
-      const tokenId=splitToken(h.monitoring?.tokenId||h.monitoring?.tokenIdEnv);
-      const tokenSecret=splitToken(h.monitoring?.tokenSecret||h.monitoring?.tokenSecretEnv);
-      return {
+    .map(h=>({
         id:String(h.id||"").trim().slice(0,64) || "host-"+Math.random().toString(36).slice(2,12),
         name:(h.name||"").trim(),
         icon:h.icon||"fa-solid fa-server",
-        color:sanitizeTileColor(h.color),
-      monitoring:{
-        enabled:h.monitoring?.enabled===true,
-        type:["local","linux","proxmox"].includes(h.monitoring?.type) ? h.monitoring.type : "local",
-        url:(h.monitoring?.url||"").trim(),
-        node:(h.monitoring?.node||"").trim(),
-        tokenEnv:(h.monitoring?.tokenEnv||"").trim(),
-        tokenIdEnv:tokenId.alias,
-        tokenSecretEnv:tokenSecret.alias,
-        tokenId:tokenId.literal,
-        tokenSecret:tokenSecret.literal
-      }
-    };
-    })
+        color:sanitizeTileColor(h.color)
+    }))
     .filter(h=>h.name);
 
   const validNames=new Set(cleanedCategories.map(c=>c.name));
@@ -1253,7 +1119,6 @@ saveBtn.addEventListener("click",async()=>{
 
   render();
   await saveConfig(true);
-  refreshHostMetrics();
   closeEditor();
 });
 
