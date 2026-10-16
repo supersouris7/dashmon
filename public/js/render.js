@@ -182,7 +182,7 @@ function createFortuneCard(key){
 
   const icon=document.createElement("div");
   icon.className="service-fallback";
-  icon.innerHTML='<i class="fa-solid fa-cookie-bite"></i>';
+  icon.innerHTML='<img src="images/fortunecookie.png" alt="Fortune Cookie" style="max-width:100%;max-height:100%;object-fit:contain;">';
   card.appendChild(icon);
 
   const text=document.createElement("div");
