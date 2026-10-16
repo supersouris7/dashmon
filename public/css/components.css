@@ -672,7 +672,7 @@ body.is-refreshing .widget-status{animation:refreshPulse 1.15s ease-in-out infin
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  font-size:11px;
+  font-size:13px;
   font-weight:700;
   letter-spacing:.05em;
   line-height:1.4;
@@ -690,8 +690,8 @@ body.is-refreshing .widget-status{animation:refreshPulse 1.15s ease-in-out infin
 .widget-badge.pending{opacity:.6}
 
 .widget-time{
-  font-size:11px;
-  line-height:1;
+  font-size:13px;
+  line-height:1.1;
   color:var(--muted);
   white-space:nowrap;
   overflow:hidden;
@@ -724,9 +724,8 @@ body.is-refreshing .widget-status{animation:refreshPulse 1.15s ease-in-out infin
   font-weight:700;
 }
 
-#dashboard.small-icons .widget-time{display:none}
-
-#dashboard.small-icons .widget-badge{font-size:10px}
+/* Le mode compact resserre la tuile, pas ses informations : les deux lignes du
+   widget gardent la meme taille que sur une tuile normale. */
 
 .monitor-toggle{
   width:34px;
