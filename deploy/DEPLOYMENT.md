@@ -126,20 +126,36 @@ the resolvers configured on the host, so names that exist only on your LAN DNS
 If your monitored URLs use local names:
 
 1. Find your LAN DNS server (e.g. `nslookup mymachine.lan` on another machine).
-2. Point the container DNS to it in `docker-compose.yml`:
+2. Set `DASHMON_DNS` to that resolver's IP. It is a Compose **substitution**
+   variable, so it goes in the `.env` file next to `docker-compose.yml` (or in
+   your host environment / the Portainer stack's *Environment variables*), not
+   in the service's `environment:` block:
+
+```dotenv
+DASHMON_DNS=192.0.2.53
+```
+
+   The repo's `docker-compose.yml` wires it to the container:
 
 ```yaml
     dns:
-      - 192.0.2.53
+      - ${DASHMON_DNS:-127.0.0.11}
 ```
+
+   `127.0.0.11` is Docker's embedded resolver, so leaving `DASHMON_DNS` empty
+   behaves exactly as before.
 
 3. Restart (`docker compose up -d`) and check the status pills turn green.
 
 > **This setting lives in the container definition, not in the image.** Anything
 > that recreates the container — `docker compose up`, Portainer's *Pull and
 > redeploy*, an update by Watchtower — rebuilds it, and `dns:` only survives if
-> it is still in your stack definition. If the pills that were green turn red
-> after a redeploy, the resolver is the first thing to check:
+> it is still in your stack definition. That is exactly why it is driven by an
+> environment variable here: environment values are part of the stack, so they
+> survive a redeploy, while a `dns:` entry edited once on the running container
+> does not. If the pills that were green turn red after a redeploy — Uptime Kuma
+> going dark is the usual first symptom — the resolver is the first thing to
+> check:
 >
 > ```sh
 > docker inspect dashmon --format '{{json .HostConfig.Dns}}'

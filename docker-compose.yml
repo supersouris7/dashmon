@@ -29,11 +29,13 @@ services:
       DASHMON_MASTER_KEY: ${DASHMON_MASTER_KEY:-}
     volumes:
       - dashmon-data:/app/data
-    # Résolution DNS des noms locaux (.lan, .home…) pour les pastilles d'état.
-    # Si vos services ne sont pas joignables par nom depuis le conteneur
-    # (Docker ne connaît pas votre DNS LAN), pointez vers votre résolveur :
-    #   dns:
-    #     - 192.0.2.53
+    # Résolution DNS des noms locaux (.lan, .home…) pour les pastilles d'état et
+    # les widgets (Uptime Kuma compris). Docker ne connaît pas votre DNS LAN :
+    # renseignez DASHMON_DNS dans votre pile (adresse IP, pas un nom). 127.0.0.11
+    # est le résolveur interne de Docker : la valeur par défaut équivaut à ne
+    # rien régler. Voir deploy/DEPLOYMENT.md §6.
+    dns:
+      - ${DASHMON_DNS:-127.0.0.11}
     # Bundle d'autorités privées pour les certificats de vos services :
     #   - /opt/dashmon/ca-bundle.pem:/certs/ca-bundle.pem:ro
 
