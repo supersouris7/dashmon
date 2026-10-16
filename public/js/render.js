@@ -1,5 +1,5 @@
 // Rendu de Dashmon (cartes, groupes, mode d'affichage) et état des boutons du menu.
-import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, sanitizeTileColor, DEFAULT_FAVICON, FALLBACK_HOST, linkCounterValue } from "./state.js";
+import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, sanitizeTileColor, DEFAULT_FAVICON, FALLBACK_HOST, linkCounterValue, compactCount } from "./state.js";
 import { t } from "./i18n.js";
 import { bumpUsage } from "./api.js";
 import { saveViewPrefs } from "./view-prefs.js";
@@ -34,7 +34,7 @@ function safeHref(url){
 function linkCounterText(link){
   if(!link.counter) return "";
   const value=linkCounterValue(link.counter,state.serviceStatus[link.url]);
-  return value==null ? "" : `(${value})`;
+  return value==null ? "" : `(${compactCount(value)})`;
 }
 
 function updateWebLinkCounters(){

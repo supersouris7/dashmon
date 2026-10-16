@@ -52,7 +52,7 @@ you were about to open a second tab for anyway.
 A service with **no** widget stays a plain link, probed as usual with its green
 or red dot. GitHub, Docker Hub and YouTube are not tile widgets: they drive the
 **web-links banner counters** instead — give a web link a counter and its name
-shows the number, e.g. *YouTube (3000)*. A counter that reads a *third-party*
+shows the number, e.g. *YouTube (3k)*. A counter that reads a *third-party*
 site shows nothing on quota or rate-limit errors instead of faking a zero.
 
 **→ [docs/WIDGETS.md](docs/WIDGETS.md) — the full catalog: what each widget

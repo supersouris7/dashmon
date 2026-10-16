@@ -774,7 +774,7 @@ body.is-refreshing .widget-status{animation:refreshPulse 1.15s ease-in-out infin
 
 .web-link-name{font-size:14px;font-weight:600}
 
-.web-link-counter{font-size:13px;font-weight:500;opacity:.7}
+.web-link-counter{font-size:13px;font-weight:700;opacity:.7}
 
 .web-link-row{display:grid;grid-template-columns:32px minmax(150px,1fr) minmax(250px,1.5fr) minmax(150px,1fr) 38px 38px;gap:8px;align-items:center}
 

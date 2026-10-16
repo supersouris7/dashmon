@@ -85,7 +85,7 @@ Uses the public Lichess API — no token.
 
 A **web link** (the banner at the top of the dashboard) can show a public number
 next to its name. In the web-link editor, set its **counter** and pick a target:
-the name then reads *GitHub (109)*, *YouTube (3000)*.
+the name then reads *GitHub (109)*, *YouTube (3k)* — the number is bold.
 
 | Counter | Shows | Target |
 | --- | --- | --- |
@@ -93,8 +93,9 @@ the name then reads *GitHub (109)*, *YouTube (3000)*.
 | Docker Hub | pulls of a repository | `name` or `owner/name` |
 | YouTube | subscribers of a channel | `@handle`, a full URL, or a `UC…` id |
 
-Numbers are shown as-is — no thousands separator. A counter stays hidden (the
-name shows alone) until its value is available, and reappears on its own.
+Large numbers are compacted to stay readable: `3k` for 3 000, `64.6M` for
+64 600 000. A counter stays hidden (the name shows alone) until its value is
+available, and reappears on its own.
 
 Each counter reads a **public source**, so no token is required:
 

@@ -445,6 +445,19 @@ async function main(){
   ok("compteur de lien : aucune valeur quand le statut a echoue",
     specialState.linkCounterValue({ type: "github" }, { ok: false }) === null);
 
+  check("compteur de lien : nombre < 1000 affiche tel quel",
+    specialState.compactCount(109), "109");
+  check("compteur de lien : milliers compacts en k",
+    specialState.compactCount(3000), "3k");
+  check("compteur de lien : milliers avec une decimale",
+    specialState.compactCount(10150), "10.2k");
+  check("compteur de lien : millions compacts en M",
+    specialState.compactCount(64600000), "64.6M");
+  check("compteur de lien : le million ne s'ecrit pas en k",
+    specialState.compactCount(1000000), "1M");
+  check("compteur de lien : arrondi de bord passe au million",
+    specialState.compactCount(999999), "1M");
+
   ok("compteur de lien : valide a l'enregistrement (editeur)",
     /counter:normalizeLinkCounter\(link\.counter\)/.test(editorSrcForSpecial));
   ok("compteur de lien : conserve a l'enregistrement (serveur)",
