@@ -432,7 +432,7 @@ main{
    largeur de la tuile, la hauteur suit. */
 .card.fortune{
   cursor:pointer;
-  align-items:flex-start;
+  align-items:center;
 }
 
 .fortune-text{
