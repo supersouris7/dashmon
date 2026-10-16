@@ -319,13 +319,13 @@ function createSection(categoryName,categoryServices,groupType="category",specia
   const cards=document.createElement("div");
   cards.className="cards";
 
+  // La tuile speciale ouvre sa section : elle passe avant les services, meme
+  // quand aucun service ne peuple le groupe.
+  if(specialCard) cards.appendChild(specialCard);
+
   [...categoryServices]
     .sort(compareServices)
     .forEach(s=>cards.appendChild(createCard(s)));
-
-  // La tuile speciale vit dans la section de sa categorie : elle apparait donc
-  // meme quand aucun service ne la peuple.
-  if(specialCard) cards.appendChild(specialCard);
 
   body.appendChild(cards);
   section.append(header,body);
@@ -545,6 +545,15 @@ export function render(){
     const cards=document.createElement("div");
     cards.className="cards";
 
+    if(special){
+      const color=specialTileColor();
+      if(color){
+        special.classList.add("tinted");
+        special.style.setProperty("--tile-color",color);
+      }
+      cards.appendChild(special);
+    }
+
     [...filtered]
       .sort(compareServices)
       .forEach(service=>{
@@ -557,15 +566,6 @@ export function render(){
         }
         cards.appendChild(card);
       });
-
-    if(special){
-      const color=specialTileColor();
-      if(color){
-        special.classList.add("tinted");
-        special.style.setProperty("--tile-color",color);
-      }
-      cards.appendChild(special);
-    }
 
     dashboard.appendChild(cards);
     return;
