@@ -295,17 +295,17 @@
         </select>
       </label>
 
-      <label class="appearance-field">
+      <div class="appearance-field">
         <span id="webLinksColorLabel">Couleur des liens web</span>
-        <select id="webLinksColorSelect" class="edit-select">
-          <option value="dark" id="webLinksColorDark">Gris foncé</option>
-          <option value="pastel-red" id="webLinksColorRed">Rouge pastel</option>
-          <option value="blue" id="webLinksColorBlue">Bleu</option>
-          <option value="green" id="webLinksColorGreen">Vert</option>
-          <option value="orange" id="webLinksColorOrange">Orange</option>
-          <option value="purple" id="webLinksColorPurple">Violet</option>
-        </select>
-      </label>
+        <div id="webLinksColorChoices" class="color-choices" role="radiogroup" aria-labelledby="webLinksColorLabel">
+          <button type="button" class="color-choice" id="webLinksColorDark" data-color="dark" aria-label="Gris foncé" title="Gris foncé"></button>
+          <button type="button" class="color-choice" id="webLinksColorRed" data-color="red" aria-label="Rouge" title="Rouge"></button>
+          <button type="button" class="color-choice" id="webLinksColorBlue" data-color="blue" aria-label="Bleu" title="Bleu"></button>
+          <button type="button" class="color-choice" id="webLinksColorGreen" data-color="green" aria-label="Vert" title="Vert"></button>
+          <button type="button" class="color-choice" id="webLinksColorOrange" data-color="orange" aria-label="Orange" title="Orange"></button>
+          <button type="button" class="color-choice" id="webLinksColorPurple" data-color="purple" aria-label="Violet" title="Violet"></button>
+        </div>
+      </div>
 
       <div class="appearance-field">
         <span id="openModeFieldLabel">Ouverture des liens</span>

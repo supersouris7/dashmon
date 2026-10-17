@@ -1,14 +1,14 @@
 // Rendu de Dashmon (cartes, groupes, mode d'affichage) et état des boutons du menu.
-import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, sanitizeTileColor, FALLBACK_HOST, linkCounterValue, compactCount, webLinksColors } from "./state.js";
+import { state, getCategory, compareServices, serviceUsageKey, normalize, sanitizeUrl, sanitizeIconClass, sanitizeTileColor, FALLBACK_HOST, linkCounterValue, compactCount, webLinksColors, WEB_LINK_COLORS, normalizeWebLinksColor } from "./state.js";
 import { t } from "./i18n.js";
-import { bumpUsage } from "./api.js";
+import { bumpUsage, patchConfig } from "./api.js";
 import { saveViewPrefs } from "./view-prefs.js";
 import { hasWidget, renderWidget, widgetStatusKey } from "./widget-registry.js";
 import { effectiveStatus, statusIcon } from "./status.js";
 import { fortuneText, pickFortune, loadFortunes } from "./fortune.js";
 import {
   dashboard, searchInput, webLinksSection, webLinksList,
-  hideWebLinksBtn, restoreWebLinksBtn,
+  hideWebLinksBtn, restoreWebLinksBtn, webLinksColorChoices,
   viewBtn, iconsBtn, collapseAllBtn, openModeSelect, groupCategoryBtn,
   groupHostBtn, sortAlphabeticalBtn, sortUsageBtn
 } from "./dom.js";
@@ -397,9 +397,23 @@ export function updateWebLinksAppearance(){
     element.style.backgroundColor=background;
     element.style.color=foreground;
   }
+  for(const choice of webLinksColorChoices.querySelectorAll("[data-color]")){
+    const active=choice.dataset.color===state.webLinksColor;
+    choice.style.backgroundColor=WEB_LINK_COLORS[choice.dataset.color]||"transparent";
+    choice.classList.toggle("is-active",active);
+    choice.setAttribute("aria-checked",String(active));
+  }
   webLinksSection.style.display=state.webLinks.length && !state.webLinksHidden ? "flex" : "none";
   restoreWebLinksBtn.hidden=!state.webLinks.length || !state.webLinksHidden;
 }
+
+webLinksColorChoices.addEventListener("click",event=>{
+  const choice=event.target.closest("[data-color]");
+  if(!choice) return;
+  state.webLinksColor=normalizeWebLinksColor(choice.dataset.color);
+  updateWebLinksAppearance();
+  patchConfig({webLinksColor:state.webLinksColor});
+});
 
 hideWebLinksBtn.addEventListener("click",()=>{
   state.webLinksHidden=true;

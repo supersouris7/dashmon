@@ -294,26 +294,22 @@ export const FALLBACK_HOST="Sans hôte";
 
 export const WEB_LINK_COLORS=Object.freeze({
   dark:"#272c33",
-  "pastel-red":"#f2a3a3",
-  blue:"#2457a7",
-  green:"#84c59a",
-  orange:"#f4ae64",
-  purple:"#7545a0"
+  red:"#d63b3b",
+  blue:"#1868e0",
+  green:"#0b8337",
+  orange:"#b35a05",
+  purple:"#7a3fc9"
 });
 
 export function normalizeWebLinksColor(value){
+  if(value==="pastel-red") return "red";
   return Object.hasOwn(WEB_LINK_COLORS,value) ? value : "dark";
 }
 
+// Le texte du bandeau est toujours blanc : les teintes ci-dessus sont choisies
+// assez soutenues pour rester lisibles dessus.
 export function webLinksColors(value){
-  const background=WEB_LINK_COLORS[normalizeWebLinksColor(value)];
-  const channels=background.slice(1).match(/../g).map(hex=>{
-    const channel=parseInt(hex,16)/255;
-    return channel<=0.04045 ? channel/12.92 : ((channel+0.055)/1.055)**2.4;
-  });
-  const luminance=channels[0]*0.2126+channels[1]*0.7152+channels[2]*0.0722;
-  const foreground=(luminance+0.05)/0.05>=1.05/(luminance+0.05) ? "#000000" : "#ffffff";
-  return {background,foreground};
+  return {background:WEB_LINK_COLORS[normalizeWebLinksColor(value)],foreground:"#ffffff"};
 }
 
 export const state = {

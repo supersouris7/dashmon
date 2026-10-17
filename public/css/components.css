@@ -622,7 +622,7 @@ body.is-refreshing .widget-status{animation:refreshPulse 1.15s ease-in-out infin
   gap:12px;
   padding:8px max(26px,calc((100vw - 1280px)/2));
   background:#272c33;
-  color:#e6e9ee;
+  color:#ffffff;
   box-shadow:0 3px 10px rgba(0,0,0,.35);
 }
 
@@ -650,7 +650,7 @@ body.is-refreshing .widget-status{animation:refreshPulse 1.15s ease-in-out infin
 .web-links-restore{
   position:fixed;
   top:0;
-  right:12px;
+  left:12px;
   width:38px;
   height:28px;
   z-index:20;
@@ -727,6 +727,33 @@ body.is-refreshing .widget-status{animation:refreshPulse 1.15s ease-in-out infin
 
 .appearance-field > span{
   font-weight:600;
+}
+
+.color-choices{
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+}
+
+.color-choice{
+  width:26px;
+  height:26px;
+  min-height:26px;
+  padding:0;
+  border:1px solid rgba(255,255,255,.35);
+  border-radius:50%;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.3);
+  cursor:pointer;
+}
+
+.color-choice.is-active{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+
+.color-choice:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
 }
 
 @media (max-width:560px){

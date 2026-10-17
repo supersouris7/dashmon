@@ -1,10 +1,10 @@
 // Point d'entrée : initialisation, menu principal, modals (éditeur/apparence), événements globaux.
-import { state, normalizeConfig, normalizeViewPrefs, isTypingTarget, sanitizeUrl, normalizeWebLinksColor } from "./state.js";
+import { state, normalizeConfig, normalizeViewPrefs, isTypingTarget, sanitizeUrl } from "./state.js";
 import { patchConfig } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
 import { render, updateViewButton, updateIconsButton, updateOpenModeMenu, updateGroupModeMenu,
   updateSortModeMenu, setGroupMode, getCollapseAllState, updateCollapseAllButton,
-  updateStatusIndicators, updateWebLinksAppearance } from "./render.js";
+  updateStatusIndicators } from "./render.js";
 import { applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater } from "./i18n.js";
 import {
   loadThemes, applyTheme, setTheme, currentTheme, downloadTheme,
@@ -20,7 +20,7 @@ import {
   openModeSelect, groupCategoryBtn, groupHostBtn,
   sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuAppearanceBtn, menuRefreshBtn,
   appearanceBackdrop, appearanceCloseBtn, appearanceDoneBtn, themeSelect,
-  languageSelect, webLinksColorSelect, webLinksSection, restoreWebLinksBtn, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
+  languageSelect, webLinksSection, restoreWebLinksBtn, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
   themeImportInput, modalBackdrop, imageLibrary
 } from "./dom.js";
 
@@ -101,7 +101,6 @@ function openAppearance(){
     themeSelect.value=state.theme;
   }
   languageSelect.value=state.language;
-  webLinksColorSelect.value=state.webLinksColor;
   openModeSelect.value=state.openMode==="new" ? "new" : "same";
   updateThemeManageUI();
   appearanceBackdrop.classList.add("show");
@@ -212,12 +211,6 @@ languageSelect.addEventListener("change",()=>{
   renderWebLinksEditor();
   renderWidgetsEditor();
   patchConfig({language:state.language});
-});
-
-webLinksColorSelect.addEventListener("change",()=>{
-  state.webLinksColor=normalizeWebLinksColor(webLinksColorSelect.value);
-  updateWebLinksAppearance();
-  patchConfig({webLinksColor:state.webLinksColor});
 });
 
 // Le bouton est l'unique commande du mode petites icones.

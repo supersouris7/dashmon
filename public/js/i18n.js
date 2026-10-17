@@ -125,7 +125,7 @@ const UI_TEXT={
     manageThemes:"Gestion des thèmes",
     webLinksColorLabel:"Couleur des liens web",
     webLinksColorDark:"Gris foncé",
-    webLinksColorRed:"Rouge pastel",
+    webLinksColorRed:"Rouge",
     webLinksColorBlue:"Bleu",
     webLinksColorGreen:"Vert",
     webLinksColorOrange:"Orange",
@@ -249,7 +249,7 @@ const UI_TEXT={
     manageThemes:"Theme management",
     webLinksColorLabel:"Web links color",
     webLinksColorDark:"Dark gray",
-    webLinksColorRed:"Pastel red",
+    webLinksColorRed:"Red",
     webLinksColorBlue:"Blue",
     webLinksColorGreen:"Green",
     webLinksColorOrange:"Orange",
@@ -362,12 +362,20 @@ export function applyLanguage(){
     ["openModeFieldLabel","openModeFieldLabel"],
     ["openModeOptionSame","sameTab"],
     ["openModeOptionNew","newTab"],
-    ...["webLinksColorLabel","webLinksColorDark","webLinksColorRed","webLinksColorBlue",
-      "webLinksColorGreen","webLinksColorOrange","webLinksColorPurple"].map(key=>[key,key]),
+    ["webLinksColorLabel","webLinksColorLabel"],
   ];
   appearanceLabels.forEach(([id,key])=>{
     const el=document.getElementById(id);
     if(el) el.textContent=t(key);
+  });
+
+  // Les teintes sont choisies par pastilles : le nom sert d'etiquette, pas de texte.
+  ["Dark","Red","Blue","Green","Orange","Purple"].forEach(name=>{
+    const el=document.getElementById("webLinksColor"+name);
+    if(!el) return;
+    const label=t("webLinksColor"+name);
+    el.title=label;
+    el.setAttribute("aria-label",label);
   });
 
   if(applyThemeLabels){

@@ -623,8 +623,9 @@ function buildConfigOutput(config){
         : [],
       webLinksSeedVersion:Number.isFinite(Number(config.webLinksSeedVersion))
         ? Number(config.webLinksSeedVersion) : 0,
-      webLinksColor:["dark","pastel-red","blue","green","orange","purple"].includes(config.webLinksColor)
-        ? config.webLinksColor : "dark",
+      webLinksColor:config.webLinksColor==="pastel-red" ? "red"
+        : ["dark","red","blue","green","orange","purple"].includes(config.webLinksColor)
+          ? config.webLinksColor : "dark",
       smallIcons:config.smallIcons===true
   };
 }

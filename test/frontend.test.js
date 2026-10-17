@@ -224,9 +224,9 @@ async function main(){
     check("prefs : masquage invalide ignore", stateModule.normalizeViewPrefs({ webLinksHidden: "true" }).webLinksHidden, false);
 
     check("liens : six couleurs", Object.keys(stateModule.WEB_LINK_COLORS),
-      ["dark", "pastel-red", "blue", "green", "orange", "purple"]);
+      ["dark", "red", "blue", "green", "orange", "purple"]);
     check("liens : couleur invalide recalee", stateModule.normalizeWebLinksColor("invalid"), "dark");
-    check("liens : rouge pastel conserve", stateModule.normalizeConfig({webLinksColor:"pastel-red"}).webLinksColor, "pastel-red");
+    check("liens : ancien rouge pastel converti", stateModule.normalizeConfig({webLinksColor:"pastel-red"}).webLinksColor, "red");
     for(const color of Object.keys(stateModule.WEB_LINK_COLORS)){
       const { background, foreground }=stateModule.webLinksColors(color);
       const rgb=background.slice(1).match(/../g).map(v=>parseInt(v,16)/255)
