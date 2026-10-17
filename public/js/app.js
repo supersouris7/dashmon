@@ -5,12 +5,13 @@ import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
 import { render, updateViewButton, updateIconsButton, updateOpenModeMenu, updateGroupModeMenu,
   updateSortModeMenu, setGroupMode, getCollapseAllState, updateCollapseAllButton,
   updateStatusIndicators } from "./render.js";
-import { applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater } from "./i18n.js";
+import { applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater, setSupervisionUpdater } from "./i18n.js";
 import {
   loadThemes, applyTheme, setTheme, currentTheme, downloadTheme,
   importThemeFile, deleteCustomTheme, applyThemeLabels
 } from "./themes.js";
 import { startStatusLoop, setupVisibilityPause, manualRefresh } from "./metrics.js";
+import { renderSupervision, setPage } from "./supervision.js";
 import { openEditor, closeEditor, renderServiceEditor, renderCategoryEditor,
   renderHostEditor, renderWebLinksEditor, renderWidgetsEditor } from "./editor.js";
 import { closeImageLibrary } from "./images.js";
@@ -26,6 +27,7 @@ import {
 
 setThemeLabelsUpdater(applyThemeLabels);
 setCollapseButtonUpdater(updateCollapseAllButton);
+setSupervisionUpdater(renderSupervision);
 
 async function loadConfig(){
   try{
@@ -47,6 +49,7 @@ async function loadConfig(){
     state.sortMode=viewPrefs.sortMode;
     state.smallIcons=viewPrefs.smallIcons;
     state.webLinksHidden=viewPrefs.webLinksHidden;
+    state.page=viewPrefs.page;
     state.webLinksColor=cfg.webLinksColor;
     state.theme=cfg.theme;
     state.language=cfg.language;
@@ -65,6 +68,7 @@ async function loadConfig(){
   applyTheme();
   applyLanguage();
   render();
+  setPage(state.page);
   setToolbarHeight();
 }
 
@@ -290,7 +294,7 @@ document.addEventListener("keydown",e=>{
     return;
   }
 
-  if(e.key==="/" && !isTypingTarget(document.activeElement) && !modalBackdrop.classList.contains("show")){
+  if(e.key==="/" && state.page==="dashboard" && !isTypingTarget(document.activeElement) && !modalBackdrop.classList.contains("show")){
     e.preventDefault();
     searchInput.focus();
   }

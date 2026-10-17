@@ -1,5 +1,9 @@
 // Références DOM centralisées : seul endroit qui lit le HTML par id.
 export const dashboard=document.getElementById("dashboard");
+export const dashboardPageBtn=document.getElementById("dashboardPageBtn");
+export const supervisionPageBtn=document.getElementById("supervisionPageBtn");
+export const supervisionPage=document.getElementById("supervisionPage");
+export const supervisionList=document.getElementById("supervisionList");
 export const refreshBar=document.getElementById("refreshBar");
 export const searchInput=document.getElementById("search");
 export const viewBtn=document.getElementById("viewBtn");

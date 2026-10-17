@@ -57,7 +57,7 @@
 </script>
 </head>
 
-<body>
+<body data-page="dashboard">
 <!-- Retour d'activité pendant un rafraîchissement : le menu se referme aussitôt,
      cette barre est donc le seul repère qui reste à l'écran. Le texte qu'elle
      reçoit sert à l'accessibilité, la barre est trop fine pour l'afficher. -->
@@ -72,6 +72,15 @@
   <button id="restoreWebLinksBtn" class="web-links-restore" type="button" title="Afficher les liens web" aria-label="Afficher les liens web" aria-controls="webLinksSection" hidden><i class="fa-solid fa-link" aria-hidden="true"></i></button>
 
   <div class="toolbar">
+    <div class="page-switch" role="group" id="pageSwitchGroup" aria-label="Navigation">
+      <button id="dashboardPageBtn" class="page-btn" type="button" aria-pressed="true">
+        <i class="fa-solid fa-grip" aria-hidden="true"></i><span id="pageDashboardLabel">Dashboard</span>
+      </button>
+      <button id="supervisionPageBtn" class="page-btn" type="button" aria-pressed="false">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span id="pageSupervisionLabel">Supervision</span>
+      </button>
+    </div>
+
     <div class="search-box">
       <i class="fa-solid fa-magnifying-glass"></i>
       <input id="search" class="search" type="search" placeholder="app, catégories, hôtes…" autocomplete="off">
@@ -135,6 +144,9 @@
 
 <main>
 <div id="dashboard" data-view="columns"></div>
+<section id="supervisionPage" class="supervision-page" aria-labelledby="supervisionTitle">
+  <div id="supervisionList" class="supervision-list"></div>
+</section>
 </main>
 
 <div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">

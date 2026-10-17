@@ -58,7 +58,8 @@ main{
 
 .toolbar{
   display:flex;
-  justify-content:flex-end;
+  flex-wrap:wrap;
+  justify-content:flex-start;
   align-items:center;
   gap:10px;
   box-sizing:border-box;
@@ -69,8 +70,55 @@ main{
 .toolbar > .icon-btn,
 .toolbar > .top-menu-wrap{flex:0 0 auto}
 
+/* Les deux boutons de page ouvrent le meme gabarit, la recherche et les
+   actions restent alignees a droite par la marge automatique. */
+.page-switch{
+  display:flex;
+  gap:8px;
+  flex:0 0 auto;
+}
+
+.page-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:140px;
+  height:46px;
+  min-height:46px;
+  padding:0 12px;
+  border:1px solid var(--border);
+  border-radius:3px;
+  background:var(--surface);
+  color:var(--text);
+  box-shadow:var(--shadow);
+  font-size:14px;
+  font-weight:600;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:transform .1s ease,box-shadow .1s ease,background .1s ease,border-color .1s ease;
+}
+
+.page-btn:hover{
+  background:var(--surface-2);
+  border-color:var(--muted);
+}
+
+.page-btn[aria-pressed="true"]{
+  background:var(--surface-2);
+  border-color:var(--accent);
+  color:var(--accent);
+}
+
+.page-btn:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+
 .search-box{
-  flex:0 1 340px;
+  flex:1 1 140px;
+  max-width:340px;
+  margin-left:auto;
   position:relative;
   min-width:0;
   height:40px;

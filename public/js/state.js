@@ -318,6 +318,7 @@ export const state = {
   hosts: [],
   collapsed: {},
   viewMode: "columns",
+  page: "dashboard",
   openMode: "same",
   groupMode: "category",
   theme: "dark",
@@ -468,7 +469,7 @@ function normalizeCollapsed(collapsed){
 // navigateur ne puisse pas casser le rendu.
 export const VIEW_PREF_KEYS=Object.freeze([
   "viewMode","sortMode","groupMode","openMode",
-  "smallIcons","collapsed","webLinksHidden"
+  "smallIcons","collapsed","webLinksHidden","page"
 ]);
 
 export function normalizeViewPrefs(cfg={}){
@@ -477,6 +478,7 @@ export function normalizeViewPrefs(cfg={}){
     openMode:cfg.openMode==="new" ? "new" : "same",
     groupMode:cfg.groupMode==="host" ? "host" : "category",
     sortMode:cfg.sortMode==="usage" ? "usage" : "alphabetical",
+    page:cfg.page==="supervision" ? "supervision" : "dashboard",
     smallIcons:cfg.smallIcons===true,
     webLinksHidden:cfg.webLinksHidden===true,
     collapsed:normalizeCollapsed(cfg.collapsed)

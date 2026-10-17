@@ -209,7 +209,7 @@ async function main(){
 
     check("prefs : la liste des cles est stable", stateModule.VIEW_PREF_KEYS.slice(),
       ["viewMode", "sortMode", "groupMode", "openMode",
-        "smallIcons", "collapsed", "webLinksHidden"]);
+        "smallIcons", "collapsed", "webLinksHidden", "page"]);
 
     // Rien d'ecrit tant que l'utilisateur n'a rien change.
     check("prefs : navigateur neuf = aucune preference", prefs.loadViewPrefs(), {});
@@ -222,6 +222,10 @@ async function main(){
     check("prefs : masquage local sans couleur globale", prefs.loadViewPrefs(), { webLinksHidden: true });
     saved.clear();
     check("prefs : masquage invalide ignore", stateModule.normalizeViewPrefs({ webLinksHidden: "true" }).webLinksHidden, false);
+
+    check("pages : tableau de bord par defaut", stateModule.normalizeViewPrefs({}).page, "dashboard");
+    check("pages : supervision conservee", stateModule.normalizeViewPrefs({ page: "supervision" }).page, "supervision");
+    check("pages : page inconnue recalee", stateModule.normalizeViewPrefs({ page: "admin" }).page, "dashboard");
 
     check("liens : six couleurs", Object.keys(stateModule.WEB_LINK_COLORS),
       ["dark", "red", "blue", "green", "orange", "purple"]);

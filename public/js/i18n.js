@@ -134,6 +134,18 @@ const UI_TEXT={
     restoreWebLinks:"Afficher les liens web",
     smallIconsOptionOff:"Grandes icônes",
     smallIconsOptionOn:"Petites icônes",
+    pageSwitch:"Navigation",
+    pageDashboard:"Dashboard",
+    pageSupervision:"Supervision",
+    supervisionTitle:"Supervision",
+    supervisionNote:"Exemple de supervision : ces cartes illustrent le rendu, aucune donnée n’est mesurée pour l’instant.",
+    supervisionState:"État",
+    supervisionProtocol:"Protocole",
+    supervisionEndpoint:"Passerelle",
+    supervisionLatency:"Latence",
+    supervisionUptime:"Disponibilité",
+    supervisionUp:"En ligne",
+    supervisionDown:"Hors ligne",
   },
   en:{
     editDashboardTitle:"Edit Dashmon",
@@ -258,6 +270,18 @@ const UI_TEXT={
     restoreWebLinks:"Show web links",
     smallIconsOptionOff:"Large icons",
     smallIconsOptionOn:"Small icons",
+    pageSwitch:"Navigation",
+    pageDashboard:"Dashboard",
+    pageSupervision:"Supervision",
+    supervisionTitle:"Supervision",
+    supervisionNote:"Supervision example: these cards illustrate the rendering, nothing is measured yet.",
+    supervisionState:"State",
+    supervisionProtocol:"Protocol",
+    supervisionEndpoint:"Gateway",
+    supervisionLatency:"Latency",
+    supervisionUptime:"Uptime",
+    supervisionUp:"Online",
+    supervisionDown:"Offline",
   }
 };
 
@@ -378,8 +402,22 @@ export function applyLanguage(){
     el.setAttribute("aria-label",label);
   });
 
+  const pageLabels=[
+    ["pageDashboardLabel","pageDashboard"],
+    ["pageSupervisionLabel","pageSupervision"]
+  ];
+  pageLabels.forEach(([id,key])=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent=t(key);
+  });
+  const pageSwitch=document.getElementById("pageSwitchGroup");
+  if(pageSwitch) pageSwitch.setAttribute("aria-label",t("pageSwitch"));
+
   if(applyThemeLabels){
     applyThemeLabels();
+  }
+  if(supervisionUpdater){
+    supervisionUpdater();
   }
 }
 
@@ -387,6 +425,12 @@ let applyThemeLabels=null;
 
 export function setThemeLabelsUpdater(fn){
   applyThemeLabels=fn;
+}
+
+let supervisionUpdater=null;
+
+export function setSupervisionUpdater(fn){
+  supervisionUpdater=fn;
 }
 
 let collapseButtonUpdater=null;

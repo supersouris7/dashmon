@@ -19,7 +19,7 @@ const STORAGE_KEY="dashmon.view";
 // circulaire.
 const ALLOWED=Object.freeze([
   "viewMode","sortMode","groupMode","openMode",
-  "smallIcons","collapsed","webLinksHidden"
+  "smallIcons","collapsed","webLinksHidden","page"
 ]);
 
 function storage(){
