@@ -108,7 +108,9 @@ Web links sit in a fixed banner above the toolbar. Choose one of six colors in
 The cross hides the banner, and the small link tab at the top right restores it.
 Visibility is remembered per browser. The search field and action buttons scroll
 with the page; the icon-size button is the sole control for small/large icons.
-The tab uses the default Dashmon icon.
+The tab uses the default Dashmon icon. On phones and small tablets the banner and
+the search field are hidden to keep the page uncluttered — the toolbar stays on a
+single line and the dashboard tabs scroll sideways.
 
 ### What lives where
 
