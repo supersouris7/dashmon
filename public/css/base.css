@@ -539,8 +539,14 @@ main{
 
 @media(max-width:800px){
   body{padding:14px}
-  .top-bar{margin:-14px -14px 24px}
+  .top-bar{margin:-14px -14px 24px;padding-top:0}
   main{padding-left:0;padding-right:0}
+  /* Barre d'outils sur une seule ligne : les onglets de dashboard defilent
+     horizontalement si besoin, au lieu de passer a la ligne. */
+  .toolbar{flex-wrap:nowrap;gap:8px;padding:10px 14px}
+  .page-switch{flex:1 1 auto;flex-wrap:nowrap;min-width:0;overflow-x:auto;scrollbar-width:none}
+  .page-switch::-webkit-scrollbar{display:none}
+  .page-btn{flex:0 0 auto;width:auto;padding:0 12px}
 }
 
 @media(max-width:560px){

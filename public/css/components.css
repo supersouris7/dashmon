@@ -659,6 +659,17 @@ body.is-refreshing .widget-status{animation:refreshPulse 1.15s ease-in-out infin
 }
 .web-links-restore[hidden]{display:none}
 
+/* Smartphone et tablette : l'interface est epuree. Le bandeau des liens web et
+   la recherche disparaissent. Le bandeau porte un "display" pose en style en
+   ligne par le rendu (render.js), d'ou le !important pour le masquer ici. */
+@media (max-width:800px){
+  #webLinksSection,
+  .web-links-restore,
+  .search-box{
+    display:none !important;
+  }
+}
+
 .web-links-list{
   display:flex;
   align-items:center;
@@ -830,16 +841,12 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 .supervision-row > span:first-child{color:var(--muted)}
 
 @media (max-width:560px){
-  /* La recherche et les actions restent accessibles sur petit ecran. */
+  /* La navigation et les actions restent accessibles sur petit ecran. */
   .toolbar{
     gap:6px;
     padding:8px 12px;
   }
   .toolbar .icon-btn{width:36px;height:40px;min-height:40px}
-  .page-switch{width:100%}
-  .page-btn{flex:1 1 0;width:auto;min-width:0}
-  .search-key{display:none}
-  .web-links-section{padding:8px 12px}
   .appearance-field{
     grid-template-columns:1fr;
     gap:7px;
