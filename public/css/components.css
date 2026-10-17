@@ -1,8 +1,14 @@
+.host-item{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
 .host-row{
   display:grid;
-  grid-template-columns:30px minmax(0,1fr) 44px 22px 38px;
+  grid-template-columns:30px minmax(0,1fr) 44px 22px 40px 38px;
   grid-template-areas:
-    "drag name picker color remove";
+    "drag name picker color monitor remove";
   gap:8px;
   align-items:center;
   width:100%;
@@ -12,7 +18,39 @@
 .host-row .drag-handle{grid-area:drag}
 .host-row > .edit-input{grid-area:name}
 .host-row .icon-picker{grid-area:picker}
+.host-row .host-monitor-toggle{grid-area:monitor}
 .host-row .delete-btn{grid-area:remove}
+
+/* Panneau deplie sous un hote surveille : les champs utiles au type choisi. */
+.host-monitor-panel{
+  display:grid;
+  gap:8px;
+  margin:0 0 2px 38px;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:0 4px 4px 0;
+  background:var(--surface-2);
+}
+
+.host-monitor-field{
+  display:grid;
+  grid-template-columns:130px minmax(0,1fr);
+  gap:10px;
+  align-items:center;
+  font-size:13px;
+}
+
+.host-monitor-field > span{
+  color:var(--muted);
+}
+
+.host-monitor-hint{
+  margin:0;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.4;
+}
 
 .icon-btn,
 .action-btn,
@@ -840,6 +878,77 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 
 .supervision-row > span:first-child{color:var(--muted)}
 
+.supervision-name{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+/* Le type de source reste discret : une pastille secondaire a droite du nom. */
+.supervision-type{
+  margin-left:auto;
+  padding:1px 7px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:500;
+  white-space:nowrap;
+}
+
+/* Une ligne de metrique : libelle, piste remplie, valeur. Trois colonnes fixes
+   pour que CPU, RAM et disque s'alignent d'une carte a l'autre. */
+.supervision-metric{
+  display:grid;
+  grid-template-columns:72px minmax(0,1fr) 52px;
+  gap:10px;
+  align-items:center;
+  font-size:13px;
+}
+
+.supervision-metric-label{color:var(--muted)}
+
+.supervision-track{
+  height:8px;
+  overflow:hidden;
+  border-radius:4px;
+  background:var(--surface-3);
+}
+
+.supervision-fill{
+  display:block;
+  height:100%;
+  width:0;
+  border-radius:4px;
+  background:#2fbf5f;
+  transition:width .3s ease;
+}
+
+/* Seuils : vert < 70 %, orange < 90 %, rouge au-dela. La piste vide (metrique
+   indisponible) est hachuree pour se distinguer d'une mesure a zero. */
+.supervision-fill.warn{background:#e0a53b}
+.supervision-fill.high{background:#e5484d}
+
+.supervision-track.unknown{
+  background:repeating-linear-gradient(45deg,var(--surface-3),var(--surface-3) 4px,transparent 4px,transparent 8px);
+}
+
+.supervision-metric-value{
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+
+.supervision-empty,
+.supervision-error{
+  margin:0;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.supervision-error{
+  color:#e5484d;
+}
+
 @media (max-width:560px){
   /* La navigation et les actions restent accessibles sur petit ecran. */
   .toolbar{
@@ -855,6 +964,13 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
   .host-row,
   .web-link-row{
     gap:8px 6px;
+  }
+  .host-monitor-panel{
+    margin-left:0;
+  }
+  .host-monitor-field{
+    grid-template-columns:1fr;
+    gap:4px;
   }
 }
 

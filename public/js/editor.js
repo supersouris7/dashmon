@@ -1,5 +1,5 @@
 // Éditeur de configuration : services, catégories, hôtes, liens web, import/export config.
-import { state, clone, normalize, normalizeConfig, normalizeViewPrefs, compareNames, TILE_COLORS, sanitizeTileColor, normalizeSpecialTile, normalizeLinkCounter, LINK_COUNTER_TYPES } from "./state.js";
+import { state, clone, normalize, normalizeConfig, normalizeViewPrefs, compareNames, TILE_COLORS, sanitizeTileColor, normalizeSpecialTile, normalizeLinkCounter, LINK_COUNTER_TYPES, HOST_MONITORING_TYPES } from "./state.js";
 import { t, applyLanguage } from "./i18n.js";
 import { saveConfig, putConfig, fetchConfig } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
@@ -862,10 +862,125 @@ document.addEventListener("keydown",event=>{
   if(event.key==="Escape") closeColorPalette();
 });
 
+// Supervision d'un hote : l'objet est cree a la demande pour que l'editeur
+// puisse le modifier meme s'il n'existe pas encore dans la configuration.
+function blankMonitoring(){
+  return {
+    enabled:false,type:"local",url:"",node:"",path:"",
+    tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""
+  };
+}
+
+// A l'enregistrement, seuls les parametres saisis sont conserves. L'objet vide
+// (supervision desactivee, aucun parametre) n'est pas ecrit : config.json reste
+// leger, et le serveur sait le recreer au besoin.
+function serializeHostMonitoring(m){
+  if(!m || typeof m!=="object") return undefined;
+  const out={
+    enabled:m.enabled===true,
+    type:HOST_MONITORING_TYPES.includes(m.type) ? m.type : "local",
+    url:(m.url||"").trim(),
+    node:(m.node||"").trim(),
+    path:(m.path||"").trim(),
+    tokenEnv:(m.tokenEnv||"").trim(),
+    tokenIdEnv:(m.tokenIdEnv||"").trim(),
+    tokenSecretEnv:(m.tokenSecretEnv||"").trim()
+  };
+  const meaningful=out.url||out.node||out.path||out.tokenEnv||out.tokenIdEnv||out.tokenSecretEnv;
+  if(!out.enabled && !meaningful) return undefined;
+  return out;
+}
+
+function monitoringField(labelText,control){
+  const field=document.createElement("label");
+  field.className="host-monitor-field";
+  const span=document.createElement("span");
+  span.textContent=labelText;
+  field.append(span,control);
+  return field;
+}
+
+function monitoringInput(placeholderKey,value,onInput){
+  const input=document.createElement("input");
+  input.className="edit-input";
+  input.value=value||"";
+  input.placeholder=t(placeholderKey);
+  input.addEventListener("input",()=>onInput(input.value));
+  return input;
+}
+
+// Panneau deplie sous un hote surveille : le type decide des champs utiles.
+// Pour le type local, seul le chemin du disque importe ; pour un agent Linux,
+// l'URL et un jeton facultatif ; pour Proxmox, l'URL, le noeud et les deux
+// moities du jeton API.
+function renderMonitoringPanel(host,index){
+  const m=host.monitoring;
+  const panel=document.createElement("div");
+  panel.className="host-monitor-panel";
+
+  const type=document.createElement("select");
+  type.className="edit-select host-monitor-type";
+  type.title=t("hostMonitoringType");
+  [["local","hostTypeLocal"],["linux","hostTypeLinux"],["proxmox","hostTypeProxmox"]].forEach(([value,key])=>{
+    const option=document.createElement("option");
+    option.value=value;
+    option.textContent=t(key);
+    type.appendChild(option);
+  });
+  type.value=HOST_MONITORING_TYPES.includes(m.type) ? m.type : "local";
+  type.addEventListener("change",()=>{
+    state.editHosts[index].monitoring.type=type.value;
+    renderHostEditor();
+  });
+  panel.appendChild(monitoringField(t("hostMonitoringType"),type));
+
+  if(m.type==="local"){
+    panel.appendChild(monitoringField(t("hostDiskPath"),
+      monitoringInput("phDiskPath",m.path,v=>state.editHosts[index].monitoring.path=v)));
+    const hint=document.createElement("p");
+    hint.className="host-monitor-hint";
+    hint.textContent=t("hostLocalHint");
+    panel.appendChild(hint);
+    return panel;
+  }
+
+  if(m.type==="proxmox"){
+    panel.appendChild(monitoringField(t("proxmoxUrl"),
+      monitoringInput("phProxmoxUrl",m.url,v=>state.editHosts[index].monitoring.url=v)));
+    panel.appendChild(monitoringField(t("proxmoxNode"),
+      monitoringInput("phProxmoxNode",m.node,v=>state.editHosts[index].monitoring.node=v)));
+    panel.appendChild(monitoringField(t("proxmoxTokenIdEnv"),
+      monitoringInput("phTokenEnv",m.tokenIdEnv,v=>state.editHosts[index].monitoring.tokenIdEnv=v)));
+    panel.appendChild(monitoringField(t("proxmoxTokenSecretEnv"),
+      monitoringInput("phTokenEnv",m.tokenSecretEnv,v=>state.editHosts[index].monitoring.tokenSecretEnv=v)));
+    const hint=document.createElement("p");
+    hint.className="host-monitor-hint";
+    hint.textContent=t("tokenEnvHint");
+    panel.appendChild(hint);
+    return panel;
+  }
+
+  // Agent Linux : un JSON simple, avec un jeton Bearer facultatif.
+  panel.appendChild(monitoringField(t("metricsUrl"),
+    monitoringInput("phMetricsUrl",m.url,v=>state.editHosts[index].monitoring.url=v)));
+  panel.appendChild(monitoringField(t("bearerTokenEnv"),
+    monitoringInput("phTokenEnv",m.tokenEnv,v=>state.editHosts[index].monitoring.tokenEnv=v)));
+  const hint=document.createElement("p");
+  hint.className="host-monitor-hint";
+  hint.textContent=t("tokenEnvHint");
+  panel.appendChild(hint);
+  return panel;
+}
+
 export function renderHostEditor(){
   hostEditor.innerHTML="";
 
   state.editHosts.forEach((host,index)=>{
+    if(!host.monitoring || typeof host.monitoring!=="object") host.monitoring=blankMonitoring();
+
+    const item=document.createElement("div");
+    item.className="host-item";
+
     const row=document.createElement("div");
     row.className="host-row";
 
@@ -890,6 +1005,17 @@ export function renderHostEditor(){
 
     const picker=createHostIconPicker(host,index);
 
+    const monitor=document.createElement("button");
+    monitor.className="monitor-toggle host-monitor-toggle "+(host.monitoring.enabled ? "active" : "");
+    monitor.type="button";
+    monitor.title=host.monitoring.enabled ? t("hostMonitoringEnabled") : t("hostMonitoringDisabled");
+    monitor.setAttribute("aria-pressed",String(host.monitoring.enabled));
+    monitor.innerHTML='<i class="fa-solid fa-chart-simple"></i>';
+    monitor.addEventListener("click",()=>{
+      state.editHosts[index].monitoring.enabled=!state.editHosts[index].monitoring.enabled;
+      renderHostEditor();
+    });
+
     const remove=document.createElement("button");
     remove.className="small-icon-btn delete-btn";
     remove.type="button";
@@ -906,12 +1032,15 @@ export function renderHostEditor(){
       renderServiceEditor();
     });
 
-    row.append(drag,name,picker,createColorPicker(host),remove);
+    row.append(drag,name,picker,createColorPicker(host),monitor,remove);
+    item.appendChild(row);
+    if(host.monitoring.enabled) item.appendChild(renderMonitoringPanel(host,index));
+
     makeDraggable(row,state.editHosts,index,()=>{
       renderHostEditor();
       renderServiceEditor();
     });
-    hostEditor.appendChild(row);
+    hostEditor.appendChild(item);
   });
 }
 
@@ -1029,7 +1158,10 @@ addWebLinkBtn.addEventListener("click",()=>{
 });
 
 addHostBtn.addEventListener("click",()=>{
-  const newHost={id:"host-"+Math.random().toString(36).slice(2,12),name:t("newHost"),icon:"fa-solid fa-server"};
+  // Supervision desactivee par defaut : plusieurs hotes "local" surveilleraient
+  // la meme machine, et un nouvel hote ne doit rien mesurer tant que l'utilisateur
+  // ne l'a pas demande explicitement.
+  const newHost={id:"host-"+Math.random().toString(36).slice(2,12),name:t("newHost"),icon:"fa-solid fa-server",monitoring:blankMonitoring()};
   state.editHosts.push(newHost);
   renderHostEditor();
   renderServiceEditor();
@@ -1195,7 +1327,8 @@ saveBtn.addEventListener("click",async()=>{
         id:String(h.id||"").trim().slice(0,64) || "host-"+Math.random().toString(36).slice(2,12),
         name:(h.name||"").trim(),
         icon:h.icon||"fa-solid fa-server",
-        color:sanitizeTileColor(h.color)
+        color:sanitizeTileColor(h.color),
+        monitoring:serializeHostMonitoring(h.monitoring)
     }))
     .filter(h=>h.name);
 

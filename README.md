@@ -24,6 +24,9 @@ you stop guessing whether *that* thing is working.
 - **Web-link counters** — show GitHub stars, Docker Hub pulls or YouTube
   subscribers right in the web-links banner, e.g. *GitHub (109)*.
 - **Real status monitoring** — an up/down pill per URL, refreshed automatically.
+- **Host supervision** — a dedicated page with CPU, memory, disk and temperature
+  per host, read from Dashmon itself, a [Proxmox](https://www.proxmox.com) node,
+  or your own small JSON agent.
 - **Themes** — dark and light built in, plus your own custom themes and CSS.
 - **Two languages** — English and French, throughout the interface.
 - **Learns your habits** — services you open often float to the top.

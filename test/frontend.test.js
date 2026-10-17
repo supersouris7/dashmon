@@ -269,8 +269,15 @@ async function main(){
       hosts: [{ name: "Hote", icon: "fa-solid fa-server", color: "#123456", monitoring: { enabled: true, type: "local" } }],
       faviconEnabled: false, webLinksCollapsed: true
     });
-    check("config : hote conserve sans supervision", [legacy.hosts[0].name, legacy.hosts[0].color, legacy.hosts[0].monitoring],
-      ["Hote", "#123456", undefined]);
+    check("config : hote conserve avec sa supervision", [legacy.hosts[0].name, legacy.hosts[0].color,
+      legacy.hosts[0].monitoring && legacy.hosts[0].monitoring.enabled, legacy.hosts[0].monitoring && legacy.hosts[0].monitoring.type],
+      ["Hote", "#123456", true, "local"]);
+    check("config : supervision inconnue recalee sur local",
+      stateModule.normalizeConfig({ hosts: [{ name: "H", monitoring: { enabled: true, type: "n'importe quoi" } }] }).hosts[0].monitoring.type,
+      "local");
+    check("config : hote sans supervision reste sans objet",
+      stateModule.normalizeConfig({ hosts: [{ name: "H", icon: "fa-solid fa-server" }] }).hosts[0].monitoring,
+      null);
     check("config : options retirees ignorees", [legacy.faviconEnabled, legacy.webLinksCollapsed], [undefined, undefined]);
 
     prefs.saveViewPrefs({ viewMode: "rows" });

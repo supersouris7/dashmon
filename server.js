@@ -6,6 +6,7 @@ process.env.UV_THREADPOOL_SIZE=process.env.UV_THREADPOOL_SIZE||"4";
 const express = require("express");
 const crypto = require("crypto");
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const httpClient = require("./lib/http");
 const { WidgetCore } = require("./lib/widget-core");
@@ -77,6 +78,19 @@ const INSECURE_TLS = process.env.DASHBOARD_INSECURE_TLS === "1";
 const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "";
 // Delai maximal d'une sonde de statut, partage par le core et les plugins.
 const STATUS_TIMEOUT = 4000;
+
+// Allowlist des variables d'environnement citables comme source d'un token
+// (tokenEnv / tokenIdEnv / tokenSecretEnv d'un hote supervise). Sans elle, un
+// champ de configuration pourrait faire lire n'importe quelle variable du
+// conteneur (DASHMON_MASTER_KEY, DASHBOARD_PASSWORD...) et l'envoyer a un hote
+// distant. Le defaut couvre les tokens documentes ; DASHBOARD_TOKEN_ENVS,
+// separee par des virgules, l'etend pour un agent maison.
+const TOKEN_ENV_ALLOWLIST = new Set(
+  ["PROXMOX_TOKEN_ID", "PROXMOX_TOKEN_SECRET", "LINUX_METRICS_TOKEN"]
+    .concat(String(process.env.DASHBOARD_TOKEN_ENVS || "").split(","))
+    .map(name => name.trim())
+    .filter(Boolean)
+);
 
 app.use((_req, res, next) => {
   res.set("X-Content-Type-Options", "nosniff");
@@ -175,6 +189,9 @@ function rateLimitGet(req, res, next) {
 }
 
 app.use("/api/status", rateLimitGet);
+// /api/host-metrics interroge des hôtes distants (Proxmox, agent Linux) : même
+// plafond que /api/status pour qu'un onglet ne puisse pas arroser un hôte.
+app.use("/api/host-metrics", rateLimitGet);
 
 if (DASHBOARD_PASSWORD) {
   app.use("/api", (req, res, next) => {
@@ -327,9 +344,6 @@ function readConfig(){
   // sauvegarde. Le fichier existant reste lisible sans migration destructive.
   for(const key of ["favicon","faviconEnabled","hostsDisplay","webLinksCollapsed"]){
     delete config[key];
-  }
-  if(Array.isArray(config.hosts)){
-    config.hosts.forEach(host=>{ if(host && typeof host==="object") delete host.monitoring; });
   }
   return config;
 }
@@ -561,6 +575,34 @@ function sanitizeSpecialTile(raw,categories){
   return {type,category};
 }
 
+// Supervision d'un hote : la source des metriques (local = la machine qui
+// heberge Dashmon, linux = un agent HTTP JSON, proxmox = l'API PVE). Les champs
+// token portent soit le nom d'une variable d'environnement, soit une valeur
+// saisie. Un nom n'est relu que s'il figure dans TOKEN_ENV_ALLOWLIST : un champ
+// de configuration ne peut donc pas exposer une variable sensible du conteneur.
+const HOST_MONITORING_TYPES = new Set(["local", "linux", "proxmox"]);
+
+function sanitizeHostMonitoring(raw){
+  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return undefined;
+  const type = HOST_MONITORING_TYPES.has(raw.type) ? raw.type : "local";
+  const monitoring = {
+    enabled: raw.enabled === true,
+    type,
+    url: sanitizeUrl(raw.url || ""),
+    node: sanitizeText(raw.node, 50),
+    path: sanitizeText(raw.path, 200),
+    tokenEnv: sanitizeText(raw.tokenEnv, 100),
+    tokenIdEnv: sanitizeText(raw.tokenIdEnv, 100),
+    tokenSecretEnv: sanitizeText(raw.tokenSecretEnv, 100)
+  };
+  // Un hote sans supervision activee et sans aucun parametre ne garde pas un
+  // objet vide dans config.json : la config reste lisible.
+  const meaningful = monitoring.url || monitoring.node || monitoring.path
+    || monitoring.tokenEnv || monitoring.tokenIdEnv || monitoring.tokenSecretEnv;
+  if(!monitoring.enabled && !meaningful) return undefined;
+  return monitoring;
+}
+
 function buildConfigOutput(config){
   // Dashboards et categories partagent un lien obligatoire : une categorie
   // appartient a un dashboard. On resout donc d'abord la liste des dashboards
@@ -620,7 +662,8 @@ function buildConfigOutput(config){
               id:sanitizeText(host.id,64) || "host-"+crypto.randomBytes(6).toString("hex"),
               name:sanitizeText(host.name,100),
               icon:sanitizeIconClass(host.icon),
-              color:sanitizeColor(host.color)
+              color:sanitizeColor(host.color),
+              monitoring:sanitizeHostMonitoring(host.monitoring)
             };
           })
         : [],
@@ -1064,6 +1107,270 @@ async function refreshStatuses(force=false){
     if(cache) cache.lastCheck=Date.now();
   });
 }
+
+// --- Supervision des hotes ------------------------------------------------
+// CPU, RAM, temperature et disque d'un hote. Trois sources :
+//   local   : la machine qui heberge le conteneur (os, /sys, statfs) ;
+//   linux   : un agent HTTP renvoyant un JSON { cpu, ram, temperature, disk } ;
+//   proxmox : l'API PVE (token) ; le noeud en ligne est auto-detecte.
+// Chaque valeur est un pourcentage 0..100, sauf la temperature en degres. Une
+// metrique indisponible vaut null (affichee "—") : zero est une mesure, son
+// absence n'en est pas une, et les confondre ferait croire a un hote au repos.
+
+function clampPercent(value){
+  const n=Number(value);
+  if(!Number.isFinite(n)) return null;
+  return Math.max(0,Math.min(100,n));
+}
+
+function readCpuTimes(){
+  return os.cpus().reduce((acc,cpu)=>{
+    const times=cpu.times||{};
+    acc.idle+=Number(times.idle||0);
+    acc.total+=Object.values(times).reduce((sum,value)=>sum+Number(value||0),0);
+    return acc;
+  },{idle:0,total:0});
+}
+
+let previousCpuTimes=readCpuTimes();
+
+// CPU par difference entre deux lectures : os.cpus() ne donne que des compteurs
+// cumules, la charge instantanee nait donc du delta entre deux appels.
+function localCpuPercent(){
+  const current=readCpuTimes();
+  const idleDelta=current.idle-previousCpuTimes.idle;
+  const totalDelta=current.total-previousCpuTimes.total;
+  previousCpuTimes=current;
+  if(!(totalDelta>0)) return null;
+  return clampPercent((1-(idleDelta/totalDelta))*100);
+}
+
+function localRamPercent(){
+  const total=os.totalmem();
+  const free=os.freemem();
+  if(!(total>0)) return null;
+  return clampPercent(((total-free)/total)*100);
+}
+
+// Capteur thermique lu dans /sys : thermal_zone* (millidegres) ou hwmon. On
+// retient la valeur plausible la plus haute. Tout est enclos : sur un noyau ou
+// un conteneur sans /sys expose, la fonction renvoie null sans bruit.
+function localTemperature(){
+  const readings=[];
+  const readDir=dir=>{
+    try{ return fs.readdirSync(dir); }catch(_error){ return []; }
+  };
+  const push=file=>{
+    try{
+      const raw=Number(fs.readFileSync(file,"utf8").trim());
+      if(!Number.isFinite(raw)) return;
+      // Les capteurs se lisent en millidegres (52000 = 52 °C). Un nombre deja
+      // en degres ne depasse pas 200 : c'est ce seuil qui distingue les deux.
+      const celsius=Math.abs(raw)>200 ? raw/1000 : raw;
+      if(celsius>0 && celsius<150) readings.push(celsius);
+    }catch(_error){}
+  };
+  for(const zone of readDir("/sys/class/thermal")){
+    if(/^thermal_zone\d+$/.test(zone)) push(`/sys/class/thermal/${zone}/temp`);
+  }
+  for(const hw of readDir("/sys/class/hwmon")){
+    for(const entry of readDir(`/sys/class/hwmon/${hw}`)){
+      if(/^temp\d+_input$/.test(entry)) push(`/sys/class/hwmon/${hw}/${entry}`);
+    }
+  }
+  if(!readings.length) return null;
+  return Math.round(Math.max(...readings)*10)/10;
+}
+
+// Pourcentage occupe du systeme de fichiers porte par "path". Par defaut la
+// racine du conteneur ; pour lire le disque reel de l'hote, il faut monter son
+// systeme de fichiers dans le conteneur et pointer ce chemin dessus (voir
+// deploy/DEPLOYMENT.md). bavail (et non bfree) exclut l'espace reserve root,
+// comme le fait "df".
+function localDiskPercent(target){
+  const value=String(target||"").trim()||"/";
+  try{
+    const stats=fs.statfsSync(value);
+    const total=Number(stats.blocks);
+    const available=Number(stats.bavail);
+    if(!(total>0)) return null;
+    return clampPercent(((total-available)/total)*100);
+  }catch(_error){
+    return null;
+  }
+}
+
+// Lecture d'un token : un nom present dans l'allowlist designe une variable
+// d'environnement, toute autre valeur est un secret colle dans l'editeur et
+// utilise tel quel. Un nom hors allowlist ne peut donc pas faire exfiltrer une
+// variable sensible du conteneur.
+function resolveTokenValue(name){
+  const candidate=String(name||"").trim();
+  if(!candidate) return "";
+  if(TOKEN_ENV_ALLOWLIST.has(candidate)) return String(process.env[candidate]||"");
+  return candidate;
+}
+
+function envToken(name,fallbackName){
+  const direct=resolveTokenValue(name);
+  if(direct) return direct;
+  const fallback=String(fallbackName||"").trim();
+  return TOKEN_ENV_ALLOWLIST.has(fallback) ? String(process.env[fallback]||"") : "";
+}
+
+function pickPercent(...candidates){
+  for(const candidate of candidates){
+    const n=Number(candidate);
+    if(Number.isFinite(n)) return clampPercent(n);
+  }
+  return null;
+}
+
+function pickTemperature(value){
+  const n=Number(value);
+  if(!Number.isFinite(n)) return null;
+  return Math.round(n*10)/10;
+}
+
+// Contrat de l'agent Linux : un JSON simple, chaque champ facultatif. Un champ
+// absent ou invalide devient null plutot qu'un zero trompeur.
+function normalizeMetricsPayload(data){
+  const source=data && typeof data==="object" ? data : {};
+  return {
+    cpu:pickPercent(source.cpu),
+    ram:pickPercent(source.ram),
+    temperature:pickTemperature(source.temperature === undefined ? source.temp : source.temperature),
+    disk:pickPercent(source.disk)
+  };
+}
+
+async function readHttpMetrics(host){
+  const url=String(host.monitoring?.url||"").trim();
+  if(!url) throw new Error("URL de mesures manquante");
+  const token=resolveTokenValue(host.monitoring?.tokenEnv);
+  const data=await httpClient.apiRequest(url,"",{ token:token||undefined });
+  return normalizeMetricsPayload(data);
+}
+
+function proxmoxRequest(base,tokenId,tokenSecret,apiPath){
+  return httpClient.apiRequest(base,apiPath,{
+    headers:{ Authorization:`PVEAPIToken=${tokenId}=${tokenSecret}` }
+  });
+}
+
+async function getProxmoxMetrics(host){
+  const base=String(host.monitoring?.url||"").trim().replace(/\/+$/,"");
+  if(!base) throw new Error("URL Proxmox manquante");
+  const tokenId=envToken(host.monitoring?.tokenIdEnv,"PROXMOX_TOKEN_ID");
+  const tokenSecret=envToken(host.monitoring?.tokenSecretEnv,"PROXMOX_TOKEN_SECRET");
+  if(!tokenId || !tokenSecret) throw new Error("Token Proxmox non configure");
+
+  let node=String(host.monitoring?.node||"").trim();
+  let nodes=[];
+  try{
+    const list=await proxmoxRequest(base,tokenId,tokenSecret,"/api2/json/nodes");
+    nodes=Array.isArray(list?.data) ? list.data : [];
+  }catch(_error){
+    nodes=[];
+  }
+  // Noeud : celui configure s'il existe encore, sinon le premier en ligne, sinon
+  // "pve" (l'API tranchera). Un noeud renomme ne bloque donc pas la mesure.
+  const online=nodes.filter(entry=>entry?.status==="online");
+  const configured=nodes.some(entry=>String(entry.node||"")===node) ? node : "";
+  node=configured || (online.length ? String(online[0].node||"").trim() : "") || "pve";
+
+  const payload=await proxmoxRequest(base,tokenId,tokenSecret,
+    `/api2/json/nodes/${encodeURIComponent(node)}/status`);
+  const data=payload?.data||{};
+  const memory=data.memory||{};
+  const rootfs=data.rootfs||{};
+  const memTotal=Number(memory.total);
+  const memUsed=Number(memory.used);
+  const diskTotal=Number(rootfs.total);
+  const diskUsed=Number(rootfs.used);
+  return {
+    cpu:clampPercent(Number(data.cpu)*100),
+    ram:memTotal>0 ? clampPercent((memUsed/memTotal)*100) : null,
+    // PVE n'expose pas la temperature d'un noeud via son API JSON : la valeur
+    // reste indisponible plutot que d'etre inventee.
+    temperature:null,
+    disk:diskTotal>0 ? clampPercent((diskUsed/diskTotal)*100) : null
+  };
+}
+
+const HOST_METRICS_TTL=10000;
+let hostMetricsCache={ts:0,payload:null};
+let hostMetricsInflight=null;
+
+app.get("/api/host-metrics",async(_req,res)=>{
+  res.set("Cache-Control","no-store");
+
+  if(hostMetricsCache.payload && Date.now()-hostMetricsCache.ts < HOST_METRICS_TTL){
+    return res.json(hostMetricsCache.payload);
+  }
+  // Deduplication : plusieurs navigateurs simultanes partagent une seule salve
+  // de mesures plutot que d'interroger chaque hote une fois par onglet.
+  if(hostMetricsInflight){
+    try{ return res.json(await hostMetricsInflight); }
+    catch(_error){ return res.status(500).json({error:"Lecture des mesures impossible"}); }
+  }
+
+  let config;
+  try{
+    config=readConfig();
+  }catch(_error){
+    return res.status(500).json({error:"Lecture de config.json impossible"});
+  }
+
+  const hosts=(Array.isArray(config.hosts) ? config.hosts : [])
+    .filter(host=>host?.monitoring?.enabled===true);
+
+  // Les mesures locales sont lues une seule fois : deux hotes "local" designent
+  // la meme machine, on ne consomme donc le delta CPU qu'une fois par requete.
+  const localCpu=localCpuPercent();
+  const localRam=localRamPercent();
+  const localTemp=localTemperature();
+
+  const refresh=Promise.all(hosts.map(async host=>{
+    const type=HOST_MONITORING_TYPES.has(host.monitoring?.type) ? host.monitoring.type : "local";
+    try{
+      let metrics;
+      if(type==="proxmox") metrics=await getProxmoxMetrics(host);
+      else if(type==="linux") metrics=await readHttpMetrics(host);
+      else metrics={ cpu:localCpu, ram:localRam, temperature:localTemp, disk:localDiskPercent(host.monitoring?.path) };
+      return {
+        id:sanitizeText(host.id,64),
+        name:sanitizeText(host.name,100)||"Hote",
+        type,
+        ok:true,
+        cpu:metrics.cpu,
+        ram:metrics.ram,
+        temperature:metrics.temperature,
+        disk:metrics.disk
+      };
+    }catch(error){
+      return {
+        id:sanitizeText(host.id,64),
+        name:sanitizeText(host.name,100)||"Hote",
+        type,
+        ok:false,
+        error:error.message
+      };
+    }
+  })).then(results=>({hosts:results}));
+
+  hostMetricsInflight=refresh;
+  try{
+    const payload=await refresh;
+    hostMetricsCache={ts:Date.now(),payload};
+    res.json(payload);
+  }catch(error){
+    console.error("Refresh mesures:",error);
+    res.status(500).json({error:"Lecture des mesures impossible"});
+  }finally{
+    if(hostMetricsInflight===refresh) hostMetricsInflight=null;
+  }
+});
 
 app.get("/api/status",(_req,res)=>{
   res.set("Cache-Control","no-store");

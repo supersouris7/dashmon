@@ -353,6 +353,11 @@ export const state = {
   editSpecialTile: null,
   serviceStatus: {},
   statusTimer: null,
+  // Dernier releve de supervision des hotes (voir server.js /api/host-metrics)
+  // et son minuteur de rafraichissement, actif seulement sur la page dediee.
+  hostMetrics: null,
+  hostMetricsError: false,
+  hostMetricsTimer: null,
   themes: { native: [], custom: [] }
 };
 
@@ -572,8 +577,7 @@ export function compactCount(value){
 // ou reserve recoit un identifiant genere, et les doublons sont ecartes pour
 // que state.dashboardId ne designe qu'une seule entree. Le dashboard par
 // defaut "main" est recree quand aucun n'est declare.
-function normalizeDashboards(raw){
-  const seen=new Set();
+function normalizeDashboards(raw){  const seen=new Set();
   const list=(Array.isArray(raw) ? raw : []).map(item=>({
     id:sanitizeText(item && item.id,64),
     name:sanitizeText(item && item.name,100),
@@ -586,6 +590,27 @@ function normalizeDashboards(raw){
   });
   if(!list.length) return clone(DEFAULT_DASHBOARDS);
   return list;
+}
+
+// Supervision d'un hote (voir server.js) : la source des mesures est "local"
+// (la machine qui heberge Dashmon), "linux" (un agent HTTP JSON) ou "proxmox"
+// (l'API PVE). Les champs token ne portent jamais un secret en clair ici : ce
+// sont des noms de variables d'environnement OU des valeurs collees, que le
+// serveur relit au moment de la mesure en appliquant son allowlist.
+export const HOST_MONITORING_TYPES=Object.freeze(["local","linux","proxmox"]);
+
+export function normalizeHostMonitoring(raw){
+  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
+  return {
+    enabled:raw.enabled===true,
+    type:HOST_MONITORING_TYPES.includes(raw.type) ? raw.type : "local",
+    url:sanitizeUrl(raw.url),
+    node:sanitizeText(raw.node,50),
+    path:sanitizeText(raw.path,200),
+    tokenEnv:sanitizeText(raw.tokenEnv,100),
+    tokenIdEnv:sanitizeText(raw.tokenIdEnv,100),
+    tokenSecretEnv:sanitizeText(raw.tokenSecretEnv,100)
+  };
 }
 
 export function normalizeConfig(cfg={}){
@@ -630,7 +655,8 @@ export function normalizeConfig(cfg={}){
           id:sanitizeText(host.id,64),
           name:sanitizeText(host.name,100),
           icon:sanitizeIconClass(host.icon),
-          color:sanitizeTileColor(host.color)
+          color:sanitizeTileColor(host.color),
+          monitoring:normalizeHostMonitoring(host.monitoring)
         }))
       : derivedHosts.map(host=>({
           ...host,

@@ -64,6 +64,9 @@ See `.env.example`. The most important:
 | `TRUST_PROXY` | `0` | `1` only if nginx terminates HTTPS in front of the container |
 | `DASHBOARD_INSECURE_TLS` | empty | `1` if your monitored hosts use self-signed certificates |
 | `DASHMON_MASTER_KEY` | empty | AES-256-GCM master key to encrypt widget secrets (e.g. Duplicati password) in `config.json` |
+| `PROXMOX_TOKEN_ID` / `PROXMOX_TOKEN_SECRET` | empty | Proxmox API token used by host supervision (type Proxmox) |
+| `LINUX_METRICS_TOKEN` | empty | Bearer token expected by a custom Linux metric agent |
+| `DASHBOARD_TOKEN_ENVS` | empty | Comma-separated allowlist extending the token variables above |
 
 ### Widget secrets (Duplicati…)
 
@@ -239,6 +242,50 @@ in its reverse proxy configuration, or add the intermediate to `ca-bundle.pem`.
 `DASHBOARD_INSECURE_TLS=1` remains available as a last resort for self-signed
 certificates. It disables verification for **every** outgoing request, including
 public sites, so prefer a bundle.
+
+## 8. Host supervision
+
+The *Supervision* page shows CPU, memory, disk and temperature for the hosts you
+enable in the editor (*Hosts* tab). Each host picks one source:
+
+| Type | What it reads | Fields |
+| --- | --- | --- |
+| Local | The machine running the container (`os`, `/sys`, `statfs`) | disk path (default `/`) |
+| Linux agent | A JSON endpoint you host: `{ "cpu": 12, "ram": 40, "disk": 55, "temperature": 48 }` (all optional, percentages 0–100) | URL, optional bearer token |
+| Proxmox | The PVE JSON API (`/api2/json/nodes/<node>/status`) | URL, node, token ID, token secret |
+
+Temperature is unavailable for Proxmox (the PVE API does not expose it) and shows
+as `—`; likewise any metric a source does not provide.
+
+### Disk of the real host (type Local)
+
+By default the disk metric reads the container's own filesystem, not the host's.
+To measure a real host disk, mount it into the container and point the disk path
+at the mount:
+
+```yaml
+    volumes:
+      - dashmon-data:/app/data
+      - /:/host:ro
+```
+
+then set the disk path to `/host` for that host. Readings of `null` (shown `—`)
+are normal when a path does not exist or `/sys` is not exposed.
+
+### Tokens
+
+Token fields hold **either** the name of an allowlisted environment variable
+(`PROXMOX_TOKEN_ID`, `PROXMOX_TOKEN_SECRET`, `LINUX_METRICS_TOKEN`, or any name
+listed in `DASHBOARD_TOKEN_ENVS`) **or** the literal value. The server resolves
+and sends them at read time; a name outside the allowlist is sent literally, it
+never exposes an arbitrary container variable.
+
+```dotenv
+PROXMOX_TOKEN_ID=dashmon@pve!metrics
+PROXMOX_TOKEN_SECRET=00000000-0000-0000-0000-000000000000
+```
+
+Create the Proxmox token with read-only (`PVEAuditor`) privileges.
 
 ## Notes
 

@@ -3,7 +3,7 @@
 // la liste des dashboards et du libelle courant (langue, renommage en editeur).
 import { state } from "./state.js";
 import { render } from "./render.js";
-import { renderSupervision } from "./supervision.js";
+import { renderSupervision, startSupervisionMetrics, stopSupervisionMetrics } from "./supervision.js";
 import { pageSwitchGroup } from "./dom.js";
 import { saveViewPrefs } from "./view-prefs.js";
 import { t } from "./i18n.js";
@@ -45,8 +45,12 @@ function selectSupervision(){
 function applyPage(){
   document.body.dataset.page=state.page;
   if(state.page==="supervision"){
+    // La lecture des mesures ne tourne que sur cette page : ouvert ici, arrete
+    // au retour au tableau de bord (voir startSupervisionMetrics).
     renderSupervision();
+    startSupervisionMetrics();
   }else{
+    stopSupervisionMetrics();
     render();
   }
   renderPageSwitch();
