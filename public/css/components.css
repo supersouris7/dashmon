@@ -767,6 +767,10 @@ body[data-page="supervision"] #viewBtn,
 body[data-page="supervision"] #iconsBtn,
 body[data-page="supervision"] #collapseAllBtn{display:none}
 
+/* Sans la recherche, c'est ce bouton qui porte la marge automatique : le menu
+   "... " reste colle au bord droit, comme sur le tableau de bord. */
+body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
+
 .supervision-title{
   margin:0 0 4px;
   font-size:20px;
