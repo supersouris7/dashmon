@@ -209,7 +209,7 @@ async function main(){
 
     check("prefs : la liste des cles est stable", stateModule.VIEW_PREF_KEYS.slice(),
       ["viewMode", "sortMode", "groupMode", "openMode",
-        "smallIcons", "collapsed", "webLinksHidden", "page"]);
+        "smallIcons", "collapsed", "webLinksHidden", "page", "dashboardId"]);
 
     // Rien d'ecrit tant que l'utilisateur n'a rien change.
     check("prefs : navigateur neuf = aucune preference", prefs.loadViewPrefs(), {});
@@ -226,6 +226,31 @@ async function main(){
     check("pages : tableau de bord par defaut", stateModule.normalizeViewPrefs({}).page, "dashboard");
     check("pages : supervision conservee", stateModule.normalizeViewPrefs({ page: "supervision" }).page, "supervision");
     check("pages : page inconnue recalee", stateModule.normalizeViewPrefs({ page: "admin" }).page, "dashboard");
+    check("pages : dashboard actif normalise", stateModule.normalizeViewPrefs({ dashboardId: " main " }).dashboardId, "main");
+    check("pages : dashboard actif vide par defaut", stateModule.normalizeViewPrefs({}).dashboardId, "");
+
+    check("dashboards : un onglet par defaut", stateModule.normalizeConfig({}).dashboards,
+      [{ id: "main", name: "Dashboard", icon: "fa-solid fa-grip" }]);
+    const catsDefault = stateModule.normalizeConfig({
+      dashboards: [{ id: "main", name: "Dashboard" }],
+      categories: [{ name: "Infra" }, { name: "Apps", dashboardId: "main" }]
+    }).categories;
+    check("dashboards : categorie rattachee au premier dashboard",
+      catsDefault.map(c => c.dashboardId), ["main", "main"]);
+    const catsUnknown = stateModule.normalizeConfig({
+      dashboards: [{ id: "main", name: "A" }, { id: "second", name: "B" }],
+      categories: [{ name: "Infra", dashboardId: "second" }, { name: "Apps", dashboardId: "ghost" }]
+    }).categories;
+    check("dashboards : dashboardId inconnu recale sur le premier",
+      catsUnknown.map(c => c.dashboardId), ["second", "main"]);
+    const dashReserved = stateModule.normalizeConfig({
+      dashboards: [{ id: "supervision", name: "A" }, { id: "supervision", name: "B" }]
+    }).dashboards;
+    check("dashboards : identifiant reserve regenere",
+      dashReserved.every(d => d.id !== "supervision"), true);
+    check("dashboards : identifiants uniques",
+      new Set(dashReserved.map(d => d.id)).size, dashReserved.length);
+
 
     check("liens : six couleurs", Object.keys(stateModule.WEB_LINK_COLORS),
       ["dark", "red", "blue", "green", "orange", "purple"]);
@@ -450,6 +475,15 @@ async function main(){
   // speciale unique, pas un service.
   ok("tuile speciale : le champ kind par service a disparu",
     !/kind:service\.kind/.test(editorSrcForSpecial) && !/kind:svc\.kind/.test(serverSrcForSpecial));
+
+  // --- 6a bis. Dashboards et rattachement des categories ----------------
+  // Chaque categorie est rattachee a un dashboard, cote serveur comme cote
+  // client : la config publiee porte la liste "dashboards" et chaque categorie
+  // son "dashboardId", pour que l'affichage par onglet reste coherent.
+  ok("dashboards : le serveur publie la liste des dashboards",
+    /dashboards,/.test(serverSrcForSpecial) && /dashboardIds\.has\(sanitizeText\(cat\.dashboardId,64\)\)/.test(serverSrcForSpecial));
+  ok("dashboards : l'editeur enregistre les dashboards",
+    /state\.dashboards=cleanedDashboards/.test(editorSrcForSpecial));
 
   // --- 6b. Compteurs du bandeau "Liens web" -----------------------------
   // Un lien web peut porter un compteur public (etoiles GitHub, pulls Docker

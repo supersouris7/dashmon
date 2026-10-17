@@ -4,18 +4,19 @@ import { t, applyLanguage } from "./i18n.js";
 import { saveConfig, putConfig, fetchConfig } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
 import { render, updateViewButton, updateIconsButton, updateOpenModeMenu, updateGroupModeMenu, updateSortModeMenu } from "./render.js";
+import { renderPageSwitch } from "./pages.js";
 import { applyTheme } from "./themes.js";
 import { openImageLibrary, renderImageManager } from "./images.js";
-import { createIconPicker, createHostIconPicker, createWebLinkIconPicker } from "./icons.js";
+import { createIconPicker, createHostIconPicker, createWebLinkIconPicker, createDashboardIconPicker } from "./icons.js";
 import {
   getWidgetMeta, listWidgetMetas, widgetLabel, widgetString, fieldLabel, fieldPlaceholder,
   fieldTitle, visibleFields, inheritWidgetConfig, normalizeWidgetConfig, isEncryptedSecret
 } from "./widget-registry.js";
 import {
-  serviceEditor, categoryEditor, hostEditor, webLinksEditor, widgetsEditor,
+  serviceEditor, categoryEditor, dashboardEditor, hostEditor, webLinksEditor, widgetsEditor,
   editorSearch, editorCategoryFilter, editorHostFilter,
   modalBackdrop, closeBtn, cancelBtn, saveBtn,
-  addServiceBtn, addCategoryBtn, addWebLinkBtn, addHostBtn,
+  addServiceBtn, addCategoryBtn, addDashboardBtn, addWebLinkBtn, addHostBtn,
   exportConfigBtn, importConfigBtn, configImportInput,
   widgetConfig, widgetConfigBody, widgetConfigCloseBtn, widgetConfigSaveBtn
 } from "./dom.js";
@@ -684,6 +685,25 @@ export function renderCategoryEditor(){
 
     const picker=createIconPicker(category,index);
 
+    // Une categorie appartient a un seul dashboard : le selecteur rend ce lien
+    // explicite, et l'editeur des dashboards le revalide a l'enregistrement.
+    const dashboardSelect=document.createElement("select");
+    dashboardSelect.className="edit-select";
+    dashboardSelect.title=t("categoryDashboard");
+    dashboardSelect.setAttribute("aria-label",t("categoryDashboard"));
+    state.editDashboards.forEach(dashboard=>{
+      const option=document.createElement("option");
+      option.value=dashboard.id||"main";
+      option.textContent=dashboard.name||t("dashboardLabel");
+      dashboardSelect.appendChild(option);
+    });
+    dashboardSelect.value=state.editDashboards.some(d=>d.id===category.dashboardId)
+      ? category.dashboardId
+      : (state.editDashboards[0]?.id||"");
+    dashboardSelect.addEventListener("change",()=>{
+      state.editCategories[index].dashboardId=dashboardSelect.value;
+    });
+
     const remove=document.createElement("button");
     remove.className="small-icon-btn delete-btn";
     remove.type="button";
@@ -703,9 +723,63 @@ export function renderCategoryEditor(){
       renderWidgetsEditor();
     });
 
-    row.append(drag,name,picker,createColorPicker(category),remove);
+    row.append(drag,name,dashboardSelect,picker,createColorPicker(category),remove);
     makeDraggable(row,state.editCategories,index,renderCategoryEditor);
     categoryEditor.appendChild(row);
+  });
+}
+
+// Editeur des dashboards : nom + icone, dans l'ordre d'affichage des onglets.
+// Supprimer un dashboard ne supprime aucune categorie : celles qui y etaient
+// rattachees rejoignent le premier dashboard restant, pour ne jamais perdre de
+// service. Le retrait du dernier dashboard est refuse (il en faut toujours un).
+export function renderDashboardEditor(){
+  dashboardEditor.innerHTML="";
+
+  state.editDashboards.forEach((dashboard,index)=>{
+    const row=document.createElement("div");
+    row.className="dashboard-row";
+
+    const drag=document.createElement("div");
+    drag.className="drag-handle";
+    drag.title=t("move");
+    drag.innerHTML='<i class="fa-solid fa-grip-vertical"></i>';
+
+    const name=document.createElement("input");
+    name.className="edit-input";
+    name.placeholder=t("dashboardName");
+    name.value=dashboard.name||"";
+    name.addEventListener("input",()=>{
+      state.editDashboards[index].name=name.value;
+      renderCategoryEditor();
+    });
+
+    const picker=createDashboardIconPicker(dashboard,index);
+
+    const remove=document.createElement("button");
+    remove.className="small-icon-btn delete-btn";
+    remove.type="button";
+    remove.title=t("deleteLabel");
+    remove.innerHTML='<i class="fa-solid fa-trash"></i>';
+    remove.addEventListener("click",()=>{
+      if(state.editDashboards.length<=1) return;
+      if(!confirm(t("deleteDashboardConfirm"))) return;
+      const removedId=state.editDashboards[index].id;
+      state.editDashboards.splice(index,1);
+      const fallbackId=state.editDashboards[0].id;
+      state.editCategories.forEach(category=>{
+        if(category.dashboardId===removedId) category.dashboardId=fallbackId;
+      });
+      renderDashboardEditor();
+      renderCategoryEditor();
+    });
+
+    row.append(drag,name,picker,remove);
+    makeDraggable(row,state.editDashboards,index,()=>{
+      renderDashboardEditor();
+      renderCategoryEditor();
+    });
+    dashboardEditor.appendChild(row);
   });
 }
 
@@ -846,6 +920,7 @@ export function openEditor(){
   document.documentElement.style.setProperty("--toolbar-h",Math.max(0,rect.bottom)+"px");
   state.editServices=clone(state.services);
   state.editCategories=clone(state.categories);
+  state.editDashboards=clone(state.dashboards);
   state.editHosts=clone(state.hosts);
   state.editWebLinks=clone(state.webLinks);
   state.editSpecialTile=clone(state.specialTile);
@@ -854,6 +929,7 @@ export function openEditor(){
   editorHostFilter.value="";
   renderServiceEditor();
   renderCategoryEditor();
+  renderDashboardEditor();
   renderHostEditor();
   renderWebLinksEditor();
   renderWidgetsEditor();
@@ -906,13 +982,34 @@ addServiceBtn.addEventListener("click",()=>{
 });
 
 addCategoryBtn.addEventListener("click",()=>{
-  const newCategory={name:"",icon:"fa-solid fa-folder"};
+  const newCategory={name:"",icon:"fa-solid fa-folder",dashboardId:state.editDashboards[0]?.id||"main"};
   state.editCategories.push(newCategory);
   renderCategoryEditor();
   renderServiceEditor();
 
   requestAnimationFrame(()=>{
     const rows=[...categoryEditor.querySelectorAll(".category-row")];
+    const row=rows[rows.length-1];
+    const input=row?.querySelector(".edit-input");
+    if(input){
+      input.focus();
+      input.select();
+    }
+  });
+});
+
+addDashboardBtn.addEventListener("click",()=>{
+  const newDashboard={
+    id:"dashboard-"+Math.random().toString(36).slice(2,12),
+    name:t("newDashboard"),
+    icon:"fa-solid fa-grip"
+  };
+  state.editDashboards.push(newDashboard);
+  renderDashboardEditor();
+  renderCategoryEditor();
+
+  requestAnimationFrame(()=>{
+    const rows=[...dashboardEditor.querySelectorAll(".dashboard-row")];
     const row=rows[rows.length-1];
     const input=row?.querySelector(".edit-input");
     if(input){
@@ -968,6 +1065,7 @@ configImportInput.addEventListener("change",async()=>{
 
     state.services=clone(imported.services);
     state.categories=clone(imported.categories);
+    state.dashboards=clone(imported.dashboards);
     state.hosts=clone(imported.hosts);
     state.specialTile=clone(imported.specialTile);
     // La disposition de l'écran n'est pas dans le fichier importé : elle reste
@@ -980,6 +1078,10 @@ configImportInput.addEventListener("change",async()=>{
     state.sortMode=viewPrefs.sortMode;
     state.smallIcons=viewPrefs.smallIcons;
     state.webLinksHidden=viewPrefs.webLinksHidden;
+    state.page=viewPrefs.page;
+    state.dashboardId=state.dashboards.some(d=>d.id===viewPrefs.dashboardId)
+      ? viewPrefs.dashboardId
+      : state.dashboards[0].id;
     state.webLinksColor=imported.webLinksColor;
     state.theme=imported.theme;
     state.language=imported.language;
@@ -988,6 +1090,7 @@ configImportInput.addEventListener("change",async()=>{
 
     state.editServices=clone(state.services);
     state.editCategories=clone(state.categories);
+    state.editDashboards=clone(state.dashboards);
     state.editHosts=clone(state.hosts);
     state.editWebLinks=clone(state.webLinks);
     state.editSpecialTile=clone(state.specialTile);
@@ -1001,10 +1104,12 @@ configImportInput.addEventListener("change",async()=>{
     updateSortModeMenu();
     renderServiceEditor();
     renderCategoryEditor();
+    renderDashboardEditor();
     renderHostEditor();
     renderWebLinksEditor();
     renderWidgetsEditor();
     render();
+    renderPageSwitch();
   }catch(error){
     console.error("Import de configuration impossible",error);
     alert("Fichier de configuration invalide.");
@@ -1046,6 +1151,31 @@ modalBackdrop.addEventListener("click",e=>{
 });
 
 saveBtn.addEventListener("click",async()=>{
+  // Dashboards : la liste doit toujours contenir au moins un onglet. Les
+  // identifiants vides, reserves ("supervision") ou dupliques sont regeneres,
+  // exactement comme le fait le serveur (server.js), pour que l'affichage et
+  // le fichier enregistre restent coherents.
+  const seenDashboardIds=new Set();
+  const cleanedDashboards=state.editDashboards
+    .map(d=>({
+      id:String(d.id||"").trim().slice(0,64),
+      name:(d.name||"").trim(),
+      icon:d.icon||"fa-solid fa-grip"
+    }))
+    .filter(d=>d.name)
+    .map(d=>{
+      let id=d.id;
+      if(!id || id==="supervision" || seenDashboardIds.has(id)){
+        id="dashboard-"+Math.random().toString(36).slice(2,12);
+      }
+      seenDashboardIds.add(id);
+      return {id,name:d.name,icon:d.icon};
+    });
+  if(!cleanedDashboards.length){
+    cleanedDashboards.push({id:"main",name:"Dashboard",icon:"fa-solid fa-grip"});
+  }
+  const dashboardIds=new Set(cleanedDashboards.map(d=>d.id));
+
   // La couleur doit survivre a l'enregistrement : sans ce champ, elle
   // disparaissait de config.json a chaque sauvegarde et l'attribution par
   // defaut remettait toutes les categories a la meme teinte.
@@ -1053,7 +1183,10 @@ saveBtn.addEventListener("click",async()=>{
     .map(c=>({
       name:(c.name||"").trim(),
       icon:c.icon||"fa-solid fa-folder",
-      color:sanitizeTileColor(c.color)
+      color:sanitizeTileColor(c.color),
+      // Une categorie appartient toujours a un dashboard ; une reference
+      // inconnue retombe sur le premier, jamais dans le vide.
+      dashboardId:dashboardIds.has(String(c.dashboardId||"").trim()) ? String(c.dashboardId||"").trim() : cleanedDashboards[0].id
     }))
     .filter(c=>c.name);
 
@@ -1103,9 +1236,17 @@ saveBtn.addEventListener("click",async()=>{
 
   state.services=cleanedServices;
   state.categories=cleanedCategories;
+  state.dashboards=cleanedDashboards;
   state.hosts=cleanedHosts;
   state.webLinks=cleanedWebLinks;
   state.specialTile=cleanedSpecialTile;
+
+  // Le dashboard actif peut avoir ete supprime ou renomme : on le ramene sur
+  // un dashboard existant avant de redessiner.
+  if(!state.dashboards.some(d=>d.id===state.dashboardId)){
+    state.dashboardId=state.dashboards[0].id;
+    saveViewPrefs({dashboardId:state.dashboardId});
+  }
 
   const validCollapsedKeys=new Set([
     ...state.categories.map(c=>`category:${c.name}`),
@@ -1120,6 +1261,7 @@ saveBtn.addEventListener("click",async()=>{
   saveViewPrefs({collapsed:state.collapsed});
 
   render();
+  renderPageSwitch();
   await saveConfig(true);
   closeEditor();
 });

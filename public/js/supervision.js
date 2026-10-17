@@ -3,8 +3,7 @@
 // elles servent à montrer le rendu, rien n'est mesuré pour l'instant.
 import { t } from "./i18n.js";
 import { state } from "./state.js";
-import { dashboardPageBtn, supervisionPageBtn, supervisionList } from "./dom.js";
-import { saveViewPrefs } from "./view-prefs.js";
+import { supervisionList } from "./dom.js";
 
 const VPN_EXAMPLES = Object.freeze([
   { name: "VPN principal", protocol: "WireGuard", endpoint: "192.0.2.10", status: "up", latency: 24, uptime: 99.9 },
@@ -70,23 +69,3 @@ export function renderSupervision() {
 
   supervisionList.append(title, note, grid);
 }
-
-export function setPage(page) {
-  state.page = page === "supervision" ? "supervision" : "dashboard";
-  document.body.dataset.page = state.page;
-  dashboardPageBtn.setAttribute("aria-pressed", String(state.page === "dashboard"));
-  supervisionPageBtn.setAttribute("aria-pressed", String(state.page === "supervision"));
-  if (state.page === "supervision") {
-    renderSupervision();
-  }
-}
-
-dashboardPageBtn.addEventListener("click", () => {
-  setPage("dashboard");
-  saveViewPrefs({ page: state.page });
-});
-
-supervisionPageBtn.addEventListener("click", () => {
-  setPage("supervision");
-  saveViewPrefs({ page: state.page });
-});

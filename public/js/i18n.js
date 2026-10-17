@@ -16,6 +16,7 @@ const UI_TEXT={
     support:"Soutenir",
     tabApplications:"Applications",
     tabCategories:"Catégories",
+    tabDashboards:"Dashboards",
     tabHosts:"Hôtes",
     tabWebLinks:"Liens web",
     tabWidgets:"Widgets",
@@ -84,6 +85,12 @@ const UI_TEXT={
     choosePng:"Choisir ou importer une image PNG",
     move:"Déplacer",
     categoryName:"Nom de catégorie",
+    dashboardName:"Nom du dashboard",
+    addDashboard:"Dashboard",
+    newDashboard:"Nouveau dashboard",
+    dashboardLabel:"Dashboard",
+    categoryDashboard:"Dashboard de la catégorie",
+    deleteDashboardConfirm:"Supprimer ce dashboard ? Ses catégories seront rattachées au premier dashboard.",
     colorSwatch:"Couleur",
     hostName:"Nom de l’hôte",
     newHost:"Nouvel hôte",
@@ -152,6 +159,7 @@ const UI_TEXT={
     support:"Support",
     tabApplications:"Applications",
     tabCategories:"Categories",
+    tabDashboards:"Dashboards",
     tabHosts:"Hosts",
     tabWebLinks:"Web links",
     tabWidgets:"Widgets",
@@ -220,6 +228,12 @@ const UI_TEXT={
     choosePng:"Choose or upload a PNG image",
     move:"Move",
     categoryName:"Category name",
+    dashboardName:"Dashboard name",
+    addDashboard:"Dashboard",
+    newDashboard:"New dashboard",
+    dashboardLabel:"Dashboard",
+    categoryDashboard:"Category dashboard",
+    deleteDashboardConfirm:"Delete this dashboard? Its categories will be moved to the first dashboard.",
     colorSwatch:"Color",
     hostName:"Host name",
     newHost:"New host",
@@ -342,12 +356,14 @@ export function applyLanguage(){
   const editorLabels=[
     ["editorTabApplications","tabApplications"],
     ["editorTabCategories","tabCategories"],
+    ["editorTabDashboards","tabDashboards"],
     ["editorTabHosts","tabHosts"],
     ["editorTabWebLinks","tabWebLinks"],
     ["editorTabWidgets","tabWidgets"],
     ["editorTabImages","tabImages"],
     ["addServiceLabel","addApplication"],
     ["addCategoryLabel","addCategory"],
+    ["addDashboardLabel","addDashboard"],
     ["addHostLabel","addHost"],
     ["addWebLinkLabel","addWebLink"],
     ["importConfigLabel","importBtn"],
@@ -402,14 +418,6 @@ export function applyLanguage(){
     el.setAttribute("aria-label",label);
   });
 
-  const pageLabels=[
-    ["pageDashboardLabel","pageDashboard"],
-    ["pageSupervisionLabel","pageSupervision"]
-  ];
-  pageLabels.forEach(([id,key])=>{
-    const el=document.getElementById(id);
-    if(el) el.textContent=t(key);
-  });
   const pageSwitch=document.getElementById("pageSwitchGroup");
   if(pageSwitch) pageSwitch.setAttribute("aria-label",t("pageSwitch"));
 
@@ -418,6 +426,9 @@ export function applyLanguage(){
   }
   if(supervisionUpdater){
     supervisionUpdater();
+  }
+  if(pageSwitchUpdater){
+    pageSwitchUpdater();
   }
 }
 
@@ -431,6 +442,12 @@ let supervisionUpdater=null;
 
 export function setSupervisionUpdater(fn){
   supervisionUpdater=fn;
+}
+
+let pageSwitchUpdater=null;
+
+export function setPageSwitchUpdater(fn){
+  pageSwitchUpdater=fn;
 }
 
 let collapseButtonUpdater=null;

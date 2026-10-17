@@ -77,6 +77,12 @@ export function createHostIconPicker(host,index){
   });
 }
 
+export function createDashboardIconPicker(dashboard,index){
+  return buildPicker(dashboard.icon||"fa-solid fa-grip",iconClass=>{
+    state.editDashboards[index].icon=iconClass;
+  });
+}
+
 export function createWebLinkIconPicker(link,index){
   return buildPicker(link.icon||"fa-solid fa-globe",iconClass=>{
     state.editWebLinks[index].icon=iconClass;

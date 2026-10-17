@@ -5,15 +5,16 @@ import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
 import { render, updateViewButton, updateIconsButton, updateOpenModeMenu, updateGroupModeMenu,
   updateSortModeMenu, setGroupMode, getCollapseAllState, updateCollapseAllButton,
   updateStatusIndicators } from "./render.js";
-import { applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater, setSupervisionUpdater } from "./i18n.js";
+import { applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater, setSupervisionUpdater, setPageSwitchUpdater } from "./i18n.js";
 import {
   loadThemes, applyTheme, setTheme, currentTheme, downloadTheme,
   importThemeFile, deleteCustomTheme, applyThemeLabels
 } from "./themes.js";
 import { startStatusLoop, setupVisibilityPause, manualRefresh } from "./metrics.js";
-import { renderSupervision, setPage } from "./supervision.js";
+import { renderSupervision } from "./supervision.js";
+import { renderPageSwitch, setPage } from "./pages.js";
 import { openEditor, closeEditor, renderServiceEditor, renderCategoryEditor,
-  renderHostEditor, renderWebLinksEditor, renderWidgetsEditor } from "./editor.js";
+  renderDashboardEditor, renderHostEditor, renderWebLinksEditor, renderWidgetsEditor } from "./editor.js";
 import { closeImageLibrary } from "./images.js";
 import { loadWidgetRegistry } from "./widget-registry.js";
 import {
@@ -28,6 +29,7 @@ import {
 setThemeLabelsUpdater(applyThemeLabels);
 setCollapseButtonUpdater(updateCollapseAllButton);
 setSupervisionUpdater(renderSupervision);
+setPageSwitchUpdater(renderPageSwitch);
 
 async function loadConfig(){
   try{
@@ -37,6 +39,7 @@ async function loadConfig(){
     const cfg=normalizeConfig(await response.json());
     state.services=cfg.services;
     state.categories=cfg.categories;
+    state.dashboards=cfg.dashboards;
     state.hosts=cfg.hosts;
     state.specialTile=cfg.specialTile;
     // Disposition de l'écran : ce navigateur prime, la config serveur sert de
@@ -50,6 +53,12 @@ async function loadConfig(){
     state.smallIcons=viewPrefs.smallIcons;
     state.webLinksHidden=viewPrefs.webLinksHidden;
     state.page=viewPrefs.page;
+    // Le dashboard actif vient de la preference, mais il est borne a la liste
+    // de la config : une preference dont le dashboard a ete supprime retombe
+    // sur le premier dashboard.
+    state.dashboardId=cfg.dashboards.some(d=>d.id===viewPrefs.dashboardId)
+      ? viewPrefs.dashboardId
+      : (cfg.dashboards[0]?.id||state.dashboardId);
     state.webLinksColor=cfg.webLinksColor;
     state.theme=cfg.theme;
     state.language=cfg.language;
@@ -211,6 +220,7 @@ languageSelect.addEventListener("change",()=>{
   updateStatusIndicators();
   renderServiceEditor();
   renderCategoryEditor();
+  renderDashboardEditor();
   renderHostEditor();
   renderWebLinksEditor();
   renderWidgetsEditor();

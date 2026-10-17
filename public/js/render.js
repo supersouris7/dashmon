@@ -468,7 +468,27 @@ function renderWebLinks(){
   });
 }
 
+// Dashboard actif, borne a un identifiant existant : une preference d'un autre
+// navigateur pointant sur un dashboard supprime ne doit pas vider l'ecran.
+export function currentDashboardId(){
+  return state.dashboards.some(d=>d.id===state.dashboardId) ? state.dashboardId : (state.dashboards[0]?.id||"");
+}
+
+// Un dashboard regroupe des categories ; une categorie appartient a un seul
+// dashboard. Un service est donc visible si sa categorie est rattachee au
+// dashboard actif. Une categorie vide ou inconnue retombe sur le premier
+// dashboard, pour ne jamais faire disparaitre un service mal categorise.
+function categoryDashboardId(name){
+  const category=state.categories.find(c=>c.name===name);
+  return category ? category.dashboardId : (state.dashboards[0]?.id||"");
+}
+
+function serviceInDashboard(service){
+  return categoryDashboardId(service.category)===currentDashboardId();
+}
+
 function serviceMatchesQuery(service){
+  if(!serviceInDashboard(service)) return false;
   const query=normalize(searchInput.value);
   if(!query) return true;
   return [
@@ -489,9 +509,10 @@ function groupLabel(name){
 
 // Tuile speciale : une seule par tableau de bord, placee dans la categorie
 // choisie. En affichage par hote, elle rejoint le groupe "sans hote". Elle suit
-// aussi la recherche, comme les services.
+// aussi la recherche et le dashboard actif, comme les services.
 function specialTileVisible(){
   if(!state.specialTile) return false;
+  if(categoryDashboardId(state.specialTile.category)!==currentDashboardId()) return false;
   const query=normalize(searchInput.value);
   if(!query) return true;
   return normalize(state.specialTile.category).includes(query);

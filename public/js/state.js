@@ -9,6 +9,18 @@ export const DEFAULT_CATEGORIES = [
   {name:"Administration",icon:"fa-solid fa-gear"}
 ];
 
+// Un dashboard est un onglet nomme du tableau de bord. Chaque categorie est
+// rattachee a un seul dashboard (dashboardId obligatoire) : c'est ce lien qui
+// decide quelles sections apparaissent sur quel onglet. L'identifiant "main"
+// est reserve au dashboard par defaut pour que la migration des configurations
+// existantes soit stable.
+export const DEFAULT_DASHBOARDS = [
+  {id:"main", name:"Dashboard", icon:"fa-solid fa-grip"}
+];
+
+// Identifiant reserve : "supervision" est une page a part, jamais un dashboard.
+export const RESERVED_DASHBOARD_IDS = Object.freeze(["supervision"]);
+
 export const ICON_OPTIONS=[
   "fa-solid fa-folder",
   "fa-solid fa-folder-tree",
@@ -315,10 +327,12 @@ export function webLinksColors(value){
 export const state = {
   services: [],
   categories: [],
+  dashboards: [],
   hosts: [],
   collapsed: {},
   viewMode: "columns",
   page: "dashboard",
+  dashboardId: "main",
   openMode: "same",
   groupMode: "category",
   theme: "dark",
@@ -332,6 +346,7 @@ export const state = {
   smallIcons: false,
   editServices: [],
   editCategories: [],
+  editDashboards: [],
   editHosts: [],
   editWebLinks: [],
   specialTile: null,
@@ -469,7 +484,7 @@ function normalizeCollapsed(collapsed){
 // navigateur ne puisse pas casser le rendu.
 export const VIEW_PREF_KEYS=Object.freeze([
   "viewMode","sortMode","groupMode","openMode",
-  "smallIcons","collapsed","webLinksHidden","page"
+  "smallIcons","collapsed","webLinksHidden","page","dashboardId"
 ]);
 
 export function normalizeViewPrefs(cfg={}){
@@ -479,6 +494,9 @@ export function normalizeViewPrefs(cfg={}){
     groupMode:cfg.groupMode==="host" ? "host" : "category",
     sortMode:cfg.sortMode==="usage" ? "usage" : "alphabetical",
     page:cfg.page==="supervision" ? "supervision" : "dashboard",
+    // Dashboard actif : la valeur est validee plus tard contre la liste des
+    // dashboards de la config (ici on ne connait que la preference brute).
+    dashboardId:typeof cfg.dashboardId==="string" && cfg.dashboardId.trim() ? cfg.dashboardId.trim().slice(0,64) : "",
     smallIcons:cfg.smallIcons===true,
     webLinksHidden:cfg.webLinksHidden===true,
     collapsed:normalizeCollapsed(cfg.collapsed)
@@ -550,6 +568,26 @@ export function compactCount(value){
   return shown+unit;
 }
 
+// Dashboards : on garantit toujours au moins un onglet. Un identifiant manquant
+// ou reserve recoit un identifiant genere, et les doublons sont ecartes pour
+// que state.dashboardId ne designe qu'une seule entree. Le dashboard par
+// defaut "main" est recree quand aucun n'est declare.
+function normalizeDashboards(raw){
+  const seen=new Set();
+  const list=(Array.isArray(raw) ? raw : []).map(item=>({
+    id:sanitizeText(item && item.id,64),
+    name:sanitizeText(item && item.name,100),
+    icon:sanitizeIconClass(item && item.icon)
+  })).filter(item=>item.name).map(item=>{
+    let id=item.id;
+    if(!id || RESERVED_DASHBOARD_IDS.includes(id) || seen.has(id)) id="dashboard-"+Math.random().toString(36).slice(2,10);
+    seen.add(id);
+    return {id,name:item.name,icon:item.icon||"fa-solid fa-grip"};
+  });
+  if(!list.length) return clone(DEFAULT_DASHBOARDS);
+  return list;
+}
+
 export function normalizeConfig(cfg={}){
   const normalizedServices=Array.isArray(cfg.services)
     ? clone(cfg.services)
@@ -557,11 +595,17 @@ export function normalizeConfig(cfg={}){
   const derivedHosts=[...new Set(
     normalizedServices.map(service=>(service.host||"").trim()).filter(Boolean)
   )].map(name=>({name,icon:"fa-solid fa-server"}));
+  // Dashboards : liste ordonnee qui alimente les onglets. Un identifiant vide,
+  // duplique ou reserve ("supervision") est remplace par un identifiant genere.
+  const normalizedDashboards=normalizeDashboards(cfg.dashboards);
+  const dashboardIds=new Set(normalizedDashboards.map(d=>d.id));
+  const defaultDashboardId=normalizedDashboards[0].id;
   const normalizedCategories=(Array.isArray(cfg.categories) ? clone(cfg.categories) : clone(DEFAULT_CATEGORIES))
     .map(cat=>({
       name:sanitizeText(cat.name,100),
       icon:sanitizeIconClass(cat.icon),
-      color:sanitizeTileColor(cat.color)
+      color:sanitizeTileColor(cat.color),
+      dashboardId:dashboardIds.has(sanitizeText(cat.dashboardId,64)) ? sanitizeText(cat.dashboardId,64) : defaultDashboardId
     }));
   const normalized={
     ...normalizeViewPrefs(cfg),
@@ -577,6 +621,7 @@ export function normalizeConfig(cfg={}){
       widget:normalizeWidgetConfig(svc.widget)
     })),
     categories:normalizedCategories,
+    dashboards:normalizedDashboards,
     // Tuile speciale unique du tableau de bord (phrase du jour...), placee dans
     // une categorie. Absente = aucune.
     specialTile:normalizeSpecialTile(cfg.specialTile,normalizedCategories),
@@ -628,4 +673,11 @@ export function compareServices(a,b){
 
 export function getCategory(name){
   return state.categories.find(c=>c.name===name) || {name,icon:"fa-solid fa-folder"};
+}
+
+// Dashboard par identifiant. Un identifiant inconnu (preference d'un autre
+// navigateur, dashboard supprime) retombe sur le premier dashboard, qui existe
+// toujours.
+export function getDashboard(id){
+  return state.dashboards.find(d=>d.id===id) || state.dashboards[0] || DEFAULT_DASHBOARDS[0];
 }

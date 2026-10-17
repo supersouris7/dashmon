@@ -305,6 +305,7 @@ function ensureDataFiles(){
       fs.writeFileSync(CONFIG_FILE,JSON.stringify({
         services:[],
         categories:[],
+        dashboards:[{id:"main",name:"Dashboard",icon:"fa-solid fa-grip"}],
         hosts:[],
         collapsed:{},
         viewMode:"columns",
@@ -561,11 +562,38 @@ function sanitizeSpecialTile(raw,categories){
 }
 
 function buildConfigOutput(config){
+  // Dashboards et categories partagent un lien obligatoire : une categorie
+  // appartient a un dashboard. On resout donc d'abord la liste des dashboards
+  // (toujours au moins un), puis on y rattache chaque categorie. Un
+  // identifiant de dashboard vide, reserve ("supervision") ou duplique est
+  // regenere, comme pour les hotes.
+  const dashboards=(Array.isArray(config.dashboards) ? config.dashboards : [])
+    .slice(0,20)
+    .map(d=>({
+      id:sanitizeText(d && d.id,64),
+      name:sanitizeText(d && d.name,100),
+      icon:sanitizeIconClass(d && d.icon)
+    }))
+    .filter(d=>d.name)
+    .reduce((list,d)=>{
+      let id=d.id;
+      const reserved=id==="supervision";
+      if(!id || reserved || list.some(item=>item.id===id)){
+        id="dashboard-"+crypto.randomBytes(4).toString("hex");
+      }
+      list.push({id,name:d.name,icon:d.icon});
+      return list;
+    },[]);
+  if(!dashboards.length){
+    dashboards.push({id:"main",name:"Dashboard",icon:"fa-solid fa-grip"});
+  }
+  const dashboardIds=new Set(dashboards.map(d=>d.id));
   const categories=Array.isArray(config.categories)
     ? config.categories.slice(0,50).map(cat=>({
         name:sanitizeText(cat.name,100),
         icon:sanitizeIconClass(cat.icon),
-        color:sanitizeColor(cat.color)
+        color:sanitizeColor(cat.color),
+        dashboardId:dashboardIds.has(sanitizeText(cat.dashboardId,64)) ? sanitizeText(cat.dashboardId,64) : dashboards[0].id
       }))
     : [];
   return {
@@ -581,6 +609,7 @@ function buildConfigOutput(config){
           }))
         : [],
       categories,
+      dashboards,
       // Tuile speciale unique du tableau de bord, placee dans une categorie.
       // Le type est verifie contre la liste blanche ; la categorie est
       // obligatoire, on retombe sur la premiere definie faute de mieux.

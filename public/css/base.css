@@ -74,6 +74,7 @@ main{
    actions restent alignees a droite par la marge automatique. */
 .page-switch{
   display:flex;
+  flex-wrap:wrap;
   gap:8px;
   flex:0 0 auto;
 }
@@ -102,6 +103,13 @@ main{
 .page-btn:hover{
   background:var(--surface-2);
   border-color:var(--muted);
+}
+
+/* Le nom d'un dashboard peut etre long : il s'abrege plutot que de pousser
+   les autres boutons hors de la barre. */
+.page-btn > span{
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .page-btn[aria-pressed="true"]{

@@ -1,7 +1,6 @@
 // Références DOM centralisées : seul endroit qui lit le HTML par id.
 export const dashboard=document.getElementById("dashboard");
-export const dashboardPageBtn=document.getElementById("dashboardPageBtn");
-export const supervisionPageBtn=document.getElementById("supervisionPageBtn");
+export const pageSwitchGroup=document.getElementById("pageSwitchGroup");
 export const supervisionPage=document.getElementById("supervisionPage");
 export const supervisionList=document.getElementById("supervisionList");
 export const refreshBar=document.getElementById("refreshBar");
@@ -39,6 +38,7 @@ export const cancelBtn=document.getElementById("cancelBtn");
 export const saveBtn=document.getElementById("saveBtn");
 export const serviceEditor=document.getElementById("serviceEditor");
 export const categoryEditor=document.getElementById("categoryEditor");
+export const dashboardEditor=document.getElementById("dashboardEditor");
 export const hostEditor=document.getElementById("hostEditor");
 export const webLinksSection=document.getElementById("webLinksSection");
 export const webLinksList=document.getElementById("webLinksList");
@@ -46,6 +46,7 @@ export const webLinksEditor=document.getElementById("webLinksEditor");
 export const widgetsEditor=document.getElementById("widgetsEditor");
 export const addServiceBtn=document.getElementById("addServiceBtn");
 export const addCategoryBtn=document.getElementById("addCategoryBtn");
+export const addDashboardBtn=document.getElementById("addDashboardBtn");
 export const addHostBtn=document.getElementById("addHostBtn");
 export const addWebLinkBtn=document.getElementById("addWebLinkBtn");
 export const exportConfigBtn=document.getElementById("exportConfigBtn");

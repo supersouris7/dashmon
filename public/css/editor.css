@@ -119,15 +119,31 @@ body.modal-open{
 
 .category-row{
   display:grid;
-  /* Cinquieme colonne pour le selecteur de couleur : sans elle, l'element
-     deborde dans une colonne implicite et la ligne sort de sa largeur
-     (width:max-content), ce qui fausse toute la mise en page des reglages. */
-  grid-template-columns:30px minmax(160px,200px) 44px 22px 38px;
+  /* Six colonnes : le selecteur de couleur et le selecteur de dashboard s'y
+     ajoutent. Sans colonnes explicites, un element deborderait dans une
+     colonne implicite et la ligne sortirait de sa largeur (width:max-content),
+     ce qui fausse toute la mise en page des reglages. */
+  grid-template-columns:30px minmax(150px,190px) minmax(120px,1fr) 44px 22px 38px;
   gap:8px;
   align-items:center;
   width:max-content;
   max-width:100%;
 }
+
+.dashboard-row{
+  display:grid;
+  grid-template-columns:30px minmax(0,1fr) 44px 38px;
+  grid-template-areas:
+    "drag name picker remove";
+  gap:8px;
+  align-items:center;
+  width:100%;
+}
+
+.dashboard-row .drag-handle{grid-area:drag}
+.dashboard-row > .edit-input{grid-area:name}
+.dashboard-row .icon-picker{grid-area:picker}
+.dashboard-row .delete-btn{grid-area:remove}
 
 .edit-input,
 .edit-select{
@@ -490,7 +506,7 @@ body.modal-open{
 
 @media(max-width:560px){
   .category-row{
-    grid-template-columns:24px minmax(0,1fr) 42px 22px 38px;
+    grid-template-columns:24px minmax(0,1fr) minmax(0,1fr) 42px 22px 38px;
     gap:6px;
   }
   .edit-tab{
