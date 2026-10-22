@@ -949,10 +949,6 @@ function renderMonitoringPanel(host,index){
     hint.className="host-monitor-hint";
     hint.textContent=t("hostLocalHint");
     panel.appendChild(hint);
-    const wgHint=document.createElement("p");
-    wgHint.className="host-monitor-hint";
-    wgHint.textContent=t("hostLocalWireguardHint");
-    panel.appendChild(wgHint);
     return panel;
   }
 
@@ -981,10 +977,6 @@ function renderMonitoringPanel(host,index){
   hint.className="host-monitor-hint";
   hint.textContent=t("tokenEnvHint");
   panel.appendChild(hint);
-  const wgHint=document.createElement("p");
-  wgHint.className="host-monitor-hint";
-  wgHint.textContent=t("hostAgentWireguardHint");
-  panel.appendChild(wgHint);
   return panel;
 }
 
@@ -1141,13 +1133,18 @@ const SUPERVISION_PANELS=["hostsPanel","wireguardPanel"];
 function applyEditorMode(mode){
   const supervision=mode==="supervision";
   modalBackdrop.dataset.mode=supervision ? "supervision" : "all";
+  // WireGuard n'appartient qu'a l'editeur de supervision ; le dialogue
+  // "Modifier Dashmon" ne le montre donc jamais.
+  const visible=panel=>supervision
+    ? SUPERVISION_PANELS.includes(panel)
+    : panel!=="wireguardPanel";
   const tabs=[...document.querySelectorAll(".edit-tab")];
   tabs.forEach(tab=>{
-    tab.hidden=supervision && !SUPERVISION_PANELS.includes(tab.dataset.panel);
+    tab.hidden=!visible(tab.dataset.panel);
     tab.classList.remove("active");
   });
   document.querySelectorAll(".edit-panel").forEach(panel=>{
-    panel.hidden=supervision && !SUPERVISION_PANELS.includes(panel.id);
+    panel.hidden=!visible(panel.id);
     panel.classList.remove("active");
   });
   const target=supervision ? "hostsPanel" : "servicesPanel";
