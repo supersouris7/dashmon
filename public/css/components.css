@@ -842,17 +842,6 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
   font-weight:600;
 }
 
-.supervision-dot{
-  width:11px;
-  height:11px;
-  flex:0 0 auto;
-  border-radius:50%;
-  background:var(--muted);
-}
-
-.supervision-dot.up{background:#2fbf5f}
-.supervision-dot.down{background:#e5484d}
-
 .supervision-rows{
   display:grid;
   gap:6px;

@@ -83,8 +83,6 @@ function hostCard(host,metrics){
 
   const head=document.createElement("div");
   head.className="supervision-head";
-  const dot=document.createElement("span");
-  dot.className="supervision-dot "+(metrics && metrics.ok ? "up" : "down");
   const icon=document.createElement("i");
   icon.className=host.icon||"fa-solid fa-server";
   icon.setAttribute("aria-hidden","true");
@@ -94,7 +92,7 @@ function hostCard(host,metrics){
   const badge=document.createElement("span");
   badge.className="supervision-type";
   badge.textContent=typeLabel(host.monitoring && host.monitoring.type);
-  head.append(dot,icon,name,badge);
+  head.append(icon,name,badge);
   card.appendChild(head);
 
   if(metrics && metrics.ok){
