@@ -246,8 +246,8 @@ public sites, so prefer a bundle.
 ## 8. Host supervision
 
 The *Supervision* page shows CPU, memory, disk and temperature for the hosts you
-enable in the dedicated editor (*Modifier la supervision*, also available from the
-top menu and from the button on the Supervision page). Each host picks one source:
+enable in the dedicated editor (*Modifier la supervision*, in the top menu). Each
+host picks one source:
 
 | Type | What it reads | Fields |
 | --- | --- | --- |

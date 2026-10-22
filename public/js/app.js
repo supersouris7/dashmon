@@ -20,7 +20,7 @@ import { loadWidgetRegistry } from "./widget-registry.js";
 import {
     searchInput, viewBtn, iconsBtn, collapseAllBtn, moreBtn, topMenu,
   openModeSelect, groupCategoryBtn, groupHostBtn,
-  sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuSupervisionBtn, supervisionEditBtn,
+  sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuSupervisionBtn,
   menuAppearanceBtn, menuRefreshBtn,
   appearanceBackdrop, appearanceCloseBtn, appearanceDoneBtn, themeSelect,
   languageSelect, webLinksSection, restoreWebLinksBtn, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
@@ -201,8 +201,6 @@ menuSupervisionBtn.addEventListener("click",()=>{
   closeTopMenu();
   openEditor("supervision");
 });
-
-supervisionEditBtn.addEventListener("click",()=>openEditor("supervision"));
 
 menuAppearanceBtn.addEventListener("click",openAppearance);
 

@@ -836,27 +836,6 @@ body[data-page="supervision"] #collapseAllBtn{display:none}
    "... " reste colle au bord droit, comme sur le tableau de bord. */
 body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 
-.supervision-toolbar{
-  display:flex;
-  justify-content:flex-end;
-  margin-bottom:12px;
-}
-
-.supervision-edit-btn{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:8px 12px;
-  border:1px solid var(--border);
-  border-radius:6px;
-  background:var(--surface);
-  color:var(--text);
-  font:inherit;
-  cursor:pointer;
-}
-
-.supervision-edit-btn:hover{background:var(--surface-2)}
-
 .supervision-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(320px,1fr));

@@ -18,7 +18,6 @@ export const sortUsageBtn=document.getElementById("sortUsageBtn");
 export const sortMenuLabel=document.getElementById("sortMenuLabel");
 export const menuEditBtn=document.getElementById("menuEditBtn");
 export const menuSupervisionBtn=document.getElementById("menuSupervisionBtn");
-export const supervisionEditBtn=document.getElementById("supervisionEditBtn");
 export const menuAppearanceBtn=document.getElementById("menuAppearanceBtn");
 export const menuRefreshBtn=document.getElementById("menuRefreshBtn");
 export const appearanceBackdrop=document.getElementById("appearanceBackdrop");
