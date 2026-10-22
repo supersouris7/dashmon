@@ -927,6 +927,73 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
   color:#e5484d;
 }
 
+/* WireGuard : une section par interface, puis un pair par ligne. Le nom et le
+   handshake tiennent sur la premiere ligne, le trafic sur la seconde, pour
+   rester lisible dans une carte etroite. */
+.supervision-wireguard{
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid var(--border);
+}
+
+.supervision-wireguard-title{
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+  margin-bottom:6px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+
+.supervision-wireguard-iface{
+  color:var(--text);
+  font-weight:600;
+  letter-spacing:0;
+  text-transform:none;
+}
+
+.supervision-peers{
+  display:grid;
+  gap:6px;
+}
+
+.supervision-peer{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:1px 10px;
+  font-size:12px;
+}
+
+.supervision-peer-name{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-weight:600;
+}
+
+.supervision-peer-handshake{
+  color:var(--muted);
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+
+.supervision-peer-handshake.up{color:#2fbf5f}
+
+.supervision-peer-traffic{
+  grid-column:1 / -1;
+  color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+
+.supervision-wireguard-empty{
+  margin:0;
+  color:var(--muted);
+  font-size:12px;
+}
+
 @media (max-width:560px){
   /* La navigation et les actions restent accessibles sur petit ecran. */
   .toolbar{

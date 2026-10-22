@@ -77,6 +77,114 @@ function temperatureRow(value){
   return row;
 }
 
+// Un pair est considere connecte si son dernier handshake date de moins de
+// trois minutes : WireGuard renegocie environ toutes les deux minutes quand le
+// lien vit. L'agent peut toutefois fournir un booleen "connected" explicite.
+const WG_CONNECTED_SECONDS=180;
+
+function handshakeAge(value){
+  const n=Number(value);
+  if(!Number.isFinite(n) || n<=0) return null;
+  return Math.max(0,Math.floor(Date.now()/1000-n));
+}
+
+function relativeAge(seconds){
+  const fr=state.language==="fr";
+  const s=Math.max(0,Math.floor(seconds));
+  if(s<60) return fr ? `il y a ${s} s` : `${s}s ago`;
+  const m=Math.floor(s/60);
+  if(m<60) return fr ? `il y a ${m} min` : `${m} min ago`;
+  const h=Math.floor(m/60);
+  if(h<48) return fr ? `il y a ${h} h` : `${h} h ago`;
+  const d=Math.floor(h/24);
+  return fr ? `il y a ${d} j` : `${d} d ago`;
+}
+
+function handshakeText(peer){
+  const age=handshakeAge(peer.latestHandshake);
+  if(age===null){
+    return peer.connected===true ? t("supervisionPeerConnected") : t("supervisionPeerNever");
+  }
+  return relativeAge(age);
+}
+
+function bytesText(value){
+  if(isMissing(value)) return "—";
+  const n=Number(value);
+  if(!Number.isFinite(n) || n<0) return "—";
+  const fr=state.language==="fr";
+  const units=fr ? ["o","ko","Mo","Go","To"] : ["B","kB","MB","GB","TB"];
+  let shown=n, index=0;
+  while(shown>=1024 && index<units.length-1){ shown/=1024; index++; }
+  const rounded=shown>=100 ? Math.round(shown) : Math.round(shown*10)/10;
+  return rounded.toString().replace(".",fr?",":".")+" "+units[index];
+}
+
+// Un pair : nom, dernier handshake, puis trafic recu et emis. Le nom et
+// l'endpoint viennent de l'agent : le point d'interrogation de l'interpolation
+// est volontairement absent, tout passe par textContent.
+function peerRow(peer){
+  const row=document.createElement("div");
+  row.className="supervision-peer";
+
+  const name=document.createElement("span");
+  name.className="supervision-peer-name";
+  name.textContent=peer.name || t("supervisionPeerUnnamed");
+  const endpoint=peer.endpoint ? ` · ${peer.endpoint}` : "";
+  name.title=(peer.name || t("supervisionPeerUnnamed"))+endpoint;
+
+  const handshake=document.createElement("span");
+  handshake.className="supervision-peer-handshake";
+  const age=handshakeAge(peer.latestHandshake);
+  const fresh=peer.connected===true || (age!==null && age<=WG_CONNECTED_SECONDS);
+  if(fresh) handshake.classList.add("up");
+  handshake.textContent=handshakeText(peer);
+
+  const traffic=document.createElement("span");
+  traffic.className="supervision-peer-traffic";
+  traffic.textContent=`↓ ${bytesText(peer.rx)} · ↑ ${bytesText(peer.tx)}`;
+
+  row.append(name,handshake,traffic);
+  return row;
+}
+
+function wireguardSection(interfaces){
+  const section=document.createElement("div");
+  section.className="supervision-wireguard";
+  interfaces.forEach(item=>{
+    const title=document.createElement("div");
+    title.className="supervision-wireguard-title";
+    const label=document.createElement("span");
+    label.textContent=t("supervisionWireguard");
+    title.append(label);
+    if(item.interface){
+      const iface=document.createElement("span");
+      iface.className="supervision-wireguard-iface";
+      iface.textContent=item.interface;
+      title.append(iface);
+    }
+    // Les deux morceaux sont separes visuellement par le gap flex ; on donne
+    // aussi une version lisible d'un seul tenant aux lecteurs d'ecran.
+    title.setAttribute("aria-label",
+      t("supervisionWireguard")+(item.interface?" "+item.interface:""));
+    section.appendChild(title);
+
+    const peers=Array.isArray(item.peers) ? item.peers : [];
+    if(!peers.length){
+      const empty=document.createElement("p");
+      empty.className="supervision-wireguard-empty";
+      empty.textContent=t("supervisionWireguardNoPeer");
+      section.appendChild(empty);
+      return;
+    }
+    const list=document.createElement("div");
+    list.className="supervision-peers";
+    peers.forEach(peer=>list.appendChild(peerRow(peer)));
+    section.appendChild(list);
+  });
+  return section;
+}
+
 function hostCard(host,metrics){
   const card=document.createElement("article");
   card.className="supervision-card";
@@ -105,6 +213,9 @@ function hostCard(host,metrics){
       temperatureRow(metrics.temperature)
     );
     card.appendChild(rows);
+    if(Array.isArray(metrics.wireguard) && metrics.wireguard.length){
+      card.appendChild(wireguardSection(metrics.wireguard));
+    }
   }else{
     const error=document.createElement("p");
     error.className="supervision-error";

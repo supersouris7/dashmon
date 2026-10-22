@@ -969,6 +969,10 @@ function renderMonitoringPanel(host,index){
   hint.className="host-monitor-hint";
   hint.textContent=t("tokenEnvHint");
   panel.appendChild(hint);
+  const wgHint=document.createElement("p");
+  wgHint.className="host-monitor-hint";
+  wgHint.textContent=t("hostAgentWireguardHint");
+  panel.appendChild(wgHint);
   return panel;
 }
 

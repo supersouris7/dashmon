@@ -257,6 +257,37 @@ enable in the editor (*Hosts* tab). Each host picks one source:
 Temperature is unavailable for Proxmox (the PVE API does not expose it) and shows
 as `—`; likewise any metric a source does not provide.
 
+### WireGuard peers (type Linux agent)
+
+A Linux agent can also report WireGuard peers. Add an optional `wireguard` field
+to the JSON; the supervision card then lists each peer with its last handshake and
+traffic:
+
+```json
+{
+  "cpu": 12, "ram": 40, "disk": 55, "temperature": 48,
+  "wireguard": {
+    "interface": "wg0",
+    "peers": [
+      { "name": "phone", "endpoint": "198.51.100.10:51820",
+        "latestHandshake": 1760000000, "rx": 1234567, "tx": 7654321 }
+    ]
+  }
+}
+```
+
+- `wireguard` may be one interface, an array of interfaces, or
+  `{ "interfaces": [ ... ] }`. Each interface has an `interface` name and a
+  `peers` array (max 10 interfaces, 200 peers each).
+- `latestHandshake` is an epoch timestamp in **seconds** (milliseconds and ISO
+  dates are also accepted). `rx` and `tx` are byte counters.
+- `connected` is optional. Without it, a peer is shown as connected when its last
+  handshake is less than three minutes old; `latestHandshake: null` shows
+  `never`.
+- Values are plain text on the page (no HTML), so names and endpoints are safe.
+  The agent reads them itself, for example from `wg show all dump`; Dashmon needs
+  no privilege on the WireGuard host.
+
 ### Disk of the real host (type Local)
 
 By default the disk metric reads the container's own filesystem, not the host's.

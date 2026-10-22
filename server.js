@@ -1235,6 +1235,76 @@ function pickTemperature(value){
   return Math.round(n*10)/10;
 }
 
+// WireGuard via l'agent Linux : l'agent renvoie les pairs qu'il a lus (par
+// exemple avec "wg show all dump"). On accepte une interface unique, une liste
+// d'interfaces, ou { interfaces: [...] }. Tout ce qui s'affiche est du texte :
+// les valeurs sont bornees et normalisees ici, jamais interpretees comme du
+// HTML. Un agent qui n'envoie pas le champ reste simplement sans section.
+const WG_MAX_INTERFACES=10;
+const WG_MAX_PEERS=200;
+
+// Dernier handshake : nombre de secondes epoch, millisecondes epoch (les
+// valeurs > 1e12 ne peuvent pas etre des secondes), ou date ISO. Toute valeur
+// douteuse devient null : "jamais" est une information, une fausse date non.
+function handshakeSeconds(value){
+  if(value===null || value===undefined || value==="") return null;
+  let n=Number(value);
+  if(!Number.isFinite(n)){
+    const parsed=Date.parse(String(value));
+    if(!Number.isFinite(parsed)) return null;
+    n=parsed/1000;
+  }else if(n>1e12){
+    n=n/1000;
+  }
+  if(!Number.isFinite(n) || n<=0) return null;
+  return Math.floor(n);
+}
+
+function normalizeWireguardPeer(raw){
+  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
+  // Un compteur absent vaut null ("—"), pas zero : zero octet est une mesure.
+  const byteCount=value=>{
+    if(value===null || value===undefined || value==="") return null;
+    const n=Number(value);
+    return Number.isFinite(n)&&n>=0 ? Math.floor(n) : null;
+  };
+  const peer={
+    name:sanitizeText(raw.name || raw.publicKey || raw.public_key,80),
+    endpoint:sanitizeText(raw.endpoint,120),
+    latestHandshake:handshakeSeconds(
+      raw.latestHandshake !== undefined ? raw.latestHandshake : raw.latest_handshake
+    ),
+    rx:byteCount(raw.rx),
+    tx:byteCount(raw.tx)
+  };
+  if(typeof raw.connected==="boolean") peer.connected=raw.connected;
+  return peer;
+}
+
+function normalizeWireguardInterface(raw){
+  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
+  const peers=(Array.isArray(raw.peers) ? raw.peers : [])
+    .slice(0,WG_MAX_PEERS)
+    .map(normalizeWireguardPeer)
+    .filter(Boolean);
+  return {
+    interface:sanitizeText(raw.interface || raw.name || raw.iface,50),
+    peers
+  };
+}
+
+function normalizeWireguard(raw){
+  if(!raw || typeof raw!=="object") return null;
+  let list;
+  if(Array.isArray(raw)) list=raw;
+  else if(Array.isArray(raw.interfaces)) list=raw.interfaces;
+  else list=[raw];
+  const interfaces=list.slice(0,WG_MAX_INTERFACES)
+    .map(normalizeWireguardInterface)
+    .filter(Boolean);
+  return interfaces.length ? interfaces : null;
+}
+
 // Contrat de l'agent Linux : un JSON simple, chaque champ facultatif. Un champ
 // absent ou invalide devient null plutot qu'un zero trompeur.
 function normalizeMetricsPayload(data){
@@ -1243,7 +1313,8 @@ function normalizeMetricsPayload(data){
     cpu:pickPercent(source.cpu),
     ram:pickPercent(source.ram),
     temperature:pickTemperature(source.temperature === undefined ? source.temp : source.temperature),
-    disk:pickPercent(source.disk)
+    disk:pickPercent(source.disk),
+    wireguard:normalizeWireguard(source.wireguard)
   };
 }
 
@@ -1349,7 +1420,8 @@ app.get("/api/host-metrics",async(_req,res)=>{
         cpu:metrics.cpu,
         ram:metrics.ram,
         temperature:metrics.temperature,
-        disk:metrics.disk
+        disk:metrics.disk,
+        wireguard:metrics.wireguard||null
       };
     }catch(error){
       return {
