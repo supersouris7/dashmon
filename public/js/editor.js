@@ -1283,6 +1283,11 @@ modalBackdrop.addEventListener("click",e=>{
 });
 
 saveBtn.addEventListener("click",async()=>{
+  // Noms presents avant la sauvegarde : sert a verifier ensuite, aupres du
+  // serveur, que les suppressions ont bien ete ecrites (et non seulement
+  // affichees). Sans ce controle, une ecriture perdue ne se voyait qu'apres un
+  // rechargement de la page.
+  const namesBeforeSave=state.services.map(service=>service.name).filter(Boolean);
   // Dashboards : la liste doit toujours contenir au moins un onglet. Les
   // identifiants vides, reserves ("supervision") ou dupliques sont regeneres,
   // exactement comme le fait le serveur (server.js), pour que l'affichage et
@@ -1349,6 +1354,10 @@ saveBtn.addEventListener("click",async()=>{
     }))
     .filter(service=>service.name);
 
+  const removedNames=[...new Set(
+    namesBeforeSave.filter(name=>!cleanedServices.some(service=>service.name===name))
+  )];
+
   const cleanedWebLinks=state.editWebLinks
     .map(link=>({
       name:(link.name||"").trim(),
@@ -1401,6 +1410,20 @@ saveBtn.addEventListener("click",async()=>{
     // la suppression alors que le fichier n'avait pas ete ecrit.
     alert(t("saveError"));
     return;
+  }
+  // Relecture de la configuration telle que la voit un rechargement de page. Si
+  // une application supprimee est encore la, c'est que l'ecriture n'a pas
+  // abouti cote serveur (autre onglet, seconde instance, proxy). On le dit tout
+  // de suite au lieu de laisser la tuile reapparaitre apres un refresh.
+  if(removedNames.length){
+    try{
+      const persisted=normalizeConfig(await fetchConfig());
+      const persistedNames=new Set(persisted.services.map(service=>service.name));
+      const stuck=removedNames.filter(name=>persistedNames.has(name));
+      if(stuck.length){
+        alert(t("saveNotPersisted").replace("{names}",stuck.join(", ")));
+      }
+    }catch(_error){}
   }
   closeEditor();
 });
