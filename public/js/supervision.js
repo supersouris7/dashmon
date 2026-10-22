@@ -213,8 +213,15 @@ function hostCard(host,metrics){
       temperatureRow(metrics.temperature)
     );
     card.appendChild(rows);
-    if(Array.isArray(metrics.wireguard) && metrics.wireguard.length){
-      card.appendChild(wireguardSection(metrics.wireguard));
+    // Preferences de l'hote : section masquable et filtre d'interface. Par
+    // defaut (preference absente) tout est affiche.
+    const wgPrefs=host.monitoring && host.monitoring.wireguard;
+    if(Array.isArray(metrics.wireguard) && metrics.wireguard.length
+      && (!wgPrefs || wgPrefs.enabled!==false)){
+      const interfaces=wgPrefs && wgPrefs.interface
+        ? metrics.wireguard.filter(item=>item.interface===wgPrefs.interface)
+        : metrics.wireguard;
+      if(interfaces.length) card.appendChild(wireguardSection(interfaces));
     }
   }else{
     const error=document.createElement("p");

@@ -1,9 +1,9 @@
 // fr/en UI translations with injection hooks for dependent modules.
 import { state } from "./state.js";
 import {
-  menuEditBtn, menuAppearanceBtn, appearanceTitle, themeFieldLabel,
+  menuEditBtn, menuSupervisionBtn, menuAppearanceBtn, appearanceTitle, themeFieldLabel,
   languageFieldLabel, usageFieldLabel, resetUsageBtn, appearanceDoneBtn,
-  appearanceCloseBtn, searchInput, topMenu,
+  appearanceCloseBtn, searchInput, topMenu, modalBackdrop,
   groupCategoryBtn, groupHostBtn, sortMenuLabel,
   sortAlphabeticalBtn, sortUsageBtn, editorTitle, closeBtn, editorSearch,
   cancelBtn, saveBtn, imageLibraryTitle, widgetConfigTitle, closeImageLibraryBtn,
@@ -151,7 +151,7 @@ const UI_TEXT={
     supervisionRam:"Mémoire",
     supervisionDisk:"Disque",
     supervisionTemperature:"Température",
-    supervisionEmpty:"Aucun hôte n’est surveillé. Activez la supervision d’un hôte depuis les réglages, onglet Hôtes.",
+    supervisionEmpty:"Aucun hôte n’est surveillé. Utilisez « Modifier la supervision » pour en ajouter.",
     supervisionLoading:"Mesure des hôtes…",
     supervisionError:"Les mesures ne sont pas disponibles pour l’instant.",
     supervisionUnreachable:"Hôte injoignable",
@@ -160,6 +160,16 @@ const UI_TEXT={
     supervisionPeerNever:"jamais",
     supervisionPeerConnected:"connecté",
     supervisionPeerUnnamed:"pair",
+    editSupervisionTitle:"Modifier la supervision",
+    menuSupervision:"Modifier la supervision",
+    supervisionEdit:"Modifier la supervision",
+    tabWireguard:"WireGuard",
+    wireguardShowPeers:"Afficher les pairs",
+    wireguardHidden:"Pairs masqués",
+    wireguardInterface:"Interface",
+    phWireguardInterface:"Toutes les interfaces",
+    wireguardEditorHint:"Les pairs proviennent du champ wireguard renvoyé par l’agent Linux.",
+    wireguardNoHost:"Aucun hôte de type Agent Linux supervisé. Ajoutez-en un dans l’onglet Hôtes.",
     hostTypeLocal:"Local",
     hostTypeLinux:"Agent Linux",
     hostTypeProxmox:"Proxmox",
@@ -322,7 +332,7 @@ const UI_TEXT={
     supervisionRam:"Memory",
     supervisionDisk:"Disk",
     supervisionTemperature:"Temperature",
-    supervisionEmpty:"No host is being monitored. Enable monitoring for a host in the settings, Hosts tab.",
+    supervisionEmpty:"No host is being monitored. Use “Edit supervision” to add one.",
     supervisionLoading:"Measuring hosts…",
     supervisionError:"Measurements are not available right now.",
     supervisionUnreachable:"Host unreachable",
@@ -331,6 +341,16 @@ const UI_TEXT={
     supervisionPeerNever:"never",
     supervisionPeerConnected:"connected",
     supervisionPeerUnnamed:"peer",
+    editSupervisionTitle:"Edit supervision",
+    menuSupervision:"Edit supervision",
+    supervisionEdit:"Edit supervision",
+    tabWireguard:"WireGuard",
+    wireguardShowPeers:"Show peers",
+    wireguardHidden:"Peers hidden",
+    wireguardInterface:"Interface",
+    phWireguardInterface:"All interfaces",
+    wireguardEditorHint:"Peers come from the wireguard field returned by the Linux agent.",
+    wireguardNoHost:"No monitored Linux agent host. Add one in the Hosts tab.",
     hostTypeLocal:"Local",
     hostTypeLinux:"Linux agent",
     hostTypeProxmox:"Proxmox",
@@ -364,6 +384,9 @@ export function applyLanguage(){
 
   const editLabel=menuEditBtn.querySelector("span:nth-child(2)");
   if(editLabel) editLabel.textContent=t("editDashboard");
+
+  const supervisionLabel=menuSupervisionBtn.querySelector("span:nth-child(2)");
+  if(supervisionLabel) supervisionLabel.textContent=t("menuSupervision");
 
   const appearanceLabel=menuAppearanceBtn.querySelector("span:nth-child(2)");
   if(appearanceLabel) appearanceLabel.textContent=t("editTheme");
@@ -405,7 +428,7 @@ export function applyLanguage(){
     collapseButtonUpdater();
   }
 
-  editorTitle.textContent=t("editDashboardTitle");
+  editorTitle.textContent=t(modalBackdrop.dataset.mode==="supervision" ? "editSupervisionTitle" : "editDashboardTitle");
   closeBtn.title=t("close");
   editorSearch.placeholder=t("searchEditor");
 
@@ -414,6 +437,7 @@ export function applyLanguage(){
     ["editorTabCategories","tabCategories"],
     ["editorTabDashboards","tabDashboards"],
     ["editorTabHosts","tabHosts"],
+    ["editorTabWireguard","tabWireguard"],
     ["editorTabWebLinks","tabWebLinks"],
     ["editorTabWidgets","tabWidgets"],
     ["editorTabImages","tabImages"],
@@ -421,6 +445,7 @@ export function applyLanguage(){
     ["addCategoryLabel","addCategory"],
     ["addDashboardLabel","addDashboard"],
     ["addHostLabel","addHost"],
+    ["supervisionEditLabel","supervisionEdit"],
     ["addWebLinkLabel","addWebLink"],
     ["importConfigLabel","importBtn"],
     ["exportConfigLabel","exportBtn"],

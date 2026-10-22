@@ -598,7 +598,19 @@ export function normalizeHostMonitoring(raw){
     path:sanitizeText(raw.path,200),
     tokenEnv:sanitizeText(raw.tokenEnv,100),
     tokenIdEnv:sanitizeText(raw.tokenIdEnv,100),
-    tokenSecretEnv:sanitizeText(raw.tokenSecretEnv,100)
+    tokenSecretEnv:sanitizeText(raw.tokenSecretEnv,100),
+    wireguard:normalizeWireguardPrefs(raw.wireguard)
+  };
+}
+
+// Preference d'affichage des pairs WireGuard d'un hote. Absente, la section
+// reste visible des que l'agent renvoie des donnees ; un filtre d'interface
+// facultatif permet de n'afficher qu'un tunnel.
+export function normalizeWireguardPrefs(raw){
+  const src=(raw && typeof raw==="object" && !Array.isArray(raw)) ? raw : {};
+  return {
+    enabled:src.enabled!==false,
+    interface:sanitizeText(src.interface,50)
   };
 }
 

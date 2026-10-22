@@ -246,7 +246,8 @@ public sites, so prefer a bundle.
 ## 8. Host supervision
 
 The *Supervision* page shows CPU, memory, disk and temperature for the hosts you
-enable in the editor (*Hosts* tab). Each host picks one source:
+enable in the dedicated editor (*Modifier la supervision*, also available from the
+top menu and from the button on the Supervision page). Each host picks one source:
 
 | Type | What it reads | Fields |
 | --- | --- | --- |
@@ -287,6 +288,10 @@ traffic:
 - Values are plain text on the page (no HTML), so names and endpoints are safe.
   The agent reads them itself, for example from `wg show all dump`; Dashmon needs
   no privilege on the WireGuard host.
+- The *WireGuard* tab of the supervision editor controls the display: hide the
+  peer section for a host, or restrict it to a single interface name (empty means
+  all interfaces). These preferences are stored in `config.json` under
+  `host.monitoring.wireguard` and do not change what the agent reports.
 
 ### Disk of the real host (type Local)
 

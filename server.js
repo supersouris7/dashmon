@@ -598,10 +598,23 @@ function sanitizeHostMonitoring(raw){
     tokenIdEnv: sanitizeText(raw.tokenIdEnv, 100),
     tokenSecretEnv: sanitizeText(raw.tokenSecretEnv, 100)
   };
+  // Preferences d'affichage WireGuard : uniquement conservees si elles disent
+  // quelque chose (section masquee ou interface filtree), pour ne pas alourdir
+  // la configuration avec les valeurs par defaut.
+  const wgRaw = raw.wireguard && typeof raw.wireguard === "object" && !Array.isArray(raw.wireguard)
+    ? raw.wireguard : null;
+  if(wgRaw){
+    const wireguard = {
+      enabled: wgRaw.enabled !== false,
+      interface: sanitizeText(wgRaw.interface, 50)
+    };
+    if(!wireguard.enabled || wireguard.interface) monitoring.wireguard = wireguard;
+  }
   // Un hote sans supervision activee et sans aucun parametre ne garde pas un
   // objet vide dans config.json : la config reste lisible.
   const meaningful = monitoring.url || monitoring.node || monitoring.path
-    || monitoring.tokenEnv || monitoring.tokenIdEnv || monitoring.tokenSecretEnv;
+    || monitoring.tokenEnv || monitoring.tokenIdEnv || monitoring.tokenSecretEnv
+    || monitoring.wireguard;
   if(!monitoring.enabled && !meaningful) return undefined;
   return monitoring;
 }

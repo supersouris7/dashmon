@@ -52,6 +52,22 @@
   line-height:1.4;
 }
 
+/* Onglet WireGuard : un bloc par hote de type Agent Linux. */
+.wireguard-editor-head{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:600;
+}
+
+.wireguard-editor-head i{color:var(--muted)}
+
+.wireguard-editor-item{
+  margin-left:0;
+  border-left-color:var(--border);
+  border-radius:4px;
+}
+
 .icon-btn,
 .action-btn,
 .modal-close{
@@ -819,6 +835,27 @@ body[data-page="supervision"] #collapseAllBtn{display:none}
 /* Sans la recherche, c'est ce bouton qui porte la marge automatique : le menu
    "... " reste colle au bord droit, comme sur le tableau de bord. */
 body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
+
+.supervision-toolbar{
+  display:flex;
+  justify-content:flex-end;
+  margin-bottom:12px;
+}
+
+.supervision-edit-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 12px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  background:var(--surface);
+  color:var(--text);
+  font:inherit;
+  cursor:pointer;
+}
+
+.supervision-edit-btn:hover{background:var(--surface-2)}
 
 .supervision-grid{
   display:grid;

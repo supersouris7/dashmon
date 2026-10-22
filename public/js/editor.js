@@ -15,7 +15,7 @@ import {
 import {
   serviceEditor, categoryEditor, dashboardEditor, hostEditor, webLinksEditor, widgetsEditor,
   editorSearch, editorCategoryFilter, editorHostFilter,
-  modalBackdrop, closeBtn, cancelBtn, saveBtn,
+  modalBackdrop, editorTitle, closeBtn, cancelBtn, saveBtn,
   addServiceBtn, addCategoryBtn, addDashboardBtn, addWebLinkBtn, addHostBtn,
   exportConfigBtn, importConfigBtn, configImportInput,
   widgetConfig, widgetConfigBody, widgetConfigCloseBtn, widgetConfigSaveBtn
@@ -867,7 +867,8 @@ document.addEventListener("keydown",event=>{
 function blankMonitoring(){
   return {
     enabled:false,type:"local",url:"",node:"",path:"",
-    tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:""
+    tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",
+    wireguard:{enabled:true,interface:""}
   };
 }
 
@@ -886,7 +887,14 @@ function serializeHostMonitoring(m){
     tokenIdEnv:(m.tokenIdEnv||"").trim(),
     tokenSecretEnv:(m.tokenSecretEnv||"").trim()
   };
-  const meaningful=out.url||out.node||out.path||out.tokenEnv||out.tokenIdEnv||out.tokenSecretEnv;
+  // WireGuard : n'ecrire la preference que si elle differe du defaut (section
+  // affichee, toutes les interfaces), pour garder une config lisible.
+  const wg=m.wireguard && typeof m.wireguard==="object" ? m.wireguard : null;
+  if(wg){
+    const wireguard={enabled:wg.enabled!==false,interface:(wg.interface||"").trim()};
+    if(!wireguard.enabled || wireguard.interface) out.wireguard=wireguard;
+  }
+  const meaningful=out.url||out.node||out.path||out.tokenEnv||out.tokenIdEnv||out.tokenSecretEnv||out.wireguard;
   if(!out.enabled && !meaningful) return undefined;
   return out;
 }
@@ -981,6 +989,9 @@ export function renderHostEditor(){
 
   state.editHosts.forEach((host,index)=>{
     if(!host.monitoring || typeof host.monitoring!=="object") host.monitoring=blankMonitoring();
+    if(!host.monitoring.wireguard || typeof host.monitoring.wireguard!=="object"){
+      host.monitoring.wireguard={enabled:true,interface:""};
+    }
 
     const item=document.createElement("div");
     item.className="host-item";
@@ -1046,9 +1057,104 @@ export function renderHostEditor(){
     });
     hostEditor.appendChild(item);
   });
+  renderWireguardEditor();
 }
 
-export function openEditor(){
+// Onglet WireGuard de l'editeur de supervision : uniquement les hotes de type
+// Agent Linux, puisque ce sont eux qui renvoient les pairs. Les preferences
+// portent sur l'affichage (section visible ou non) et sur un filtre d'interface.
+function renderWireguardEditor(){
+  const list=document.getElementById("wireguardEditor");
+  if(!list) return;
+  list.replaceChildren();
+
+  const hostIndexes=[];
+  state.editHosts.forEach((host,index)=>{
+    const m=host.monitoring;
+    if(m && m.enabled && m.type==="linux") hostIndexes.push(index);
+  });
+
+  if(!hostIndexes.length){
+    const empty=document.createElement("p");
+    empty.className="host-monitor-hint";
+    empty.textContent=t("wireguardNoHost");
+    list.appendChild(empty);
+    return;
+  }
+
+  hostIndexes.forEach(index=>{
+    const host=state.editHosts[index];
+    const prefs=host.monitoring.wireguard;
+
+    const block=document.createElement("div");
+    block.className="host-monitor-panel wireguard-editor-item";
+
+    const head=document.createElement("div");
+    head.className="wireguard-editor-head";
+    const icon=document.createElement("i");
+    icon.className=host.icon||"fa-solid fa-server";
+    icon.setAttribute("aria-hidden","true");
+    const name=document.createElement("span");
+    name.textContent=host.name||t("hostName");
+    head.append(icon,name);
+    block.appendChild(head);
+
+    const toggle=document.createElement("button");
+    toggle.type="button";
+    toggle.className="monitor-toggle "+(prefs.enabled ? "active" : "");
+    toggle.title=prefs.enabled ? t("wireguardShowPeers") : t("wireguardHidden");
+    toggle.setAttribute("aria-pressed",String(prefs.enabled));
+    toggle.innerHTML='<i class="fa-solid fa-shield-halved"></i>';
+    toggle.addEventListener("click",()=>{
+      state.editHosts[index].monitoring.wireguard.enabled=!state.editHosts[index].monitoring.wireguard.enabled;
+      renderWireguardEditor();
+    });
+    block.appendChild(monitoringField(t("wireguardShowPeers"),toggle));
+
+    const iface=document.createElement("input");
+    iface.className="edit-input";
+    iface.value=prefs.interface||"";
+    iface.placeholder=t("phWireguardInterface");
+    iface.addEventListener("input",()=>{
+      state.editHosts[index].monitoring.wireguard.interface=iface.value;
+    });
+    block.appendChild(monitoringField(t("wireguardInterface"),iface));
+
+    const hint=document.createElement("p");
+    hint.className="host-monitor-hint";
+    hint.textContent=t("wireguardEditorHint");
+    block.appendChild(hint);
+
+    list.appendChild(block);
+  });
+}
+
+const SUPERVISION_PANELS=["hostsPanel","wireguardPanel"];
+
+// Le meme dialogue sert a deux usages : "Modifier Dashmon" (tous les onglets)
+// et "Modifier la supervision" (hotes et WireGuard seulement). On masque les
+// onglets inutiles plutot que de dupliquer le formulaire et son enregistrement.
+function applyEditorMode(mode){
+  const supervision=mode==="supervision";
+  modalBackdrop.dataset.mode=supervision ? "supervision" : "all";
+  const tabs=[...document.querySelectorAll(".edit-tab")];
+  tabs.forEach(tab=>{
+    tab.hidden=supervision && !SUPERVISION_PANELS.includes(tab.dataset.panel);
+    tab.classList.remove("active");
+  });
+  document.querySelectorAll(".edit-panel").forEach(panel=>{
+    panel.hidden=supervision && !SUPERVISION_PANELS.includes(panel.id);
+    panel.classList.remove("active");
+  });
+  const target=supervision ? "hostsPanel" : "servicesPanel";
+  tabs.forEach(tab=>{
+    if(tab.dataset.panel===target && !tab.hidden) tab.classList.add("active");
+  });
+  document.getElementById(target).classList.add("active");
+  editorTitle.textContent=t(supervision ? "editSupervisionTitle" : "editDashboardTitle");
+}
+
+export function openEditor(mode="all"){
   const rect=document.querySelector(".toolbar").getBoundingClientRect();
   document.documentElement.style.setProperty("--toolbar-h",Math.max(0,rect.bottom)+"px");
   state.editServices=clone(state.services);
@@ -1066,6 +1172,7 @@ export function openEditor(){
   renderHostEditor();
   renderWebLinksEditor();
   renderWidgetsEditor();
+  applyEditorMode(mode);
   modalBackdrop.classList.add("show");
   modalBackdrop.setAttribute("aria-hidden","false");
   document.body.classList.add("modal-open");
