@@ -123,10 +123,6 @@ export function renderSupervision(){
   // accessible sur la section pour les lecteurs d'ecran.
   supervisionPage.setAttribute("aria-label",t("supervisionTitle"));
 
-  const note=document.createElement("p");
-  note.className="supervision-note";
-  note.textContent=t("supervisionNote");
-
   const monitored=state.hosts.filter(host=>host.monitoring && host.monitoring.enabled===true);
 
   // Aucun hote surveille : on explique ou activer la supervision plutot que
@@ -135,7 +131,7 @@ export function renderSupervision(){
     const empty=document.createElement("p");
     empty.className="supervision-empty";
     empty.textContent=t("supervisionEmpty");
-    supervisionList.append(note,empty);
+    supervisionList.append(empty);
     return;
   }
 
@@ -144,7 +140,7 @@ export function renderSupervision(){
     const status=document.createElement("p");
     status.className="supervision-empty";
     status.textContent=state.hostMetricsError ? t("supervisionError") : t("supervisionLoading");
-    supervisionList.append(note,status);
+    supervisionList.append(status);
     return;
   }
 
@@ -152,7 +148,7 @@ export function renderSupervision(){
   const grid=document.createElement("div");
   grid.className="supervision-grid";
   monitored.forEach(host=>grid.appendChild(hostCard(host,byId.get(host.id))));
-  supervisionList.append(note,grid);
+  supervisionList.append(grid);
 }
 
 let metricsInflight=false;

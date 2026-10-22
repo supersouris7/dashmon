@@ -84,16 +84,16 @@ main{
   align-items:center;
   justify-content:center;
   gap:8px;
-  width:46px;
+  width:140px;
   height:46px;
   min-height:46px;
-  padding:0;
+  padding:0 12px;
   border:1px solid var(--border);
   border-radius:3px;
   background:var(--surface);
   color:var(--text);
   box-shadow:var(--shadow);
-  font-size:16px;
+  font-size:14px;
   font-weight:600;
   white-space:nowrap;
   cursor:pointer;
@@ -103,6 +103,13 @@ main{
 .page-btn:hover{
   background:var(--surface-2);
   border-color:var(--muted);
+}
+
+/* Le nom d'un dashboard peut etre long : il s'abrege plutot que de pousser
+   les autres boutons hors de la barre. */
+.page-btn > span{
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .page-btn[aria-pressed="true"]{
@@ -539,7 +546,7 @@ main{
   .toolbar{flex-wrap:nowrap;gap:8px;padding:10px 14px}
   .page-switch{flex:1 1 auto;flex-wrap:nowrap;min-width:0;overflow-x:auto;scrollbar-width:none}
   .page-switch::-webkit-scrollbar{display:none}
-  .page-btn{flex:0 0 auto;width:46px;padding:0}
+  .page-btn{flex:0 0 auto;width:auto;padding:0 12px}
 }
 
 @media(max-width:560px){
