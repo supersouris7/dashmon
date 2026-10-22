@@ -258,11 +258,16 @@ top menu and from the button on the Supervision page). Each host picks one sourc
 Temperature is unavailable for Proxmox (the PVE API does not expose it) and shows
 as `—`; likewise any metric a source does not provide.
 
-### WireGuard peers (type Linux agent)
+### WireGuard peers (local or Linux agent)
 
-A Linux agent can also report WireGuard peers. Add an optional `wireguard` field
-to the JSON; the supervision card then lists each peer with its last handshake and
-traffic:
+WireGuard peers can come from two sources:
+
+- **Local** — read from a dump file (`wg show all dump`) placed in the container,
+  no extra capability needed. See below.
+- **Linux agent** — reported in the JSON `wireguard` field described here.
+
+With an agent, add an optional `wireguard` field to the JSON; the supervision
+card then lists each peer with its last handshake and traffic:
 
 ```json
 {
@@ -292,6 +297,35 @@ traffic:
   peer section for a host, or restrict it to a single interface name (empty means
   all interfaces). These preferences are stored in `config.json` under
   `host.monitoring.wireguard` and do not change what the agent reports.
+
+#### Local host
+
+For a host of type **Local**, Dashmon reads the output of `wg show all dump`
+from a file inside the container. By default this is
+`/app/data/wireguard.dump` (that is, `DATA_DIR/wireguard.dump`); override it with
+the `WIREGUARD_DUMP_FILE` environment variable.
+
+Generate the file on the host that owns the WireGuard interfaces, for example
+with a cron job or a systemd timer:
+
+```sh
+*/1 * * * * wg show all dump > /path/to/data/wireguard.dump
+```
+
+Requirements:
+
+- The file must be refreshed regularly (each supervision refresh is 15 s); a
+  stale file shows stale handshakes, but is still valid.
+- The file must be readable by the container user (UID `1000` in the image).
+- The dump contains the interface private key: restrict its permissions
+  (`chmod 600`) and never commit it. Dashmon only reads the fields it needs and
+  never serves the file over HTTP.
+- No `NET_ADMIN` capability or host network mode is required: Dashmon only reads
+  the file.
+- `wg show all dump` does not include peer names, so the public key is displayed
+  as the peer name. The *WireGuard* tab can hide the section or filter one
+  interface.
+- If the file is missing, the card simply shows no WireGuard section.
 
 ### Disk of the real host (type Local)
 

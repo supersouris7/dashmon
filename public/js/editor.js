@@ -949,6 +949,10 @@ function renderMonitoringPanel(host,index){
     hint.className="host-monitor-hint";
     hint.textContent=t("hostLocalHint");
     panel.appendChild(hint);
+    const wgHint=document.createElement("p");
+    wgHint.className="host-monitor-hint";
+    wgHint.textContent=t("hostLocalWireguardHint");
+    panel.appendChild(wgHint);
     return panel;
   }
 
@@ -1060,9 +1064,9 @@ export function renderHostEditor(){
   renderWireguardEditor();
 }
 
-// Onglet WireGuard de l'editeur de supervision : uniquement les hotes de type
-// Agent Linux, puisque ce sont eux qui renvoient les pairs. Les preferences
-// portent sur l'affichage (section visible ou non) et sur un filtre d'interface.
+// Onglet WireGuard de l'editeur de supervision : hotes "local" (fichier dump
+// monte) et "Agent Linux" (champ wireguard du JSON). Les preferences portent sur
+// l'affichage (section visible ou non) et sur un filtre d'interface.
 function renderWireguardEditor(){
   const list=document.getElementById("wireguardEditor");
   if(!list) return;
@@ -1071,7 +1075,7 @@ function renderWireguardEditor(){
   const hostIndexes=[];
   state.editHosts.forEach((host,index)=>{
     const m=host.monitoring;
-    if(m && m.enabled && m.type==="linux") hostIndexes.push(index);
+    if(m && m.enabled && (m.type==="local" || m.type==="linux")) hostIndexes.push(index);
   });
 
   if(!hostIndexes.length){
@@ -1122,7 +1126,7 @@ function renderWireguardEditor(){
 
     const hint=document.createElement("p");
     hint.className="host-monitor-hint";
-    hint.textContent=t("wireguardEditorHint");
+    hint.textContent=t(host.monitoring.type==="local" ? "wireguardLocalHint" : "wireguardEditorHint");
     block.appendChild(hint);
 
     list.appendChild(block);

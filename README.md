@@ -26,9 +26,9 @@ you stop guessing whether *that* thing is working.
 - **Real status monitoring** — an up/down pill per URL, refreshed automatically.
 - **Host supervision** — a dedicated page with CPU, memory, disk and temperature
   per host, read from Dashmon itself, a [Proxmox](https://www.proxmox.com) node,
-  or your own small JSON agent. The agent can also report WireGuard peers, shown
-  with their last handshake and traffic; a dedicated *Edit supervision* screen
-  configures hosts and peer display.
+  or your own small JSON agent. WireGuard peers can be read from a local
+  `wg show all dump` file, or reported by the agent; a dedicated *Edit
+  supervision* screen configures hosts and peer display.
 - **Themes** — dark and light built in, plus your own custom themes and CSS.
 - **Two languages** — English and French, throughout the interface.
 - **Learns your habits** — services you open often float to the top.

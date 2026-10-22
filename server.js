@@ -25,6 +25,10 @@ const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
 const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, "data");
 const CONFIG_FILE = process.env.CONFIG_FILE || path.join(DATA_DIR, "config.json");
+// Sortie de `wg show all dump` deja ecrite sur disque pour un hote "local".
+// Chemin fixe (surchargeable par l'administrateur) : la configuration web ne
+// peut donc pas faire lire un fichier arbitraire au serveur.
+const WIREGUARD_DUMP_FILE = process.env.WIREGUARD_DUMP_FILE || path.join(DATA_DIR, "wireguard.dump");
 const INDEX_FILE = path.join(PUBLIC_DIR, "index.html");
 const ICONS_DIR = process.env.ICONS_DIR || path.join(DATA_DIR, "icons");
 const THEMES_NATIVE_DIR = process.env.THEMES_NATIVE_DIR || path.join(PUBLIC_DIR, "themes");
@@ -1318,6 +1322,51 @@ function normalizeWireguard(raw){
   return interfaces.length ? interfaces : null;
 }
 
+// Hote "local" : les pairs viennent d'un fichier contenant la sortie de
+// `wg show all dump`, depose par un cron/timer sur l'hote et monte dans le
+// conteneur. Aucune capability n'est necessaire, et le format ne contient pas de
+// nom de pair : la cle publique sert de nom. Un fichier absent ou illisible est
+// simplement ignore (pas de section WireGuard sur la carte).
+function readWireguardDump(){
+  let stat;
+  try{
+    stat=fs.statSync(WIREGUARD_DUMP_FILE);
+  }catch(_error){
+    return null;
+  }
+  if(!stat.isFile() || stat.size>1_000_000) return null;
+  let text;
+  try{
+    text=fs.readFileSync(WIREGUARD_DUMP_FILE,"utf8");
+  }catch(_error){
+    return null;
+  }
+  const byInterface=new Map();
+  for(const line of text.split(/\r?\n/)){
+    if(!line) continue;
+    const fields=line.split("\t");
+    const name=fields[0]||"";
+    if(!name) continue;
+    // Une ligne d'interface a 5 champs, une ligne de pair en a 9.
+    if(fields.length>=9){
+      const entry=byInterface.get(name) || {interface:name,peers:[]};
+      byInterface.set(name,entry);
+      const handshake=Number(fields[5]);
+      entry.peers.push({
+        name:fields[1],
+        endpoint:fields[3]==="(none)" ? "" : fields[3],
+        latestHandshake:Number.isFinite(handshake)&&handshake>0 ? handshake : null,
+        rx:fields[6],
+        tx:fields[7]
+      });
+    }else if(!byInterface.has(name)){
+      byInterface.set(name,{interface:name,peers:[]});
+    }
+  }
+  if(!byInterface.size) return null;
+  return normalizeWireguard([...byInterface.values()]);
+}
+
 // Contrat de l'agent Linux : un JSON simple, chaque champ facultatif. Un champ
 // absent ou invalide devient null plutot qu'un zero trompeur.
 function normalizeMetricsPayload(data){
@@ -1417,6 +1466,7 @@ app.get("/api/host-metrics",async(_req,res)=>{
   const localCpu=localCpuPercent();
   const localRam=localRamPercent();
   const localTemp=localTemperature();
+  const localWireguard=readWireguardDump();
 
   const refresh=Promise.all(hosts.map(async host=>{
     const type=HOST_MONITORING_TYPES.has(host.monitoring?.type) ? host.monitoring.type : "local";
@@ -1424,7 +1474,7 @@ app.get("/api/host-metrics",async(_req,res)=>{
       let metrics;
       if(type==="proxmox") metrics=await getProxmoxMetrics(host);
       else if(type==="linux") metrics=await readHttpMetrics(host);
-      else metrics={ cpu:localCpu, ram:localRam, temperature:localTemp, disk:localDiskPercent(host.monitoring?.path) };
+      else metrics={ cpu:localCpu, ram:localRam, temperature:localTemp, disk:localDiskPercent(host.monitoring?.path), wireguard:localWireguard };
       return {
         id:sanitizeText(host.id,64),
         name:sanitizeText(host.name,100)||"Hote",
