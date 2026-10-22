@@ -3,7 +3,7 @@
 // refreshHostMetrics, declenchee a l'ouverture de la page et par un minuteur.
 import { t } from "./i18n.js";
 import { state } from "./state.js";
-import { supervisionList } from "./dom.js";
+import { supervisionList, supervisionPage } from "./dom.js";
 
 const HOST_METRICS_INTERVAL=15000;
 const TYPE_LABEL={local:"hostTypeLocal",linux:"hostTypeLinux",proxmox:"hostTypeProxmox"};
@@ -12,9 +12,16 @@ function typeLabel(type){
   return t(TYPE_LABEL[type] || "hostTypeLocal");
 }
 
-// Un pourcentage absent (null) s'affiche "—", jamais "0 %" : une metrique
+// null ou undefined = metrique indisponible. Number(null) vaut 0 : sans ce
+// garde, une valeur absente s'afficherait "0 %" comme une vraie mesure a zero.
+function isMissing(value){
+  return value===null || value===undefined || value==="";
+}
+
+// Un pourcentage absent s'affiche "—", jamais "0 %" : une metrique
 // indisponible et une metrique a zero n'ont pas la meme signification.
 function percentText(value){
+  if(isMissing(value)) return "—";
   const n=Number(value);
   if(!Number.isFinite(n)) return "—";
   const shown=Math.round(n);
@@ -22,6 +29,7 @@ function percentText(value){
 }
 
 function temperatureText(value){
+  if(isMissing(value)) return "—";
   const n=Number(value);
   if(!Number.isFinite(n)) return "—";
   return (Math.round(n*10)/10).toString().replace(".", state.language==="fr" ? "," : ".")+" °C";
@@ -41,7 +49,7 @@ function metricRow(label,value){
   track.className="supervision-track";
   const fill=document.createElement("span");
   fill.className="supervision-fill";
-  const n=Number(value);
+  const n=isMissing(value) ? NaN : Number(value);
   if(Number.isFinite(n)){
     fill.style.width=Math.max(0,Math.min(100,n))+"%";
     fill.classList.add(n>=90 ? "high" : n>=70 ? "warn" : "ok");
@@ -111,10 +119,9 @@ function hostCard(host,metrics){
 export function renderSupervision(){
   supervisionList.replaceChildren();
 
-  const title=document.createElement("h2");
-  title.className="supervision-title";
-  title.id="supervisionTitle";
-  title.textContent=t("supervisionTitle");
+  // Le titre n'est plus affiche : les onglets suffisent. On garde un nom
+  // accessible sur la section pour les lecteurs d'ecran.
+  supervisionPage.setAttribute("aria-label",t("supervisionTitle"));
 
   const note=document.createElement("p");
   note.className="supervision-note";
@@ -128,7 +135,7 @@ export function renderSupervision(){
     const empty=document.createElement("p");
     empty.className="supervision-empty";
     empty.textContent=t("supervisionEmpty");
-    supervisionList.append(title,note,empty);
+    supervisionList.append(note,empty);
     return;
   }
 
@@ -137,7 +144,7 @@ export function renderSupervision(){
     const status=document.createElement("p");
     status.className="supervision-empty";
     status.textContent=state.hostMetricsError ? t("supervisionError") : t("supervisionLoading");
-    supervisionList.append(title,note,status);
+    supervisionList.append(note,status);
     return;
   }
 
@@ -145,7 +152,7 @@ export function renderSupervision(){
   const grid=document.createElement("div");
   grid.className="supervision-grid";
   monitored.forEach(host=>grid.appendChild(hostCard(host,byId.get(host.id))));
-  supervisionList.append(title,note,grid);
+  supervisionList.append(note,grid);
 }
 
 let metricsInflight=false;

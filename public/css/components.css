@@ -820,20 +820,17 @@ body[data-page="supervision"] #collapseAllBtn{display:none}
    "... " reste colle au bord droit, comme sur le tableau de bord. */
 body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 
-.supervision-title{
-  margin:0 0 4px;
-  font-size:20px;
-}
-
 .supervision-note{
   margin:0 0 16px;
   color:var(--muted);
   font-size:13px;
 }
 
+/* auto-fit (et non auto-fill) : une carte seule occupe toute la largeur, ce qui
+   allonge sensiblement les barres CPU/RAM/disque. */
 .supervision-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
   gap:16px;
 }
 
@@ -900,7 +897,7 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
    pour que CPU, RAM et disque s'alignent d'une carte a l'autre. */
 .supervision-metric{
   display:grid;
-  grid-template-columns:72px minmax(0,1fr) 52px;
+  grid-template-columns:64px minmax(0,1fr) 48px;
   gap:10px;
   align-items:center;
   font-size:13px;

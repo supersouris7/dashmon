@@ -16,9 +16,11 @@ function button(page, icon, label, active){
   const i=document.createElement("i");
   i.className=icon;
   i.setAttribute("aria-hidden","true");
-  const span=document.createElement("span");
-  span.textContent=label;
-  btn.append(i,span);
+  btn.appendChild(i);
+  // Les onglets sont icone seule : le libelle reste disponible en infobulle et
+  // pour les lecteurs d'ecran.
+  btn.title=label;
+  btn.setAttribute("aria-label",label);
   btn.setAttribute("aria-pressed",String(active));
   return btn;
 }
@@ -65,7 +67,6 @@ export function renderPageSwitch(){
     const btn=button("dashboard",d.icon||"fa-solid fa-grip",d.name||t("pageDashboard"),
       state.page==="dashboard" && id===activeId);
     btn.dataset.dashboardId=id;
-    btn.title=d.name||t("pageDashboard");
     btn.addEventListener("click",()=>selectDashboard(id));
     pageSwitchGroup.appendChild(btn);
   });
