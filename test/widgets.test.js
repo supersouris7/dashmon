@@ -752,7 +752,7 @@ async function main(){
   const dockerHubModule = await import(pathToFileURL(path.join(WIDGETS, "dockerhub", "client.mjs")).href);
   const githubModule = await import(pathToFileURL(path.join(WIDGETS, "github", "client.mjs")).href);
 
-  const fmt = { formatDateTime: () => "01/01/2026", formatNumber: n => String(n), formatCompactNumber: n => String(n) };
+  const fmt = { formatDateTime: () => "01/01/2026", formatNumber: n => String(n), formatCompactNumber: n => String(n), formatCompactCount: n => String(n) };
   const ctx = (info, extra) => Object.assign({ info, config: {}, lang: "fr", t: k => k }, fmt, extra || {});
 
   check("renderer Docker : conteneurs et MAJ",
@@ -837,6 +837,18 @@ async function main(){
   const ytStrings = linkStrings("youtube");
   const hubStrings = linkStrings("dockerhub");
   const ghStrings = linkStrings("github");
+
+  // AdGuard affiche le volume de requetes en k/M (meme format que les
+  // compteurs du bandeau), pour eviter une longue suite de chiffres.
+  check("renderer AdGuard : requetes compactes en k",
+    adguardModule.render(renderCtx("adguard", "fr", { ok: true, queries: 12345, ratio: 12.3, avgMs: 2 })).time,
+    "requêtes 12.3k");
+  check("renderer AdGuard : requetes compactes en M",
+    adguardModule.render(renderCtx("adguard", "fr", { ok: true, queries: 3450000, ratio: 12.3 })).time,
+    "requêtes 3.5M");
+  check("renderer AdGuard : petit volume inchange",
+    adguardModule.render(renderCtx("adguard", "fr", { ok: true, queries: 842, ratio: 12.3 })).time,
+    "requêtes 842");
 
   const ytView = youtubeModule.render(renderCtx("youtube", "fr", { ok: true, subscribers: 3450, ms: 180 }));
   check("renderer YouTube : abonnements",

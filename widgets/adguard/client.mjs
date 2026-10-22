@@ -21,8 +21,8 @@ export function render(ctx) {
   return {
     badge: `${t("blocked")} ${pct} %`,
     badgeClass: "ok",
-    time: `${t("queries")} ${ctx.formatNumber(queries)}`,
+    time: `${t("queries")} ${ctx.formatCompactCount(queries)}`,
     timeClass: "",
-    title: `${t("name")} · ${ctx.formatCompactNumber(queries)} ${t("queries")} · ${pct} % ${t("blocked")}${avg}`
+    title: `${t("name")} · ${ctx.formatCompactCount(queries)} ${t("queries")} · ${pct} % ${t("blocked")}${avg}`
   };
 }

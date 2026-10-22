@@ -2,6 +2,7 @@
 // Importe le registre des widgets : la config d'un widget est deduite du
 // manifest publie par le serveur, plus d'une liste de champs ecrite ici.
 import { normalizeWidgetConfig } from "./widget-registry.js";
+import { formatCompactCount } from "./format.js";
 
 export const DEFAULT_CATEGORIES = [
   {name:"Infrastructure",icon:"fa-solid fa-server"},
@@ -558,19 +559,7 @@ export function linkCounterValue(counter,status){
 // les milliers et M pour les millions, plutot qu'une longue suite de chiffres.
 // 109 reste "109", 3000 devient "3k", 64600000 devient "64.6M".
 export function compactCount(value){
-  const n=Math.round(Number(value));
-  if(!Number.isFinite(n)) return "";
-  const abs=Math.abs(n);
-  let div=1, unit="";
-  if(abs>=1e6){ div=1e6; unit="M"; }
-  else if(abs>=1e3){ div=1e3; unit="k"; }
-  let shown=Math.round((n/div)*10)/10;
-  // 999 950+ arrondirait a "1000k" : on monte au million pour rester lisible.
-  if(unit==="k" && Math.abs(shown)>=1000){
-    shown=Math.round((n/1e6)*10)/10;
-    unit="M";
-  }
-  return shown+unit;
+  return formatCompactCount(value);
 }
 
 // Dashboards : on garantit toujours au moins un onglet. Un identifiant manquant

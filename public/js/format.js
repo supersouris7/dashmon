@@ -43,11 +43,31 @@ export function formatCompactNumber(n, lang) {
   }
 }
 
+// Compteur compact, independant de la langue : k pour les milliers, M pour les
+// millions, sans espace ("3k", "10.2k", "64.6M"). C'est le format des compteurs
+// du bandeau de liens ; Intl produirait "3 k" en francais et "3K" en anglais.
+export function formatCompactCount(n) {
+  const value = Math.round(Number(n));
+  if (!Number.isFinite(value)) return "";
+  const abs = Math.abs(value);
+  let div = 1, unit = "";
+  if (abs >= 1e6) { div = 1e6; unit = "M"; }
+  else if (abs >= 1e3) { div = 1e3; unit = "k"; }
+  let shown = Math.round((value / div) * 10) / 10;
+  // 999 950+ arrondirait a "1000k" : on monte au million pour rester lisible.
+  if (unit === "k" && Math.abs(shown) >= 1000) {
+    shown = Math.round((value / 1e6) * 10) / 10;
+    unit = "M";
+  }
+  return shown + unit;
+}
+
 // Utilitaires passes au contexte des renderers de widgets.
 export function formatters(lang) {
   return {
     formatDateTime: ms => formatDateTime(ms, lang),
     formatNumber: n => formatNumber(n, lang),
-    formatCompactNumber: n => formatCompactNumber(n, lang)
+    formatCompactNumber: n => formatCompactNumber(n, lang),
+    formatCompactCount: n => formatCompactCount(n)
   };
 }

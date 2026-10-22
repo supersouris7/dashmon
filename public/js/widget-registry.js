@@ -261,7 +261,8 @@ export function renderWidget(service, info, lang) {
     t: key => widgetString(meta, key, activeLang),
     formatDateTime: fmt.formatDateTime,
     formatNumber: fmt.formatNumber,
-    formatCompactNumber: fmt.formatCompactNumber
+    formatCompactNumber: fmt.formatCompactNumber,
+    formatCompactCount: fmt.formatCompactCount
   };
 
   try {
