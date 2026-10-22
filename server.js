@@ -366,7 +366,10 @@ function ensureWebLinksSeeded(){
 
   if(currentVersion>=WEB_LINKS_SEED_VERSION) return;
 
-  config.webLinks=DEFAULT_WEB_LINKS;
+  // Ne jamais ecraser une liste de liens existante : une liste vide (liens
+  // supprimes volontairement) ou personnalisee doit etre respectee. On
+  // n'ajoute les liens par defaut qu'a une installation qui n'a pas de champ.
+  if(!Array.isArray(config.webLinks)) config.webLinks=DEFAULT_WEB_LINKS;
   config.webLinksSeedVersion=WEB_LINKS_SEED_VERSION;
 
   try {

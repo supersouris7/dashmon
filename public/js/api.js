@@ -16,6 +16,7 @@ export function saveConfig(immediate=false){
     const payload=JSON.stringify({
       services:state.services,
       categories:state.categories,
+      dashboards:state.dashboards,
       hosts:state.hosts,
       specialTile:state.specialTile,
       theme:state.theme,
@@ -34,8 +35,12 @@ export function saveConfig(immediate=false){
           body:payload
         });
         if(!response.ok) throw new Error("HTTP "+response.status);
+        return true;
       })
-      .catch(error=>console.error("Enregistrement de config.json impossible",error));
+      .catch(error=>{
+        console.error("Enregistrement de config.json impossible",error);
+        return false;
+      });
     return configSaveChain;
   };
 
@@ -69,7 +74,9 @@ export function patchConfig(patch,immediate=false){
 }
 
 export async function fetchConfig(){
-  const response=await fetch("/api/config",{cache:"no-store"});
+  // Parametre anti-cache : certains reverse proxies ignorent Cache-Control et
+  // resservent l'ancienne configuration apres une suppression.
+  const response=await fetch("/api/config?_="+Date.now(),{cache:"no-store"});
   if(!response.ok) throw new Error("HTTP "+response.status);
   return response.json();
 }

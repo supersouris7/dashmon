@@ -33,7 +33,9 @@ setPageSwitchUpdater(renderPageSwitch);
 
 async function loadConfig(){
   try{
-    const response=await fetch("/api/config",{cache:"no-store"});
+    // Parametre anti-cache : certains reverse proxies ignorent Cache-Control et
+    // resservent l'ancienne configuration apres une suppression.
+    const response=await fetch("/api/config?_="+Date.now(),{cache:"no-store"});
     if(!response.ok) throw new Error("HTTP "+response.status);
 
     const cfg=normalizeConfig(await response.json());

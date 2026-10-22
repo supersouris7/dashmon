@@ -1395,7 +1395,13 @@ saveBtn.addEventListener("click",async()=>{
 
   render();
   renderPageSwitch();
-  await saveConfig(true);
+  const saved=await saveConfig(true);
+  if(!saved){
+    // Ne pas fermer l'editeur en silence : sans ce garde, l'interface montrait
+    // la suppression alors que le fichier n'avait pas ete ecrit.
+    alert(t("saveError"));
+    return;
+  }
   closeEditor();
 });
 
