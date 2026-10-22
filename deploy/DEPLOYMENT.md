@@ -314,7 +314,8 @@ with a cron job or a systemd timer:
 
 Requirements:
 
-- The file must be refreshed regularly (each supervision refresh is 15 s); a
+- The file must be refreshed regularly (supervision refreshes every 60 s by
+  default; set `HOST_METRICS_INTERVAL` in seconds to change it); a
   stale file shows stale handshakes, but is still valid.
 - The file must be readable by the container user (UID `1000` in the image).
 - The dump contains the interface private key: restrict its permissions

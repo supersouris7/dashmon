@@ -68,7 +68,18 @@ const APP_LABEL = APP_COMMIT_SHORT && !APP_CODE_MOUNTED
 // Instant de demarrage : sert a distinguer "l'image est ancienne" de "le
 // conteneur tourne depuis le dernier redemarrage sans avoir ete recree".
 const STARTED_AT = new Date().toISOString();
-const INDEX_HTML = fs.readFileSync(INDEX_FILE, "utf8").replace(/\{\{VERSION\}\}/g, APP_LABEL);
+// Intervalle de rafraichissement des mesures d'hotes, en secondes. Le client
+// lit la valeur injectee dans le HTML ; le serveur s'en sert aussi comme duree
+// de cache pour mutualiser les requetes. 60 s par defaut : la page supervision
+// n'a pas besoin de plus fin, et cela menage les hotes modestes (Raspberry Pi).
+const HOST_METRICS_INTERVAL = (()=>{
+  const value = Number(process.env.HOST_METRICS_INTERVAL);
+  if(!Number.isFinite(value) || value < 5) return 60000;
+  return Math.min(value, 3600) * 1000;
+})();
+const INDEX_HTML = fs.readFileSync(INDEX_FILE, "utf8")
+  .replace(/\{\{VERSION\}\}/g, APP_LABEL)
+  .replace(/\{\{HOST_METRICS_INTERVAL\}\}/g, String(HOST_METRICS_INTERVAL));
 
 app.disable("x-powered-by");
 app.use(express.json({limit:"1mb",strict:true}));
@@ -1434,7 +1445,7 @@ async function getProxmoxMetrics(host){
   };
 }
 
-const HOST_METRICS_TTL=10000;
+const HOST_METRICS_TTL=HOST_METRICS_INTERVAL;
 let hostMetricsCache={ts:0,payload:null};
 let hostMetricsInflight=null;
 

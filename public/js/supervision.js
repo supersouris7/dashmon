@@ -5,7 +5,15 @@ import { t } from "./i18n.js";
 import { state } from "./state.js";
 import { supervisionList, supervisionPage } from "./dom.js";
 
-const HOST_METRICS_INTERVAL=15000;
+// Intervalle injecte par le serveur (voir HOST_METRICS_INTERVAL). Un HTML
+// servi sans substitution (test, fichier local) retombe sur 60 s.
+function metricsInterval(){
+  if(typeof document==="undefined") return 60000;
+  const meta=document.querySelector('meta[name="host-metrics-interval"]');
+  const value=Number(meta && meta.content);
+  return Number.isFinite(value) && value>=5000 ? Math.min(value,3600000) : 60000;
+}
+const HOST_METRICS_INTERVAL=metricsInterval();
 const TYPE_LABEL={local:"hostTypeLocal",linux:"hostTypeLinux",proxmox:"hostTypeProxmox"};
 
 function typeLabel(type){

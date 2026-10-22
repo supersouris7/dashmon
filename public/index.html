@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Intervalle de rafraichissement des mesures d'hotes (ms), injecte par le
+     serveur depuis HOST_METRICS_INTERVAL. La page supervision le lit. -->
+<meta name="host-metrics-interval" content="{{HOST_METRICS_INTERVAL}}">
 <!-- Dashmon gère ses propres thèmes clair et sombre : cette déclaration
      empêche les extensions comme Dark Reader d'inverser la page en plus. -->
 <meta name="color-scheme" content="dark light">
