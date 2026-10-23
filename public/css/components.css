@@ -586,10 +586,26 @@ body.is-refreshing .widget-status{animation:refreshPulse 1.15s ease-in-out infin
   flex-wrap:wrap;
   justify-content:flex-end;
   gap:5px;
-  max-width:96px;
+  max-width:150px;
+}
+
+.wireguard-peer{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  min-width:0;
+}
+
+.wireguard-peer-name{
+  max-width:80px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:11px;
 }
 
 .wireguard-peer-dot{
+  display:inline-block;
   width:10px;
   height:10px;
   box-sizing:border-box;
@@ -1188,6 +1204,7 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 }
 
 .supervision-peer-dot{
+  display:inline-block;
   flex:0 0 auto;
   width:8px;
   height:8px;

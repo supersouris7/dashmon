@@ -42,11 +42,18 @@ export function element(ctx) {
   }
 
   peers.forEach(({ interface: iface, peer }) => {
+    const item = document.createElement("span");
+    item.className = "wireguard-peer";
     const dot = document.createElement("i");
     const connected = isConnected(peer);
     dot.className = "wireguard-peer-dot" + (connected ? " up" : "");
-    dot.title = `${iface} · ${peer.name || "?"} · ${t(connected ? "peerConnected" : "peerDisconnected")}`;
-    status.appendChild(dot);
+    dot.setAttribute("aria-hidden", "true");
+    const name = document.createElement("span");
+    name.className = "wireguard-peer-name";
+    name.textContent = peer.name || "?";
+    item.title = `${iface} · ${peer.name || "?"} · ${t(connected ? "peerConnected" : "peerDisconnected")}`;
+    item.append(dot, name);
+    status.appendChild(item);
   });
   status.title = `${t("name")} · ${peers.length} ${t("peers")}`;
   return status;
