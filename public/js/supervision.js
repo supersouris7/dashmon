@@ -514,7 +514,7 @@ function aptUpdatesCard(host,metrics){
   if(report?.rebootRequired){
     const reboot=document.createElement("p");
     reboot.className="supervision-apt-reboot";
-    reboot.textContent=report.rebooting ? t("aptUpdatesRebooting") : t("aptUpdatesRebootRequired");
+    reboot.textContent=report.rebootRequested ? t("aptUpdatesRebootRequested") : t("aptUpdatesRebootRequired");
     card.appendChild(reboot);
   }
   return card;
@@ -573,7 +573,7 @@ export function renderSupervision(){
   monitored.forEach(host=>{
     const metrics=byId.get(host.id);
     const prefs=host.monitoring?.aptUpdates;
-    if(metrics?.ok && prefs?.enabled!==false) grid.appendChild(aptUpdatesCard(host,metrics));
+    if(host.monitoring?.type==="local" && metrics?.ok && prefs?.enabled!==false) grid.appendChild(aptUpdatesCard(host,metrics));
   });
   supervisionList.append(grid);
   updateSmartCollapseButton();
@@ -592,6 +592,7 @@ export async function refreshHostMetrics(){
     state.hostMetricsError=false;
   }catch(_error){
     state.hostMetricsError=true;
+    state.hostMetrics=null;
   }finally{
     metricsInflight=false;
     if(state.page==="supervision") renderSupervision();

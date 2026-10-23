@@ -275,6 +275,12 @@ async function main(){
     check("config : supervision inconnue recalee sur local",
       stateModule.normalizeConfig({ hosts: [{ name: "H", monitoring: { enabled: true, type: "n'importe quoi" } }] }).hosts[0].monitoring.type,
       "local");
+    check("config : rapport APT actif par defaut",
+      stateModule.normalizeHostMonitoring({ enabled: true, type: "local" }).aptUpdates,
+      { enabled: true });
+    check("config : rapport APT desactive conserve",
+      stateModule.normalizeHostMonitoring({ enabled: true, type: "local", aptUpdates: { enabled: false } }).aptUpdates,
+      { enabled: false });
     check("config : hote sans supervision reste sans objet",
       stateModule.normalizeConfig({ hosts: [{ name: "H", icon: "fa-solid fa-server" }] }).hosts[0].monitoring,
       null);

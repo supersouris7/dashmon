@@ -1471,7 +1471,7 @@ function readAptUpdatesReport(){
     status:raw.status,
     updated:smartNumber(raw.updated)||0,
     rebootRequired:raw.rebootRequired===true,
-    rebooting:raw.rebooting===true,
+    rebootRequested:raw.rebootRequested===true,
     finishedAt:smartNumber(raw.finishedAt)||Math.floor(stat.mtimeMs/1000)
   };
 }
@@ -1577,7 +1577,9 @@ app.get("/api/host-metrics",async(_req,res)=>{
   const localTemp=localTemperature();
   const localDump=readWireguardDump();
   const localSmart=readSmartDump();
-  const localAptUpdates=readAptUpdatesReport();
+  const localAptUpdates=hosts.some(host=>host.monitoring?.enabled && host.monitoring.type==="local" && host.monitoring.aptUpdates?.enabled!==false)
+    ? readAptUpdatesReport()
+    : null;
 
   const refresh=Promise.all(hosts.map(async host=>{
     const type=HOST_MONITORING_TYPES.has(host.monitoring?.type) ? host.monitoring.type : "local";

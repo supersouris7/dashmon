@@ -47,7 +47,8 @@ une mise a jour reussie qui le requiert, prefixez la commande cron :
 0 3 * * 3 DASHMON_APT_REBOOT=1 /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
 ```
 
-Le rapport est ecrit avant le redemarrage, avec l'etat `redemarrage lance`.
+Le rapport est ecrit avant la demande de redemarrage, avec l'etat
+`redemarrage demande`.
 
 ## Supervision Dashmon
 
@@ -59,6 +60,23 @@ redemarrage est requis.
 ## Variante bind mount
 
 Si le script ne peut pas joindre Docker, montez un dossier de l'hote dans le
-conteneur et definissez `APT_UPDATES_REPORT_FILE` pour Dashmon. Definissez le
-meme chemin hote dans `DASHMON_APT_REPORT_FILE` devant la commande cron. Le
-chemin de lecture reste fixe par l'environnement, jamais par l'interface web.
+conteneur. Les deux chemins sont distincts : le script utilise le chemin hote,
+Dashmon celui du conteneur.
+
+```yaml
+services:
+  dashmon:
+    volumes:
+      - /srv/dashmon-reports:/reports:ro
+    environment:
+      APT_UPDATES_REPORT_FILE: /reports/apt-updates.json
+```
+
+La ligne cron devient alors :
+
+```cron
+0 3 * * 3 DASHMON_APT_REPORT_FILE=/srv/dashmon-reports/apt-updates.json /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
+```
+
+Le chemin de lecture reste fixe par l'environnement, jamais par l'interface
+web.

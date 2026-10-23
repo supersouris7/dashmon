@@ -29,7 +29,7 @@ fi
 STATUS="success"
 UPDATED=0
 REBOOT_REQUIRED=false
-REBOOTING=false
+REBOOT_REQUESTED=false
 
 export DEBIAN_FRONTEND=noninteractive
 export LC_ALL=C
@@ -43,27 +43,36 @@ fi
 
 if [ -f /var/run/reboot-required ]; then REBOOT_REQUIRED=true; fi
 if [ "$STATUS" = "success" ] && [ "$REBOOT_REQUIRED" = true ] && [ "$AUTO_REBOOT" = "1" ]; then
-  REBOOTING=true
+  REBOOT_REQUESTED=true
 fi
 
 FINISHED="$(date +%s)"
 TMP="$(mktemp "${TMPDIR:-/tmp}/dashmon-apt-report.XXXXXX")"
 trap 'rm -f "$TMP"' EXIT
-printf '{"status":"%s","updated":%s,"finishedAt":%s,"rebootRequired":%s,"rebooting":%s}\n' \
-  "$STATUS" "$UPDATED" "$FINISHED" "$REBOOT_REQUIRED" "$REBOOTING" > "$TMP"
+printf '{"status":"%s","updated":%s,"finishedAt":%s,"rebootRequired":%s,"rebootRequested":%s}\n' \
+  "$STATUS" "$UPDATED" "$FINISHED" "$REBOOT_REQUIRED" "$REBOOT_REQUESTED" > "$TMP"
 
 if [ -n "$HOST_FILE" ]; then
-  mkdir -p "$(dirname "$HOST_FILE")"
-  cp "$TMP" "${HOST_FILE}.tmp"
-  chmod 600 "${HOST_FILE}.tmp"
+  if ! mkdir -p "$(dirname "$HOST_FILE")" \
+    || ! cp "$TMP" "${HOST_FILE}.tmp" \
+    || ! chmod 600 "${HOST_FILE}.tmp"; then
+    echo "apt-updates.sh: echec de l'ecriture du rapport." >&2
+    exit 1
+  fi
   chown 1000:1000 "${HOST_FILE}.tmp" 2>/dev/null || true
-  mv -f "${HOST_FILE}.tmp" "$HOST_FILE"
+  if ! mv -f "${HOST_FILE}.tmp" "$HOST_FILE"; then
+    echo "apt-updates.sh: echec de l'ecriture du rapport." >&2
+    exit 1
+  fi
 else
-  docker exec -i "$CONT_NAME" sh -c "cat > '$CONT_PATH.tmp' && mv -f '$CONT_PATH.tmp' '$CONT_PATH'" < "$TMP"
+  if ! docker exec -i "$CONT_NAME" sh -c "cat > '$CONT_PATH.tmp' && mv -f '$CONT_PATH.tmp' '$CONT_PATH'" < "$TMP"; then
+    echo "apt-updates.sh: echec de l'ecriture du rapport dans le conteneur." >&2
+    exit 1
+  fi
 fi
 
 echo "apt-updates.sh: rapport ecrit (${STATUS}, ${UPDATED} mise(s) a jour)." >&2
-if [ "$REBOOTING" = true ]; then
+if [ "$REBOOT_REQUESTED" = true ]; then
   systemctl reboot
 fi
 
