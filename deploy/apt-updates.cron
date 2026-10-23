@@ -1,7 +1,0 @@
-# /etc/cron.d/dashmon-apt-updates
-# Chaque mercredi a 03:00. Les options sont lues depuis
-# /etc/default/dashmon-apt-updates si ce fichier existe.
-SHELL=/bin/sh
-PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-0 3 * * 3 root . /etc/default/dashmon-apt-updates 2>/dev/null || true; /usr/local/sbin/apt-updates.sh
