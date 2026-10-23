@@ -1021,6 +1021,13 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 
 .supervision-smart-title{
   display:flex;
+  width:100%;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:inherit;
+  text-align:left;
+  cursor:pointer;
   justify-content:space-between;
   gap:10px;
   align-items:center;
@@ -1046,6 +1053,9 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 .supervision-smart-status.failed{background:#e5484d}
 .supervision-smart-status.unknown{background:var(--muted)}
 
+.supervision-smart-chevron{color:var(--muted);font-size:11px;transition:transform .18s ease}
+.supervision-smart-disk.expanded .supervision-smart-chevron{transform:rotate(180deg)}
+
 .supervision-smart-summary{
   display:flex;
   align-items:baseline;
@@ -1070,6 +1080,31 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 }
 
 .supervision-smart-fact.warn{color:#bd7600;font-weight:600}
+
+/* Le resume reste dense ; le clic sur le disque revele les libelles complets
+   sans faire grandir toutes les cartes en permanence. */
+.supervision-smart-details{display:none;margin-top:9px}
+.supervision-smart-disk.expanded .supervision-smart-details{display:grid}
+.supervision-smart-model,
+.supervision-smart-full-status{margin:0 0 7px;font-size:12px}
+.supervision-smart-model{color:var(--muted)}
+.supervision-smart-full-status.passed{color:#21873f}
+.supervision-smart-full-status.failed{color:#b42318}
+.supervision-smart-full-status.unknown{color:var(--muted)}
+.supervision-smart-detail-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto 86px;
+  gap:10px;
+  align-items:center;
+  padding:5px 0;
+  border-top:1px solid var(--border);
+  font-size:12px;
+}
+.supervision-smart-detail-row > span:first-child{color:var(--muted)}
+.supervision-smart-detail-row > span:nth-child(2){font-variant-numeric:tabular-nums}
+.supervision-smart-detail-diagnostic{text-align:right;font-size:11px}
+.supervision-smart-detail-diagnostic.up{color:#21873f}
+.supervision-smart-detail-diagnostic.warn{color:#bd7600}
 
 .smart-disk-choices{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--muted)}
 .smart-disk-choice{min-height:28px;padding:3px 8px;border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--text);font:inherit}
@@ -1165,6 +1200,7 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
     grid-template-columns:1fr;
     gap:4px;
   }
+  .supervision-smart-detail-row{grid-template-columns:minmax(0,1fr) auto 76px;gap:6px}
 }
 
 

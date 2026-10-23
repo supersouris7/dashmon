@@ -288,6 +288,30 @@ function smartFact(label,value,warning=false){
   return fact;
 }
 
+function smartDiagnosis(key,value){
+  const n=Number(value);
+  if(!Number.isFinite(n) || n<0) return {text:"—",className:""};
+  if(key==="hours") return n>=50000 ? {text:t("smartHigh"),className:"warn"} : {text:t("smartGood"),className:"up"};
+  if(key==="temperature") return n<40 ? {text:t("smartVeryGood"),className:"up"} : n<50 ? {text:t("smartGood"),className:"up"} : {text:t("smartHot"),className:"warn"};
+  if(key==="load") return n>=100000 ? {text:t("smartWatch"),className:"warn"} : {text:t("smartGood"),className:"up"};
+  return n===0 ? {text:t("smartGood"),className:"up"} : {text:t("smartWatch"),className:"warn"};
+}
+
+function smartDetailRow(label,value,key){
+  const row=document.createElement("div");
+  row.className="supervision-smart-detail-row";
+  const name=document.createElement("span");
+  name.textContent=label;
+  const amount=document.createElement("span");
+  amount.textContent=smartNumberText(value);
+  const diagnosis=smartDiagnosis(key,value);
+  const diagnostic=document.createElement("span");
+  diagnostic.className="supervision-smart-detail-diagnostic "+diagnosis.className;
+  diagnostic.textContent=diagnosis.text;
+  row.append(name,amount,diagnostic);
+  return row;
+}
+
 function visibleSmartDisks(host,metrics){
   if(!metrics || !metrics.ok || !Array.isArray(metrics.smart) || !metrics.smart.length) return [];
   const prefs=host.monitoring && host.monitoring.smart;
@@ -324,8 +348,10 @@ function smartCard(host,metrics,disks){
   disks.forEach(disk=>{
     const section=document.createElement("section");
     section.className="supervision-smart-disk";
-    const title=document.createElement("div");
+    const title=document.createElement("button");
+    title.type="button";
     title.className="supervision-smart-title";
+    title.setAttribute("aria-expanded","false");
     const label=document.createElement("span");
     label.textContent=disk.device;
     const passed=disk.passed===true ? "passed" : disk.passed===false ? "failed" : "unknown";
@@ -335,7 +361,14 @@ function smartCard(host,metrics,disks){
     status.setAttribute("aria-label",passed==="passed" ? t("supervisionSmartPassed")
       : passed==="failed" ? t("supervisionSmartFailed") : t("supervisionSmartUnknown"));
     status.title=status.getAttribute("aria-label");
-    title.append(label,status);
+    const chevron=document.createElement("i");
+    chevron.className="fa-solid fa-chevron-down supervision-smart-chevron";
+    chevron.setAttribute("aria-hidden","true");
+    title.append(label,status,chevron);
+    title.addEventListener("click",()=>{
+      const expanded=section.classList.toggle("expanded");
+      title.setAttribute("aria-expanded",String(expanded));
+    });
     section.appendChild(title);
 
     const summary=document.createElement("div");
@@ -364,6 +397,30 @@ function smartCard(host,metrics,disks){
       smartFact(t("smartLoadCycleShort"),disk.loadCycle)
     );
     section.appendChild(facts);
+
+    const details=document.createElement("div");
+    details.className="supervision-smart-details";
+    if(disk.model){
+      const model=document.createElement("p");
+      model.className="supervision-smart-model";
+      model.textContent=disk.model;
+      details.appendChild(model);
+    }
+    const statusText=document.createElement("p");
+    statusText.className="supervision-smart-full-status "+passed;
+    statusText.textContent=passed==="passed" ? t("supervisionSmartPassed")
+      : passed==="failed" ? t("supervisionSmartFailed") : t("supervisionSmartUnknown");
+    details.append(statusText,
+      smartDetailRow(t("smartReallocated"),disk.reallocated,"error"),
+      smartDetailRow(t("smartPending"),disk.pending,"error"),
+      smartDetailRow(t("smartUncorrectable"),disk.uncorrectable,"error"),
+      smartDetailRow(t("smartSataCrc"),disk.sataCrc,"error"),
+      smartDetailRow(t("smartErrors"),disk.smartErrors,"error"),
+      smartDetailRow(t("smartLoadCycle"),disk.loadCycle,"load"),
+      smartDetailRow(t("smartPowerHours"),disk.powerOnHours,"hours"),
+      smartDetailRow(t("smartTemperature"),disk.temperature,"temperature")
+    );
+    section.appendChild(details);
     card.appendChild(section);
   });
   return card;
