@@ -139,6 +139,14 @@ function relativeAge(seconds){
   return fr ? `il y a ${d} j` : `${d} d ago`;
 }
 
+function reportDateText(value){
+  const seconds=Number(value);
+  if(!Number.isFinite(seconds) || seconds<=0) return "—";
+  return new Intl.DateTimeFormat(state.language==="fr" ? "fr-FR" : "en-US",{
+    dateStyle:"medium",timeStyle:"short"
+  }).format(new Date(seconds*1000));
+}
+
 function handshakeText(peer){
   const age=handshakeAge(peer.latestHandshake);
   if(age===null){
@@ -480,7 +488,10 @@ function smartCard(host,metrics,disks){
 function aptUpdatesCard(host,metrics){
   const report=metrics?.aptUpdates;
   const card=document.createElement("article");
-  card.className="supervision-card supervision-card-apt";
+  const failed=report?.status==="failed";
+  const updated=Number(report?.updated)||0;
+  const reboot=report?.rebootRequired===true;
+  card.className="supervision-card supervision-card-apt "+(!report ? "unknown" : failed ? "failed" : reboot ? "warning" : "ok");
   const head=document.createElement("div");
   head.className="supervision-head";
   const icon=document.createElement("i");
@@ -493,29 +504,51 @@ function aptUpdatesCard(host,metrics){
   badge.textContent=t("supervisionAptUpdates");
   head.append(icon,name,badge);
   card.appendChild(head);
-  const text=document.createElement("p");
-  text.className="supervision-apt-status";
+
+  const status=document.createElement("div");
+  status.className="supervision-apt-status";
+  const dot=document.createElement("span");
+  dot.className="supervision-apt-dot";
+  const text=document.createElement("strong");
   if(!report){
     text.textContent=t("aptUpdatesNoReport");
-  }else if(report.status==="failed"){
-    text.classList.add("failed");
+  }else if(failed){
     text.textContent=t("aptUpdatesFailed");
   }else{
-    const updated=Number(report.updated)||0;
     text.textContent=updated ? t("aptUpdatesInstalled").replace("{count}",smartNumberText(updated)) : t("aptUpdatesUpToDate");
   }
-  card.appendChild(text);
-  if(report?.finishedAt){
-    const date=document.createElement("p");
-    date.className="supervision-smart-updated";
-    date.textContent=relativeAge(handshakeAge(report.finishedAt));
-    card.appendChild(date);
-  }
-  if(report?.rebootRequired){
-    const reboot=document.createElement("p");
-    reboot.className="supervision-apt-reboot";
-    reboot.textContent=report.rebootRequested ? t("aptUpdatesRebootRequested") : t("aptUpdatesRebootRequired");
-    card.appendChild(reboot);
+  status.append(dot,text);
+  card.appendChild(status);
+
+  if(report){
+    const summary=document.createElement("div");
+    summary.className="supervision-apt-summary";
+    const count=document.createElement("strong");
+    count.textContent=smartNumberText(updated);
+    const label=document.createElement("span");
+    label.textContent=t("aptUpdatesPackagesInstalled");
+    summary.append(count,label);
+    card.appendChild(summary);
+
+    const details=document.createElement("div");
+    details.className="supervision-apt-details";
+    const lastRun=document.createElement("div");
+    const lastRunLabel=document.createElement("span");
+    lastRunLabel.textContent=t("aptUpdatesLastRun");
+    const lastRunValue=document.createElement("time");
+    lastRunValue.textContent=reportDateText(report.finishedAt);
+    lastRun.append(lastRunLabel,lastRunValue);
+    const rebootRow=document.createElement("div");
+    const rebootLabel=document.createElement("span");
+    rebootLabel.textContent=t("aptUpdatesReboot");
+    const rebootValue=document.createElement("span");
+    rebootValue.className=reboot ? "warning" : "ok";
+    rebootValue.textContent=reboot
+      ? (report.rebootRequested ? t("aptUpdatesRebootRequested") : t("aptUpdatesRebootRequired"))
+      : t("aptUpdatesNoReboot");
+    rebootRow.append(rebootLabel,rebootValue);
+    details.append(lastRun,rebootRow);
+    card.appendChild(details);
   }
   return card;
 }
