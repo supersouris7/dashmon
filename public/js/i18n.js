@@ -21,6 +21,7 @@ const UI_TEXT={
     tabWebLinks:"Liens web",
     tabWidgets:"Widgets",
     tabImages:"Images",
+    tabImportExport:"Import / Export",
     addImages:"Ajouter des images",
     deleteSelection:"Supprimer la sélection",
     imageSelected:"image sélectionnée",
@@ -34,6 +35,10 @@ const UI_TEXT={
     imagesDeletePartial:"{count} image(s) n’ont pas pu être supprimée(s).",
     importBtn:"Importer",
     exportBtn:"Exporter",
+    applyBtn:"Appliquer",
+    importExportHint:"Importez ou exportez la configuration complète de Dashmon. Appliquer enregistre les modifications sans fermer les paramètres.",
+    importReady:"Configuration importée. Cliquez sur Appliquer pour l'enregistrer.",
+    applyDone:"Modifications appliquées.",
     cancelBtn:"Annuler",
     saveBtn:"Enregistrer",
     saveError:"Enregistrement impossible. Vérifiez que le fichier de configuration est accessible en écriture.",
@@ -205,6 +210,7 @@ const UI_TEXT={
     tabWebLinks:"Web links",
     tabWidgets:"Widgets",
     tabImages:"Images",
+    tabImportExport:"Import / Export",
     addImages:"Add images",
     deleteSelection:"Delete selection",
     imageSelected:"image selected",
@@ -218,6 +224,10 @@ const UI_TEXT={
     imagesDeletePartial:"{count} image(s) could not be deleted.",
     importBtn:"Import",
     exportBtn:"Export",
+    applyBtn:"Apply",
+    importExportHint:"Import or export the complete Dashmon configuration. Apply saves changes without closing settings.",
+    importReady:"Configuration imported. Click Apply to save it.",
+    applyDone:"Changes applied.",
     cancelBtn:"Cancel",
     saveBtn:"Save",
     saveError:"Save failed. Check that the configuration file is writable.",
@@ -447,6 +457,7 @@ export function applyLanguage(){
     ["editorTabWebLinks","tabWebLinks"],
     ["editorTabWidgets","tabWidgets"],
     ["editorTabImages","tabImages"],
+    ["editorTabImportExport","tabImportExport"],
     ["addServiceLabel","addApplication"],
     ["addCategoryLabel","addCategory"],
     ["addDashboardLabel","addDashboard"],
@@ -454,6 +465,7 @@ export function applyLanguage(){
     ["addWebLinkLabel","addWebLink"],
     ["importConfigLabel","importBtn"],
     ["exportConfigLabel","exportBtn"],
+    ["applyConfigLabel","applyBtn"],
     ["uploadPngLabel","importBtn"],
     ["manageUploadLabel","addImages"],
     ["manageDeleteLabel","deleteSelection"],
@@ -466,6 +478,7 @@ export function applyLanguage(){
 
   document.getElementById("manageUploadHint").textContent=t("pngOnlyHint");
   document.getElementById("uploadPngHint").textContent=t("pngOnlyHint");
+  document.getElementById("importExportHint").textContent=t("importExportHint");
 
   cancelBtn.textContent=t("cancelBtn");
   saveBtn.textContent=t("saveBtn");

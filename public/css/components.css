@@ -989,6 +989,8 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
   align-items:baseline;
   gap:4px;
   margin-bottom:6px;
+  padding-bottom:6px;
+  border-bottom:1px solid var(--border);
   font-size:13px;
 }
 

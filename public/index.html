@@ -185,6 +185,9 @@
       <button class="edit-tab" type="button" data-panel="imagesPanel">
         <i class="fa-regular fa-images"></i>&nbsp; <span id="editorTabImages">Images</span>
       </button>
+      <button class="edit-tab" type="button" data-panel="importExportPanel">
+        <i class="fa-solid fa-file-import"></i>&nbsp; <span id="editorTabImportExport">Import / Export</span>
+      </button>
     </div>
 
     <div id="servicesPanel" class="edit-panel active">
@@ -266,15 +269,25 @@
       <div id="imageManagerGrid" class="image-manager-grid"></div>
     </div>
 
-    <div class="modal-header editor-footer">
-      <div class="footer-left-actions">
-        <button id="importConfigBtn" class="action-btn" type="button">
-          <i class="fa-solid fa-upload"></i>&nbsp; <span id="importConfigLabel">Importer</span>
-        </button>
-        <button id="exportConfigBtn" class="action-btn" type="button">
-          <i class="fa-solid fa-download"></i>&nbsp; <span id="exportConfigLabel">Exporter</span>
+    <div id="importExportPanel" class="edit-panel">
+      <div class="import-export-panel">
+        <p id="importExportHint" class="import-export-hint">Importez ou exportez la configuration complète de Dashmon.</p>
+        <p id="importExportStatus" class="import-export-status" aria-live="polite"></p>
+        <div class="action-group">
+          <button id="importConfigBtn" class="action-btn" type="button">
+            <i class="fa-solid fa-upload"></i>&nbsp; <span id="importConfigLabel">Importer</span>
+          </button>
+          <button id="exportConfigBtn" class="action-btn" type="button">
+            <i class="fa-solid fa-download"></i>&nbsp; <span id="exportConfigLabel">Exporter</span>
+          </button>
+        </div>
+        <button id="applyConfigBtn" class="action-btn primary" type="button">
+          <i class="fa-solid fa-check"></i>&nbsp; <span id="applyConfigLabel">Appliquer</span>
         </button>
       </div>
+    </div>
+
+    <div class="modal-header editor-footer">
       <div class="action-group">
         <button id="cancelBtn" class="action-btn" type="button">Annuler</button>
         <button id="saveBtn" class="action-btn primary" type="button">Enregistrer</button>

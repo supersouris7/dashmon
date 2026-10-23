@@ -1,10 +1,11 @@
 // Éditeur de configuration : services, catégories, hôtes, liens web, import/export config.
-import { state, clone, normalize, normalizeConfig, normalizeViewPrefs, compareNames, TILE_COLORS, sanitizeTileColor, normalizeSpecialTile, normalizeLinkCounter, LINK_COUNTER_TYPES, HOST_MONITORING_TYPES } from "./state.js";
+import { state, clone, normalize, normalizeConfig, compareNames, TILE_COLORS, sanitizeTileColor, normalizeSpecialTile, normalizeLinkCounter, LINK_COUNTER_TYPES, HOST_MONITORING_TYPES } from "./state.js";
 import { t, applyLanguage } from "./i18n.js";
-import { saveConfig, putConfig, fetchConfig } from "./api.js";
-import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
+import { saveConfig, fetchConfig } from "./api.js";
+import { saveViewPrefs } from "./view-prefs.js";
 import { render, updateViewButton, updateIconsButton, updateOpenModeMenu, updateGroupModeMenu, updateSortModeMenu } from "./render.js";
 import { renderPageSwitch } from "./pages.js";
+import { renderSupervision } from "./supervision.js";
 import { applyTheme } from "./themes.js";
 import { openImageLibrary, renderImageManager } from "./images.js";
 import { createIconPicker, createHostIconPicker, createWebLinkIconPicker, createDashboardIconPicker } from "./icons.js";
@@ -17,7 +18,7 @@ import {
   editorSearch, editorCategoryFilter, editorHostFilter,
   modalBackdrop, editorTitle, closeBtn, cancelBtn, saveBtn,
   addServiceBtn, addCategoryBtn, addDashboardBtn, addWebLinkBtn, addHostBtn,
-  exportConfigBtn, importConfigBtn, configImportInput,
+  exportConfigBtn, importConfigBtn, applyConfigBtn, configImportInput, importExportStatus,
   widgetConfig, widgetConfigBody, widgetConfigCloseBtn, widgetConfigSaveBtn
 } from "./dom.js";
 
@@ -1223,6 +1224,32 @@ export function closeEditor(){
   document.querySelectorAll(".icon-picker.open").forEach(p=>p.classList.remove("open"));
 }
 
+// Applique le bon rendu sans quitter les parametres : le tableau de bord et la
+// page supervision n'ont pas le meme renderer.
+function renderLive(){
+  if(state.page==="supervision") renderSupervision();
+  else render();
+  renderPageSwitch();
+}
+
+function refreshEditorDrafts(){
+  state.editServices=clone(state.services);
+  state.editCategories=clone(state.categories);
+  state.editDashboards=clone(state.dashboards);
+  state.editHosts=clone(state.hosts);
+  state.editWebLinks=clone(state.webLinks);
+  state.editSpecialTile=clone(state.specialTile);
+  renderServiceEditor();
+  renderCategoryEditor();
+  renderDashboardEditor();
+  renderHostEditor();
+  renderWireguardEditor();
+  renderWebLinksEditor();
+  renderWidgetsEditor();
+}
+
+let importedConfigDraft=null;
+
 widgetConfigCloseBtn.addEventListener("click",closeWidgetConfig);
 widgetConfigSaveBtn.addEventListener("click",()=>{
   if(widgetConfigIndex>=0){
@@ -1341,55 +1368,22 @@ configImportInput.addEventListener("change",async()=>{
       throw new Error("Structure invalide");
     }
 
-    await putConfig(imported);
-
-    state.services=clone(imported.services);
-    state.categories=clone(imported.categories);
-    state.dashboards=clone(imported.dashboards);
-    state.hosts=clone(imported.hosts);
-    state.specialTile=clone(imported.specialTile);
-    // La disposition de l'écran n'est pas dans le fichier importé : elle reste
-    // celle de ce navigateur, comme pour un simple rechargement.
-    const viewPrefs=normalizeViewPrefs(Object.assign(pickViewPrefs(imported),loadViewPrefs()));
-    state.collapsed=viewPrefs.collapsed;
-    state.viewMode=viewPrefs.viewMode;
-    state.openMode=viewPrefs.openMode;
-    state.groupMode=viewPrefs.groupMode;
-    state.sortMode=viewPrefs.sortMode;
-    state.smallIcons=viewPrefs.smallIcons;
-    state.webLinksHidden=viewPrefs.webLinksHidden;
-    state.page=viewPrefs.page;
-    state.dashboardId=state.dashboards.some(d=>d.id===viewPrefs.dashboardId)
-      ? viewPrefs.dashboardId
-      : state.dashboards[0].id;
-    state.webLinksColor=imported.webLinksColor;
-    state.theme=imported.theme;
-    state.language=imported.language;
-    state.usageCounts={...imported.usageCounts};
-    state.webLinks=clone(imported.webLinks);
-
-    state.editServices=clone(state.services);
-    state.editCategories=clone(state.categories);
-    state.editDashboards=clone(state.dashboards);
-    state.editHosts=clone(state.hosts);
-    state.editWebLinks=clone(state.webLinks);
-    state.editSpecialTile=clone(state.specialTile);
-
-    applyTheme();
-  applyLanguage();
-  updateViewButton();
-  updateIconsButton();
-    updateOpenModeMenu();
-    updateGroupModeMenu();
-    updateSortModeMenu();
+    // L'import reste un brouillon tant que l'utilisateur ne clique pas sur
+    // "Appliquer" : aucun ecrasement du serveur ni changement visible avant.
+    importedConfigDraft=imported;
+    state.editServices=clone(imported.services);
+    state.editCategories=clone(imported.categories);
+    state.editDashboards=clone(imported.dashboards);
+    state.editHosts=clone(imported.hosts);
+    state.editWebLinks=clone(imported.webLinks);
+    state.editSpecialTile=clone(imported.specialTile);
     renderServiceEditor();
     renderCategoryEditor();
     renderDashboardEditor();
     renderHostEditor();
     renderWebLinksEditor();
     renderWidgetsEditor();
-    render();
-    renderPageSwitch();
+    importExportStatus.textContent=t("importReady");
   }catch(error){
     console.error("Import de configuration impossible",error);
     alert("Fichier de configuration invalide.");
@@ -1430,7 +1424,7 @@ modalBackdrop.addEventListener("click",e=>{
   if(e.target===modalBackdrop) closeEditor();
 });
 
-saveBtn.addEventListener("click",async()=>{
+async function applyEditorChanges(closeWhenSaved){
   // Noms presents avant la sauvegarde : sert a verifier ensuite, aupres du
   // serveur, que les suppressions ont bien ete ecrites (et non seulement
   // affichees). Sans ce controle, une ecriture perdue ne se voyait qu'apres un
@@ -1531,6 +1525,15 @@ saveBtn.addEventListener("click",async()=>{
   state.webLinks=cleanedWebLinks;
   state.specialTile=cleanedSpecialTile;
 
+  // Les champs qui ne possedent pas de formulaire dans l'editeur viennent du
+  // fichier importe. Les preferences de vue restent propres au navigateur.
+  if(importedConfigDraft){
+    state.webLinksColor=importedConfigDraft.webLinksColor;
+    state.theme=importedConfigDraft.theme;
+    state.language=importedConfigDraft.language;
+    state.usageCounts={...importedConfigDraft.usageCounts};
+  }
+
   // Le dashboard actif peut avoir ete supprime ou renomme : on le ramene sur
   // un dashboard existant avant de redessiner.
   if(!state.dashboards.some(d=>d.id===state.dashboardId)){
@@ -1550,8 +1553,6 @@ saveBtn.addEventListener("click",async()=>{
   // le navigateur, pas dans config.json.
   saveViewPrefs({collapsed:state.collapsed});
 
-  render();
-  renderPageSwitch();
   const saved=await saveConfig(true);
   if(!saved){
     // Ne pas fermer l'editeur en silence : sans ce garde, l'interface montrait
@@ -1559,6 +1560,17 @@ saveBtn.addEventListener("click",async()=>{
     alert(t("saveError"));
     return;
   }
+  if(importedConfigDraft){
+    applyTheme();
+    applyLanguage();
+    updateViewButton();
+    updateIconsButton();
+    updateOpenModeMenu();
+    updateGroupModeMenu();
+    updateSortModeMenu();
+    importedConfigDraft=null;
+  }
+  renderLive();
   // Relecture de la configuration telle que la voit un rechargement de page. Si
   // une application supprimee est encore la, c'est que l'ecriture n'a pas
   // abouti cote serveur (autre onglet, seconde instance, proxy). On le dit tout
@@ -1573,8 +1585,15 @@ saveBtn.addEventListener("click",async()=>{
       }
     }catch(_error){}
   }
-  closeEditor();
-});
+  if(closeWhenSaved) closeEditor();
+  else{
+    refreshEditorDrafts();
+    importExportStatus.textContent=t("applyDone");
+  }
+}
+
+saveBtn.addEventListener("click",()=>applyEditorChanges(true));
+applyConfigBtn.addEventListener("click",()=>applyEditorChanges(false));
 
 let editorSearchTimer=null;
 editorSearch.addEventListener("input",()=>{
