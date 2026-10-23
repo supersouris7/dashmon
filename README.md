@@ -38,32 +38,12 @@ runs, on **amd64 and arm64**.
 
 ---
 
-## Widgets — the part you'll actually look at
+## Widgets
 
-Most dashboards stop at "this service answers 200 OK". Dashmon goes one step
-further: pick a **widget** for a service and the tile starts showing the number
-you were about to open a second tab for anyway.
-
-| | |
-| --- | --- |
-| **Docker** | Running containers, and which images are out of date — each image is compared against its registry **by digest**, so `latest` that quietly changed is flagged. |
-| **Duplicati** | Did the last backup succeed, and when? |
-| **AdGuard** | Share of DNS queries your blocker filtered out. |
-| **Lichess** | Your ELO rating and how it moved over the past month. |
-| **Uptime Kuma** | One line per status page, green while everything is up, red as soon as one monitor is down. |
-| **Ping** | Whether an IP or a host answers — the familiar dot, no extra line. |
-
-A service with **no** widget stays a plain link, probed as usual with its green
-or red dot. GitHub, Docker Hub and YouTube are not tile widgets: they drive the
-**web-links banner counters** instead — give a web link a counter and its name
-shows the number, e.g. *YouTube (3k)*. A counter that reads a *third-party*
-site shows nothing on quota or rate-limit errors instead of faking a zero.
-
-**→ [docs/WIDGETS.md](docs/WIDGETS.md) — the full catalog: what each widget
-displays, how to configure it, and which secrets it needs.**
-
-Missing a tool you self-host? [Open an issue](https://github.com/supersouris7/dashmon/issues)
-— a request for an integration is a strong candidate for the next widget.
+Widgets add a live metric to a service tile; a service without one remains a
+plain status-checked link. GitHub, Docker Hub and YouTube instead power the
+web-link counters. See the **[widget catalog](docs/WIDGETS.md)** for available
+integrations and configuration.
 
 ## Quick start
 
@@ -109,14 +89,8 @@ Config, icons and themes live in the `dashmon-data` volume (`/app/data`) — bac
 that volume up and you're done. Configure widget credentials in the editor;
 see `.env.example` for the optional encryption key.
 
-Web links sit in a fixed banner above the toolbar. Choose one of six colors in
-**Appearance**; text and icons automatically switch to black or white for contrast.
-The cross hides the banner, and the small link tab at the top right restores it.
-Visibility is remembered per browser. The search field and action buttons scroll
-with the page; the icon-size button is the sole control for small/large icons.
-The tab uses the default Dashmon icon. On phones and small tablets the banner and
-the search field are hidden to keep the page uncluttered — the toolbar stays on a
-single line and the dashboard tabs scroll sideways.
+Web links live above the toolbar. Their color and visibility are configured in
+**Appearance**; visibility is remembered by each browser.
 
 ### What lives where
 
@@ -143,12 +117,15 @@ them to a service. A good source of plain self-hosted app logos is the
 
 | | |
 | --- | --- |
-| **[docs/WIDGETS.md](docs/WIDGETS.md)** | Every widget: what it shows, how to set it up. |
-| **[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)** | Install, environment variables, reverse proxy, troubleshooting. |
-| **[CUSTOMIZATION.md](CUSTOMIZATION.md)** | Create your own themes, manage icons. |
-| **[docs/EXTENDING.md](docs/EXTENDING.md)** | Write a new widget (developer guide). |
+| **[docs/WIDGETS.md](docs/WIDGETS.md)** | Widgets and web-link counters. |
+| **[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)** | Installation, environment and troubleshooting. |
+| **[docs/WIREGUARD.md](docs/WIREGUARD.md)** | WireGuard dump and cron script. |
+| **[docs/SMART.md](docs/SMART.md)** / **[docs/APT_UPDATES.md](docs/APT_UPDATES.md)** | Local SMART and APT supervision. |
+| **[CUSTOMIZATION.md](CUSTOMIZATION.md)** | Themes and icons. |
+| **[docs/EXTENDING.md](docs/EXTENDING.md)** | Widget development. |
+| **[deploy/MAINTAINER.md](deploy/MAINTAINER.md)** | Image build and publication. |
 
-> Monitoring URLs that use LAN names such as `service.lan`? Docker's resolver does
+> Monitoring URLs that use LAN names such as `portainer.exemple.lan`? Docker's resolver does
 > not know your LAN DNS out of the box. Give the container your resolver or hosts —
 > see the [DNS section](deploy/DEPLOYMENT.md#6-monitoring-lan-domains-lan-local).
 

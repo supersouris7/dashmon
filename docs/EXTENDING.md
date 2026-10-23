@@ -44,7 +44,7 @@ Dashmon, c'est un modèle), renommez le dossier, editez les trois fichiers.
 | --- | --- |
 | `id` | minuscules, tirets, 32 caractères max ; doit correspondre au nom du dossier |
 | `interval` | période de re-vérification en ms |
-| `cacheKey` | `service` (une entrée de cache par service) ou `config` (une entrée partagée par configuration) |
+| `cacheKey` | `service` (une entrée par URL) ou `config` (une entrée partagée par configuration) |
 | `server` / `client` / `css` | noms de fichiers dans le dossier, jamais un chemin |
 | `strings` | tous vos textes ; `label` et `placeholder` d'un champ y renvoient par clé |
 | `config` | formulaire généré automatiquement dans l'éditeur |
@@ -79,7 +79,7 @@ Pour un plugin de lien qui affiche une métrique :
   répond est `{ state: "up", ok: false }`, donc une tuile neutre, pas rouge ;
 - `interval` est votre période (une API publique comme GitHub plafonne à 60
   requêtes par heure : 6 h n'est pas excessif) ;
-- `cacheKey: "service"` garde une entrée par service.
+- `cacheKey: "service"` garde une entrée par URL de service.
 
 ## server.js
 

@@ -10,7 +10,7 @@ Installez `smartmontools`, puis recuperez le script :
 
 ```sh
 sudo apt install smartmontools
-curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/smart-dump.sh -o /usr/local/sbin/smart-dump.sh
+sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/smart-dump.sh -o /usr/local/sbin/smart-dump.sh
 sudo chmod 755 /usr/local/sbin/smart-dump.sh
 ```
 
@@ -53,9 +53,10 @@ Ajoutez un hote de supervision de type **Local**, puis ouvrez l'onglet
 disques du releve ; renseignez par exemple `/dev/sda, /dev/sdb` pour filtrer.
 Cliquez sur **Enregistrer** puis **Appliquer**.
 
-Le serveur lit par defaut `/app/data/smart.json`. Pour un autre chemin monte
-dans le conteneur, definissez `SMART_DUMP_FILE` dans l'environnement de
-Dashmon. Le script peut alors ecrire le fichier hote via `DASHMON_SMART_DUMP`.
+Le serveur lit par defaut `/app/data/smart.json`. Pour un bind mount, montez par
+exemple `/srv/dashmon-reports` sur `/reports:ro`, utilisez
+`SMART_DUMP_FILE=/reports/smart.json` pour Dashmon et
+`DASHMON_SMART_DUMP=/srv/dashmon-reports/smart.json` pour le script.
 
 ## Securite
 

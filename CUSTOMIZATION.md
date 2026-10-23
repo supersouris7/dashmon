@@ -48,7 +48,8 @@ imported from the UI and persisted in `/app/data/themes/`.
 - **`success`/`error`** (optional): status colors — the availability dots and
   the CPU/RAM bars (green/orange-red) use `--success` and `--error`. If absent,
   the CSS defaults apply.
-- **`css`** (optional): any CSS, scoped under `[data-theme="<id>"]`. Max 64 KB.
+- **`css`** (optional): up to 64 KB of CSS. Prefix your rules with
+  `[data-theme="<id>"]` so they affect only this theme.
 
 ### Variable reference
 

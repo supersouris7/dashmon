@@ -37,7 +37,6 @@ needs a special mount:
 
 ```sh
 sudo /usr/local/bin/wireguard-dump.sh
-# wg show all dump | docker exec -i dashmon sh -c 'cat > /app/data/wireguard.dump'
 ```
 
 ### Parameters
@@ -75,8 +74,8 @@ name (spaces allowed):
 
 ```
 # /app/data/wireguard-names.conf
-AbCdEf...1234 Office NAS
-ZzYyXx...9876 Phone
+<public-key> Office NAS
+<public-key> Phone
 ```
 
 A commented example ships as
@@ -125,12 +124,6 @@ services:
 ```
 
 Then let the script write to `/opt/dashmon/wireguard.dump` (host-file variant).
-
-To do it by hand for a one-off check, the same pipe works directly:
-
-```sh
-sudo wg show all dump | sudo docker exec -i dashmon sh -c 'cat > /app/data/wireguard.dump'
-```
 
 ## 3. Schedule it with cron
 
@@ -194,10 +187,6 @@ Instead of a file, a type **Linux agent** host may report peers in its JSON
 | No peers in Dashmon | File missing or empty, or written at the wrong path | `docker exec dashmon wc -c /app/data/wireguard.dump`, and check `WIREGUARD_DUMP_FILE` if you override it. |
 | Peers look stale | Cron too infrequent | Refresh hourly. |
 
-If WireGuard runs in a **container**, the host has no `wg` interface; run it in
-that container and route the output to Dashmon:
-
-```sh
-sudo docker exec <wg-container> wg show all dump \
-  | sudo docker exec -i dashmon sh -c 'cat > /app/data/wireguard.dump'
-```
+If WireGuard runs in a **container**, use a Linux agent or the host-file variant
+to provide the filtered dump; do not copy raw `wg show all dump` output into
+Dashmon because it contains secret key material.

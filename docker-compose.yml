@@ -23,6 +23,15 @@ services:
       # Chiffre les mots de passe des widgets (ex. Duplicati) dans config.json.
       # Sans clé, les secrets sont stockés en clair (warning au démarrage).
       DASHMON_MASTER_KEY: ${DASHMON_MASTER_KEY:-}
+      # Supervision des hôtes et rapports locaux (voir deploy/DEPLOYMENT.md).
+      HOST_METRICS_INTERVAL: ${HOST_METRICS_INTERVAL:-60}
+      PROXMOX_TOKEN_ID: ${PROXMOX_TOKEN_ID:-}
+      PROXMOX_TOKEN_SECRET: ${PROXMOX_TOKEN_SECRET:-}
+      LINUX_METRICS_TOKEN: ${LINUX_METRICS_TOKEN:-}
+      DASHBOARD_TOKEN_ENVS: ${DASHBOARD_TOKEN_ENVS:-}
+      WIREGUARD_DUMP_FILE: ${WIREGUARD_DUMP_FILE:-}
+      SMART_DUMP_FILE: ${SMART_DUMP_FILE:-}
+      APT_UPDATES_REPORT_FILE: ${APT_UPDATES_REPORT_FILE:-}
     volumes:
       - dashmon-data:/app/data
     # Résolution DNS des noms locaux (.lan, .home…) pour les pastilles d'état et

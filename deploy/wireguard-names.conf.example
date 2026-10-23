@@ -1,20 +1,8 @@
 # Friendly names for WireGuard peers in Dashmon.
 #
-# Copy this file into Dashmon's data directory, next to wireguard.dump, then
-# edit it. The script deploy/wireguard-dump.sh reads it and replaces each peer's
-# public key with the name below before writing the dump.
-#
-# In container mode (default), copy it straight into the container:
-#
-#   curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/wireguard-names.conf.example \
-#     | sudo docker exec -i dashmon sh -c 'cat > /app/data/wireguard-names.conf'
-#
-# Then edit it in place:
-#
-#   sudo docker exec -it dashmon vi /app/data/wireguard-names.conf
-#
-# The file path can be changed with $DASHMON_WIREGUARD_NAMES (a path inside the
-# container in container mode, a path on the host in host-file mode).
+# Place this file next to wireguard.dump. The script reads it to replace each
+# peer public key with the name below. Installation and alternate paths:
+# docs/WIREGUARD.md.
 #
 # Format: one line per peer, the public key then the name. Separate key and name
 # with spaces; the name may contain spaces. The public key is the base64 string
@@ -26,5 +14,5 @@
 # Blank lines and lines starting with # are ignored. A peer with no entry keeps
 # showing as its public key.
 
-AbCdEf0123456789AbCdEf0123456789AbCdEf0123456789X= Office NAS
-ZzYyXx9876543210ZzYyXx9876543210ZzYyXx9876543210Y= Phone
+# <public-key> Office NAS
+# <public-key> Phone

@@ -13,6 +13,8 @@ It applies immediately, no restart.
 | [AdGuard Home](#adguard-home) | Blocked queries, as a percentage | protocol, URL, user, password |
 | [Lichess](#lichess) | ELO rating and one-month evolution | username, variant |
 | [WireGuard](#wireguard) | Peers and how many are connected | interface (optional) |
+| [Uptime Kuma](#uptime-kuma) | Public status-page monitors | URL, one or two slugs |
+| [Ping](#ping) | TCP reachability | host, port (optional) |
 | [web](#web-the-default-one) | Up / down dot for a plain link | *nothing* |
 
 GitHub, Docker Hub and YouTube are **not** tile widgets: they power the counters
@@ -66,7 +68,7 @@ the tile.
 **Configuration**
 
 - **protocol** — `HTTPS` or `HTTP`.
-- **url** — host and port of AdGuard Home, e.g. `adguard.home:3000`.
+- **url** — host and port of AdGuard Home, e.g. `portainer.exemple.lan:3000`.
 - **username** and **password** — your AdGuard Home web credentials. The
   password is stored encrypted and never leaves the server.
 
@@ -97,9 +99,9 @@ script and a cron job — see **[docs/WIREGUARD.md](WIREGUARD.md)**.
   to a single one.
 
 The dump path is fixed by `WIREGUARD_DUMP_FILE` (default
-`DATA_DIR/wireguard.dump`) and is never taken from the web configuration. The
-file contains the interface private key: keep it out of version control and
-`chmod 600`.
+`DATA_DIR/wireguard.dump`) and is never taken from the web configuration. Use
+the bundled script: it removes private and preshared keys before writing. See
+[the WireGuard guide](WIREGUARD.md).
 
 ## Web-link counters
 
@@ -140,10 +142,10 @@ to mean the same thing.
 
 **Configuration**
 
-- **url** — the instance address, e.g. `https://kuma.example.lan`. A scheme is
+- **url** — the instance address, e.g. `https://portainer.exemple.lan`. A scheme is
   optional; without one, Dashmon tries `https` then `http`.
 - **slug1** — the first status page slug: the last segment of the page URL, so
-  `https://kuma.example.lan/status/services` means `services`.
+  `https://portainer.exemple.lan/status/services` means `services`.
 - **slug2** — an optional second page, for when you publish several.
 
 Uptime Kuma has no REST API for its monitors — everything goes through
@@ -166,7 +168,7 @@ guessing:
 **Configuration**
 
 - **host** — the IP or hostname to test. It may carry a port
-  (`nas.example.lan:445`).
+  (`portainer.exemple.lan:445`).
 - **port** — the TCP port to connect to. `0` means 80, or 443 when the service
   URL is `https`. It takes priority over a port written in the host.
 

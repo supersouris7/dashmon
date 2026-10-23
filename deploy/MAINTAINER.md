@@ -25,7 +25,7 @@ docker build -t supersouris7/dashmon:unstable .
 docker run --rm -p 8080:8080 supersouris7/dashmon:unstable
 ```
 
-## Manual push (only if the workflow is unavailable)
+## Manual push (emergency only)
 
 ```bash
 docker login
@@ -34,4 +34,5 @@ docker push supersouris7/dashmon:unstable
 docker push supersouris7/dashmon:latest
 ```
 
-Prefer Git tags + the workflow for releases, so the multi-arch build stays correct.
+This fallback does not recreate the CI multi-architecture manifest or release
+metadata. Prefer Git tags and the workflow for releases.

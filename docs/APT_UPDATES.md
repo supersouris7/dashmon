@@ -5,9 +5,9 @@ de mise a jour d'un hote Debian ou Ubuntu. Dashmon ne lance jamais `apt` lui-mem
 cron locale execute le script, qui ecrit un rapport JSON atomique dans les
 donnees du conteneur, a cote des dumps WireGuard et SMART.
 
-Par defaut, cron s'execute chaque mercredi a 03:00. Il applique les mises a
-jour avec `apt-get -y upgrade`, compte les paquets avant l'installation et
-signale si un redemarrage est requis.
+Par defaut, cron s'execute chaque mercredi a 03:00. Le script utilise
+`apt-get -y upgrade` : il installe les mises a jour qui ne demandent pas de
+suppression ou de nouvelle dependance, puis signale un redemarrage requis.
 
 ## Installation
 

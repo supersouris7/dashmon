@@ -134,11 +134,11 @@ and enable `client_max_body_size` in nginx for image imports.
 
 Status checks run *inside* the container. Docker's embedded DNS only forwards to
 the resolvers configured on the host, so names that exist only on your LAN DNS
-(e.g. `service.lan`) often fail with `getaddrinfo ENOTFOUND`.
+(e.g. `portainer.exemple.lan`) often fail with `getaddrinfo ENOTFOUND`.
 
 If your monitored URLs use local names:
 
-1. Find your LAN DNS server (e.g. `nslookup mymachine.lan` on another machine).
+1. Find your LAN DNS server (e.g. `nslookup portainer.exemple.lan` on another machine).
 2. Set `DASHMON_DNS` to that resolver's IP. It is a Compose **substitution**
    variable, so it goes in the `.env` file next to `docker-compose.yml` (or in
    your host environment / the Portainer stack's *Environment variables*), not
@@ -182,7 +182,7 @@ Without a LAN DNS that knows the names, add explicit `extra_hosts` entries inste
 
 ```yaml
     extra_hosts:
-      - "app.lan:192.0.2.10"
+       - "portainer.exemple.lan:192.0.2.10"
 ```
 
 Checks connect to your LAN directly (over the bridge network), so make sure the
@@ -202,7 +202,7 @@ Find out which authority actually issued the certificate (use the IP so the test
 does not depend on DNS, which is the previous section):
 
 ```sh
-openssl s_client -connect 192.0.2.104:443 -servername service.exemple.lan -showcerts </dev/null
+openssl s_client -connect 192.0.2.104:443 -servername portainer.exemple.lan -showcerts </dev/null
 ```
 
 The `issuer=` line names the authority — read the `CN=` field. Mount **that**
@@ -234,7 +234,7 @@ Then mount only that file:
 Verify without the dashboard:
 
 ```sh
-docker exec dashmon node -e "require('https').get('https://service.exemple.lan/',r=>console.log('OK',r.statusCode)).on('error',e=>console.log('ERREUR',e.message))"
+docker exec dashmon node -e "require('https').get('https://portainer.exemple.lan/',r=>console.log('OK',r.statusCode)).on('error',e=>console.log('ERREUR',e.message))"
 ```
 
 `NODE_EXTRA_CA_CERTS` *adds* to the roots bundled with Node, so public sites keep
@@ -272,12 +272,12 @@ host picks one source:
 Temperature is unavailable for Proxmox (the PVE API does not expose it) and shows
 as `—`; likewise any metric a source does not provide.
 
-### WireGuard peers (local or Linux agent)
+### WireGuard peers
 
 WireGuard peers can come from two sources:
 
-- **Local** — read from a dump file (`wg show all dump`) placed in the container,
-  no extra capability needed. See below.
+- **Local** — read from a filtered dump file. Follow
+  [the WireGuard guide](../docs/WIREGUARD.md); Dashmon needs no extra capability.
 - **Linux agent** — reported in the JSON `wireguard` field described here.
 
 With an agent, add an optional `wireguard` field to the JSON; the supervision
@@ -312,39 +312,11 @@ card then lists each peer with its last handshake and traffic:
   all interfaces). These preferences are stored in `config.json` under
   `host.monitoring.wireguard` and do not change what the agent reports.
 
-#### Local host
-
-For a host of type **Local**, Dashmon reads the output of `wg show all dump`
-from a file inside the container. By default this is
-`/app/data/wireguard.dump` (that is, `DATA_DIR/wireguard.dump`); override it with
-the `WIREGUARD_DUMP_FILE` environment variable.
-
-Generate the file on the host that owns the WireGuard interfaces, for example
-with a cron job or a systemd timer:
-
-```sh
-*/1 * * * * wg show all dump > /path/to/data/wireguard.dump
-```
-
-Requirements:
-
-- The file must be refreshed regularly (supervision refreshes every 60 s by
-  default; set `HOST_METRICS_INTERVAL` in seconds to change it); a
-  stale file shows stale handshakes, but is still valid.
-- The file must be readable by the container user (UID `1000` in the image).
-- The dump contains the interface private key: restrict its permissions
-  (`chmod 600`) and never commit it. Dashmon only reads the fields it needs and
-  never serves the file over HTTP.
-- No `NET_ADMIN` capability or host network mode is required: Dashmon only reads
-  the file.
-- `wg show all dump` does not include peer names, so the public key is displayed
-  as the peer name. The *WireGuard* tab can hide the section or filter one
-  interface.
-- If the file is missing, the card simply shows no WireGuard section.
-
-A standalone WireGuard **tile** (no host needed) reads the same dump; the
-*WireGuard* tab of the supervision editor links the install script and the guide:
-**[docs/WIREGUARD.md](../docs/WIREGUARD.md)**.
+The bundled script refreshes the local file with cron and removes private key
+material before Dashmon reads it. The same file also feeds the standalone
+WireGuard tile. See [the WireGuard guide](../docs/WIREGUARD.md) for installation,
+names and bind mounts. SMART and APT have their own local guides:
+[SMART](../docs/SMART.md) and [APT updates](../docs/APT_UPDATES.md).
 
 ### Disk of the real host (type Local)
 
@@ -368,11 +340,6 @@ Token fields hold **either** the name of an allowlisted environment variable
 listed in `DASHBOARD_TOKEN_ENVS`) **or** the literal value. The server resolves
 and sends them at read time; a name outside the allowlist is sent literally, it
 never exposes an arbitrary container variable.
-
-```dotenv
-PROXMOX_TOKEN_ID=dashmon@pve!metrics
-PROXMOX_TOKEN_SECRET=00000000-0000-0000-0000-000000000000
-```
 
 Create the Proxmox token with read-only (`PVEAuditor`) privileges.
 
