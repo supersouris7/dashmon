@@ -1375,7 +1375,13 @@ function readWireguardDump(){
     }
   }
   if(!byInterface.size) return null;
-  return normalizeWireguard([...byInterface.values()]);
+  // L'heure de derniere modification du fichier date le dernier cron : c'est
+  // l'info "dernier releve" affichee par la page supervision.
+  const fetchedAt=Math.floor(stat.mtimeMs/1000);
+  return {
+    interfaces:normalizeWireguard([...byInterface.values()]),
+    fetchedAt:Number.isFinite(fetchedAt)&&fetchedAt>0 ? fetchedAt : null
+  };
 }
 
 // Contrat de l'agent Linux : un JSON simple, chaque champ facultatif. Un champ
@@ -1477,15 +1483,21 @@ app.get("/api/host-metrics",async(_req,res)=>{
   const localCpu=localCpuPercent();
   const localRam=localRamPercent();
   const localTemp=localTemperature();
-  const localWireguard=readWireguardDump();
+  const localDump=readWireguardDump();
 
   const refresh=Promise.all(hosts.map(async host=>{
     const type=HOST_MONITORING_TYPES.has(host.monitoring?.type) ? host.monitoring.type : "local";
     try{
       let metrics;
+      let wireguardFetchedAt=null;
       if(type==="proxmox") metrics=await getProxmoxMetrics(host);
       else if(type==="linux") metrics=await readHttpMetrics(host);
-      else metrics={ cpu:localCpu, ram:localRam, temperature:localTemp, disk:localDiskPercent(host.monitoring?.path), wireguard:localWireguard };
+      else {
+        // Le dump local est le meme pour tous les hotes "local" : on le lit une
+        // fois et on date chaque copie de l'heure du fichier.
+        metrics={ cpu:localCpu, ram:localRam, temperature:localTemp, disk:localDiskPercent(host.monitoring?.path), wireguard:localDump?.interfaces||null };
+        wireguardFetchedAt=localDump?.fetchedAt||null;
+      }
       return {
         id:sanitizeText(host.id,64),
         name:sanitizeText(host.name,100)||"Hote",
@@ -1495,7 +1507,8 @@ app.get("/api/host-metrics",async(_req,res)=>{
         ram:metrics.ram,
         temperature:metrics.temperature,
         disk:metrics.disk,
-        wireguard:metrics.wireguard||null
+        wireguard:metrics.wireguard||null,
+        wireguardFetchedAt
       };
     }catch(error){
       return {

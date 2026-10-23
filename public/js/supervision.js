@@ -156,43 +156,6 @@ function peerRow(peer){
   return row;
 }
 
-function wireguardSection(interfaces){
-  const section=document.createElement("div");
-  section.className="supervision-wireguard";
-  interfaces.forEach(item=>{
-    const title=document.createElement("div");
-    title.className="supervision-wireguard-title";
-    const label=document.createElement("span");
-    label.textContent=t("supervisionWireguard");
-    title.append(label);
-    if(item.interface){
-      const iface=document.createElement("span");
-      iface.className="supervision-wireguard-iface";
-      iface.textContent=item.interface;
-      title.append(iface);
-    }
-    // Les deux morceaux sont separes visuellement par le gap flex ; on donne
-    // aussi une version lisible d'un seul tenant aux lecteurs d'ecran.
-    title.setAttribute("aria-label",
-      t("supervisionWireguard")+(item.interface?" "+item.interface:""));
-    section.appendChild(title);
-
-    const peers=Array.isArray(item.peers) ? item.peers : [];
-    if(!peers.length){
-      const empty=document.createElement("p");
-      empty.className="supervision-wireguard-empty";
-      empty.textContent=t("supervisionWireguardNoPeer");
-      section.appendChild(empty);
-      return;
-    }
-    const list=document.createElement("div");
-    list.className="supervision-peers";
-    peers.forEach(peer=>list.appendChild(peerRow(peer)));
-    section.appendChild(list);
-  });
-  return section;
-}
-
 function hostCard(host,metrics){
   const card=document.createElement("article");
   card.className="supervision-card";
@@ -221,22 +184,85 @@ function hostCard(host,metrics){
       temperatureRow(metrics.temperature)
     );
     card.appendChild(rows);
-    // Preferences de l'hote : section masquable et filtre d'interface. Par
-    // defaut (preference absente) tout est affiche.
-    const wgPrefs=host.monitoring && host.monitoring.wireguard;
-    if(Array.isArray(metrics.wireguard) && metrics.wireguard.length
-      && (!wgPrefs || wgPrefs.enabled!==false)){
-      const interfaces=wgPrefs && wgPrefs.interface
-        ? metrics.wireguard.filter(item=>item.interface===wgPrefs.interface)
-        : metrics.wireguard;
-      if(interfaces.length) card.appendChild(wireguardSection(interfaces));
-    }
   }else{
     const error=document.createElement("p");
     error.className="supervision-error";
     error.textContent=(metrics && metrics.error) ? metrics.error : t("supervisionUnreachable");
     card.appendChild(error);
   }
+  return card;
+}
+
+// Les interfaces d'un hote retenues par ses preferences : section masquable
+// (enabled===false) et filtre d'interface. Un tableau vide = rien a afficher.
+function visibleInterfaces(host,metrics){
+  if(!metrics || !metrics.ok) return [];
+  const prefs=host.monitoring && host.monitoring.wireguard;
+  if(prefs && prefs.enabled===false) return [];
+  if(!Array.isArray(metrics.wireguard) || !metrics.wireguard.length) return [];
+  const interfaces=prefs && prefs.interface
+    ? metrics.wireguard.filter(item=>item.interface===prefs.interface)
+    : metrics.wireguard;
+  return interfaces;
+}
+
+// Carte WireGuard autonome : detachee de la carte hote, comme la tuile du
+// tableau de bord. Une carte par hote, une section par interface, puis un pair
+// par ligne. "Dernier releve" date le fichier dump (wireguardFetchedAt).
+function wireguardCard(host,metrics,interfaces){
+  const card=document.createElement("article");
+  card.className="supervision-card supervision-card-wireguard";
+
+  const head=document.createElement("div");
+  head.className="supervision-head";
+  const icon=document.createElement("i");
+  icon.className="fa-solid fa-shield-halved";
+  icon.setAttribute("aria-hidden","true");
+  const name=document.createElement("span");
+  name.className="supervision-name";
+  name.textContent=host.name||t("hostName");
+  const badge=document.createElement("span");
+  badge.className="supervision-type";
+  badge.textContent=t("supervisionWireguard");
+  head.append(icon,name,badge);
+  card.appendChild(head);
+
+  const updated=document.createElement("p");
+  updated.className="supervision-wireguard-updated";
+  const age=handshakeAge(metrics.wireguardFetchedAt);
+  updated.textContent=age===null
+    ? t("supervisionWireguard")
+    : t("supervisionWireguardUpdated").replace("{ago}",relativeAge(age));
+  card.appendChild(updated);
+
+  interfaces.forEach(item=>{
+    const section=document.createElement("div");
+    section.className="supervision-wireguard";
+    if(item.interface){
+      const title=document.createElement("div");
+      title.className="supervision-wireguard-title";
+      const iface=document.createElement("span");
+      iface.className="supervision-wireguard-iface";
+      iface.textContent=item.interface;
+      title.append(iface);
+      section.appendChild(title);
+    }
+
+    const peers=Array.isArray(item.peers) ? item.peers : [];
+    if(!peers.length){
+      const empty=document.createElement("p");
+      empty.className="supervision-wireguard-empty";
+      empty.textContent=t("supervisionWireguardNoPeer");
+      section.appendChild(empty);
+    }else{
+      const list=document.createElement("div");
+      list.className="supervision-peers";
+      peers.forEach(peer=>list.appendChild(peerRow(peer)));
+      section.appendChild(list);
+    }
+    card.appendChild(section);
+  });
+
   return card;
 }
 
@@ -273,6 +299,26 @@ export function renderSupervision(){
   grid.className="supervision-grid";
   monitored.forEach(host=>grid.appendChild(hostCard(host,byId.get(host.id))));
   supervisionList.append(grid);
+
+  // WireGuard est detache des cartes hote : sa propre grille, sous celle des
+  // mesures, avec un intitule de section, comme la tuile WireGuard du tableau de
+  // bord. Une carte par hote concerne, une section par interface.
+  const wgCards=[];
+  monitored.forEach(host=>{
+    const metrics=byId.get(host.id);
+    const interfaces=visibleInterfaces(host,metrics);
+    if(interfaces.length) wgCards.push(wireguardCard(host,metrics,interfaces));
+  });
+  if(wgCards.length){
+    const section=document.createElement("section");
+    section.className="supervision-wireguard-section";
+    section.setAttribute("aria-label",t("supervisionWireguard"));
+    const wgGrid=document.createElement("div");
+    wgGrid.className="supervision-grid";
+    wgCards.forEach(card=>wgGrid.appendChild(card));
+    section.appendChild(wgGrid);
+    supervisionList.append(section);
+  }
 }
 
 let metricsInflight=false;

@@ -2,8 +2,9 @@
 
 Dashmon can show your WireGuard peers in two independent places:
 
-- **Host supervision** — inside a monitored host card (type **Local** or **Linux
-  agent**), on the *Supervision* page.
+- **Host supervision** — its own card on the *Supervision* page, detached from
+  the host cards, for a monitored host of type **Local** or **Linux agent**. It
+  shows a “last check” line dated from the dump file.
 - **Tile widget** — a standalone tile, assigned like any other widget in the
   service editor (**Edit Dashmon** → service → **Widget** → **WireGuard**), with
   no host involved.
