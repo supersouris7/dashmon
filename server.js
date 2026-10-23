@@ -1355,7 +1355,8 @@ function normalizeWireguard(raw){
 // `wg show all dump`, depose par un cron/timer sur l'hote et monte dans le
 // conteneur. Aucune capability n'est necessaire, et le format ne contient pas de
 // nom de pair : la cle publique sert de nom. Un fichier absent ou illisible est
-// simplement ignore (pas de section WireGuard sur la carte).
+// simplement ignore (pas de section WireGuard sur la carte). Un fichier vide
+// reste une releve valide : la carte indique alors qu'aucun pair n'est declare.
 function readWireguardDump(){
   let stat;
   try{
@@ -1392,12 +1393,11 @@ function readWireguardDump(){
       byInterface.set(name,{interface:name,peers:[]});
     }
   }
-  if(!byInterface.size) return null;
   // L'heure de derniere modification du fichier date le dernier cron : c'est
   // l'info "dernier releve" affichee par la page supervision.
   const fetchedAt=Math.floor(stat.mtimeMs/1000);
   return {
-    interfaces:normalizeWireguard([...byInterface.values()]),
+    interfaces:normalizeWireguard([...byInterface.values()])||[],
     fetchedAt:Number.isFinite(fetchedAt)&&fetchedAt>0 ? fetchedAt : null
   };
 }

@@ -238,16 +238,23 @@ function hostCard(host,metrics){
 }
 
 // Les interfaces d'un hote retenues par ses preferences : section masquable
-// (enabled===false) et filtre d'interface. Un tableau vide = rien a afficher.
+// (enabled===false) et filtre d'interface. Un tableau vide peut signaler un
+// dump valide sans pair, que la carte doit tout de meme rendre.
 function visibleInterfaces(host,metrics){
   if(!metrics || !metrics.ok) return [];
   const prefs=host.monitoring && host.monitoring.wireguard;
   if(prefs && prefs.enabled===false) return [];
-  if(!Array.isArray(metrics.wireguard) || !metrics.wireguard.length) return [];
+  if(!Array.isArray(metrics.wireguard)) return [];
   const interfaces=prefs && prefs.interface
     ? metrics.wireguard.filter(item=>item.interface===prefs.interface)
     : metrics.wireguard;
   return interfaces;
+}
+
+function hasWireguardDump(host,metrics){
+  const prefs=host.monitoring && host.monitoring.wireguard;
+  return !!(metrics && metrics.ok && (!prefs || prefs.enabled!==false)
+    && Array.isArray(metrics.wireguard));
 }
 
 // Carte WireGuard autonome : detachee de la carte hote, comme la tuile du
@@ -277,6 +284,17 @@ function wireguardCard(host,metrics,interfaces){
   const updatedText=age===null
     ? ""
     : t("supervisionWireguardUpdated").replace("{ago}",relativeAge(age));
+
+  if(!interfaces.length){
+    const section=document.createElement("div");
+    section.className="supervision-wireguard";
+    const empty=document.createElement("p");
+    empty.className="supervision-wireguard-empty";
+    empty.textContent=t("supervisionWireguardNoPeer");
+    section.appendChild(empty);
+    card.appendChild(section);
+    return card;
+  }
 
   interfaces.forEach(item=>{
     const section=document.createElement("div");
@@ -595,7 +613,7 @@ export function renderSupervision(){
   monitored.forEach(host=>{
     const metrics=byId.get(host.id);
     const interfaces=visibleInterfaces(host,metrics);
-    if(interfaces.length) wgCards.push(wireguardCard(host,metrics,interfaces));
+    if(hasWireguardDump(host,metrics)) wgCards.push(wireguardCard(host,metrics,interfaces));
   });
   wgCards.forEach(card=>grid.appendChild(card));
   monitored.forEach(host=>{
