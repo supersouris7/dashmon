@@ -424,36 +424,26 @@ export function renderSupervision(){
   }
 
   const byId=new Map(state.hostMetrics.filter(m=>m && m.id).map(m=>[m.id,m]));
+  // Une seule grille evite de reserver une ligne entiere aux details : WireGuard
+  // et SMART prennent la premiere case libre apres les hotes, sans agrandir une
+  // carte isolee. L'ordre reste lisible : hotes, WireGuard, puis SMART.
   const grid=document.createElement("div");
   grid.className="supervision-grid";
   monitored.forEach(host=>grid.appendChild(hostCard(host,byId.get(host.id))));
-  supervisionList.append(grid);
 
-  // SMART puis WireGuard : les cartes de details partagent la meme grille, donc
-  // SMART se place a gauche de WireGuard sur ecran large.
-  const detailCards=[];
-  monitored.forEach(host=>{
-    const metrics=byId.get(host.id);
-    const disks=visibleSmartDisks(host,metrics);
-    if(disks.length) detailCards.push(smartCard(host,metrics,disks));
-  });
   const wgCards=[];
   monitored.forEach(host=>{
     const metrics=byId.get(host.id);
     const interfaces=visibleInterfaces(host,metrics);
     if(interfaces.length) wgCards.push(wireguardCard(host,metrics,interfaces));
   });
-  detailCards.push(...wgCards);
-  if(detailCards.length){
-    const section=document.createElement("section");
-    section.className="supervision-wireguard-section";
-    section.setAttribute("aria-label",t("supervisionTitle"));
-    const wgGrid=document.createElement("div");
-    wgGrid.className="supervision-grid";
-    detailCards.forEach(card=>wgGrid.appendChild(card));
-    section.appendChild(wgGrid);
-    supervisionList.append(section);
-  }
+  wgCards.forEach(card=>grid.appendChild(card));
+  monitored.forEach(host=>{
+    const metrics=byId.get(host.id);
+    const disks=visibleSmartDisks(host,metrics);
+    if(disks.length) grid.appendChild(smartCard(host,metrics,disks));
+  });
+  supervisionList.append(grid);
 }
 
 let metricsInflight=false;

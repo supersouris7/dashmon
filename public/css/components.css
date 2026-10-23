@@ -887,7 +887,12 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 
 .supervision-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  /* Les cartes ne grossissent pas pour remplir une ligne incomplete. La grille
+     centre les colonnes utiles et le DOM place chaque carte dans la premiere
+     case libre, y compris les details WireGuard et SMART. */
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),360px));
+  justify-content:center;
+  align-items:start;
   gap:16px;
 }
 
@@ -996,10 +1001,6 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
    des mesures. Une section par interface, puis un pair par ligne. "wg0" est
    affiche en blanc, "Dernier releve" en gris sur la meme ligne. Le nom et le
    handshake tiennent sur la premiere ligne, le trafic sur la seconde. */
-.supervision-wireguard-section{
-  margin-top:24px;
-}
-
 /* SMART reprend les cartes de supervision mais distingue les deux mesures les
    plus utiles avant de presenter les compteurs bruts dans un tableau compact. */
 .supervision-card-smart{
