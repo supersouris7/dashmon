@@ -83,7 +83,7 @@ dump_filtered() {
         while ((getline line < namesfile) > 0) {
           sub(/\r$/, "", line)
           if (line == "" || line ~ /^[ \t]*#/) continue
-          # Cle = 1er champ, nom = le reste (la cle base64 ne contient pas d'espace).
+          # Champ 1 = cle publique, le reste = nom (la cle base64 na pas despaces).
           n = split(line, parts, /[ \t]+/)
           if (n < 2) continue
           key = parts[1]
@@ -100,7 +100,7 @@ dump_filtered() {
         if ($2 in mapping) $2 = mapping[$2]
         $3 = "(redacted)"
       } else if (NF == 5) {
-        # Ligne d'interface : $2 = cle privee.
+        # Ligne interface : $2 = cle privee.
         $2 = "(redacted)"
       }
       print
