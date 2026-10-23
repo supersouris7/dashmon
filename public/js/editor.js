@@ -1059,11 +1059,10 @@ export function renderHostEditor(){
 const WIREGUARD_REPO="https://github.com/supersouris7/dashmon";
 const WIREGUARD_SCRIPT_URL=WIREGUARD_REPO+"/raw/main/deploy/wireguard-dump.sh";
 const WIREGUARD_DOC_URL=WIREGUARD_REPO+"/blob/main/docs/WIREGUARD.md";
-const WIREGUARD_SCRIPT_PATH="/usr/local/bin/wireguard-dump.sh";
 
 // Bloc d'aide de l'onglet WireGuard : lien de telechargement du script et lien
-// vers la documentation d'installation, plus deux lignes de cron pretes a
-// copier. Aucune action sur le serveur n'est possible depuis l'interface.
+// vers la documentation (installation, cron, nommage, securite). Aucune action
+// sur le serveur n'est possible depuis l'interface.
 function wireguardHelpBlock(){
   const box=document.createElement("div");
   box.className="wireguard-help";
@@ -1088,20 +1087,6 @@ function wireguardHelpBlock(){
   docLink.textContent=t("wireguardHelpDoc");
   links.append(scriptLink,sep,docLink);
   box.appendChild(links);
-
-  const cron=document.createElement("div");
-  cron.className="wireguard-help-cron";
-  [["wireguardCronHourly","0 * * * *"],["wireguardCronDaily","0 3 * * *"]].forEach(entry=>{
-    const line=document.createElement("div");
-    line.className="wireguard-help-line";
-    const label=document.createElement("span");
-    label.textContent=t(entry[0]);
-    const code=document.createElement("code");
-    code.textContent=entry[1]+" "+WIREGUARD_SCRIPT_PATH;
-    line.append(label,code);
-    cron.appendChild(line);
-  });
-  box.appendChild(cron);
 
   return box;
 }

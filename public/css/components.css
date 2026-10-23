@@ -68,7 +68,7 @@
   border-radius:4px;
 }
 
-/* Onglet WireGuard : aide d'installation (liens + exemples de cron). */
+/* Onglet WireGuard : aide d'installation (liens vers script et guide). */
 .wireguard-help{
   display:flex;
   flex-direction:column;
@@ -92,37 +92,6 @@
 }
 
 .wireguard-help-text a:hover{text-decoration:underline}
-
-.wireguard-help-cron{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-}
-
-.wireguard-help-line{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-size:12px;
-}
-
-.wireguard-help-line span{
-  flex:0 0 auto;
-  min-width:64px;
-  color:var(--muted);
-}
-
-.wireguard-help-line code{
-  flex:1 1 auto;
-  padding:3px 6px;
-  border:1px solid var(--border);
-  border-radius:3px;
-  background:var(--surface-3);
-  color:var(--text);
-  font-size:12px;
-  overflow-x:auto;
-  white-space:nowrap;
-}
 
 .icon-btn,
 .action-btn,

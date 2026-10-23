@@ -64,6 +64,30 @@ sudo /usr/local/bin/wireguard-dump.sh /opt/dashmon/wireguard.dump
 If `wg` is inside a container rather than on the host, run the command in that
 container instead — see [Troubleshooting](#troubleshooting).
 
+### Friendly names
+
+By default a peer is shown by its **public key**, which is unreadable. Map well
+known keys to names in `$DASHMON_WIREGUARD_NAMES` (default
+`/etc/dashmon/wireguard-names.conf` if it exists). One line per peer: the public
+key, copied verbatim from `wg show all`, then the name (spaces allowed):
+
+```
+# /etc/dashmon/wireguard-names.conf
+AbCdEf...1234 Office NAS
+ZzYyXx...9876 Phone
+```
+
+Blank lines and lines starting with `#` are ignored. A key with no entry keeps
+showing as its public key.
+
+### What the script writes
+
+The raw `wg show all dump` contains the interface **private key** and each peer's
+**preshared key**. Dashmon needs neither, so the script replaces both with
+`(redacted)` before writing, keeping the tab-separated field count intact (5
+fields per interface line, 9 per peer line). Only the interface name, peer
+(public key or friendly name), endpoint, handshake and traffic counters survive.
+
 ## 2. Choose where Dashmon reads it
 
 Dashmon reads the dump from `WIREGUARD_DUMP_FILE`, defaulting to
@@ -120,14 +144,17 @@ supervision interval (see `HOST_METRICS_INTERVAL`), so there is no point
 regenerating it more often than that.
 
 > `wg show all dump` prints no peer names: the **public key** is used as the peer
-> name. The *WireGuard* tab of the supervision editor can hide a section or
-> filter a single interface.
+> name. Map keys to readable names with the [names file](#friendly-names). The
+> *WireGuard* tab of the supervision editor can hide a section or filter a single
+> interface.
 
 ## 4. Security
 
-- The dump contains the **interface private key**. Keep it out of version
-  control, restrict its permissions (`chmod 600`), and never paste it in an
-  issue.
+- The script **redacts** the interface private key and each peer's preshared key
+  before writing, so the file Dashmon reads holds no secret key material. Still
+  keep it out of version control and restrict its permissions (`chmod 600`).
+- A file written **by hand** (not via the script) or by a custom tool would keep
+  those keys: prefer the script.
 - Dashmon only reads the fields it needs and never serves the file over HTTP.
 - The file path is fixed by the environment (`WIREGUARD_DUMP_FILE`), never taken
   from the web configuration: a saved config cannot make the server read an
