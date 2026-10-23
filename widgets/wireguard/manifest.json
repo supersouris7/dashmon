@@ -1,0 +1,44 @@
+{
+  "id": "wireguard",
+  "version": "1.0.0",
+  "label": { "fr": "WireGuard", "en": "WireGuard" },
+  "description": {
+    "fr": "Pairs WireGuard lus depuis le dump local (wg show all dump)",
+    "en": "WireGuard peers read from the local dump (wg show all dump)"
+  },
+  "interval": 300000,
+  "cacheKey": "config",
+  "server": "server.js",
+  "client": "client.mjs",
+  "strings": {
+    "fr": {
+      "name": "WireGuard",
+      "interface": "Interface",
+      "interfacePlaceholder": "Toutes les interfaces",
+      "peers": "pairs",
+      "connected": "connectés",
+      "none": "aucun pair",
+      "noDump": "dump WireGuard illisible",
+      "error": "WireGuard"
+    },
+    "en": {
+      "name": "WireGuard",
+      "interface": "Interface",
+      "interfacePlaceholder": "All interfaces",
+      "peers": "peers",
+      "connected": "up",
+      "none": "no peer",
+      "noDump": "unreadable WireGuard dump",
+      "error": "WireGuard"
+    }
+  },
+  "config": [
+    {
+      "key": "interface",
+      "type": "text",
+      "label": "interface",
+      "maxLength": 50,
+      "placeholder": "interfacePlaceholder"
+    }
+  ]
+}

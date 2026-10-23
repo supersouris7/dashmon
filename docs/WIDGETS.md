@@ -12,6 +12,7 @@ It applies immediately, no restart.
 | [Duplicati](#duplicati) | Last backup OK/NOK and its date | API password |
 | [AdGuard Home](#adguard-home) | Blocked queries, as a percentage | protocol, URL, user, password |
 | [Lichess](#lichess) | ELO rating and one-month evolution | username, variant |
+| [WireGuard](#wireguard) | Peers and how many are connected | interface (optional) |
 | [web](#web-the-default-one) | Up / down dot for a plain link | *nothing* |
 
 GitHub, Docker Hub and YouTube are **not** tile widgets: they power the counters
@@ -80,6 +81,25 @@ the tile.
   rating.
 
 Uses the public Lichess API — no token.
+
+## WireGuard
+
+**Shows** how many peers are configured across your tunnels, and how many have
+handshaked recently (the connected count is the tile's second line).
+
+This is a **standalone** tile: it reads a local `wg show all dump`, so it does not
+need a monitored host. Refresh the dump on the WireGuard host with the bundled
+script and a cron job — see **[docs/WIREGUARD.md](WIREGUARD.md)**.
+
+**Configuration**
+
+- **interface** — optional. Empty counts every interface; a name (`wg0`) filters
+  to a single one.
+
+The dump path is fixed by `WIREGUARD_DUMP_FILE` (default
+`DATA_DIR/wireguard.dump`) and is never taken from the web configuration. The
+file contains the interface private key: keep it out of version control and
+`chmod 600`.
 
 ## Web-link counters
 

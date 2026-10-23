@@ -67,7 +67,7 @@ async function main(){
   // `_template` n'est pas un plugin : son identifiant ne respecte pas le motif
   // du registre, il sert de modele a copier.
   check("registre : widgets natifs charges, _template ignore",
-    ids, ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "web", "youtube"]);
+    ids, ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "web", "wireguard", "youtube"]);
   check("registre : aucun echec de chargement", registry.failures, []);
 
   for (const id of ids) {
@@ -91,7 +91,7 @@ async function main(){
   // sources des compteurs du bandeau "Liens web", donc internes au moteur.
   check("registre : les compteurs de liens ne sont pas des widgets de tuile",
     registry.publicList().filter(w => !w.hidden).map(w => w.id),
-    ["adguard", "docker", "duplicati", "lichess", "ping", "uptimekuma"]);
+    ["adguard", "docker", "duplicati", "lichess", "ping", "uptimekuma", "wireguard"]);
 
   // Le template est bien un modele exploitable, mais volontairement hors registre.
   ok("template : present sur disque mais non charge",
@@ -320,7 +320,7 @@ async function main(){
   // --- Exposition HTTP : liste publique et garde-fous de fichiers ---------
   const publicList = core.publicList();
   check("core : liste publique = ids installes", publicList.map(w => w.id),
-    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "web", "youtube"]);
+    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "web", "wireguard", "youtube"]);
   ok("core : aucune fonctionCheck exposee",
     publicList.every(w => typeof w.check === "undefined" && typeof w.createState === "undefined"));
   ok("core : la liste publique porte le schema de config",

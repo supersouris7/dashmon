@@ -328,6 +328,10 @@ Requirements:
   interface.
 - If the file is missing, the card simply shows no WireGuard section.
 
+A standalone WireGuard **tile** (no host needed) reads the same dump; the
+*WireGuard* tab of the supervision editor links the install script and the guide:
+**[docs/WIREGUARD.md](../docs/WIREGUARD.md)**.
+
 ### Disk of the real host (type Local)
 
 By default the disk metric reads the container's own filesystem, not the host's.

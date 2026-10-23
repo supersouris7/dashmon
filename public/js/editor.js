@@ -1056,6 +1056,56 @@ export function renderHostEditor(){
   renderWireguardEditor();
 }
 
+const WIREGUARD_REPO="https://github.com/supersouris7/dashmon";
+const WIREGUARD_SCRIPT_URL=WIREGUARD_REPO+"/raw/main/deploy/wireguard-dump.sh";
+const WIREGUARD_DOC_URL=WIREGUARD_REPO+"/blob/main/docs/WIREGUARD.md";
+const WIREGUARD_SCRIPT_PATH="/usr/local/bin/wireguard-dump.sh";
+
+// Bloc d'aide de l'onglet WireGuard : lien de telechargement du script et lien
+// vers la documentation d'installation, plus deux lignes de cron pretes a
+// copier. Aucune action sur le serveur n'est possible depuis l'interface.
+function wireguardHelpBlock(){
+  const box=document.createElement("div");
+  box.className="wireguard-help";
+
+  const intro=document.createElement("p");
+  intro.className="wireguard-help-text";
+  intro.textContent=t("wireguardHelpIntro");
+  box.appendChild(intro);
+
+  const links=document.createElement("p");
+  links.className="wireguard-help-text";
+  const scriptLink=document.createElement("a");
+  scriptLink.href=WIREGUARD_SCRIPT_URL;
+  scriptLink.target="_blank";
+  scriptLink.rel="noopener";
+  scriptLink.textContent=t("wireguardHelpScript");
+  const sep=document.createTextNode(" · ");
+  const docLink=document.createElement("a");
+  docLink.href=WIREGUARD_DOC_URL;
+  docLink.target="_blank";
+  docLink.rel="noopener";
+  docLink.textContent=t("wireguardHelpDoc");
+  links.append(scriptLink,sep,docLink);
+  box.appendChild(links);
+
+  const cron=document.createElement("div");
+  cron.className="wireguard-help-cron";
+  [["wireguardCronHourly","0 * * * *"],["wireguardCronDaily","0 3 * * *"]].forEach(entry=>{
+    const line=document.createElement("div");
+    line.className="wireguard-help-line";
+    const label=document.createElement("span");
+    label.textContent=t(entry[0]);
+    const code=document.createElement("code");
+    code.textContent=entry[1]+" "+WIREGUARD_SCRIPT_PATH;
+    line.append(label,code);
+    cron.appendChild(line);
+  });
+  box.appendChild(cron);
+
+  return box;
+}
+
 // Onglet WireGuard de l'editeur de supervision : hotes "local" (fichier dump
 // monte) et "Agent Linux" (champ wireguard du JSON). Les preferences portent sur
 // l'affichage (section visible ou non) et sur un filtre d'interface.
@@ -1063,6 +1113,7 @@ function renderWireguardEditor(){
   const list=document.getElementById("wireguardEditor");
   if(!list) return;
   list.replaceChildren();
+  list.appendChild(wireguardHelpBlock());
 
   const hostIndexes=[];
   state.editHosts.forEach((host,index)=>{
