@@ -85,8 +85,8 @@ needed:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/wireguard-names.conf.example \
-  | docker exec -i dashmon sh -c 'cat > /app/data/wireguard-names.conf'
-docker exec -it dashmon vi /app/data/wireguard-names.conf
+  | sudo docker exec -i dashmon sh -c 'cat > /app/data/wireguard-names.conf'
+sudo docker exec -it dashmon vi /app/data/wireguard-names.conf
 ```
 
 `$DASHMON_WIREGUARD_NAMES` changes the path. In container mode it is a path

@@ -37,7 +37,7 @@
 # deploy/wireguard-names.conf.example ; en mode conteneur, il se copie avec :
 #
 #   curl -fsSL .../deploy/wireguard-names.conf.example \
-#     | docker exec -i dashmon sh -c 'cat > /app/data/wireguard-names.conf'
+#     | sudo docker exec -i dashmon sh -c 'cat > /app/data/wireguard-names.conf'
 #
 # $DASHMON_WIREGUARD_NAMES change le chemin. En mode conteneur, c'est un chemin
 # DANS le conteneur ; en mode fichier hote, un chemin sur l'hote.

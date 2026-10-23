@@ -7,11 +7,11 @@
 # In container mode (default), copy it straight into the container:
 #
 #   curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/wireguard-names.conf.example \
-#     | docker exec -i dashmon sh -c 'cat > /app/data/wireguard-names.conf'
+#     | sudo docker exec -i dashmon sh -c 'cat > /app/data/wireguard-names.conf'
 #
 # Then edit it in place:
 #
-#   docker exec -it dashmon vi /app/data/wireguard-names.conf
+#   sudo docker exec -it dashmon vi /app/data/wireguard-names.conf
 #
 # The file path can be changed with $DASHMON_WIREGUARD_NAMES (a path inside the
 # container in container mode, a path on the host in host-file mode).
