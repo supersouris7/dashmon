@@ -2,7 +2,7 @@
 # apt-updates.sh
 #
 # Met a jour l'hote Debian/Ubuntu et ecrit un rapport JSON pour la carte APT.
-# Installez-le avec le service et le timer fournis : docs/APT_UPDATES.md.
+# Installez-le avec le fichier cron fourni : docs/APT_UPDATES.md.
 set -u
 
 CONT_NAME="${DASHMON_CONTAINER:-dashmon}"

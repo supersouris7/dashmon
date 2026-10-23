@@ -1,11 +1,11 @@
 # Mises a jour APT
 
 La carte **Mises a jour APT** de la page Supervision affiche le dernier rapport
-de mise a jour d'un hote Debian ou Ubuntu. Dashmon ne lance jamais `apt` lui-meme : un service
-systemd local execute le script, qui ecrit un rapport JSON atomique dans les
-donnees du conteneur.
+de mise a jour d'un hote Debian ou Ubuntu. Dashmon ne lance jamais `apt` lui-meme : une tache
+cron locale execute le script, qui ecrit un rapport JSON atomique dans les
+donnees du conteneur, a cote des dumps WireGuard et SMART.
 
-Par defaut, le timer s'execute chaque mercredi a 03:00. Il applique les mises a
+Par defaut, cron s'execute chaque mercredi a 03:00. Il applique les mises a
 jour avec `apt-get -y upgrade`, compte les paquets avant l'installation et
 signale si un redemarrage est requis.
 
@@ -16,22 +16,20 @@ Installez les fichiers sur l'hote qui execute Docker :
 ```sh
 sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/apt-updates.sh -o /usr/local/sbin/apt-updates.sh
 sudo chmod 755 /usr/local/sbin/apt-updates.sh
-sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/apt-updates.service -o /etc/systemd/system/apt-updates.service
-sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/apt-updates.timer -o /etc/systemd/system/apt-updates.timer
 sudo install -m 600 /dev/null /etc/default/dashmon-apt-updates
-sudo systemctl daemon-reload
-sudo systemctl enable --now apt-updates.timer
+sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/apt-updates.cron -o /etc/cron.d/dashmon-apt-updates
+sudo chmod 644 /etc/cron.d/dashmon-apt-updates
 ```
 
 Lancez un premier passage puis consultez son rapport :
 
 ```sh
-sudo systemctl start apt-updates.service
-sudo systemctl status apt-updates.service
+sudo /usr/local/sbin/apt-updates.sh
 ```
 
 Le script ecrit par defaut dans `/app/data/apt-updates.json` du conteneur
-`dashmon`. Si son nom differe, ajoutez `DASHMON_CONTAINER=...` dans
+`dashmon`, a cote de `wireguard.dump` et `smart.json`. Si son nom differe,
+ajoutez `DASHMON_CONTAINER=...` dans
 `/etc/default/dashmon-apt-updates`.
 
 Pour un chemin different **dans** le conteneur, utilisez
@@ -40,24 +38,11 @@ via `APT_UPDATES_REPORT_FILE`.
 
 ## Horaire et redemarrage
 
-Le timer est configure pour mercredi 03:00. Pour choisir un autre calendrier,
-creez un override systemd :
+Le fichier `/etc/cron.d/dashmon-apt-updates` est configure pour mercredi 03:00.
+Pour choisir un autre horaire, editez la derniere ligne :
 
 ```sh
-sudo systemctl edit apt-updates.timer
-```
-
-```ini
-[Timer]
-OnCalendar=
-OnCalendar=Sat *-*-* 02:00:00
-```
-
-Puis rechargez et redemarrez le timer :
-
-```sh
-sudo systemctl daemon-reload
-sudo systemctl restart apt-updates.timer
+sudo editor /etc/cron.d/dashmon-apt-updates
 ```
 
 Le redemarrage automatique est **desactive**. Pour l'autoriser seulement apres
@@ -81,5 +66,6 @@ redemarrage est requis.
 
 Si le script ne peut pas joindre Docker, montez un dossier de l'hote dans le
 conteneur et definissez `APT_UPDATES_REPORT_FILE` pour Dashmon. Definissez le
-meme chemin hote dans `DASHMON_APT_REPORT_FILE` du service. Le chemin de lecture
-reste fixe par l'environnement, jamais par l'interface web.
+meme chemin hote dans `DASHMON_APT_REPORT_FILE` dans
+`/etc/default/dashmon-apt-updates`. Le chemin de lecture reste fixe par
+l'environnement, jamais par l'interface web.

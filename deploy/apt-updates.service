@@ -1,9 +1,0 @@
-[Unit]
-Description=Dashmon APT update report
-After=network-online.target docker.service
-Wants=network-online.target
-
-[Service]
-Type=oneshot
-EnvironmentFile=-/etc/default/dashmon-apt-updates
-ExecStart=/usr/local/sbin/apt-updates.sh
