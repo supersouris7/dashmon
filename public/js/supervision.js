@@ -477,6 +477,49 @@ function smartCard(host,metrics,disks){
   return card;
 }
 
+function aptUpdatesCard(host,metrics){
+  const report=metrics?.aptUpdates;
+  const card=document.createElement("article");
+  card.className="supervision-card supervision-card-apt";
+  const head=document.createElement("div");
+  head.className="supervision-head";
+  const icon=document.createElement("i");
+  icon.className="fa-solid fa-box-archive";
+  const name=document.createElement("span");
+  name.className="supervision-name";
+  name.textContent=host.name||t("hostName");
+  const badge=document.createElement("span");
+  badge.className="supervision-type";
+  badge.textContent=t("supervisionAptUpdates");
+  head.append(icon,name,badge);
+  card.appendChild(head);
+  const text=document.createElement("p");
+  text.className="supervision-apt-status";
+  if(!report){
+    text.textContent=t("aptUpdatesNoReport");
+  }else if(report.status==="failed"){
+    text.classList.add("failed");
+    text.textContent=t("aptUpdatesFailed");
+  }else{
+    const updated=Number(report.updated)||0;
+    text.textContent=updated ? t("aptUpdatesInstalled").replace("{count}",smartNumberText(updated)) : t("aptUpdatesUpToDate");
+  }
+  card.appendChild(text);
+  if(report?.finishedAt){
+    const date=document.createElement("p");
+    date.className="supervision-smart-updated";
+    date.textContent=relativeAge(handshakeAge(report.finishedAt));
+    card.appendChild(date);
+  }
+  if(report?.rebootRequired){
+    const reboot=document.createElement("p");
+    reboot.className="supervision-apt-reboot";
+    reboot.textContent=report.rebooting ? t("aptUpdatesRebooting") : t("aptUpdatesRebootRequired");
+    card.appendChild(reboot);
+  }
+  return card;
+}
+
 export function renderSupervision(){
   supervisionList.replaceChildren();
 
@@ -526,6 +569,11 @@ export function renderSupervision(){
     const metrics=byId.get(host.id);
     const disks=visibleSmartDisks(host,metrics);
     if(disks.length) grid.appendChild(smartCard(host,metrics,disks));
+  });
+  monitored.forEach(host=>{
+    const metrics=byId.get(host.id);
+    const prefs=host.monitoring?.aptUpdates;
+    if(metrics?.ok && prefs?.enabled!==false) grid.appendChild(aptUpdatesCard(host,metrics));
   });
   supervisionList.append(grid);
   updateSmartCollapseButton();

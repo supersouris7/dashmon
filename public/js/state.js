@@ -600,7 +600,8 @@ export function normalizeHostMonitoring(raw){
     tokenIdEnv:sanitizeText(raw.tokenIdEnv,100),
     tokenSecretEnv:sanitizeText(raw.tokenSecretEnv,100),
     wireguard:normalizeWireguardPrefs(raw.wireguard),
-    smart:normalizeSmartPrefs(raw.smart)
+    smart:normalizeSmartPrefs(raw.smart),
+    aptUpdates:normalizeAptUpdatesPrefs(raw.aptUpdates)
   };
 }
 
@@ -623,6 +624,11 @@ export function normalizeSmartPrefs(raw){
     ? [...new Set(src.disks.map(value=>sanitizeText(value,100)).filter(Boolean))].slice(0,20)
     : [];
   return {enabled:src.enabled!==false,disks};
+}
+
+export function normalizeAptUpdatesPrefs(raw){
+  const src=(raw && typeof raw==="object" && !Array.isArray(raw)) ? raw : {};
+  return {enabled:src.enabled!==false};
 }
 
 export function normalizeConfig(cfg={}){

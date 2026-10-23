@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 # apt-updates.sh
 #
-# Met a jour l'hote Debian/Ubuntu et ecrit un rapport JSON pour le widget APT.
+# Met a jour l'hote Debian/Ubuntu et ecrit un rapport JSON pour la carte APT.
 # Installez-le avec le service et le timer fournis : docs/APT_UPDATES.md.
 set -u
 

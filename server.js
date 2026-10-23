@@ -33,6 +33,7 @@ const WIREGUARD_DUMP_FILE = process.env.WIREGUARD_DUMP_FILE || path.join(DATA_DI
 // disques de l'hote local. Comme pour WireGuard, le chemin n'est jamais choisi
 // depuis l'interface web.
 const SMART_DUMP_FILE = process.env.SMART_DUMP_FILE || path.join(DATA_DIR, "smart.json");
+const APT_UPDATES_REPORT_FILE = process.env.APT_UPDATES_REPORT_FILE || path.join(DATA_DIR, "apt-updates.json");
 const INDEX_FILE = path.join(PUBLIC_DIR, "index.html");
 const ICONS_DIR = process.env.ICONS_DIR || path.join(DATA_DIR, "icons");
 const THEMES_NATIVE_DIR = process.env.THEMES_NATIVE_DIR || path.join(PUBLIC_DIR, "themes");
@@ -638,11 +639,15 @@ function sanitizeHostMonitoring(raw){
     const smart = { enabled: smartRaw.enabled !== false, disks };
     if(!smart.enabled || smart.disks.length) monitoring.smart = smart;
   }
+  if(raw.aptUpdates && typeof raw.aptUpdates==="object" && !Array.isArray(raw.aptUpdates)){
+    const aptUpdates={enabled:raw.aptUpdates.enabled!==false};
+    if(!aptUpdates.enabled) monitoring.aptUpdates=aptUpdates;
+  }
   // Un hote sans supervision activee et sans aucun parametre ne garde pas un
   // objet vide dans config.json : la config reste lisible.
   const meaningful = monitoring.url || monitoring.node || monitoring.path
     || monitoring.tokenEnv || monitoring.tokenIdEnv || monitoring.tokenSecretEnv
-    || monitoring.wireguard || monitoring.smart;
+    || monitoring.wireguard || monitoring.smart || monitoring.aptUpdates;
   if(!monitoring.enabled && !meaningful) return undefined;
   return monitoring;
 }
@@ -1455,6 +1460,22 @@ function readSmartDump(){
   return { disks, fetchedAt:Number.isFinite(fetchedAt)&&fetchedAt>0 ? fetchedAt : null };
 }
 
+function readAptUpdatesReport(){
+  let stat;
+  try{ stat=fs.statSync(APT_UPDATES_REPORT_FILE); }catch(_error){ return null; }
+  if(!stat.isFile() || stat.size>100000) return null;
+  let raw;
+  try{ raw=JSON.parse(fs.readFileSync(APT_UPDATES_REPORT_FILE,"utf8")); }catch(_error){ return null; }
+  if(!raw || (raw.status!=="success" && raw.status!=="failed")) return null;
+  return {
+    status:raw.status,
+    updated:smartNumber(raw.updated)||0,
+    rebootRequired:raw.rebootRequired===true,
+    rebooting:raw.rebooting===true,
+    finishedAt:smartNumber(raw.finishedAt)||Math.floor(stat.mtimeMs/1000)
+  };
+}
+
 // Contrat de l'agent Linux : un JSON simple, chaque champ facultatif. Un champ
 // absent ou invalide devient null plutot qu'un zero trompeur.
 function normalizeMetricsPayload(data){
@@ -1556,6 +1577,7 @@ app.get("/api/host-metrics",async(_req,res)=>{
   const localTemp=localTemperature();
   const localDump=readWireguardDump();
   const localSmart=readSmartDump();
+  const localAptUpdates=readAptUpdatesReport();
 
   const refresh=Promise.all(hosts.map(async host=>{
     const type=HOST_MONITORING_TYPES.has(host.monitoring?.type) ? host.monitoring.type : "local";
@@ -1570,7 +1592,8 @@ app.get("/api/host-metrics",async(_req,res)=>{
         // fois et on date chaque copie de l'heure du fichier.
         metrics={
           cpu:localCpu, ram:localRam, temperature:localTemp, disk:localDiskPercent(host.monitoring?.path),
-          wireguard:localDump?.interfaces||null, smart:localSmart?.disks||null
+          wireguard:localDump?.interfaces||null, smart:localSmart?.disks||null,
+          aptUpdates:localAptUpdates
         };
         wireguardFetchedAt=localDump?.fetchedAt||null;
         smartFetchedAt=localSmart?.fetchedAt||null;
@@ -1587,7 +1610,8 @@ app.get("/api/host-metrics",async(_req,res)=>{
         wireguard:metrics.wireguard||null,
         wireguardFetchedAt,
         smart:metrics.smart||null,
-        smartFetchedAt
+        smartFetchedAt,
+        aptUpdates:metrics.aptUpdates||null
       };
     }catch(error){
       return {

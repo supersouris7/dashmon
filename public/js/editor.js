@@ -872,7 +872,8 @@ function blankMonitoring(){
     enabled:false,type:"local",url:"",node:"",path:"",
     tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",
     wireguard:{enabled:true,interface:""},
-    smart:{enabled:true,disks:[]}
+    smart:{enabled:true,disks:[]},
+    aptUpdates:{enabled:true}
   };
 }
 
@@ -905,7 +906,9 @@ function serializeHostMonitoring(m){
     const smartPrefs={enabled:smart.enabled!==false,disks};
     if(!smartPrefs.enabled || smartPrefs.disks.length) out.smart=smartPrefs;
   }
-  const meaningful=out.url||out.node||out.path||out.tokenEnv||out.tokenIdEnv||out.tokenSecretEnv||out.wireguard||out.smart;
+  const aptUpdates=m.aptUpdates && typeof m.aptUpdates==="object" ? {enabled:m.aptUpdates.enabled!==false} : null;
+  if(aptUpdates && !aptUpdates.enabled) out.aptUpdates=aptUpdates;
+  const meaningful=out.url||out.node||out.path||out.tokenEnv||out.tokenIdEnv||out.tokenSecretEnv||out.wireguard||out.smart||out.aptUpdates;
   if(!out.enabled && !meaningful) return undefined;
   return out;
 }
@@ -1002,6 +1005,9 @@ export function renderHostEditor(){
     if(!host.monitoring.smart || typeof host.monitoring.smart!=="object"){
       host.monitoring.smart={enabled:true,disks:[]};
     }
+    if(!host.monitoring.aptUpdates || typeof host.monitoring.aptUpdates!=="object"){
+      host.monitoring.aptUpdates={enabled:true};
+    }
 
     const item=document.createElement("div");
     item.className="host-item";
@@ -1069,6 +1075,7 @@ export function renderHostEditor(){
   });
   renderWireguardEditor();
   renderSmartEditor();
+  renderAptUpdatesEditor();
 }
 
 const WIREGUARD_REPO="https://github.com/supersouris7/dashmon";
@@ -1178,6 +1185,7 @@ function renderWireguardEditor(){
 
 const SMART_SCRIPT_URL=WIREGUARD_REPO+"/raw/main/deploy/smart-dump.sh";
 const SMART_DOC_URL=WIREGUARD_REPO+"/blob/main/docs/SMART.md";
+const APT_UPDATES_DOC_URL=WIREGUARD_REPO+"/blob/main/docs/APT_UPDATES.md";
 
 function smartHelpBlock(){
   const box=document.createElement("div");
@@ -1289,7 +1297,43 @@ function renderSmartEditor(){
   });
 }
 
-const SUPERVISION_PANELS=["hostsPanel","wireguardPanel","smartPanel"];
+function renderAptUpdatesEditor(){
+  const list=document.getElementById("aptUpdatesEditor");
+  if(!list) return;
+  list.replaceChildren();
+  const help=document.createElement("p");
+  help.className="wireguard-help-text";
+  help.append(document.createTextNode(t("aptUpdatesHelp")+" "));
+  const doc=document.createElement("a");
+  doc.href=APT_UPDATES_DOC_URL;
+  doc.target="_blank";
+  doc.rel="noopener";
+  doc.textContent=t("aptUpdatesHelpDoc");
+  help.appendChild(doc);
+  list.appendChild(help);
+  state.editHosts.forEach((host,index)=>{
+    if(!host.monitoring?.enabled || host.monitoring.type!=="local") return;
+    const block=document.createElement("div");
+    block.className="host-monitor-panel wireguard-editor-item";
+    const toggle=document.createElement("button");
+    toggle.type="button";
+    toggle.className="monitor-toggle "+(host.monitoring.aptUpdates.enabled ? "active" : "");
+    toggle.setAttribute("aria-pressed",String(host.monitoring.aptUpdates.enabled));
+    toggle.innerHTML='<i class="fa-solid fa-box-archive"></i>';
+    toggle.addEventListener("click",()=>{
+      state.editHosts[index].monitoring.aptUpdates.enabled=!state.editHosts[index].monitoring.aptUpdates.enabled;
+      renderAptUpdatesEditor();
+    });
+    block.appendChild(monitoringField((host.name||t("hostName"))+" · "+t("aptUpdatesShow"),toggle));
+    const hint=document.createElement("p");
+    hint.className="host-monitor-hint";
+    hint.textContent=t("aptUpdatesHint");
+    block.appendChild(hint);
+    list.appendChild(block);
+  });
+}
+
+const SUPERVISION_PANELS=["hostsPanel","wireguardPanel","smartPanel","aptUpdatesPanel"];
 
 // Le meme dialogue sert a deux usages : "Modifier Dashmon" (tous les onglets)
 // et "Modifier la supervision" (hotes et WireGuard seulement). On masque les
@@ -1301,7 +1345,7 @@ function applyEditorMode(mode){
   // dialogue "Modifier Dashmon" ne les montre donc jamais.
   const visible=panel=>supervision
     ? SUPERVISION_PANELS.includes(panel)
-    : panel!=="wireguardPanel" && panel!=="smartPanel";
+    : panel!=="wireguardPanel" && panel!=="smartPanel" && panel!=="aptUpdatesPanel";
   const tabs=[...document.querySelectorAll(".edit-tab")];
   tabs.forEach(tab=>{
     tab.hidden=!visible(tab.dataset.panel);
@@ -1372,6 +1416,7 @@ function refreshEditorDrafts(){
   renderHostEditor();
   renderWireguardEditor();
   renderSmartEditor();
+  renderAptUpdatesEditor();
   renderWebLinksEditor();
   renderWidgetsEditor();
 }

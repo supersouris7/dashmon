@@ -1092,6 +1092,10 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 
 .supervision-smart-fact.warn{color:#bd7600;font-weight:600}
 
+.supervision-apt-status{margin:0;font-size:14px;font-weight:600}
+.supervision-apt-status.failed,.supervision-apt-reboot{color:#bd7600}
+.supervision-apt-reboot{margin:5px 0 0;font-size:12px}
+
 /* Le resume reste dense ; le clic sur le disque revele les libelles complets
    sans faire grandir toutes les cartes en permanence. */
 .supervision-smart-details{display:none;margin-top:9px}

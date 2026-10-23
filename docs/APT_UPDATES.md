@@ -1,7 +1,7 @@
 # Mises a jour APT
 
-Le widget **Mises a jour APT** affiche le dernier rapport de mise a jour d'un
-hote Debian ou Ubuntu. Dashmon ne lance jamais `apt` lui-meme : un service
+La carte **Mises a jour APT** de la page Supervision affiche le dernier rapport
+de mise a jour d'un hote Debian ou Ubuntu. Dashmon ne lance jamais `apt` lui-meme : un service
 systemd local execute le script, qui ecrit un rapport JSON atomique dans les
 donnees du conteneur.
 
@@ -70,11 +70,11 @@ DASHMON_APT_REBOOT=1
 
 Le rapport est ecrit avant le redemarrage, avec l'etat `redemarrage lance`.
 
-## Widget Dashmon
+## Supervision Dashmon
 
-Dans **Modifier Dashmon**, assignez le widget **Mises a jour APT** a une tuile.
-Il ne requiert aucun champ de configuration. La tuile affiche le nombre de
-mises a jour installees, la date du dernier passage et une alerte lorsqu'un
+Dans **Modifier la supervision**, ajoutez ou activez un hote de type **Local**,
+puis ouvrez l'onglet **Mises a jour APT**. La carte affiche le nombre de mises
+a jour installees, la date du dernier passage et une alerte lorsqu'un
 redemarrage est requis.
 
 ## Variante bind mount
