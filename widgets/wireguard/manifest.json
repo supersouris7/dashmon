@@ -16,7 +16,9 @@
       "interface": "Interface",
       "interfacePlaceholder": "Toutes les interfaces",
       "peers": "pairs",
-      "connected": "connectés",
+        "connected": "connectés",
+        "peerConnected": "connecté",
+        "peerDisconnected": "déconnecté",
       "none": "aucun pair",
       "noDump": "dump WireGuard illisible",
       "error": "WireGuard"
@@ -26,7 +28,9 @@
       "interface": "Interface",
       "interfacePlaceholder": "All interfaces",
       "peers": "peers",
-      "connected": "up",
+        "connected": "up",
+        "peerConnected": "connected",
+        "peerDisconnected": "disconnected",
       "none": "no peer",
       "noDump": "unreadable WireGuard dump",
       "error": "WireGuard"

@@ -578,6 +578,30 @@ body.is-refreshing .widget-status{animation:refreshPulse 1.15s ease-in-out infin
 
 .widget-status.pending .widget-time{opacity:.55}
 
+/* Widget WireGuard : une pastille par pair. Vide = pas de handshake recent,
+   verte = pair connecte. Le detail reste disponible dans l'infobulle. */
+.wireguard-peer-status{
+  margin-left:auto;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:5px;
+  max-width:96px;
+}
+
+.wireguard-peer-dot{
+  width:10px;
+  height:10px;
+  box-sizing:border-box;
+  border:1px solid var(--muted);
+  border-radius:50%;
+}
+
+.wireguard-peer-dot.up{
+  border-color:var(--success);
+  background:var(--success);
+}
+
 /* Lichess, AdGuard et Duplicati : les deux lignes portent la meme information
    (une note et son evolution, un pourcentage et son volume). La seconde n'est
    donc pas une legende mais une donnee, et elle se lit aussi mal que la

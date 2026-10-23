@@ -190,9 +190,25 @@ function createFortuneCard(key){
     if(card.isConnected) paint();
   });
 
+  const confetti=()=>{
+    if(typeof window!=="undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const colors=["#f2bd47","#e85d75","#4f8f89","#6d8ed1","#b878c8"];
+    for(let index=0;index<14;index++){
+      const particle=document.createElement("i");
+      particle.className="fortune-confetti";
+      particle.style.setProperty("--x",`${Math.round((Math.random()-.5)*150)}px`);
+      particle.style.setProperty("--y",`${-24-Math.round(Math.random()*80)}px`);
+      particle.style.setProperty("--r",`${Math.round((Math.random()-.5)*540)}deg`);
+      particle.style.background=colors[index%colors.length];
+      particle.addEventListener("animationend",()=>particle.remove(),{once:true});
+      card.appendChild(particle);
+    }
+  };
+
   const next=event=>{
     if(event) event.preventDefault();
     text.textContent=pickFortune(key,state.language);
+    confetti();
   };
   card.addEventListener("click",next);
   card.addEventListener("keydown",event=>{

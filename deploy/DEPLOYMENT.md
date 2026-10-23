@@ -53,6 +53,20 @@ Adding the group is preferable to `user: "0:0"`: the container stays non-root an
 only the socket becomes reachable. Without the socket the rest of Dashmon is
 unaffected, so drop both lines to disable the widget.
 
+#### Portainer stack
+
+Portainer does not infer the host's `docker` group. Run the command on the
+**Docker host** (not in the Dashmon console), then paste its numeric result in
+the stack editor under `group_add` and redeploy the stack:
+
+```bash
+stat -c '%g' /var/run/docker.sock
+```
+
+Do not assume that the GID is `999` and do not enter the group name `docker`:
+the numeric GID differs between hosts. Keep the socket mount read-only and do
+not use `user: "0:0"` as a workaround.
+
 ## 2. Environment variables
 
 See `.env.example`. The most important:

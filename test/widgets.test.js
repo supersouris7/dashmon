@@ -745,6 +745,7 @@ async function main(){
 
   // --- Renderers client (ESM, aucune dependance au DOM) ------------------
   const dockerModule = await import(pathToFileURL(path.join(WIDGETS, "docker", "client.mjs")).href);
+  const wireguardModule = await import(pathToFileURL(path.join(WIDGETS, "wireguard", "client.mjs")).href);
   const duplicatiModule = await import(pathToFileURL(path.join(WIDGETS, "duplicati", "client.mjs")).href);
   const adguardModule = await import(pathToFileURL(path.join(WIDGETS, "adguard", "client.mjs")).href);
   const lichessModule = await import(pathToFileURL(path.join(WIDGETS, "lichess", "client.mjs")).href);
@@ -770,6 +771,11 @@ async function main(){
     dockerModule.render(ctx({ error: "ECONNREFUSED" })).badgeClass, "pending");
   check("renderer Docker : jamais verifie = tirets",
     dockerModule.render(ctx(null)).badge, "—");
+  check("renderer WireGuard : expose les pastilles par pair", typeof wireguardModule.element, "function");
+  check("renderer WireGuard : handshake recent = vert",
+    wireguardModule.isConnected({ latestHandshake: Math.floor(Date.now() / 1000) }), true);
+  check("renderer WireGuard : sans handshake = vide",
+    wireguardModule.isConnected({ latestHandshake: 0 }), false);
 
   // Les deux libelles de la tuile Docker doivent suivre la langue de
   // l'interface : le renderer ne doit contenir aucun mot en dur.

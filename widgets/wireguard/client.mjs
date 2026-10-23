@@ -1,9 +1,56 @@
 // Rendu de la tuile WireGuard (cote navigateur).
 //
-// Premiere ligne : nombre de pairs. Seconde ligne : pairs connectes (dernier
-// handshake < 3 min). L'info-bulle detaille chaque interface. Un dump illisible
-// laisse la tuile neutre plutot que rouge : c'est un probleme de configuration,
-// pas une panne du tunnel.
+// Une pastille par pair : vide sans handshake recent, verte si le pair est
+// connecte (handshake < 3 min). L'info-bulle detaille les interfaces. Un dump
+// illisible laisse la tuile neutre plutot que rouge : c'est un probleme de
+// configuration, pas une panne du tunnel.
+
+const CONNECTED_SECONDS = 180;
+
+export function isConnected(peer) {
+  const handshake = Number(peer && peer.latestHandshake);
+  return Number.isFinite(handshake) && handshake > 0
+    && (Date.now() / 1000 - handshake) <= CONNECTED_SECONDS;
+}
+
+function peerList(info) {
+  return (info.interfaces || []).flatMap(item =>
+    (item.peers || []).map(peer => ({ interface: item.name || "?", peer }))
+  );
+}
+
+export function element(ctx) {
+  const { info, t } = ctx;
+  const status = document.createElement("span");
+  status.className = "wireguard-peer-status";
+
+  if (!info || info.error || !info.interfaces) {
+    const dot = document.createElement("i");
+    dot.className = "wireguard-peer-dot";
+    status.appendChild(dot);
+    status.title = info && info.error ? `${t("error")} : ${String(info.error).slice(0, 200)}` : t("name");
+    return status;
+  }
+
+  const peers = peerList(info);
+  if (!peers.length) {
+    const dot = document.createElement("i");
+    dot.className = "wireguard-peer-dot";
+    status.appendChild(dot);
+    status.title = `${t("name")} · ${t("none")}`;
+    return status;
+  }
+
+  peers.forEach(({ interface: iface, peer }) => {
+    const dot = document.createElement("i");
+    const connected = isConnected(peer);
+    dot.className = "wireguard-peer-dot" + (connected ? " up" : "");
+    dot.title = `${iface} · ${peer.name || "?"} · ${t(connected ? "peerConnected" : "peerDisconnected")}`;
+    status.appendChild(dot);
+  });
+  status.title = `${t("name")} · ${peers.length} ${t("peers")}`;
+  return status;
+}
 
 export function render(ctx) {
   const { info, t } = ctx;

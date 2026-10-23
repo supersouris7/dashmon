@@ -482,6 +482,7 @@ main{
    plusieurs lignes. Pas d'ellipsis, pas de pastille : la phrase tient dans la
    largeur de la tuile, la hauteur suit. */
 .card.fortune{
+  position:relative;
   cursor:pointer;
   align-items:center;
 }
@@ -547,6 +548,29 @@ main{
   .page-switch{flex:1 1 auto;flex-wrap:nowrap;min-width:0;overflow-x:auto;scrollbar-width:none}
   .page-switch::-webkit-scrollbar{display:none}
   .page-btn{flex:0 0 auto;width:auto;padding:0 12px}
+}
+
+.card.fortune > .fortune-confetti{
+  position:absolute;
+  z-index:2;
+  left:50%;
+  top:35%;
+  width:7px;
+  height:7px;
+  border-radius:1px;
+  pointer-events:none;
+  animation:fortune-confetti .7s ease-out forwards;
+}
+
+@keyframes fortune-confetti{
+  to{
+    opacity:0;
+    transform:translate(var(--x),var(--y)) rotate(var(--r));
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .card.fortune > .fortune-confetti{display:none}
 }
 
 @media(max-width:560px){
