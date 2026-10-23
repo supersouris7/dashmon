@@ -1297,11 +1297,11 @@ const SUPERVISION_PANELS=["hostsPanel","wireguardPanel","smartPanel"];
 function applyEditorMode(mode){
   const supervision=mode==="supervision";
   modalBackdrop.dataset.mode=supervision ? "supervision" : "all";
-  // WireGuard n'appartient qu'a l'editeur de supervision ; le dialogue
-  // "Modifier Dashmon" ne le montre donc jamais.
+  // WireGuard et SMART n'appartiennent qu'a l'editeur de supervision ; le
+  // dialogue "Modifier Dashmon" ne les montre donc jamais.
   const visible=panel=>supervision
     ? SUPERVISION_PANELS.includes(panel)
-    : panel!=="wireguardPanel";
+    : panel!=="wireguardPanel" && panel!=="smartPanel";
   const tabs=[...document.querySelectorAll(".edit-tab")];
   tabs.forEach(tab=>{
     tab.hidden=!visible(tab.dataset.panel);

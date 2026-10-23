@@ -3,7 +3,7 @@
 // refreshHostMetrics, declenchee a l'ouverture de la page et par un minuteur.
 import { t } from "./i18n.js";
 import { state } from "./state.js";
-import { supervisionList, supervisionPage, expandSmartBtn, collapseSmartBtn } from "./dom.js";
+import { supervisionList, supervisionPage, collapseAllBtn } from "./dom.js";
 
 // Intervalle injecte par le serveur (voir HOST_METRICS_INTERVAL). Un HTML
 // servi sans substitution (test, fichier local) retombe sur 60 s.
@@ -25,21 +25,27 @@ function setAllSmartDetails(expanded){
   });
 }
 
-function updateSmartActions(){
+export function updateSmartCollapseButton(){
+  if(state.page!=="supervision") return;
   const cards=[...supervisionList.querySelectorAll(".supervision-card-smart")];
   const expanded=cards.filter(card=>card.classList.contains("expanded")).length;
-  expandSmartBtn.disabled=!cards.length || expanded===cards.length;
-  collapseSmartBtn.disabled=!expanded;
+  const collapsed=cards.length-expanded;
+  const actionExpand=collapsed>expanded;
+  collapseAllBtn.disabled=!cards.length;
+  collapseAllBtn.title=actionExpand ? t("expandAll") : t("collapseAll");
+  collapseAllBtn.setAttribute("aria-label",collapseAllBtn.title);
+  collapseAllBtn.innerHTML=actionExpand
+    ? '<i class="fa-solid fa-angles-down"></i>'
+    : '<i class="fa-solid fa-angles-up"></i>';
 }
 
-expandSmartBtn.addEventListener("click",()=>{
-  setAllSmartDetails(true);
-  updateSmartActions();
-});
-collapseSmartBtn.addEventListener("click",()=>{
-  setAllSmartDetails(false);
-  updateSmartActions();
-});
+export function toggleAllSmartDetails(){
+  const cards=[...supervisionList.querySelectorAll(".supervision-card-smart")];
+  if(!cards.length) return;
+  const expanded=cards.filter(card=>card.classList.contains("expanded")).length;
+  setAllSmartDetails(cards.length-expanded>expanded);
+  updateSmartCollapseButton();
+}
 
 function typeLabel(type){
   return t(TYPE_LABEL[type] || "hostTypeLocal");
@@ -390,7 +396,7 @@ function smartCard(host,metrics,disks){
   const toggleDetails=()=>{
     const expanded=card.classList.toggle("expanded");
     card.setAttribute("aria-expanded",String(expanded));
-    updateSmartActions();
+    updateSmartCollapseButton();
   };
   card.addEventListener("click",toggleDetails);
   card.addEventListener("keydown",event=>{
@@ -487,7 +493,7 @@ export function renderSupervision(){
     empty.className="supervision-empty";
     empty.textContent=t("supervisionEmpty");
     supervisionList.append(empty);
-    updateSmartActions();
+    updateSmartCollapseButton();
     return;
   }
 
@@ -497,7 +503,7 @@ export function renderSupervision(){
     status.className="supervision-empty";
     status.textContent=state.hostMetricsError ? t("supervisionError") : t("supervisionLoading");
     supervisionList.append(status);
-    updateSmartActions();
+    updateSmartCollapseButton();
     return;
   }
 
@@ -522,7 +528,7 @@ export function renderSupervision(){
     if(disks.length) grid.appendChild(smartCard(host,metrics,disks));
   });
   supervisionList.append(grid);
-  updateSmartActions();
+  updateSmartCollapseButton();
 }
 
 let metricsInflight=false;

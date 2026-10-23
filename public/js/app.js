@@ -11,7 +11,7 @@ import {
   importThemeFile, deleteCustomTheme, applyThemeLabels
 } from "./themes.js";
 import { startStatusLoop, setupVisibilityPause, manualRefresh } from "./metrics.js";
-import { renderSupervision } from "./supervision.js";
+import { renderSupervision, toggleAllSmartDetails } from "./supervision.js";
 import { renderPageSwitch, setPage } from "./pages.js";
 import { openEditor, closeEditor, renderServiceEditor, renderCategoryEditor,
   renderDashboardEditor, renderHostEditor, renderWebLinksEditor, renderWidgetsEditor } from "./editor.js";
@@ -178,6 +178,10 @@ viewBtn.addEventListener("click",()=>{
 });
 
 collapseAllBtn.addEventListener("click",()=>{
+  if(state.page==="supervision"){
+    toggleAllSmartDetails();
+    return;
+  }
   const info=getCollapseAllState();
   if(!info.entries.length) return;
 

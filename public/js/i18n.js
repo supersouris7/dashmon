@@ -168,8 +168,6 @@ const UI_TEXT={
     supervisionSmartFailed:"État SMART global FAILED",
     supervisionSmartUnknown:"État SMART global inconnu",
     supervisionSmartUpdated:"Dernier relevé {ago}",
-    supervisionExpandSmart:"Tout déplier",
-    supervisionCollapseSmart:"Tout replier",
     smartPowerHours:"Heures de fonctionnement",
     smartTemperature:"Température",
     smartReallocated:"Secteurs réalloués",
@@ -393,8 +391,6 @@ const UI_TEXT={
     supervisionSmartFailed:"Overall SMART status FAILED",
     supervisionSmartUnknown:"Overall SMART status unknown",
     supervisionSmartUpdated:"Last check {ago}",
-    supervisionExpandSmart:"Expand all",
-    supervisionCollapseSmart:"Collapse all",
     smartPowerHours:"Power-on hours",
     smartTemperature:"Temperature",
     smartReallocated:"Reallocated sectors",
@@ -495,8 +491,6 @@ export function applyLanguage(){
     button.setAttribute("aria-label",t(key));
   }
   document.getElementById("supportLabel").textContent=t("support");
-  document.getElementById("expandSmartLabel").textContent=t("supervisionExpandSmart");
-  document.getElementById("collapseSmartLabel").textContent=t("supervisionCollapseSmart");
 
   const labels=[...topMenu.querySelectorAll(".top-menu-label")];
   if(labels[0]) labels[0].textContent=t("groupBy");

@@ -894,37 +894,11 @@ body[data-page="supervision"] #dashboard{display:none}
 /* Les commandes ci-dessous ne s'appliquent qu'au tableau de bord. */
 body[data-page="supervision"] .search-box,
 body[data-page="supervision"] #viewBtn,
-body[data-page="supervision"] #iconsBtn,
-body[data-page="supervision"] #collapseAllBtn{display:none}
+body[data-page="supervision"] #iconsBtn{display:none}
 
 /* Sans la recherche, c'est ce bouton qui porte la marge automatique : le menu
    "... " reste colle au bord droit, comme sur le tableau de bord. */
 body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
-
-.supervision-actions{
-  display:flex;
-  justify-content:flex-end;
-  gap:8px;
-  margin:0 0 12px;
-}
-
-.supervision-action-btn{
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
-  min-height:34px;
-  padding:6px 10px;
-  border:1px solid var(--border);
-  border-radius:4px;
-  background:var(--surface);
-  color:var(--text);
-  font:inherit;
-  font-size:12px;
-  cursor:pointer;
-}
-
-.supervision-action-btn:hover:not(:disabled){background:var(--surface-2);border-color:var(--muted)}
-.supervision-action-btn:disabled{opacity:.45;cursor:not-allowed}
 
 .supervision-grid{
   display:grid;
