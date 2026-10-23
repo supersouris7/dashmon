@@ -25,15 +25,22 @@
 #
 #   wireguard-dump.sh /opt/dashmon/wireguard.dump
 #
-# Noms parlants : un fichier $DASHMON_WIREGUARD_NAMES (defaut
-# /etc/dashmon/wireguard-names.conf s'il existe) remplace la cle publique d'un
-# pair par un nom lisible. Format, une ligne par pair : la cle publique, puis le
-# nom (espaces autorises dans le nom) :
+# Noms parlants : un fichier de noms (defaut /app/data/wireguard-names.conf,
+# dans le repertoire de donnees du conteneur, a cote du dump) remplace la cle
+# publique d'un pair par un nom lisible. Format, une ligne par pair : la cle
+# publique, puis le nom (espaces autorises dans le nom) :
 #
 #   <cle-publique> <nom>
 #
 # La cle publique est copiee telle quelle depuis `wg show all`. Les lignes vides
-# et celles commencant par # sont ignorees.
+# et celles commencant par # sont ignorees. Un modele commente est fourni dans
+# deploy/wireguard-names.conf.example ; en mode conteneur, il se copie avec :
+#
+#   curl -fsSL .../deploy/wireguard-names.conf.example \
+#     | docker exec -i dashmon sh -c 'cat > /app/data/wireguard-names.conf'
+#
+# $DASHMON_WIREGUARD_NAMES change le chemin. En mode conteneur, c'est un chemin
+# DANS le conteneur ; en mode fichier hote, un chemin sur l'hote.
 #
 # Securite : le dump brut contient la cle privee de chaque interface et la cle
 # pre-partagee de chaque pair. Aucune des deux n'est utile a Dashmon : le script
@@ -48,7 +55,7 @@ set -eu
 CONT_NAME="${DASHMON_CONTAINER:-dashmon}"
 CONT_PATH="${DASHMON_DUMP_CONTAINER_PATH:-/app/data/wireguard.dump}"
 HOST_FILE="${DASHMON_WIREGUARD_DUMP:-}"
-NAMES_FILE="${DASHMON_WIREGUARD_NAMES:-/etc/dashmon/wireguard-names.conf}"
+NAMES_FILE="${DASHMON_WIREGUARD_NAMES:-/app/data/wireguard-names.conf}"
 
 case "${1:-}" in
   "" )
@@ -70,13 +77,11 @@ if ! command -v wg >/dev/null 2>&1; then
   exit 1
 fi
 
-# Le fichier de noms est optionnel : absent, on garde les cles publiques.
-[ -f "$NAMES_FILE" ] || NAMES_FILE=""
-
-# Filtre le dump : masque la cle privee (interface) et la cle pre-partagee
-# (pair), et remplace la cle publique d'un pair connu par son nom lisible.
+# Le dump brut, filtre : masque la cle privee (interface) et la cle pre-partagee
+# (pair), et remplace la cle publique d'un pair connu par son nom lisible. Les
+# noms sont lus dans "$1" (fichier local, vide si aucun).
 dump_filtered() {
-  wg show all dump | awk -v namesfile="$NAMES_FILE" '
+  wg show all dump | awk -v namesfile="$1" '
     BEGIN {
       FS = "\t"; OFS = "\t"
       if (namesfile != "") {
@@ -108,14 +113,32 @@ dump_filtered() {
   '
 }
 
+# Recopie le fichier de noms dans un fichier temporaire local, pour qu'awk le
+# lise. En mode conteneur, il vit dans le conteneur (a cote du dump) : on le
+# tire par `docker exec`. En mode fichier hote, c'est un chemin de l'hote.
+# Sortie : chemin du fichier local, vide si le fichier de noms est absent.
+names_local() {
+  NAMES_TMP="$(mktemp "${TMPDIR:-/tmp}/wireguard-names.XXXXXX")"
+  if [ -n "$HOST_FILE" ]; then
+    if [ -f "$NAMES_FILE" ]; then
+      cat "$NAMES_FILE" > "$NAMES_TMP"
+    fi
+  elif docker exec "$CONT_NAME" sh -c "cat '$NAMES_FILE' 2>/dev/null" > "$NAMES_TMP" 2>/dev/null; then
+    :
+  fi
+  printf '%s' "$NAMES_TMP"
+}
+
 if [ -n "$HOST_FILE" ]; then
   # --- Ecriture dans un fichier de l'hote (bind mount) ---------------------
   OUT="$HOST_FILE"
   TMP="${OUT}.tmp"
+  NAMES="$(names_local)"
+  trap 'rm -f "$NAMES"' EXIT
   mkdir -p "$(dirname "$OUT")"
 
   # Ecriture atomique : Dashmon ne lit jamais un fichier a moitie ecrit.
-  dump_filtered > "$TMP"
+  dump_filtered "$NAMES" > "$TMP"
 
   # Le dump contient la cle privee de l'interface : permissions restrictives.
   chmod 600 "$TMP"
@@ -143,6 +166,8 @@ if ! docker inspect "$CONT_NAME" >/dev/null 2>&1; then
 fi
 
 # Le dump traverse un pipe : aucune copie intermediaire sur l'hote.
-dump_filtered | docker exec -i "$CONT_NAME" sh -c "cat > '$CONT_PATH'"
+NAMES="$(names_local)"
+trap 'rm -f "$NAMES"' EXIT
+dump_filtered "$NAMES" | docker exec -i "$CONT_NAME" sh -c "cat > '$CONT_PATH'"
 
 echo "wireguard-dump.sh: dump ecrit dans $CONT_NAME:$CONT_PATH" >&2

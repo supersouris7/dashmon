@@ -67,15 +67,30 @@ container instead — see [Troubleshooting](#troubleshooting).
 ### Friendly names
 
 By default a peer is shown by its **public key**, which is unreadable. Map well
-known keys to names in `$DASHMON_WIREGUARD_NAMES` (default
-`/etc/dashmon/wireguard-names.conf` if it exists). One line per peer: the public
-key, copied verbatim from `wg show all`, then the name (spaces allowed):
+known keys to names in the **names file**, which lives next to the dump in
+Dashmon's data directory inside the container (`/app/data/wireguard-names.conf`).
+One line per peer: the public key, copied verbatim from `wg show all`, then the
+name (spaces allowed):
 
 ```
-# /etc/dashmon/wireguard-names.conf
+# /app/data/wireguard-names.conf
 AbCdEf...1234 Office NAS
 ZzYyXx...9876 Phone
 ```
+
+A commented example ships as
+[`deploy/wireguard-names.conf.example`](../deploy/wireguard-names.conf.example).
+In container mode (default), pull it straight into the container — no host file
+needed:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/wireguard-names.conf.example \
+  | docker exec -i dashmon sh -c 'cat > /app/data/wireguard-names.conf'
+docker exec -it dashmon vi /app/data/wireguard-names.conf
+```
+
+`$DASHMON_WIREGUARD_NAMES` changes the path. In container mode it is a path
+**inside** the container; in host-file mode it is a path on the host.
 
 Blank lines and lines starting with `#` are ignored. A key with no entry keeps
 showing as its public key.
