@@ -218,9 +218,9 @@ async function main(){
     logLines.some(m => m.includes("https://exemple.test/")), show(logLines));
 
   // Widget a cle par service (une entree de cache par URL de service).
-  const adguardService = { url: "https://adguard.lan/", widget: { type: "adguard", protocol: "https", url: "", username: "", password: "aes1.c2VjcmV0" } };
+  const adguardService = { url: "https://portainer.exemple.lan/", widget: { type: "adguard", protocol: "https", url: "", username: "", password: "aes1.c2VjcmV0" } };
   const adguardService2 = { url: "https://autre.lan/", widget: { type: "adguard", protocol: "https", url: "", username: "", password: "aes1.c2VjcmV0" } };
-  check("core : cle par service = URL du service", core.cacheKey(adguardService), "https://adguard.lan/");
+  check("core : cle par service = URL du service", core.cacheKey(adguardService), "https://portainer.exemple.lan/");
   ok("core : deux services du meme widget = deux entrees",
     core.cacheKey(adguardService) !== core.cacheKey(adguardService2));
 
@@ -244,8 +244,8 @@ async function main(){
     core.sanitizeWidget({ type: "docker", mode: "n'importe quoi", url: 42 }),
     { type: "docker", mode: "local", url: "42" });
   check("core : config AdGuard complete",
-    core.sanitizeWidget({ type: "adguard", protocol: "http", url: "adguard.lan:3000", username: "u", password: "aes1.YQ==" }),
-    { type: "adguard", protocol: "http", url: "adguard.lan:3000", username: "u", password: "aes1.YQ==" });
+    core.sanitizeWidget({ type: "adguard", protocol: "http", url: "portainer.exemple.lan:3000", username: "u", password: "aes1.YQ==" }),
+    { type: "adguard", protocol: "http", url: "portainer.exemple.lan:3000", username: "u", password: "aes1.YQ==" });
   check("core : select hors options retombe sur le defaut",
     core.sanitizeWidget({ type: "lichess", username: "exemple", variant: "torpedo" }),
     { type: "lichess", username: "exemple", variant: "" });
@@ -254,15 +254,15 @@ async function main(){
   check("core : champ declare absent -> valeur vide",
     core.sanitizeWidget({ type: "duplicati" }), { type: "duplicati", password: "" });
   check("core : config GitHub complete (statistique par defaut = etoiles)",
-    core.sanitizeWidget({ type: "github", repo: " surfeon/Dashmon ", metric: "forks", n: 1 }),
-    { type: "github", repo: "surfeon/Dashmon", metric: "forks" });
+    core.sanitizeWidget({ type: "github", repo: " exemple-org/exemple-repo ", metric: "forks", n: 1 }),
+    { type: "github", repo: "exemple-org/exemple-repo", metric: "forks" });
   check("core : statistique GitHub hors options -> etoiles",
     core.sanitizeWidget({ type: "github", repo: "a/b", metric: "commits" }),
     { type: "github", repo: "a/b", metric: "stars" });
   check("core : config Docker Hub", core.sanitizeWidget({ type: "dockerhub", repo: "library/nginx" }),
     { type: "dockerhub", repo: "library/nginx" });
-  check("core : config YouTube", core.sanitizeWidget({ type: "youtube", username: "@supfeon" }),
-    { type: "youtube", username: "@supfeon" });
+  check("core : config YouTube", core.sanitizeWidget({ type: "youtube", username: "@exemple" }),
+    { type: "youtube", username: "@exemple" });
   // Le plugin de lien n'a aucun champ : une config le concernant est vide, et
   // le client n'a rien a afficher dans l'editeur.
   check("core : le plugin de lien n'a pas de champ", core.sanitizeWidget({ type: "web" }), { type: "web" });
@@ -295,7 +295,7 @@ async function main(){
   // Purge : une entree de cache orpheline disparait, une entree de service
   // supprimee aussi, et la memoire du widget (jetons Duplicati) suit.
   const cache = {
-    "https://adguard.lan/": { state: "adguard" },
+    "https://portainer.exemple.lan/": { state: "adguard" },
     "https://supprime.lan/": { state: "adguard" },
     "orphelin": { state: "docker" }
   };
@@ -312,8 +312,8 @@ async function main(){
   // Le jeton d'un serveur encore surveille est conserve, celui du serveur
   // supprime est oublie. Attention : le hook purge() d'un widget ne recoit que
   // les services de SON type (c'est lui qui decide de ce qu'il oublie).
-  purgeCore.purge([{ url: "https://adguard.lan/", widget: { type: "adguard" } }]);
-  check("core : purge des entrees orphelines", Object.keys(cache).sort(), ["https://adguard.lan/"]);
+  purgeCore.purge([{ url: "https://portainer.exemple.lan/", widget: { type: "adguard" } }]);
+  check("core : purge des entrees orphelines", Object.keys(cache).sort(), ["https://portainer.exemple.lan/"]);
   check("core : purge d'un widget sans service actif oublie tout",
     [...duplicatiState.tokens.keys()], []);
 
@@ -615,14 +615,14 @@ async function main(){
   const youtubeServer = require(path.join(WIDGETS, "youtube", "server.js"));
   const youtubeParse = require(path.join(WIDGETS, "youtube", "parse.js"));
   check("youtube : identifiant accepte sous ses trois formes",
-    ["surfeon", "@surfeon", "youtube.com/@surfeon"].map(u => youtubeParse.normalizeInput(u)),
-    ["@surfeon", "@surfeon", "@surfeon"]);
+    ["exemple", "@exemple", "youtube.com/@exemple"].map(u => youtubeParse.normalizeInput(u)),
+    ["@exemple", "@exemple", "@exemple"]);
   check("youtube : identifiant vide refuse", youtubeParse.normalizeInput("   "), null);
   check("youtube : adresse d'une video refusee",
     youtubeParse.normalizeInput("https://www.youtube.com/watch?v=abc"), null);
   check("youtube : identifiant de chaine conserve",
     youtubeParse.normalizeInput("UC_x5XG1OV2P6uZZ5FSM9Ttw"), "UC_x5XG1OV2P6uZZ5FSM9Ttw");
-  check("youtube : chemin de chaine construit", youtubeParse.channelPath("@surfeon"), "/@surfeon");
+  check("youtube : chemin de chaine construit", youtubeParse.channelPath("@exemple"), "/@exemple");
   check("youtube : ancienne URL /c/ supportee",
     youtubeParse.channelPath("https://www.youtube.com/c/exemple"), "/c/exemple");
   check("youtube : chemin d'un identifiant de chaine",
@@ -644,7 +644,7 @@ async function main(){
   check("youtube : page sans donnees = lien vivant, compteur inconnu",
     [privateChannel.state, privateChannel.ok, privateChannel.subscribers], ["up", false, null]);
   const okChannel = await youtubeServer.check(linkCtx({
-    config: { username: "@surfeon" },
+    config: { username: "@exemple" },
     api: async () => ({ status: 200, body: '"subscriberCountText":{"simpleText":"3 450 abonnés"}' })
   }));
   check("youtube : abonnements lus", [okChannel.state, okChannel.ok, okChannel.subscribers], ["up", true, 3450]);
@@ -657,24 +657,24 @@ async function main(){
   }));
   check("youtube : adresse de video refusee avant tout appel", notAChannel.state, "down");
   const youTubeDown = await youtubeServer.check(linkCtx({
-    config: { username: "@surfeon" },
+    config: { username: "@exemple" },
     api: async () => { throw httpError(503); }
   }));
   check("youtube : lien en panne = tuile rouge", [youTubeDown.state, youTubeDown.ok], ["down", false]);
   const youTubeBridged = await youtubeServer.check(linkCtx({
-    config: { username: "@surfeon" },
+    config: { username: "@exemple" },
     api: async () => { throw httpError(429); }
   }));
   check("youtube : requete bridée = lien vivant, compteur inconnu",
     [youTubeBridged.state, youTubeBridged.ok, youTubeBridged.throttled], ["up", false, true]);
   const consent = await youtubeServer.check(linkCtx({
-    config: { username: "@surfeon" },
+    config: { username: "@exemple" },
     api: async () => ({ status: 200, body: '<form action="https://consent.youtube.com/s"><input id="consentButton"></form>' })
   }));
   check("youtube : page de consentement = lien vivant, compteur inconnu",
     [consent.state, consent.ok, consent.throttled], ["up", false, true]);
   const tooBig = await youtubeServer.check(linkCtx({
-    config: { username: "@surfeon" },
+    config: { username: "@exemple" },
     api: async () => { throw new Error("Réponse trop volumineuse"); }
   }));
   check("youtube : page trop grosse = lien vivant, compteur inconnu",
@@ -683,7 +683,7 @@ async function main(){
   // Docker Hub --------------------------------------------------------------
   const dockerHubServer = require(path.join(WIDGETS, "dockerhub", "server.js"));
   check("dockerhub : depot officiel complete", dockerHubServer.repoPath("nginx"), "library/nginx");
-  check("dockerhub : depot de l'utilisateur tel quel", dockerHubServer.repoPath("surfeon/dashmon"), "surfeon/dashmon");
+  check("dockerhub : depot de l'utilisateur tel quel", dockerHubServer.repoPath("exemple-org/exemple-repo"), "exemple-org/exemple-repo");
   check("dockerhub : depot vide", dockerHubServer.repoPath("  "), "");
   const pulls = await dockerHubServer.check(linkCtx({
     config: { repo: "library/nginx" },
@@ -712,11 +712,11 @@ async function main(){
 
   // GitHub ------------------------------------------------------------------
   const githubServer = require(path.join(WIDGETS, "github", "server.js"));
-  check("github : depot valide", [githubServer.isValidRepo("surfeon/Dashmon"), githubServer.isValidRepo("a/")], [true, false]);
+  check("github : depot valide", [githubServer.isValidRepo("exemple-org/exemple-repo"), githubServer.isValidRepo("a/")], [true, false]);
   const ghStars = await githubServer.check(linkCtx({
-    config: { repo: "surfeon/Dashmon", metric: "stars" },
+    config: { repo: "exemple-org/exemple-repo", metric: "stars" },
     api: async (base, path, options) => {
-      check("github : URL d'API construite", base + path, "https://api.github.com/repos/surfeon/Dashmon");
+      check("github : URL d'API construite", base + path, "https://api.github.com/repos/exemple-org/exemple-repo");
       ok("github : entete Accept v3", options.headers.Accept === "application/vnd.github+json");
       return { stargazers_count: 302, forks_count: 21, open_issues_count: 4, subscribers_count: 17, license: { spdx_id: "MIT" }, pushed_at: "2026-09-20T08:00:00Z" };
     }
@@ -724,12 +724,12 @@ async function main(){
   check("github : etoiles par defaut", [ghStars.state, ghStars.ok, ghStars.metric, ghStars.value], ["up", true, "stars", 302]);
   check("github : autres compteurs mis en cache", [ghStars.forks, ghStars.openIssues], [21, 4]);
   const ghForks = await githubServer.check(linkCtx({
-    config: { repo: "surfeon/Dashmon", metric: "forks" },
+    config: { repo: "exemple-org/exemple-repo", metric: "forks" },
     api: async () => ({ stargazers_count: 302, forks_count: 21 })
   }));
   check("github : forks demandes", [ghForks.metric, ghForks.value], ["forks", 21]);
   const ghUnknownMetric = await githubServer.check(linkCtx({
-    config: { repo: "surfeon/Dashmon", metric: "commits" },
+    config: { repo: "exemple-org/exemple-repo", metric: "commits" },
     api: async () => ({ stargazers_count: 302 })
   }));
   check("github : statistique hors options -> etoiles",

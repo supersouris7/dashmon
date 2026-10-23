@@ -3,10 +3,6 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Platforms](https://img.shields.io/badge/docker-amd64%20%7C%20arm64-4f8f89.svg)
 
-<p align="center">
-  <img src="screenshots/dashboard.png" alt="The Dashmon dashboard" width="860">
-</p>
-
 **Your whole homelab on a single screen.** Dashmon lists every service you run,
 shows at a glance whether it is up, and — for the tools you actually care about —
 puts a **live metric right on the tile**: your running containers, your last

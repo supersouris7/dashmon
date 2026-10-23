@@ -1,6 +1,6 @@
 {
   "id": "github",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "label": { "fr": "GitHub", "en": "GitHub" },
   "description": {
     "fr": "Étoiles, forks, issues ou abonnés d'un dépôt GitHub",
@@ -15,7 +15,7 @@
     "fr": {
       "name": "GitHub",
       "repo": "Dépôt",
-      "repoPlaceholder": "surfeon/Dashmon",
+      "repoPlaceholder": "exemple-org/exemple-repo",
       "metric": "Statistique",
       "metricStars": "Étoiles",
       "metricForks": "Forks",
@@ -35,7 +35,7 @@
     "en": {
       "name": "GitHub",
       "repo": "Repository",
-      "repoPlaceholder": "surfeon/Dashmon",
+      "repoPlaceholder": "exemple-org/exemple-repo",
       "metric": "Statistic",
       "metricStars": "Stars",
       "metricForks": "Forks",

@@ -1,6 +1,6 @@
 {
   "id": "adguard",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "label": { "fr": "AdGuard Home", "en": "AdGuard Home" },
   "description": {
     "fr": "Requetes bloquees en pourcentage",
@@ -15,7 +15,7 @@
       "name": "AdGuard",
       "protocol": "Protocole",
       "url": "URL",
-      "urlPlaceholder": "adguard.home:3000",
+      "urlPlaceholder": "portainer.exemple.lan:3000",
       "username": "Identifiant",
       "password": "Mot de passe",
       "passwordConfigured": "Mot de passe enregistré (laisser vide pour ne pas changer)",
@@ -28,7 +28,7 @@
       "name": "AdGuard",
       "protocol": "Protocol",
       "url": "URL",
-      "urlPlaceholder": "adguard.home:3000",
+      "urlPlaceholder": "portainer.exemple.lan:3000",
       "username": "Username",
       "password": "Password",
       "passwordConfigured": "Password saved (leave empty to keep it)",

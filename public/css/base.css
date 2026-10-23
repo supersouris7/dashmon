@@ -553,13 +553,12 @@ main{
 .card.fortune > .fortune-confetti{
   position:absolute;
   z-index:2;
-  left:50%;
-  top:35%;
-  width:7px;
-  height:7px;
-  border-radius:1px;
+  width:var(--size,9px);
+  height:calc(var(--size,9px) * .62);
+  border-radius:2px;
   pointer-events:none;
-  animation:fortune-confetti .7s ease-out forwards;
+  box-shadow:0 0 7px currentColor;
+  animation:fortune-confetti 1s cubic-bezier(.15,.75,.25,1) forwards;
 }
 
 @keyframes fortune-confetti{

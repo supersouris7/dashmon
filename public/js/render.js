@@ -164,7 +164,7 @@ function createFortuneCard(key){
   // bordure, contrairement a `.service-fallback` qui encadre un glyphe.
   const icon=document.createElement("img");
   icon.className="service-icon";
-  icon.src="images/fortunecookie.png";
+  icon.src="images/fortune-cookie.svg";
   icon.alt="Fortune Cookie";
   icon.onerror=()=>{
     icon.remove();
@@ -192,14 +192,18 @@ function createFortuneCard(key){
 
   const confetti=()=>{
     if(typeof window!=="undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const colors=["#f2bd47","#e85d75","#4f8f89","#6d8ed1","#b878c8"];
-    for(let index=0;index<14;index++){
+    const colors=["#ff8a1f","#ff4d6d","#3cf59b","#6d8ed1","#d76cff"];
+    for(let index=0;index<28;index++){
       const particle=document.createElement("i");
       particle.className="fortune-confetti";
-      particle.style.setProperty("--x",`${Math.round((Math.random()-.5)*150)}px`);
-      particle.style.setProperty("--y",`${-24-Math.round(Math.random()*80)}px`);
+      particle.style.left=`${18+Math.round(Math.random()*64)}%`;
+      particle.style.top=`${18+Math.round(Math.random()*62)}%`;
+      particle.style.setProperty("--x",`${Math.round((Math.random()-.5)*460)}px`);
+      particle.style.setProperty("--y",`${Math.round((Math.random()-.45)*300)}px`);
       particle.style.setProperty("--r",`${Math.round((Math.random()-.5)*540)}deg`);
+      particle.style.setProperty("--size",`${8+Math.round(Math.random()*6)}px`);
       particle.style.background=colors[index%colors.length];
+      particle.style.color=colors[index%colors.length];
       particle.addEventListener("animationend",()=>particle.remove(),{once:true});
       card.appendChild(particle);
     }
