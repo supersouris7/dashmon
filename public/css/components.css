@@ -745,6 +745,14 @@ body.is-refreshing .widget-status{animation:refreshPulse 1.15s ease-in-out infin
   box-shadow:0 3px 10px rgba(0,0,0,.35);
 }
 
+#dashboard.small-icons .fortune-icon{
+  width:28px;
+  height:22px;
+  min-width:28px;
+  flex-basis:28px;
+  object-fit:contain;
+}
+
 .web-links-inner{
   min-width:0;
   flex:1;

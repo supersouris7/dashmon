@@ -487,6 +487,15 @@ main{
   align-items:center;
 }
 
+.fortune-icon{
+  width:68px;
+  height:54px;
+  min-width:68px;
+  flex:0 0 68px;
+  object-fit:contain;
+  object-position:center;
+}
+
 .fortune-text{
   flex:1;
   min-width:0;

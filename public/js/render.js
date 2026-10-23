@@ -137,7 +137,7 @@ function appendTileIcon(card,service){
     return;
   }
   const icon=document.createElement("img");
-  icon.className="service-icon";
+  icon.className="fortune-icon";
   icon.src=service.icon;
   icon.alt="";
   icon.onerror=()=>{
