@@ -279,28 +279,13 @@ function smartNumberText(value){
     : "—";
 }
 
-function smartDiagnostics(key,value){
+function smartFact(label,value,warning=false){
+  const fact=document.createElement("span");
   const n=Number(value);
-  if(!Number.isFinite(n) || n<0) return {text:"—",className:""};
-  if(key==="hours") return n>=50000 ? {text:t("smartHigh"),className:"warn"} : {text:t("smartGood"),className:"up"};
-  if(key==="temperature") return n<40 ? {text:t("smartVeryGood"),className:"up"} : n<50 ? {text:t("smartGood"),className:"up"} : {text:t("smartHot"),className:"warn"};
-  if(key==="load") return n>=100000 ? {text:t("smartWatch"),className:"warn"} : {text:t("smartGood"),className:"up"};
-  return n===0 ? {text:t("smartGood"),className:"up"} : {text:t("smartWatch"),className:"warn"};
-}
-
-function smartRow(label,value,key){
-  const row=document.createElement("div");
-  row.className="supervision-smart-row";
-  const name=document.createElement("span");
-  name.textContent=label;
-  const amount=document.createElement("span");
-  amount.textContent=smartNumberText(value);
-  const diagnostic=document.createElement("span");
-  const state=smartDiagnostics(key,value);
-  diagnostic.className="supervision-smart-diagnostic "+state.className;
-  diagnostic.textContent=state.text;
-  row.append(name,amount,diagnostic);
-  return row;
+  fact.className="supervision-smart-fact";
+  if(warning && Number.isFinite(n) && n>0) fact.classList.add("warn");
+  fact.textContent=label+" "+smartNumberText(value);
+  return fact;
 }
 
 function visibleSmartDisks(host,metrics){
@@ -342,54 +327,43 @@ function smartCard(host,metrics,disks){
     const title=document.createElement("div");
     title.className="supervision-smart-title";
     const label=document.createElement("span");
-    label.textContent=disk.device+(disk.model ? " · "+disk.model : "");
+    label.textContent=disk.device;
     const passed=disk.passed===true ? "passed" : disk.passed===false ? "failed" : "unknown";
     const status=document.createElement("span");
     status.className="supervision-smart-status "+passed;
-    status.textContent=passed==="passed" ? t("supervisionSmartPassed")
-      : passed==="failed" ? t("supervisionSmartFailed") : t("supervisionSmartUnknown");
+    status.setAttribute("role","img");
+    status.setAttribute("aria-label",passed==="passed" ? t("supervisionSmartPassed")
+      : passed==="failed" ? t("supervisionSmartFailed") : t("supervisionSmartUnknown"));
+    status.title=status.getAttribute("aria-label");
     title.append(label,status);
     section.appendChild(title);
 
     const summary=document.createElement("div");
     summary.className="supervision-smart-summary";
-    const hours=document.createElement("div");
-    hours.className="supervision-smart-highlight";
-    const hoursLabel=document.createElement("span");
-    hoursLabel.textContent=t("smartPowerHours");
-    const hoursValue=document.createElement("strong");
-    hoursValue.textContent=smartNumberText(disk.powerOnHours)+" h";
+    const uptime=document.createElement("span");
+    uptime.className="supervision-smart-uptime";
+    uptime.textContent=smartNumberText(disk.powerOnHours)+" h";
     const years=document.createElement("small");
     years.textContent=Number.isFinite(Number(disk.powerOnHours))
-      ? (state.language==="fr" ? "Environ " : "About ")+(Number(disk.powerOnHours)/8766).toFixed(1).replace(".",state.language==="fr" ? "," : ".")+(state.language==="fr" ? " ans en continu" : " years continuous")
+      ? (Number(disk.powerOnHours)/8766).toFixed(1).replace(".",state.language==="fr" ? "," : ".")+(state.language==="fr" ? " ans" : " years")
       : "—";
-    hours.append(hoursLabel,hoursValue,years);
-    const temperature=document.createElement("div");
-    temperature.className="supervision-smart-highlight";
-    const tempLabel=document.createElement("span");
-    tempLabel.textContent=t("smartTemperature");
-    const tempValue=document.createElement("strong");
-    tempValue.textContent=Number.isFinite(Number(disk.temperature)) ? Math.round(Number(disk.temperature))+" °C" : "—";
-    const tempDiagnostic=smartDiagnostics("temperature",disk.temperature);
-    const tempHint=document.createElement("small");
-    tempHint.className=tempDiagnostic.className;
-    tempHint.textContent=tempDiagnostic.text;
-    temperature.append(tempLabel,tempValue,tempHint);
-    summary.append(hours,temperature);
+    const temperature=document.createElement("span");
+    temperature.className="supervision-smart-temperature";
+    temperature.textContent=Number.isFinite(Number(disk.temperature)) ? Math.round(Number(disk.temperature))+" °C" : "—";
+    summary.append(uptime,years,temperature);
     section.appendChild(summary);
 
-    const table=document.createElement("div");
-    table.className="supervision-smart-table";
-    table.append(
-      smartRow(t("smartReallocated"),disk.reallocated,"error"),
-      smartRow(t("smartPending"),disk.pending,"error"),
-      smartRow(t("smartUncorrectable"),disk.uncorrectable,"error"),
-      smartRow(t("smartSataCrc"),disk.sataCrc,"error"),
-      smartRow(t("smartErrors"),disk.smartErrors,"error"),
-      smartRow(t("smartLoadCycle"),disk.loadCycle,"load"),
-      smartRow(t("smartPowerHours"),disk.powerOnHours,"hours")
+    const facts=document.createElement("div");
+    facts.className="supervision-smart-facts";
+    facts.append(
+      smartFact(t("smartReallocatedShort"),disk.reallocated,true),
+      smartFact(t("smartPendingShort"),disk.pending,true),
+      smartFact(t("smartUncorrectableShort"),disk.uncorrectable,true),
+      smartFact(t("smartSataCrcShort"),disk.sataCrc,true),
+      smartFact(t("smartErrorsShort"),disk.smartErrors,true),
+      smartFact(t("smartLoadCycleShort"),disk.loadCycle)
     );
-    section.appendChild(table);
+    section.appendChild(facts);
     card.appendChild(section);
   });
   return card;
