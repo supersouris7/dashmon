@@ -983,14 +983,14 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
   height:100%;
   width:0;
   border-radius:4px;
-  background:#2fbf5f;
+  background:var(--success);
   transition:width .3s ease;
 }
 
 /* Seuils : vert < 70 %, orange < 90 %, rouge au-dela. La piste vide (metrique
    indisponible) est hachuree pour se distinguer d'une mesure a zero. */
-.supervision-fill.warn{background:#e0a53b}
-.supervision-fill.high{background:#e5484d}
+.supervision-fill.warn{background:var(--warning)}
+.supervision-fill.high{background:var(--error)}
 
 .supervision-track.unknown{
   background:repeating-linear-gradient(45deg,var(--surface-3),var(--surface-3) 4px,transparent 4px,transparent 8px);
@@ -1009,7 +1009,7 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 }
 
 .supervision-error{
-  color:#e5484d;
+  color:var(--error);
 }
 
 /* WireGuard : detache des cartes hote, dans sa propre section sous la grille
@@ -1061,8 +1061,8 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
   border-radius:50%;
 }
 
-.supervision-smart-status.passed{background:#2fbf5f}
-.supervision-smart-status.failed{background:#e5484d}
+.supervision-smart-status.passed{background:var(--success)}
+.supervision-smart-status.failed{background:var(--error)}
 .supervision-smart-status.unknown{background:var(--muted)}
 
 .supervision-smart-chevron{margin-left:2px;color:var(--muted);font-size:11px;transition:transform .18s ease}
@@ -1090,15 +1090,15 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
   font-variant-numeric:tabular-nums;
 }
 
-.supervision-smart-fact.warn{color:#bd7600;font-weight:600}
+.supervision-smart-fact.warn{color:var(--warning);font-weight:600}
 
 /* APT : resume d'un cycle termine, avec le volume mis a jour et les deux
    informations utiles a l'exploitation (date et redemarrage). */
 .supervision-apt-status{display:flex;align-items:center;gap:8px;margin:0;font-size:13px}
 .supervision-apt-dot{width:9px;height:9px;flex:0 0 auto;border-radius:50%;background:var(--muted)}
-.supervision-card-apt.ok .supervision-apt-dot{background:#2fbf5f}
-.supervision-card-apt.warning .supervision-apt-dot{background:#e0a53b}
-.supervision-card-apt.failed .supervision-apt-dot{background:#e5484d}
+.supervision-card-apt.ok .supervision-apt-dot{background:var(--success)}
+.supervision-card-apt.warning .supervision-apt-dot{background:var(--warning)}
+.supervision-card-apt.failed .supervision-apt-dot{background:var(--error)}
 
 .supervision-apt-summary{display:flex;align-items:baseline;gap:8px;margin:15px 0 12px}
 .supervision-apt-summary strong{font-size:30px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
@@ -1108,8 +1108,8 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 .supervision-apt-details > div{display:flex;justify-content:space-between;gap:12px}
 .supervision-apt-details > div > span:first-child{color:var(--muted)}
 .supervision-apt-details time,.supervision-apt-details > div > span:last-child{font-variant-numeric:tabular-nums;text-align:right}
-.supervision-apt-details .ok{color:#21873f}
-.supervision-apt-details .warning{color:#bd7600;font-weight:600}
+.supervision-apt-details .ok{color:var(--success)}
+.supervision-apt-details .warning{color:var(--warning);font-weight:600}
 
 /* Le resume reste dense ; le clic sur le disque revele les libelles complets
    sans faire grandir toutes les cartes en permanence. */
@@ -1118,8 +1118,8 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 .supervision-smart-model,
 .supervision-smart-full-status{margin:0 0 7px;font-size:12px}
 .supervision-smart-model{color:var(--muted)}
-.supervision-smart-full-status.passed{color:#21873f}
-.supervision-smart-full-status.failed{color:#b42318}
+.supervision-smart-full-status.passed{color:var(--success)}
+.supervision-smart-full-status.failed{color:var(--error)}
 .supervision-smart-full-status.unknown{color:var(--muted)}
 .supervision-smart-detail-row{
   display:grid;
@@ -1133,12 +1133,12 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 .supervision-smart-detail-row > span:first-child{color:var(--muted)}
 .supervision-smart-detail-row > span:nth-child(2){font-variant-numeric:tabular-nums}
 .supervision-smart-detail-diagnostic{text-align:right;font-size:11px}
-.supervision-smart-detail-diagnostic.up{color:#21873f}
-.supervision-smart-detail-diagnostic.warn{color:#bd7600}
+.supervision-smart-detail-diagnostic.up{color:var(--success)}
+.supervision-smart-detail-diagnostic.warn{color:var(--warning)}
 
 .smart-disk-choices{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--muted)}
 .smart-disk-choice{min-height:28px;padding:3px 8px;border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--text);font:inherit}
-.smart-disk-choice.active{border-color:#2fbf5f;background:#daf5e1;color:#21873f}
+.smart-disk-choice.active{border-color:var(--success);background:rgba(60,245,155,.14);color:var(--success)}
 
 .supervision-wireguard{
   margin-top:12px;
@@ -1205,7 +1205,7 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
   border-radius:50%;
 }
 
-.supervision-peer-dot.up{border-color:#2fbf5f;background:#2fbf5f}
+.supervision-peer-dot.up{border-color:var(--success);background:var(--success)}
 
 .supervision-peer-handshake{
   color:var(--muted);
@@ -1213,7 +1213,7 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
   white-space:nowrap;
 }
 
-.supervision-peer-handshake.up{color:#2fbf5f}
+.supervision-peer-handshake.up{color:var(--success)}
 
 .supervision-peer-traffic{
   grid-column:1 / -1;
