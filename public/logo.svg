@@ -2,12 +2,11 @@
   <!--
     Logo simplifié du bandeau.
 
-    Le dessin complet existe en PNG (logo.png) et sert de favicon et d'icône du
-    dépôt, où il dispose de plusieurs centaines de pixels. Le bandeau, lui,
-    affiche ce logo dans 34x34 : à cette taille la visière, les yeux détaillés
-    et la bouche disparaissent en bouillie de pixels. Cette version ne garde que
-    ce qui se lit : la silhouette ronde turquoise, les deux cornes jaunes, les
-    deux yeux.
+    Le dessin complet existe en PNG (logo.png) et sert d'icône du dépôt, où il
+    dispose de plusieurs centaines de pixels. Le bandeau, lui, affiche ce logo
+    dans 34x34 : à cette taille la visière, les yeux détaillés et la bouche
+    disparaissent en bouillie de pixels. Cette version ne garde que ce qui se
+    lit : la silhouette ronde turquoise, les deux cornes jaunes, les deux yeux.
 
     Dessiné à plat, sans dégradé ni ombre, et en traits épais : c'est ce qui
     tient quand le logo descend à 24 pixels.
