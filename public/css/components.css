@@ -1005,7 +1005,11 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
    plus utiles avant de presenter les compteurs bruts dans un tableau compact. */
 .supervision-card-smart{
   min-width:0;
+  cursor:pointer;
 }
+
+.supervision-card-smart:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.supervision-card-smart.expanded > .supervision-head .supervision-smart-chevron{transform:rotate(180deg)}
 
 .supervision-smart-updated{
   margin:-7px 0 10px;
@@ -1021,15 +1025,8 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 
 .supervision-smart-title{
   display:flex;
-  width:100%;
-  padding:0;
-  border:0;
-  background:transparent;
-  color:inherit;
-  text-align:left;
-  cursor:pointer;
-  justify-content:space-between;
-  gap:10px;
+  justify-content:flex-start;
+  gap:7px;
   align-items:center;
   font-size:13px;
   font-weight:600;
@@ -1053,8 +1050,7 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 .supervision-smart-status.failed{background:#e5484d}
 .supervision-smart-status.unknown{background:var(--muted)}
 
-.supervision-smart-chevron{color:var(--muted);font-size:11px;transition:transform .18s ease}
-.supervision-smart-disk.expanded .supervision-smart-chevron{transform:rotate(180deg)}
+.supervision-smart-chevron{margin-left:2px;color:var(--muted);font-size:11px;transition:transform .18s ease}
 
 .supervision-smart-summary{
   display:flex;
@@ -1084,7 +1080,7 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 /* Le resume reste dense ; le clic sur le disque revele les libelles complets
    sans faire grandir toutes les cartes en permanence. */
 .supervision-smart-details{display:none;margin-top:9px}
-.supervision-smart-disk.expanded .supervision-smart-details{display:grid}
+.supervision-card-smart.expanded .supervision-smart-details{display:grid}
 .supervision-smart-model,
 .supervision-smart-full-status{margin:0 0 7px;font-size:12px}
 .supervision-smart-model{color:var(--muted)}

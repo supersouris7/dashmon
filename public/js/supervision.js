@@ -323,6 +323,9 @@ function visibleSmartDisks(host,metrics){
 function smartCard(host,metrics,disks){
   const card=document.createElement("article");
   card.className="supervision-card supervision-card-smart";
+  card.setAttribute("role","button");
+  card.tabIndex=0;
+  card.setAttribute("aria-expanded","false");
   const head=document.createElement("div");
   head.className="supervision-head";
   const icon=document.createElement("i");
@@ -334,7 +337,10 @@ function smartCard(host,metrics,disks){
   const badge=document.createElement("span");
   badge.className="supervision-type";
   badge.textContent=t("supervisionSmart");
-  head.append(icon,name,badge);
+  const chevron=document.createElement("i");
+  chevron.className="fa-solid fa-chevron-down supervision-smart-chevron";
+  chevron.setAttribute("aria-hidden","true");
+  head.append(icon,name,badge,chevron);
   card.appendChild(head);
 
   const age=handshakeAge(metrics.smartFetchedAt);
@@ -345,22 +351,24 @@ function smartCard(host,metrics,disks){
     card.appendChild(updated);
   }
 
-  // Toute la zone d'un disque est cliquable. Le bouton de son en-tete conserve
-  // le support clavier, mais l'utilisateur n'a pas a viser le petit chevron.
-  card.addEventListener("click",event=>{
-    const section=event.target.closest(".supervision-smart-disk");
-    if(!section || !card.contains(section)) return;
-    const expanded=section.classList.toggle("expanded");
-    section.querySelector(".supervision-smart-title")?.setAttribute("aria-expanded",String(expanded));
+  // Toute la tuile bascule ensemble : le chevron reste un repere visuel, pas
+  // une cible minuscule. Entree et Espace couvrent aussi le clavier.
+  const toggleDetails=()=>{
+    const expanded=card.classList.toggle("expanded");
+    card.setAttribute("aria-expanded",String(expanded));
+  };
+  card.addEventListener("click",toggleDetails);
+  card.addEventListener("keydown",event=>{
+    if(event.key!=="Enter" && event.key!==" ") return;
+    event.preventDefault();
+    toggleDetails();
   });
 
   disks.forEach(disk=>{
     const section=document.createElement("section");
     section.className="supervision-smart-disk";
-    const title=document.createElement("button");
-    title.type="button";
+    const title=document.createElement("div");
     title.className="supervision-smart-title";
-    title.setAttribute("aria-expanded","false");
     const label=document.createElement("span");
     label.textContent=disk.device;
     const passed=disk.passed===true ? "passed" : disk.passed===false ? "failed" : "unknown";
@@ -370,10 +378,7 @@ function smartCard(host,metrics,disks){
     status.setAttribute("aria-label",passed==="passed" ? t("supervisionSmartPassed")
       : passed==="failed" ? t("supervisionSmartFailed") : t("supervisionSmartUnknown"));
     status.title=status.getAttribute("aria-label");
-    const chevron=document.createElement("i");
-    chevron.className="fa-solid fa-chevron-down supervision-smart-chevron";
-    chevron.setAttribute("aria-hidden","true");
-    title.append(label,status,chevron);
+    title.append(status,label);
     section.appendChild(title);
 
     const summary=document.createElement("div");
