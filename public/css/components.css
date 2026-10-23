@@ -777,12 +777,12 @@ body.is-refreshing .widget-status{animation:refreshPulse 1.15s ease-in-out infin
 .web-links-restore{
   position:fixed;
   top:0;
-  left:12px;
-  width:38px;
-  height:28px;
+  left:0;
+  width:30px;
+  height:24px;
   z-index:20;
-  border-radius:0 0 6px 6px;
-  box-shadow:0 2px 6px rgba(0,0,0,.3);
+  border-radius:0 0 5px 0;
+  font-size:13px;
 }
 .web-links-restore[hidden]{display:none}
 
@@ -791,7 +791,6 @@ body.is-refreshing .widget-status{animation:refreshPulse 1.15s ease-in-out infin
    ligne par le rendu (render.js), d'ou le !important pour le masquer ici. */
 @media (max-width:800px){
   #webLinksSection,
-  .web-links-restore,
   .search-box{
     display:none !important;
   }
