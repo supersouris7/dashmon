@@ -904,10 +904,9 @@ body[data-page="supervision"] .search-box,
 body[data-page="supervision"] #viewBtn,
 body[data-page="supervision"] #iconsBtn{display:none}
 
-/* Sans la recherche, le menu « ... » porte la marge automatique. L'action
-   globale SMART reste juste avant lui, a droite de la barre. */
-body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
-body[data-page="supervision"] #collapseAllBtn{margin-right:-8px}
+/* Sans la recherche, l'action globale prend la marge automatique : elle reste
+   tout a droite, directement avant le menu « ... ». */
+body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
 
 .supervision-grid{
   display:grid;
