@@ -27,16 +27,38 @@ sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/depl
 sudo chmod +x /usr/local/bin/wireguard-dump.sh
 ```
 
-It must run as **root** (or via `sudo`): `wg` needs `CAP_NET_ADMIN`. It writes
-`wg show all dump` atomically, sets restrictive permissions (the dump contains
-the interface private key), and, when run as root, hands the file to UID `1000`
-(the Dashmon container user) so a bind-mounted file stays readable.
+It must run as **root** (or via `sudo`): `wg` needs `CAP_NET_ADMIN`, and `docker`
+must be able to reach the daemon.
 
-Default output: `/opt/dashmon/wireguard.dump`. Override it with an argument or the
-`DASHMON_WIREGUARD_DUMP` variable:
+**By default the dump goes straight into the container's data directory** — the
+place Dashmon actually reads — so nothing is written on the host and no volume
+needs a special mount:
 
 ```sh
-sudo /usr/local/bin/wireguard-dump.sh /path/to/wireguard.dump
+sudo /usr/local/bin/wireguard-dump.sh
+# wg show all dump | docker exec -i dashmon sh -c 'cat > /app/data/wireguard.dump'
+```
+
+### Parameters
+
+| Argument | Default | Meaning |
+| --- | --- | --- |
+| 1st | `dashmon` | container name (`$DASHMON_CONTAINER`) |
+| 2nd | `/app/data/wireguard.dump` | path **inside** the container (`$DASHMON_DUMP_CONTAINER_PATH`) |
+
+```sh
+sudo /usr/local/bin/wireguard-dump.sh dashmon-prod
+sudo /usr/local/bin/wireguard-dump.sh dashmon /data/wireguard.dump
+```
+
+**Host-file variant (bind mount).** If the first argument looks like a path
+(starts with `/` or `.`), the dump is written to that file on the host instead,
+atomically, `chmod 600`, owned by UID `1000`. The folder must then be mounted in
+the container and `WIREGUARD_DUMP_FILE` pointed at it. `$DASHMON_WIREGUARD_DUMP`
+does the same without an argument.
+
+```sh
+sudo /usr/local/bin/wireguard-dump.sh /opt/dashmon/wireguard.dump
 ```
 
 If `wg` is inside a container rather than on the host, run the command in that
@@ -47,7 +69,10 @@ container instead — see [Troubleshooting](#troubleshooting).
 Dashmon reads the dump from `WIREGUARD_DUMP_FILE`, defaulting to
 `DATA_DIR/wireguard.dump` (`/app/data/wireguard.dump` in the image).
 
-**Recommended — bind mount a host folder:**
+With the default container mode above, the file lands exactly there, so **you
+have nothing to configure**: the named `dashmon-data` volume already carries it.
+
+**Host-file variant — bind mount a folder:**
 
 ```yaml
 services:
@@ -59,17 +84,9 @@ services:
       WIREGUARD_DUMP_FILE: /dump/wireguard.dump
 ```
 
-Then let the script write to `/opt/dashmon/wireguard.dump` (its default).
+Then let the script write to `/opt/dashmon/wireguard.dump` (host-file variant).
 
-**Alternative — keep the named volume** and copy the file into the running
-container from cron:
-
-```sh
-sudo /usr/local/bin/wireguard-dump.sh /tmp/wireguard.dump
-sudo docker cp /tmp/wireguard.dump dashmon:/app/data/wireguard.dump
-```
-
-Or pipe it straight in, without a host temp file:
+To do it by hand for a one-off check, the same pipe works directly:
 
 ```sh
 sudo wg show all dump | sudo docker exec -i dashmon sh -c 'cat > /app/data/wireguard.dump'
@@ -77,7 +94,8 @@ sudo wg show all dump | sudo docker exec -i dashmon sh -c 'cat > /app/data/wireg
 
 ## 3. Schedule it with cron
 
-Edit the **root** crontab (`sudo crontab -e`) and pick a frequency.
+Edit the **root** crontab (`sudo crontab -e`) and pick a frequency. With no
+argument the script writes into the container's data directory:
 
 Once per hour:
 
@@ -90,6 +108,9 @@ Once per day, at 03:00:
 ```cron
 0 3 * * * /usr/local/bin/wireguard-dump.sh
 ```
+
+(Add the container name as an argument if it is not `dashmon`, e.g.
+`0 * * * * /usr/local/bin/wireguard-dump.sh dashmon-prod`.)
 
 The more often the file is regenerated, the fresher the handshakes and traffic
 counters. A daily refresh is enough to see *who is configured*, but peers that
@@ -126,8 +147,8 @@ Instead of a file, a type **Linux agent** host may report peers in its JSON
 | --- | --- | --- |
 | `Unable to access interface wg0: Operation not permitted` | `wg` run without privileges | Run the script with `sudo` (root crontab). |
 | `permission denied ... docker.sock` | cron/user not allowed to use Docker | Use the root crontab, or add the user to the `docker` group. |
-| Empty file (0 B) | Shell redirection failed, or two commands ran on one line | Run one command per line, or use the script. |
-| No peers in Dashmon | File missing, unreadable by UID `1000`, or refreshed at the wrong path | Check `WIREGUARD_DUMP_FILE`, then `docker exec dashmon wc -c /app/data/wireguard.dump`. |
+| `conteneur 'dashmon' introuvable` | wrong container name | Pass your container name as the first argument. |
+| No peers in Dashmon | File missing or empty, or written at the wrong path | `docker exec dashmon wc -c /app/data/wireguard.dump`, and check `WIREGUARD_DUMP_FILE` if you override it. |
 | Peers look stale | Cron too infrequent | Refresh hourly. |
 
 If WireGuard runs in a **container**, the host has no `wg` interface; run it in
