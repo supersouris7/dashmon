@@ -904,10 +904,9 @@ body[data-page="supervision"] .search-box,
 body[data-page="supervision"] #viewBtn,
 body[data-page="supervision"] #iconsBtn{display:none}
 
-/* Sur Supervision, l'action globale SMART reste a l'extreme droite, apres le
-   menu « ... ». Le tableau de bord conserve l'ordre historique. */
-body[data-page="supervision"] .top-menu-wrap{order:1;margin-left:auto}
-body[data-page="supervision"] #collapseAllBtn{order:2}
+/* Sans la recherche, le menu « ... » porte la marge automatique. L'action
+   globale SMART reste juste avant lui, a droite de la barre. */
+body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 
 .supervision-grid{
   display:grid;
