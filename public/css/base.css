@@ -557,7 +557,6 @@ main{
   height:calc(var(--size,9px) * .62);
   border-radius:2px;
   pointer-events:none;
-  box-shadow:0 0 7px currentColor;
   animation:fortune-confetti 1s cubic-bezier(.15,.75,.25,1) forwards;
 }
 

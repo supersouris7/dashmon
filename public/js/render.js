@@ -164,7 +164,7 @@ function createFortuneCard(key){
   // bordure, contrairement a `.service-fallback` qui encadre un glyphe.
   const icon=document.createElement("img");
   icon.className="service-icon";
-  icon.src="images/fortune-cookie.svg";
+  icon.src="images/fortunecookie.png";
   icon.alt="Fortune Cookie";
   icon.onerror=()=>{
     icon.remove();

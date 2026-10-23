@@ -577,7 +577,7 @@ export function renderWebLinksEditor(){
 // Chaque type s'active par une case a cocher, puis porte ses propres options.
 // Ajouter un widget = une entree dans ce tableau.
 const SPECIAL_TILES=[
-  {type:"fortune", image:"images/fortune-cookie.svg", labelKey:"specialTileFortune"}
+  {type:"fortune", image:"images/fortunecookie.png", labelKey:"specialTileFortune"}
 ];
 
 // Categorie d'affichage d'une tuile speciale : celle demandee si elle existe
