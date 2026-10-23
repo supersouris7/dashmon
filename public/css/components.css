@@ -969,51 +969,37 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 }
 
 /* WireGuard : detache des cartes hote, dans sa propre section sous la grille
-   des mesures. Une section par interface, puis un pair par ligne. Le nom et le
-   handshake tiennent sur la premiere ligne, le trafic sur la seconde, pour
-   rester lisible dans une carte etroite. */
+   des mesures. Une section par interface, puis un pair par ligne. "wg0" est
+   affiche en blanc, "Dernier releve" en gris sur la meme ligne. Le nom et le
+   handshake tiennent sur la premiere ligne, le trafic sur la seconde. */
 .supervision-wireguard-section{
   margin-top:24px;
 }
 
-.supervision-wireguard-updated{
-  margin:0 0 10px;
-  color:var(--muted);
-  font-size:12px;
-  font-variant-numeric:tabular-nums;
-}
-
 .supervision-wireguard{
-  margin-top:14px;
-  padding-top:12px;
-  border-top:1px solid var(--border);
+  margin-top:12px;
 }
 
-/* La premiere interface d'une carte n'a pas besoin du separateur : l'intitule
-   "dernier releve" fait deja office de respiration au-dessus. */
 .supervision-card-wireguard .supervision-wireguard:first-of-type{
-  margin-top:0;
-  padding-top:0;
-  border-top:0;
+  margin-top:6px;
 }
 
-.supervision-wireguard-title{
+.supervision-wireguard-head{
   display:flex;
   align-items:baseline;
-  gap:6px;
+  gap:4px;
   margin-bottom:6px;
-  color:var(--muted);
-  font-size:11px;
-  font-weight:600;
-  letter-spacing:.04em;
-  text-transform:uppercase;
+  font-size:13px;
 }
 
 .supervision-wireguard-iface{
   color:var(--text);
   font-weight:600;
-  letter-spacing:0;
-  text-transform:none;
+}
+
+.supervision-wireguard-updated{
+  color:var(--muted);
+  font-variant-numeric:tabular-nums;
 }
 
 .supervision-peers{

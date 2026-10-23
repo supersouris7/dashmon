@@ -208,7 +208,8 @@ function visibleInterfaces(host,metrics){
 
 // Carte WireGuard autonome : detachee de la carte hote, comme la tuile du
 // tableau de bord. Une carte par hote, une section par interface, puis un pair
-// par ligne. "Dernier releve" date le fichier dump (wireguardFetchedAt).
+// par ligne. Sur la ligne d'interface : "wg0" (blanc) puis " : Dernier releve"
+// (gris), date du fichier dump (wireguardFetchedAt).
 function wireguardCard(host,metrics,interfaces){
   const card=document.createElement("article");
   card.className="supervision-card supervision-card-wireguard";
@@ -216,7 +217,8 @@ function wireguardCard(host,metrics,interfaces){
   const head=document.createElement("div");
   head.className="supervision-head";
   const icon=document.createElement("i");
-  icon.className="fa-solid fa-shield-halved";
+  // Pas d'icone WireGuard dans Font Awesome : le dragon est le repli retenu.
+  icon.className="fa-solid fa-dragon";
   icon.setAttribute("aria-hidden","true");
   const name=document.createElement("span");
   name.className="supervision-name";
@@ -227,26 +229,30 @@ function wireguardCard(host,metrics,interfaces){
   head.append(icon,name,badge);
   card.appendChild(head);
 
-  const updated=document.createElement("p");
-  updated.className="supervision-wireguard-updated";
   const age=handshakeAge(metrics.wireguardFetchedAt);
-  updated.textContent=age===null
-    ? t("supervisionWireguard")
+  const updatedText=age===null
+    ? ""
     : t("supervisionWireguardUpdated").replace("{ago}",relativeAge(age));
-  card.appendChild(updated);
 
   interfaces.forEach(item=>{
     const section=document.createElement("div");
     section.className="supervision-wireguard";
+
+    const line=document.createElement("div");
+    line.className="supervision-wireguard-head";
     if(item.interface){
-      const title=document.createElement("div");
-      title.className="supervision-wireguard-title";
       const iface=document.createElement("span");
       iface.className="supervision-wireguard-iface";
       iface.textContent=item.interface;
-      title.append(iface);
-      section.appendChild(title);
+      line.appendChild(iface);
     }
+    if(updatedText){
+      const updated=document.createElement("span");
+      updated.className="supervision-wireguard-updated";
+      updated.textContent=(item.interface ? ": " : "")+updatedText;
+      line.appendChild(updated);
+    }
+    if(line.childNodes.length) section.appendChild(line);
 
     const peers=Array.isArray(item.peers) ? item.peers : [];
     if(!peers.length){
