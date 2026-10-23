@@ -29,6 +29,10 @@ const CONFIG_FILE = process.env.CONFIG_FILE || path.join(DATA_DIR, "config.json"
 // Chemin fixe (surchargeable par l'administrateur) : la configuration web ne
 // peut donc pas faire lire un fichier arbitraire au serveur.
 const WIREGUARD_DUMP_FILE = process.env.WIREGUARD_DUMP_FILE || path.join(DATA_DIR, "wireguard.dump");
+// Sortie JSON de `smartctl -j -a`, ecrite par deploy/smart-dump.sh pour les
+// disques de l'hote local. Comme pour WireGuard, le chemin n'est jamais choisi
+// depuis l'interface web.
+const SMART_DUMP_FILE = process.env.SMART_DUMP_FILE || path.join(DATA_DIR, "smart.json");
 const INDEX_FILE = path.join(PUBLIC_DIR, "index.html");
 const ICONS_DIR = process.env.ICONS_DIR || path.join(DATA_DIR, "icons");
 const THEMES_NATIVE_DIR = process.env.THEMES_NATIVE_DIR || path.join(PUBLIC_DIR, "themes");
@@ -625,11 +629,20 @@ function sanitizeHostMonitoring(raw){
     };
     if(!wireguard.enabled || wireguard.interface) monitoring.wireguard = wireguard;
   }
+  const smartRaw = raw.smart && typeof raw.smart === "object" && !Array.isArray(raw.smart)
+    ? raw.smart : null;
+  if(smartRaw){
+    const disks = Array.isArray(smartRaw.disks)
+      ? [...new Set(smartRaw.disks.map(value=>sanitizeText(value,100)).filter(Boolean))].slice(0,20)
+      : [];
+    const smart = { enabled: smartRaw.enabled !== false, disks };
+    if(!smart.enabled || smart.disks.length) monitoring.smart = smart;
+  }
   // Un hote sans supervision activee et sans aucun parametre ne garde pas un
   // objet vide dans config.json : la config reste lisible.
   const meaningful = monitoring.url || monitoring.node || monitoring.path
     || monitoring.tokenEnv || monitoring.tokenIdEnv || monitoring.tokenSecretEnv
-    || monitoring.wireguard;
+    || monitoring.wireguard || monitoring.smart;
   if(!monitoring.enabled && !meaningful) return undefined;
   return monitoring;
 }
@@ -1384,6 +1397,64 @@ function readWireguardDump(){
   };
 }
 
+// Le script SMART conserve le JSON brut de smartctl : les noms de modele et les
+// compteurs restent exploitables sans exposer le numero de serie du disque.
+function smartNumber(value){
+  const n=Number(value);
+  return Number.isFinite(n)&&n>=0 ? Math.floor(n) : null;
+}
+
+function smartAttribute(raw,id){
+  const table=Array.isArray(raw?.ata_smart_attributes?.table) ? raw.ata_smart_attributes.table : [];
+  const attribute=table.find(item=>Number(item?.id)===id);
+  return smartNumber(attribute?.raw?.value);
+}
+
+function normalizeSmartDisk(raw){
+  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
+  const device=sanitizeText(raw.device?.name || raw.name,100);
+  if(!device) return null;
+  const nvme=raw.nvme_smart_health_information_log||{};
+  const temperature=smartNumber(raw.temperature?.current ?? nvme.temperature);
+  const powerOnHours=smartNumber(raw.power_on_time?.hours ?? nvme.power_on_hours);
+  const smartErrors=smartNumber(raw.ata_smart_error_log?.summary?.count ?? nvme.num_err_log_entries);
+  return {
+    device,
+    model:sanitizeText(raw.model_name || raw.model_family || raw.device?.type,100),
+    passed:typeof raw.smart_status?.passed==="boolean" ? raw.smart_status.passed : null,
+    temperature,
+    powerOnHours,
+    reallocated:smartAttribute(raw,5),
+    pending:smartAttribute(raw,197),
+    uncorrectable:smartAttribute(raw,198),
+    sataCrc:smartAttribute(raw,199),
+    smartErrors,
+    loadCycle:smartAttribute(raw,193)
+  };
+}
+
+function readSmartDump(){
+  let stat;
+  try{
+    stat=fs.statSync(SMART_DUMP_FILE);
+  }catch(_error){
+    return null;
+  }
+  if(!stat.isFile() || stat.size>2_000_000) return null;
+  let source;
+  try{
+    source=JSON.parse(fs.readFileSync(SMART_DUMP_FILE,"utf8"));
+  }catch(_error){
+    return null;
+  }
+  const rawDisks=Array.isArray(source?.disks) ? source.disks : [];
+  const disks=rawDisks.map(normalizeSmartDisk).filter(Boolean).slice(0,20);
+  if(!disks.length) return null;
+  const updatedAt=smartNumber(source.updatedAt);
+  const fetchedAt=updatedAt || Math.floor(stat.mtimeMs/1000);
+  return { disks, fetchedAt:Number.isFinite(fetchedAt)&&fetchedAt>0 ? fetchedAt : null };
+}
+
 // Contrat de l'agent Linux : un JSON simple, chaque champ facultatif. Un champ
 // absent ou invalide devient null plutot qu'un zero trompeur.
 function normalizeMetricsPayload(data){
@@ -1484,19 +1555,25 @@ app.get("/api/host-metrics",async(_req,res)=>{
   const localRam=localRamPercent();
   const localTemp=localTemperature();
   const localDump=readWireguardDump();
+  const localSmart=readSmartDump();
 
   const refresh=Promise.all(hosts.map(async host=>{
     const type=HOST_MONITORING_TYPES.has(host.monitoring?.type) ? host.monitoring.type : "local";
     try{
       let metrics;
       let wireguardFetchedAt=null;
+      let smartFetchedAt=null;
       if(type==="proxmox") metrics=await getProxmoxMetrics(host);
       else if(type==="linux") metrics=await readHttpMetrics(host);
       else {
         // Le dump local est le meme pour tous les hotes "local" : on le lit une
         // fois et on date chaque copie de l'heure du fichier.
-        metrics={ cpu:localCpu, ram:localRam, temperature:localTemp, disk:localDiskPercent(host.monitoring?.path), wireguard:localDump?.interfaces||null };
+        metrics={
+          cpu:localCpu, ram:localRam, temperature:localTemp, disk:localDiskPercent(host.monitoring?.path),
+          wireguard:localDump?.interfaces||null, smart:localSmart?.disks||null
+        };
         wireguardFetchedAt=localDump?.fetchedAt||null;
+        smartFetchedAt=localSmart?.fetchedAt||null;
       }
       return {
         id:sanitizeText(host.id,64),
@@ -1508,7 +1585,9 @@ app.get("/api/host-metrics",async(_req,res)=>{
         temperature:metrics.temperature,
         disk:metrics.disk,
         wireguard:metrics.wireguard||null,
-        wireguardFetchedAt
+        wireguardFetchedAt,
+        smart:metrics.smart||null,
+        smartFetchedAt
       };
     }catch(error){
       return {

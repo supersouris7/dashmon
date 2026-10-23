@@ -1000,6 +1000,93 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
   margin-top:24px;
 }
 
+/* SMART reprend les cartes de supervision mais distingue les deux mesures les
+   plus utiles avant de presenter les compteurs bruts dans un tableau compact. */
+.supervision-card-smart{
+  min-width:0;
+}
+
+.supervision-smart-updated{
+  margin:-7px 0 10px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.supervision-smart-disk + .supervision-smart-disk{
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid var(--border);
+}
+
+.supervision-smart-title{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+  font-size:13px;
+  font-weight:600;
+}
+
+.supervision-smart-title > span:first-child{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.supervision-smart-status{
+  flex:0 0 auto;
+  border-radius:10px;
+  padding:2px 7px;
+  font-size:10px;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.supervision-smart-status.passed{color:#21873f;background:#daf5e1}
+.supervision-smart-status.failed{color:#b42318;background:#fee4e2}
+.supervision-smart-status.unknown{color:var(--muted);background:var(--surface-3)}
+
+.supervision-smart-summary{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin:10px 0;
+}
+
+.supervision-smart-highlight{
+  display:grid;
+  gap:2px;
+  padding:8px;
+  border-radius:4px;
+  background:var(--surface-2);
+}
+
+.supervision-smart-highlight > span,
+.supervision-smart-highlight small{color:var(--muted);font-size:11px}
+.supervision-smart-highlight strong{font-size:16px;font-variant-numeric:tabular-nums}
+.supervision-smart-highlight small.up,.supervision-smart-diagnostic.up{color:#21873f}
+.supervision-smart-highlight small.warn,.supervision-smart-diagnostic.warn{color:#bd7600}
+
+.supervision-smart-table{display:grid;font-size:12px}
+
+.supervision-smart-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto 86px;
+  gap:10px;
+  align-items:center;
+  padding:5px 0;
+  border-top:1px solid var(--border);
+}
+
+.supervision-smart-row > span:first-child{color:var(--muted)}
+.supervision-smart-row > span:nth-child(2){font-variant-numeric:tabular-nums}
+.supervision-smart-diagnostic{text-align:right;font-size:11px}
+
+.smart-disk-choices{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--muted)}
+.smart-disk-choice{min-height:28px;padding:3px 8px;border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--text);font:inherit}
+.smart-disk-choice.active{border-color:#2fbf5f;background:#daf5e1;color:#21873f}
+
 .supervision-wireguard{
   margin-top:12px;
 }
@@ -1090,6 +1177,7 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
     grid-template-columns:1fr;
     gap:4px;
   }
+  .supervision-smart-row{grid-template-columns:minmax(0,1fr) auto 76px;gap:6px}
 }
 
 

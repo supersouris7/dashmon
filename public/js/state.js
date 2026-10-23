@@ -599,7 +599,8 @@ export function normalizeHostMonitoring(raw){
     tokenEnv:sanitizeText(raw.tokenEnv,100),
     tokenIdEnv:sanitizeText(raw.tokenIdEnv,100),
     tokenSecretEnv:sanitizeText(raw.tokenSecretEnv,100),
-    wireguard:normalizeWireguardPrefs(raw.wireguard)
+    wireguard:normalizeWireguardPrefs(raw.wireguard),
+    smart:normalizeSmartPrefs(raw.smart)
   };
 }
 
@@ -612,6 +613,16 @@ export function normalizeWireguardPrefs(raw){
     enabled:src.enabled!==false,
     interface:sanitizeText(src.interface,50)
   };
+}
+
+// Preference SMART : section visible par defaut, avec un filtre facultatif de
+// noms de peripheriques (`/dev/sda`, `/dev/nvme0`, ...).
+export function normalizeSmartPrefs(raw){
+  const src=(raw && typeof raw==="object" && !Array.isArray(raw)) ? raw : {};
+  const disks=Array.isArray(src.disks)
+    ? [...new Set(src.disks.map(value=>sanitizeText(value,100)).filter(Boolean))].slice(0,20)
+    : [];
+  return {enabled:src.enabled!==false,disks};
 }
 
 export function normalizeConfig(cfg={}){

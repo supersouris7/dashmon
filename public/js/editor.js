@@ -871,7 +871,8 @@ function blankMonitoring(){
   return {
     enabled:false,type:"local",url:"",node:"",path:"",
     tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",
-    wireguard:{enabled:true,interface:""}
+    wireguard:{enabled:true,interface:""},
+    smart:{enabled:true,disks:[]}
   };
 }
 
@@ -897,7 +898,14 @@ function serializeHostMonitoring(m){
     const wireguard={enabled:wg.enabled!==false,interface:(wg.interface||"").trim()};
     if(!wireguard.enabled || wireguard.interface) out.wireguard=wireguard;
   }
-  const meaningful=out.url||out.node||out.path||out.tokenEnv||out.tokenIdEnv||out.tokenSecretEnv||out.wireguard;
+  const smart=m.smart && typeof m.smart==="object" ? m.smart : null;
+  if(smart){
+    const disks=[...new Set((Array.isArray(smart.disks) ? smart.disks : [])
+      .map(value=>String(value||"").trim().slice(0,100)).filter(Boolean))].slice(0,20);
+    const smartPrefs={enabled:smart.enabled!==false,disks};
+    if(!smartPrefs.enabled || smartPrefs.disks.length) out.smart=smartPrefs;
+  }
+  const meaningful=out.url||out.node||out.path||out.tokenEnv||out.tokenIdEnv||out.tokenSecretEnv||out.wireguard||out.smart;
   if(!out.enabled && !meaningful) return undefined;
   return out;
 }
@@ -991,6 +999,9 @@ export function renderHostEditor(){
     if(!host.monitoring.wireguard || typeof host.monitoring.wireguard!=="object"){
       host.monitoring.wireguard={enabled:true,interface:""};
     }
+    if(!host.monitoring.smart || typeof host.monitoring.smart!=="object"){
+      host.monitoring.smart={enabled:true,disks:[]};
+    }
 
     const item=document.createElement("div");
     item.className="host-item";
@@ -1057,6 +1068,7 @@ export function renderHostEditor(){
     hostEditor.appendChild(item);
   });
   renderWireguardEditor();
+  renderSmartEditor();
 }
 
 const WIREGUARD_REPO="https://github.com/supersouris7/dashmon";
@@ -1164,7 +1176,120 @@ function renderWireguardEditor(){
   });
 }
 
-const SUPERVISION_PANELS=["hostsPanel","wireguardPanel"];
+const SMART_SCRIPT_URL=WIREGUARD_REPO+"/raw/main/deploy/smart-dump.sh";
+const SMART_DOC_URL=WIREGUARD_REPO+"/blob/main/docs/SMART.md";
+
+function smartHelpBlock(){
+  const box=document.createElement("div");
+  box.className="wireguard-help";
+  const intro=document.createElement("p");
+  intro.className="wireguard-help-text";
+  intro.textContent=t("smartHelpIntro");
+  const links=document.createElement("p");
+  links.className="wireguard-help-text";
+  const script=document.createElement("a");
+  script.href=SMART_SCRIPT_URL;
+  script.target="_blank";
+  script.rel="noopener";
+  script.textContent=t("smartHelpScript");
+  const doc=document.createElement("a");
+  doc.href=SMART_DOC_URL;
+  doc.target="_blank";
+  doc.rel="noopener";
+  doc.textContent=t("smartHelpDoc");
+  links.append(script,document.createTextNode(" · "),doc);
+  box.append(intro,links);
+  return box;
+}
+
+// SMART est local : le script interroge les peripheriques de la machine qui
+// heberge Dashmon. Le filtre est une liste de chemins, vide = tous les disques.
+function renderSmartEditor(){
+  const list=document.getElementById("smartEditor");
+  if(!list) return;
+  list.replaceChildren(smartHelpBlock());
+  const indexes=[];
+  state.editHosts.forEach((host,index)=>{
+    if(host.monitoring?.enabled && host.monitoring.type==="local") indexes.push(index);
+  });
+  if(!indexes.length){
+    const empty=document.createElement("p");
+    empty.className="host-monitor-hint";
+    empty.textContent=t("smartNoHost");
+    list.appendChild(empty);
+    return;
+  }
+  indexes.forEach(index=>{
+    const host=state.editHosts[index];
+    const prefs=host.monitoring.smart;
+    const block=document.createElement("div");
+    block.className="host-monitor-panel wireguard-editor-item";
+    const head=document.createElement("div");
+    head.className="wireguard-editor-head";
+    const icon=document.createElement("i");
+    icon.className=host.icon||"fa-solid fa-server";
+    icon.setAttribute("aria-hidden","true");
+    const name=document.createElement("span");
+    name.textContent=host.name||t("hostName");
+    head.append(icon,name);
+    block.appendChild(head);
+    const toggle=document.createElement("button");
+    toggle.type="button";
+    toggle.className="monitor-toggle "+(prefs.enabled ? "active" : "");
+    toggle.title=prefs.enabled ? t("smartShowDisks") : t("smartShowDisks");
+    toggle.setAttribute("aria-pressed",String(prefs.enabled));
+    toggle.innerHTML='<i class="fa-solid fa-hard-drive"></i>';
+    toggle.addEventListener("click",()=>{
+      state.editHosts[index].monitoring.smart.enabled=!state.editHosts[index].monitoring.smart.enabled;
+      renderSmartEditor();
+    });
+    block.appendChild(monitoringField(t("smartShowDisks"),toggle));
+    const disks=document.createElement("input");
+    disks.className="edit-input";
+    disks.value=(prefs.disks||[]).join(", ");
+    disks.placeholder=t("phSmartDisks");
+    disks.addEventListener("input",()=>{
+      state.editHosts[index].monitoring.smart.disks=[...new Set(disks.value.split(",")
+        .map(value=>value.trim()).filter(Boolean))].slice(0,20);
+    });
+    block.appendChild(monitoringField(t("smartDisks"),disks));
+    const metrics=Array.isArray(state.hostMetrics) ? state.hostMetrics.find(item=>item?.id===host.id) : null;
+    const detected=Array.isArray(metrics?.smart) ? metrics.smart.map(item=>item?.device).filter(Boolean) : [];
+    if(detected.length){
+      const choices=document.createElement("div");
+      choices.className="smart-disk-choices";
+      const choicesLabel=document.createElement("span");
+      choicesLabel.textContent=t("smartDetectedDisks");
+      choices.appendChild(choicesLabel);
+      detected.forEach(device=>{
+        const choice=document.createElement("button");
+        const hasFilter=(prefs.disks||[]).length>0;
+        const selected=!hasFilter || (prefs.disks||[]).includes(device);
+        choice.type="button";
+        choice.className="smart-disk-choice"+(selected ? " active" : "");
+        choice.setAttribute("aria-pressed",String(selected));
+        choice.textContent=device;
+        choice.addEventListener("click",()=>{
+          const selectedDisks=state.editHosts[index].monitoring.smart.disks||[];
+          state.editHosts[index].monitoring.smart.disks=!hasFilter
+            ? detected.filter(value=>value!==device)
+            : selected ? selectedDisks.filter(value=>value!==device)
+              : [...new Set([...selectedDisks,device])].slice(0,20);
+          renderSmartEditor();
+        });
+        choices.appendChild(choice);
+      });
+      block.appendChild(choices);
+    }
+    const hint=document.createElement("p");
+    hint.className="host-monitor-hint";
+    hint.textContent=t("smartEditorHint");
+    block.appendChild(hint);
+    list.appendChild(block);
+  });
+}
+
+const SUPERVISION_PANELS=["hostsPanel","wireguardPanel","smartPanel"];
 
 // Le meme dialogue sert a deux usages : "Modifier Dashmon" (tous les onglets)
 // et "Modifier la supervision" (hotes et WireGuard seulement). On masque les
@@ -1246,6 +1371,7 @@ function refreshEditorDrafts(){
   renderDashboardEditor();
   renderHostEditor();
   renderWireguardEditor();
+  renderSmartEditor();
   renderWebLinksEditor();
   renderWidgetsEditor();
 }

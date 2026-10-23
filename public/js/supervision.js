@@ -272,6 +272,129 @@ function wireguardCard(host,metrics,interfaces){
   return card;
 }
 
+function smartNumberText(value){
+  const n=Number(value);
+  return Number.isFinite(n)&&n>=0
+    ? new Intl.NumberFormat(state.language==="fr" ? "fr-FR" : "en-US").format(Math.floor(n))
+    : "—";
+}
+
+function smartDiagnostics(key,value){
+  const n=Number(value);
+  if(!Number.isFinite(n) || n<0) return {text:"—",className:""};
+  if(key==="hours") return n>=50000 ? {text:t("smartHigh"),className:"warn"} : {text:t("smartGood"),className:"up"};
+  if(key==="temperature") return n<40 ? {text:t("smartVeryGood"),className:"up"} : n<50 ? {text:t("smartGood"),className:"up"} : {text:t("smartHot"),className:"warn"};
+  if(key==="load") return n>=100000 ? {text:t("smartWatch"),className:"warn"} : {text:t("smartGood"),className:"up"};
+  return n===0 ? {text:t("smartGood"),className:"up"} : {text:t("smartWatch"),className:"warn"};
+}
+
+function smartRow(label,value,key){
+  const row=document.createElement("div");
+  row.className="supervision-smart-row";
+  const name=document.createElement("span");
+  name.textContent=label;
+  const amount=document.createElement("span");
+  amount.textContent=smartNumberText(value);
+  const diagnostic=document.createElement("span");
+  const state=smartDiagnostics(key,value);
+  diagnostic.className="supervision-smart-diagnostic "+state.className;
+  diagnostic.textContent=state.text;
+  row.append(name,amount,diagnostic);
+  return row;
+}
+
+function visibleSmartDisks(host,metrics){
+  if(!metrics || !metrics.ok || !Array.isArray(metrics.smart) || !metrics.smart.length) return [];
+  const prefs=host.monitoring && host.monitoring.smart;
+  if(prefs && prefs.enabled===false) return [];
+  const wanted=prefs && Array.isArray(prefs.disks) ? prefs.disks : [];
+  return wanted.length ? metrics.smart.filter(disk=>wanted.includes(disk.device)) : metrics.smart;
+}
+
+function smartCard(host,metrics,disks){
+  const card=document.createElement("article");
+  card.className="supervision-card supervision-card-smart";
+  const head=document.createElement("div");
+  head.className="supervision-head";
+  const icon=document.createElement("i");
+  icon.className="fa-solid fa-hard-drive";
+  icon.setAttribute("aria-hidden","true");
+  const name=document.createElement("span");
+  name.className="supervision-name";
+  name.textContent=host.name||t("hostName");
+  const badge=document.createElement("span");
+  badge.className="supervision-type";
+  badge.textContent=t("supervisionSmart");
+  head.append(icon,name,badge);
+  card.appendChild(head);
+
+  const age=handshakeAge(metrics.smartFetchedAt);
+  if(age!==null){
+    const updated=document.createElement("p");
+    updated.className="supervision-smart-updated";
+    updated.textContent=t("supervisionSmartUpdated").replace("{ago}",relativeAge(age));
+    card.appendChild(updated);
+  }
+
+  disks.forEach(disk=>{
+    const section=document.createElement("section");
+    section.className="supervision-smart-disk";
+    const title=document.createElement("div");
+    title.className="supervision-smart-title";
+    const label=document.createElement("span");
+    label.textContent=disk.device+(disk.model ? " · "+disk.model : "");
+    const passed=disk.passed===true ? "passed" : disk.passed===false ? "failed" : "unknown";
+    const status=document.createElement("span");
+    status.className="supervision-smart-status "+passed;
+    status.textContent=passed==="passed" ? t("supervisionSmartPassed")
+      : passed==="failed" ? t("supervisionSmartFailed") : t("supervisionSmartUnknown");
+    title.append(label,status);
+    section.appendChild(title);
+
+    const summary=document.createElement("div");
+    summary.className="supervision-smart-summary";
+    const hours=document.createElement("div");
+    hours.className="supervision-smart-highlight";
+    const hoursLabel=document.createElement("span");
+    hoursLabel.textContent=t("smartPowerHours");
+    const hoursValue=document.createElement("strong");
+    hoursValue.textContent=smartNumberText(disk.powerOnHours)+" h";
+    const years=document.createElement("small");
+    years.textContent=Number.isFinite(Number(disk.powerOnHours))
+      ? (state.language==="fr" ? "Environ " : "About ")+(Number(disk.powerOnHours)/8766).toFixed(1).replace(".",state.language==="fr" ? "," : ".")+(state.language==="fr" ? " ans en continu" : " years continuous")
+      : "—";
+    hours.append(hoursLabel,hoursValue,years);
+    const temperature=document.createElement("div");
+    temperature.className="supervision-smart-highlight";
+    const tempLabel=document.createElement("span");
+    tempLabel.textContent=t("smartTemperature");
+    const tempValue=document.createElement("strong");
+    tempValue.textContent=Number.isFinite(Number(disk.temperature)) ? Math.round(Number(disk.temperature))+" °C" : "—";
+    const tempDiagnostic=smartDiagnostics("temperature",disk.temperature);
+    const tempHint=document.createElement("small");
+    tempHint.className=tempDiagnostic.className;
+    tempHint.textContent=tempDiagnostic.text;
+    temperature.append(tempLabel,tempValue,tempHint);
+    summary.append(hours,temperature);
+    section.appendChild(summary);
+
+    const table=document.createElement("div");
+    table.className="supervision-smart-table";
+    table.append(
+      smartRow(t("smartReallocated"),disk.reallocated,"error"),
+      smartRow(t("smartPending"),disk.pending,"error"),
+      smartRow(t("smartUncorrectable"),disk.uncorrectable,"error"),
+      smartRow(t("smartSataCrc"),disk.sataCrc,"error"),
+      smartRow(t("smartErrors"),disk.smartErrors,"error"),
+      smartRow(t("smartLoadCycle"),disk.loadCycle,"load"),
+      smartRow(t("smartPowerHours"),disk.powerOnHours,"hours")
+    );
+    section.appendChild(table);
+    card.appendChild(section);
+  });
+  return card;
+}
+
 export function renderSupervision(){
   supervisionList.replaceChildren();
 
@@ -306,22 +429,28 @@ export function renderSupervision(){
   monitored.forEach(host=>grid.appendChild(hostCard(host,byId.get(host.id))));
   supervisionList.append(grid);
 
-  // WireGuard est detache des cartes hote : sa propre grille, sous celle des
-  // mesures, avec un intitule de section, comme la tuile WireGuard du tableau de
-  // bord. Une carte par hote concerne, une section par interface.
+  // SMART puis WireGuard : les cartes de details partagent la meme grille, donc
+  // SMART se place a gauche de WireGuard sur ecran large.
+  const detailCards=[];
+  monitored.forEach(host=>{
+    const metrics=byId.get(host.id);
+    const disks=visibleSmartDisks(host,metrics);
+    if(disks.length) detailCards.push(smartCard(host,metrics,disks));
+  });
   const wgCards=[];
   monitored.forEach(host=>{
     const metrics=byId.get(host.id);
     const interfaces=visibleInterfaces(host,metrics);
     if(interfaces.length) wgCards.push(wireguardCard(host,metrics,interfaces));
   });
-  if(wgCards.length){
+  detailCards.push(...wgCards);
+  if(detailCards.length){
     const section=document.createElement("section");
     section.className="supervision-wireguard-section";
-    section.setAttribute("aria-label",t("supervisionWireguard"));
+    section.setAttribute("aria-label",t("supervisionTitle"));
     const wgGrid=document.createElement("div");
     wgGrid.className="supervision-grid";
-    wgCards.forEach(card=>wgGrid.appendChild(card));
+    detailCards.forEach(card=>wgGrid.appendChild(card));
     section.appendChild(wgGrid);
     supervisionList.append(section);
   }
