@@ -782,6 +782,9 @@ async function main(){
   check("renderer Docker : libelles francais",
     pick(dockerModule.render(localized("fr")(allGreen))),
     { badge: "en ligne 9", badgeClass: "ok", time: "à jour 9", timeClass: "delta-up" });
+  check("renderer Docker : EACCES affiche le remede",
+    pick(dockerModule.render(localized("fr")({ error: "Socket Docker inaccessible (EACCES) : ajoutez group_add" }))),
+    { badge: "Docker —", badgeClass: "pending", time: "EACCES : ajoutez group_add", timeClass: "warn" });
   check("renderer Docker : le tooltip reprend les deux libelles",
     dockerModule.render(localized("fr")(allGreen)).title, "Docker · en ligne 9 / 9 · à jour 9 / 9");
   ok("renderer Docker : images non verifiees au singulier",

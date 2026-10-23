@@ -24,6 +24,7 @@
       "updated": "à jour",
       "unknownOne": "non vérifié",
       "unknownMany": "non vérifiés",
+      "socketPermission": "EACCES : ajoutez group_add",
       "error": "Docker"
     },
     "en": {
@@ -38,6 +39,7 @@
       "updated": "updated",
       "unknownOne": "unverified",
       "unknownMany": "unverified",
+      "socketPermission": "EACCES: add group_add",
       "error": "Docker"
     }
   },

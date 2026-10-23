@@ -21,13 +21,18 @@ export function render(ctx) {
   const updated = info.updated;
 
   if (info.error || !containers || !updated || !containers.total) {
+    const error = String(info && info.error || "");
+    // docker.js traduit EACCES/EPERM du socket en une aide precise. La montrer
+    // aussi sur la tuile evite de devoir deviner que l'infobulle contient le
+    // remede quand Dashmon tourne dans une stack Portainer.
+    const socketPermission = /Socket Docker inaccessible \((?:EACCES|EPERM)\)/.test(error);
     return {
       badge: t("name") + " —",
       badgeClass: "pending",
-      time: "—",
-      timeClass: "",
-      title: info && info.error
-        ? `${t("error")} : ${String(info.error).slice(0, 120)}`
+      time: socketPermission ? t("socketPermission") : "—",
+      timeClass: socketPermission ? "warn" : "",
+      title: error
+        ? `${t("error")} : ${error.slice(0, 200)}`
         : t("name")
     };
   }
