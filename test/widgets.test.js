@@ -67,7 +67,7 @@ async function main(){
   // `_template` n'est pas un plugin : son identifiant ne respecte pas le motif
   // du registre, il sert de modele a copier.
   check("registre : widgets natifs charges, _template ignore",
-    ids, ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "web", "wireguard", "youtube"]);
+    ids, ["adguard", "aptupdates", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "web", "wireguard", "youtube"]);
   check("registre : aucun echec de chargement", registry.failures, []);
 
   for (const id of ids) {
@@ -91,7 +91,7 @@ async function main(){
   // sources des compteurs du bandeau "Liens web", donc internes au moteur.
   check("registre : les compteurs de liens ne sont pas des widgets de tuile",
     registry.publicList().filter(w => !w.hidden).map(w => w.id),
-    ["adguard", "docker", "duplicati", "lichess", "ping", "uptimekuma", "wireguard"]);
+    ["adguard", "aptupdates", "docker", "duplicati", "lichess", "ping", "uptimekuma", "wireguard"]);
 
   // Le template est bien un modele exploitable, mais volontairement hors registre.
   ok("template : present sur disque mais non charge",
@@ -320,7 +320,7 @@ async function main(){
   // --- Exposition HTTP : liste publique et garde-fous de fichiers ---------
   const publicList = core.publicList();
   check("core : liste publique = ids installes", publicList.map(w => w.id),
-    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "web", "wireguard", "youtube"]);
+    ["adguard", "aptupdates", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "web", "wireguard", "youtube"]);
   ok("core : aucune fonctionCheck exposee",
     publicList.every(w => typeof w.check === "undefined" && typeof w.createState === "undefined"));
   ok("core : la liste publique porte le schema de config",
@@ -439,6 +439,25 @@ async function main(){
       storage.write("gros", { s: "x".repeat(1024 * 1024 + 16) }) === false);
   } finally {
     fs.rmSync(storageDir, { recursive: true, force: true });
+  }
+
+  // --- Widget APT : rapport local borne et normalise ----------------------
+  const aptServer = require(path.join(WIDGETS, "aptupdates", "server.js"));
+  const aptDir = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-apt-"));
+  try {
+    const aptReport = path.join(aptDir, "apt-updates.json");
+    fs.writeFileSync(aptReport, JSON.stringify({
+      status: "success", updated: 3, finishedAt: 1700000000,
+      rebootRequired: true, rebooting: false
+    }));
+    check("apt : rapport reussi normalise", aptServer.readReport(aptReport), {
+      status: "success", updated: 3, finishedAt: 1700000000,
+      rebootRequired: true, rebooting: false
+    });
+    fs.writeFileSync(aptReport, "{ invalide");
+    check("apt : rapport illisible ignore", aptServer.readReport(aptReport), null);
+  } finally {
+    fs.rmSync(aptDir, { recursive: true, force: true });
   }
 
   // --- Widget Lichess : ELO conserve et evolution mensuelle --------------

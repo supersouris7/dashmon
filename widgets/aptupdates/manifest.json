@@ -1,0 +1,40 @@
+{
+  "id": "aptupdates",
+  "version": "1.0.0",
+  "label": { "fr": "Mises a jour APT", "en": "APT updates" },
+  "description": {
+    "fr": "Rapport local de mise a jour APT ecrit par apt-updates.sh",
+    "en": "Local APT update report written by apt-updates.sh"
+  },
+  "interval": 300000,
+  "cacheKey": "config",
+  "server": "server.js",
+  "client": "client.mjs",
+  "strings": {
+    "fr": {
+      "name": "Mises a jour APT",
+      "updated": "a jour",
+      "updatedOne": "mise a jour installee",
+      "updatedMany": "mises a jour installees",
+      "failed": "echec de la mise a jour",
+      "rebootRequired": "redemarrage requis",
+      "rebooting": "redemarrage lance",
+      "noReport": "rapport APT introuvable",
+      "lastRun": "dernier passage",
+      "error": "APT"
+    },
+    "en": {
+      "name": "APT updates",
+      "updated": "up to date",
+      "updatedOne": "update installed",
+      "updatedMany": "updates installed",
+      "failed": "update failed",
+      "rebootRequired": "reboot required",
+      "rebooting": "reboot started",
+      "noReport": "APT report not found",
+      "lastRun": "last run",
+      "error": "APT"
+    }
+  },
+  "config": []
+}

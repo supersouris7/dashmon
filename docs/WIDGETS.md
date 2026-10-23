@@ -13,6 +13,7 @@ It applies immediately, no restart.
 | [AdGuard Home](#adguard-home) | Blocked queries, as a percentage | protocol, URL, user, password |
 | [Lichess](#lichess) | ELO rating and one-month evolution | username, variant |
 | [WireGuard](#wireguard) | Peers and how many are connected | interface (optional) |
+| [APT updates](#apt-updates) | Last local APT update report | *nothing* |
 | [web](#web-the-default-one) | Up / down dot for a plain link | *nothing* |
 
 GitHub, Docker Hub and YouTube are **not** tile widgets: they power the counters
@@ -100,6 +101,17 @@ The dump path is fixed by `WIREGUARD_DUMP_FILE` (default
 `DATA_DIR/wireguard.dump`) and is never taken from the web configuration. The
 file contains the interface private key: keep it out of version control and
 `chmod 600`.
+
+## APT updates
+
+**Shows** the result of the latest local Debian/Ubuntu update, the number of
+packages installed and whether a reboot is required. The widget reads a local
+report only: it never runs `apt` from Dashmon.
+
+Install the bundled script and systemd timer on the Docker host. The default
+schedule is Wednesday at 03:00; automatic reboot is opt-in. See
+**[docs/APT_UPDATES.md](APT_UPDATES.md)** for installation, scheduling and the
+report-file bind-mount variant.
 
 ## Web-link counters
 
