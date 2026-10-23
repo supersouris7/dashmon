@@ -438,8 +438,10 @@ body.modal-open{
   cursor:pointer;
 }
 
-.widget-toggle i{
-  color:var(--accent);
+.special-tile-icon{
+  width:24px;
+  height:24px;
+  object-fit:contain;
 }
 
 .special-tile-category{

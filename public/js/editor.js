@@ -577,7 +577,7 @@ export function renderWebLinksEditor(){
 // Chaque type s'active par une case a cocher, puis porte ses propres options.
 // Ajouter un widget = une entree dans ce tableau.
 const SPECIAL_TILES=[
-  {type:"fortune", icon:"fa-solid fa-cookie-bite", labelKey:"specialTileFortune"}
+  {type:"fortune", image:"images/fortunecookie.png", labelKey:"specialTileFortune"}
 ];
 
 // Categorie d'affichage d'une tuile speciale : celle demandee si elle existe
@@ -616,8 +616,10 @@ export function renderWidgetsEditor(){
       renderWidgetsEditor();
     });
 
-    const icon=document.createElement("i");
-    icon.className=def.icon;
+    const icon=document.createElement("img");
+    icon.className="special-tile-icon";
+    icon.src=def.image;
+    icon.alt="";
 
     const text=document.createElement("span");
     text.textContent=t(def.labelKey);
