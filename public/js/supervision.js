@@ -345,6 +345,15 @@ function smartCard(host,metrics,disks){
     card.appendChild(updated);
   }
 
+  // Toute la zone d'un disque est cliquable. Le bouton de son en-tete conserve
+  // le support clavier, mais l'utilisateur n'a pas a viser le petit chevron.
+  card.addEventListener("click",event=>{
+    const section=event.target.closest(".supervision-smart-disk");
+    if(!section || !card.contains(section)) return;
+    const expanded=section.classList.toggle("expanded");
+    section.querySelector(".supervision-smart-title")?.setAttribute("aria-expanded",String(expanded));
+  });
+
   disks.forEach(disk=>{
     const section=document.createElement("section");
     section.className="supervision-smart-disk";
@@ -365,10 +374,6 @@ function smartCard(host,metrics,disks){
     chevron.className="fa-solid fa-chevron-down supervision-smart-chevron";
     chevron.setAttribute("aria-hidden","true");
     title.append(label,status,chevron);
-    title.addEventListener("click",()=>{
-      const expanded=section.classList.toggle("expanded");
-      title.setAttribute("aria-expanded",String(expanded));
-    });
     section.appendChild(title);
 
     const summary=document.createElement("div");
