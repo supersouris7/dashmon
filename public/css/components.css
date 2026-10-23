@@ -1094,12 +1094,6 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 
 /* APT : resume d'un cycle termine, avec le volume mis a jour et les deux
    informations utiles a l'exploitation (date et redemarrage). */
-.supervision-card-apt{border-top:3px solid var(--border)}
-.supervision-card-apt.ok{border-top-color:#2fbf5f}
-.supervision-card-apt.warning{border-top-color:#e0a53b}
-.supervision-card-apt.failed{border-top-color:#e5484d}
-.supervision-card-apt.unknown{border-top-color:var(--muted)}
-
 .supervision-apt-status{display:flex;align-items:center;gap:8px;margin:0;font-size:13px}
 .supervision-apt-dot{width:9px;height:9px;flex:0 0 auto;border-radius:50%;background:var(--muted)}
 .supervision-card-apt.ok .supervision-apt-dot{background:#2fbf5f}
