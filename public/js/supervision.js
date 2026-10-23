@@ -3,7 +3,7 @@
 // refreshHostMetrics, declenchee a l'ouverture de la page et par un minuteur.
 import { t } from "./i18n.js";
 import { state } from "./state.js";
-import { supervisionList, supervisionPage } from "./dom.js";
+import { supervisionList, supervisionPage, expandSmartBtn, collapseSmartBtn } from "./dom.js";
 
 // Intervalle injecte par le serveur (voir HOST_METRICS_INTERVAL). Un HTML
 // servi sans substitution (test, fichier local) retombe sur 60 s.
@@ -15,6 +15,31 @@ function metricsInterval(){
 }
 const HOST_METRICS_INTERVAL=metricsInterval();
 const TYPE_LABEL={local:"hostTypeLocal",linux:"hostTypeLinux",proxmox:"hostTypeProxmox"};
+let smartDetailsExpanded=false;
+
+function setAllSmartDetails(expanded){
+  smartDetailsExpanded=expanded;
+  supervisionList.querySelectorAll(".supervision-card-smart").forEach(card=>{
+    card.classList.toggle("expanded",expanded);
+    card.setAttribute("aria-expanded",String(expanded));
+  });
+}
+
+function updateSmartActions(){
+  const cards=[...supervisionList.querySelectorAll(".supervision-card-smart")];
+  const expanded=cards.filter(card=>card.classList.contains("expanded")).length;
+  expandSmartBtn.disabled=!cards.length || expanded===cards.length;
+  collapseSmartBtn.disabled=!expanded;
+}
+
+expandSmartBtn.addEventListener("click",()=>{
+  setAllSmartDetails(true);
+  updateSmartActions();
+});
+collapseSmartBtn.addEventListener("click",()=>{
+  setAllSmartDetails(false);
+  updateSmartActions();
+});
 
 function typeLabel(type){
   return t(TYPE_LABEL[type] || "hostTypeLocal");
@@ -331,6 +356,10 @@ function smartCard(host,metrics,disks){
   card.setAttribute("role","button");
   card.tabIndex=0;
   card.setAttribute("aria-expanded","false");
+  if(smartDetailsExpanded){
+    card.classList.add("expanded");
+    card.setAttribute("aria-expanded","true");
+  }
   const head=document.createElement("div");
   head.className="supervision-head";
   const icon=document.createElement("i");
@@ -361,6 +390,7 @@ function smartCard(host,metrics,disks){
   const toggleDetails=()=>{
     const expanded=card.classList.toggle("expanded");
     card.setAttribute("aria-expanded",String(expanded));
+    updateSmartActions();
   };
   card.addEventListener("click",toggleDetails);
   card.addEventListener("keydown",event=>{
@@ -457,6 +487,7 @@ export function renderSupervision(){
     empty.className="supervision-empty";
     empty.textContent=t("supervisionEmpty");
     supervisionList.append(empty);
+    updateSmartActions();
     return;
   }
 
@@ -466,6 +497,7 @@ export function renderSupervision(){
     status.className="supervision-empty";
     status.textContent=state.hostMetricsError ? t("supervisionError") : t("supervisionLoading");
     supervisionList.append(status);
+    updateSmartActions();
     return;
   }
 
@@ -490,6 +522,7 @@ export function renderSupervision(){
     if(disks.length) grid.appendChild(smartCard(host,metrics,disks));
   });
   supervisionList.append(grid);
+  updateSmartActions();
 }
 
 let metricsInflight=false;
