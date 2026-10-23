@@ -137,14 +137,19 @@ function peerRow(peer){
 
   const name=document.createElement("span");
   name.className="supervision-peer-name";
-  name.textContent=peer.name || t("supervisionPeerUnnamed");
+  const age=handshakeAge(peer.latestHandshake);
+  const fresh=peer.connected===true || (age!==null && age<=WG_CONNECTED_SECONDS);
+  const dot=document.createElement("i");
+  dot.className="supervision-peer-dot"+(fresh ? " up" : "");
+  dot.setAttribute("aria-hidden","true");
+  const label=document.createElement("span");
+  label.textContent=peer.name || t("supervisionPeerUnnamed");
+  name.append(dot,label);
   const endpoint=peer.endpoint ? ` · ${peer.endpoint}` : "";
   name.title=(peer.name || t("supervisionPeerUnnamed"))+endpoint;
 
   const handshake=document.createElement("span");
   handshake.className="supervision-peer-handshake";
-  const age=handshakeAge(peer.latestHandshake);
-  const fresh=peer.connected===true || (age!==null && age<=WG_CONNECTED_SECONDS);
   if(fresh) handshake.classList.add("up");
   handshake.textContent=handshakeText(peer);
 

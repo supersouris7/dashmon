@@ -1147,11 +1147,30 @@ body[data-page="supervision"] .top-menu-wrap{margin-left:auto}
 }
 
 .supervision-peer-name{
+  display:flex;
+  align-items:center;
+  gap:6px;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
   font-weight:600;
 }
+
+.supervision-peer-name > span{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.supervision-peer-dot{
+  flex:0 0 auto;
+  width:8px;
+  height:8px;
+  border:1px solid var(--muted);
+  border-radius:50%;
+}
+
+.supervision-peer-dot.up{border-color:#2fbf5f;background:#2fbf5f}
 
 .supervision-peer-handshake{
   color:var(--muted);

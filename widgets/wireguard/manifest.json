@@ -1,6 +1,6 @@
 {
   "id": "wireguard",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "label": { "fr": "WireGuard", "en": "WireGuard" },
   "description": {
     "fr": "Pairs WireGuard lus depuis le dump local (wg show all dump)",
