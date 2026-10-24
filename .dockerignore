@@ -1,7 +1,8 @@
 node_modules
 data
 *.log
-.env
+.env*
+.opencode
 .git
 .gitignore
 Dockerfile
