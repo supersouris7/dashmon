@@ -14,7 +14,6 @@ services:
       # Protège les API en HTTP Basic Auth. Obligatoire : le conteneur écoute
       # sur son réseau Docker, même si le port hôte reste limité à loopback.
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:?Définissez DASHBOARD_PASSWORD dans .env}
-      DASHBOARD_BIND: 0.0.0.0
       # 1 uniquement si nginx inverse-proxy le HTTPS derrière
       TRUST_PROXY: ${TRUST_PROXY:-0}
       # 1 uniquement si vos hôtes surveillés ont des certificats auto-signés

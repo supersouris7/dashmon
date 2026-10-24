@@ -97,15 +97,13 @@ const pngBody=express.raw({
 const INSECURE_TLS = process.env.DASHBOARD_INSECURE_TLS === "1";
 const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "";
 // Sans mot de passe, Dashmon ne doit pas devenir une interface d'administration
-// accessible au reseau. Dans Docker, on choisit d'abord l'ecoute conteneur
-// normale, puis le controle ci-dessous refuse explicitement un mot de passe
-// absent au lieu de laisser un service inaccessible sur son seul loopback.
+// accessible au reseau. Dans Docker, l'ecoute doit rester disponible pour le
+// proxy et le port publie : un mot de passe y est donc obligatoire.
 const RUNNING_IN_DOCKER = fs.existsSync("/.dockerenv");
-const DASHBOARD_BIND = String(process.env.DASHBOARD_BIND || (DASHBOARD_PASSWORD || RUNNING_IN_DOCKER ? "0.0.0.0" : "127.0.0.1")).trim();
-const LOOPBACK_BINDS = new Set(["127.0.0.1", "::1", "localhost"]);
-if (!LOOPBACK_BINDS.has(DASHBOARD_BIND) && !DASHBOARD_PASSWORD) {
-  throw new Error("DASHBOARD_PASSWORD est obligatoire pour une ecoute reseau (DASHBOARD_BIND=" + DASHBOARD_BIND + ")");
+if (RUNNING_IN_DOCKER && !DASHBOARD_PASSWORD) {
+  throw new Error("DASHBOARD_PASSWORD est obligatoire dans Docker");
 }
+const DASHBOARD_BIND = DASHBOARD_PASSWORD ? "0.0.0.0" : "127.0.0.1";
 // Delai maximal d'une sonde de statut, partage par le core et les plugins.
 const STATUS_TIMEOUT = 4000;
 
