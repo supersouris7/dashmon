@@ -76,13 +76,18 @@ function temperatureText(value){
 
 // Une barre de metrique : un libelle, une piste remplie a la valeur, un chiffre.
 // La classe de severite ne depend pas du theme (le remplissage reste lisible).
-function metricRow(label,value){
+function metricRow(label,value,iconClass){
   const row=document.createElement("div");
   row.className="supervision-metric";
 
   const key=document.createElement("span");
   key.className="supervision-metric-label";
-  key.textContent=label;
+  const icon=document.createElement("i");
+  icon.className=iconClass;
+  icon.setAttribute("aria-hidden","true");
+  const text=document.createElement("span");
+  text.textContent=label;
+  key.append(icon,text);
 
   const track=document.createElement("span");
   track.className="supervision-track";
@@ -108,12 +113,42 @@ function metricRow(label,value){
 function temperatureRow(value){
   const row=document.createElement("div");
   row.className="supervision-row";
+  const n=isMissing(value) ? NaN : Number(value);
+  if(Number.isFinite(n)) row.classList.add(n>=75 ? "high" : n>=60 ? "warn" : "ok");
   const key=document.createElement("span");
-  key.textContent=t("supervisionTemperature");
+  const icon=document.createElement("i");
+  icon.className="fa-solid fa-temperature-half";
+  icon.setAttribute("aria-hidden","true");
+  const text=document.createElement("span");
+  text.textContent=t("supervisionTemperature");
+  key.append(icon,text);
   const content=document.createElement("span");
   content.textContent=temperatureText(value);
   row.append(key,content);
   return row;
+}
+
+function metricSeverity(value){
+  if(isMissing(value) || !Number.isFinite(Number(value))) return -1;
+  const n=Number(value);
+  return n>=90 ? 2 : n>=70 ? 1 : 0;
+}
+
+function temperatureSeverity(value){
+  if(isMissing(value) || !Number.isFinite(Number(value))) return -1;
+  const n=Number(value);
+  return n>=75 ? 2 : n>=60 ? 1 : 0;
+}
+
+function hostHealth(metrics){
+  const core=Math.max(metricSeverity(metrics.cpu),metricSeverity(metrics.ram),metricSeverity(metrics.disk));
+  // La temperature n'est pas fournie par toutes les sources (notamment
+  // Proxmox). Son absence ne rend donc pas une carte autrement complete vague.
+  const highest=Math.max(core,temperatureSeverity(metrics.temperature));
+  if(core<0) return { level:"unknown", label:"supervisionHealthUnknown", icon:"fa-solid fa-circle-question" };
+  if(highest===2) return { level:"critical", label:"supervisionHealthCritical", icon:"fa-solid fa-triangle-exclamation" };
+  if(highest===1) return { level:"warning", label:"supervisionHealthWarning", icon:"fa-solid fa-circle-exclamation" };
+  return { level:"healthy", label:"supervisionHealthHealthy", icon:"fa-solid fa-circle-check" };
 }
 
 // Un pair est considere connecte si son dernier handshake date de moins de
@@ -202,7 +237,7 @@ function peerRow(peer){
 
 function hostCard(host,metrics){
   const card=document.createElement("article");
-  card.className="supervision-card";
+  card.className="supervision-card supervision-card-host";
 
   const head=document.createElement("div");
   head.className="supervision-head";
@@ -219,16 +254,35 @@ function hostCard(host,metrics){
   card.appendChild(head);
 
   if(metrics && metrics.ok){
+    const health=hostHealth(metrics);
+    card.classList.add("is-"+health.level);
+    const overview=document.createElement("div");
+    overview.className="supervision-health";
+    const state=document.createElement("span");
+    state.className="supervision-health-state";
+    const stateIcon=document.createElement("i");
+    stateIcon.className=health.icon;
+    stateIcon.setAttribute("aria-hidden","true");
+    const stateText=document.createElement("strong");
+    stateText.textContent=t(health.label);
+    state.append(stateIcon,stateText);
+    const hint=document.createElement("span");
+    hint.className="supervision-health-hint";
+    hint.textContent=t("supervisionHealthHint");
+    overview.append(state,hint);
+    card.appendChild(overview);
+
     const rows=document.createElement("div");
     rows.className="supervision-rows";
     rows.append(
-      metricRow(t("supervisionCpu"),metrics.cpu),
-      metricRow(t("supervisionRam"),metrics.ram),
-      metricRow(t("supervisionDisk"),metrics.disk),
+      metricRow(t("supervisionCpu"),metrics.cpu,"fa-solid fa-microchip"),
+      metricRow(t("supervisionRam"),metrics.ram,"fa-solid fa-memory"),
+      metricRow(t("supervisionDisk"),metrics.disk,"fa-solid fa-hard-drive"),
       temperatureRow(metrics.temperature)
     );
     card.appendChild(rows);
   }else{
+    card.classList.add("is-unreachable");
     const error=document.createElement("p");
     error.className="supervision-error";
     error.textContent=(metrics && metrics.error) ? metrics.error : t("supervisionUnreachable");

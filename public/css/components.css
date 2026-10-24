@@ -926,6 +926,14 @@ body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
   box-shadow:var(--shadow);
 }
 
+/* Une regle coloree expose l'etat general avant la lecture des mesures. */
+.supervision-card-host{position:relative;overflow:hidden}
+.supervision-card-host::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--muted)}
+.supervision-card-host.is-healthy::before{background:var(--success)}
+.supervision-card-host.is-warning::before{background:var(--warning)}
+.supervision-card-host.is-critical::before,
+.supervision-card-host.is-unreachable::before{background:var(--error)}
+
 .supervision-head{
   display:flex;
   align-items:center;
@@ -933,6 +941,25 @@ body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
   margin-bottom:12px;
   font-weight:600;
 }
+
+.supervision-health{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:-2px 0 12px;
+  padding:7px 9px;
+  border:1px solid var(--border);
+  border-radius:4px;
+  background:var(--surface-2);
+  font-size:12px;
+}
+.supervision-health-state{display:inline-flex;align-items:center;gap:7px;min-width:0}
+.supervision-health-state i{color:var(--muted)}
+.supervision-card-host.is-healthy .supervision-health-state i{color:var(--success)}
+.supervision-card-host.is-warning .supervision-health-state i{color:var(--warning)}
+.supervision-card-host.is-critical .supervision-health-state i{color:var(--error)}
+.supervision-health-hint{color:var(--muted);white-space:nowrap}
 
 .supervision-rows{
   display:grid;
@@ -946,7 +973,11 @@ body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
   gap:14px;
 }
 
-.supervision-row > span:first-child{color:var(--muted)}
+.supervision-row > span:first-child,.supervision-metric-label{color:var(--muted)}
+.supervision-row > span:first-child{display:inline-flex;align-items:center;gap:7px}
+.supervision-row.ok > span:last-child{color:var(--success)}
+.supervision-row.warn > span:last-child{color:var(--warning)}
+.supervision-row.high > span:last-child{color:var(--error)}
 
 .supervision-name{
   overflow:hidden;
@@ -976,7 +1007,8 @@ body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
   font-size:13px;
 }
 
-.supervision-metric-label{color:var(--muted)}
+.supervision-metric-label{display:inline-flex;align-items:center;gap:7px;min-width:0}
+.supervision-metric-label i{width:12px;text-align:center;font-size:11px}
 
 .supervision-track{
   height:8px;
