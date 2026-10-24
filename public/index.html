@@ -77,6 +77,7 @@
 
   <div class="toolbar">
     <div class="page-switch" role="group" id="pageSwitchGroup" aria-label="Navigation"></div>
+    <select id="mobilePageSelect" class="mobile-page-select" aria-label="Navigation"></select>
 
     <div class="search-box">
       <i class="fa-solid fa-magnifying-glass"></i>
@@ -84,24 +85,25 @@
       <kbd class="search-key">/</kbd>
     </div>
 
-    <button id="viewBtn" class="icon-btn" type="button" title="Affichage en lignes">
-      <i class="fa-solid fa-bars"></i>
-    </button>
-
-    <button id="iconsBtn" class="icon-btn" type="button" title="Grandes icônes" aria-label="Grandes icônes" aria-pressed="false">
-      <i class="fa-solid fa-expand-alt"></i>
-    </button>
-
-    <button id="collapseAllBtn" class="icon-btn" type="button" title="Tout plier" aria-label="Tout plier">
-      <i class="fa-solid fa-angles-up"></i>
-    </button>
-
-    <div class="top-menu-wrap">
-      <button id="moreBtn" class="icon-btn" type="button" title="Plus d’options" aria-expanded="false" aria-haspopup="menu" aria-controls="topMenu">
-        <i class="fa-solid fa-ellipsis-vertical"></i>
+    <div class="toolbar-actions">
+      <button id="viewBtn" class="icon-btn" type="button" title="Affichage en lignes">
+        <i class="fa-solid fa-bars"></i>
       </button>
 
-      <div id="topMenu" class="top-menu" role="menu">
+      <button id="iconsBtn" class="icon-btn" type="button" title="Grandes icônes" aria-label="Grandes icônes" aria-pressed="false">
+        <i class="fa-solid fa-expand-alt"></i>
+      </button>
+
+      <button id="collapseAllBtn" class="icon-btn" type="button" title="Tout plier" aria-label="Tout plier">
+        <i class="fa-solid fa-angles-up"></i>
+      </button>
+
+      <div class="top-menu-wrap">
+        <button id="moreBtn" class="icon-btn" type="button" title="Plus d’options" aria-expanded="false" aria-haspopup="menu" aria-controls="topMenu">
+          <i class="fa-solid fa-ellipsis-vertical"></i>
+        </button>
+
+        <div id="topMenu" class="top-menu" role="menu">
         <div class="top-menu-label">Regrouper par</div>
         <button class="top-menu-item" id="groupCategoryBtn" type="button">
           <i class="fa-solid fa-folder-tree"></i><span>Catégorie</span><i class="fa-solid fa-check menu-check"></i>
@@ -141,6 +143,7 @@
         </button>
       </div>
     </div>
+  </div>
   </div>
 </header>
 

@@ -1234,6 +1234,37 @@ body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
   font-size:12px;
 }
 
+@media (max-width:700px){
+  /* Sur telephone, les actions restent immediatement accessibles. La navigation
+     passe sous forme de select pour ne pas comprimer ni faire defiler les noms. */
+  .toolbar{
+    display:flex;
+    flex-wrap:wrap;
+  }
+  .toolbar-actions{
+    display:flex;
+    order:1;
+    align-items:center;
+    justify-content:flex-end;
+    gap:6px;
+    width:100%;
+  }
+  .page-switch{display:none}
+  .mobile-page-select{
+    display:block;
+    order:2;
+    width:100%;
+    height:40px;
+    min-width:0;
+    padding:0 10px;
+    border:1px solid var(--border);
+    border-radius:3px;
+    background:var(--surface);
+    color:var(--text);
+    font:inherit;
+  }
+}
+
 @media (max-width:560px){
   /* La navigation et les actions restent accessibles sur petit ecran. */
   .toolbar{

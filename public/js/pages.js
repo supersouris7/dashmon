@@ -4,7 +4,7 @@
 import { state } from "./state.js";
 import { render } from "./render.js";
 import { renderSupervision, startSupervisionMetrics, stopSupervisionMetrics } from "./supervision.js";
-import { pageSwitchGroup } from "./dom.js";
+import { pageSwitchGroup, mobilePageSelect } from "./dom.js";
 import { saveViewPrefs } from "./view-prefs.js";
 import { t } from "./i18n.js";
 
@@ -58,6 +58,7 @@ function applyPage(){
 
 export function renderPageSwitch(){
   pageSwitchGroup.replaceChildren();
+  mobilePageSelect.replaceChildren();
   const activeId=activeDashboardId();
 
   state.dashboards.forEach(d=>{
@@ -68,12 +69,34 @@ export function renderPageSwitch(){
     btn.title=d.name||t("pageDashboard");
     btn.addEventListener("click",()=>selectDashboard(id));
     pageSwitchGroup.appendChild(btn);
+
+    const option=document.createElement("option");
+    option.value="dashboard:"+id;
+    option.textContent=d.name||t("pageDashboard");
+    option.selected=state.page==="dashboard" && id===activeId;
+    mobilePageSelect.appendChild(option);
   });
 
   const sup=button("supervision","fa-solid fa-shield-halved",t("pageSupervision"),state.page==="supervision");
   sup.addEventListener("click",selectSupervision);
   pageSwitchGroup.appendChild(sup);
+
+  const supervisionOption=document.createElement("option");
+  supervisionOption.value="supervision";
+  supervisionOption.textContent=t("pageSupervision");
+  supervisionOption.selected=state.page==="supervision";
+  mobilePageSelect.appendChild(supervisionOption);
+  mobilePageSelect.setAttribute("aria-label",t("pageSwitch"));
 }
+
+mobilePageSelect.addEventListener("change",()=>{
+  if(mobilePageSelect.value==="supervision"){
+    selectSupervision();
+    return;
+  }
+  const id=mobilePageSelect.value.replace(/^dashboard:/,"");
+  if(state.dashboards.some(d=>d.id===id)) selectDashboard(id);
+});
 
 // Applique une page sans forcement persister : le rendu initial de l'application
 // fait simplement honneur a la preference deja chargee.
