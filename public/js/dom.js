@@ -22,6 +22,7 @@ export const menuEditBtn=document.getElementById("menuEditBtn");
 export const menuSupervisionBtn=document.getElementById("menuSupervisionBtn");
 export const menuAppearanceBtn=document.getElementById("menuAppearanceBtn");
 export const menuRefreshBtn=document.getElementById("menuRefreshBtn");
+export const menuLogoutBtn=document.getElementById("menuLogoutBtn");
 export const appearanceBackdrop=document.getElementById("appearanceBackdrop");
 export const appearanceCloseBtn=document.getElementById("appearanceCloseBtn");
 export const appearanceDoneBtn=document.getElementById("appearanceDoneBtn");

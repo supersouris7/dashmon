@@ -21,7 +21,7 @@ import {
     searchInput, viewBtn, iconsBtn, collapseAllBtn, moreBtn, topMenu,
   openModeSelect, groupCategoryBtn, groupHostBtn,
   sortAlphabeticalBtn, sortUsageBtn, menuEditBtn, menuSupervisionBtn,
-  menuAppearanceBtn, menuRefreshBtn,
+  menuAppearanceBtn, menuRefreshBtn, menuLogoutBtn,
   appearanceBackdrop, appearanceCloseBtn, appearanceDoneBtn, themeSelect,
   languageSelect, webLinksSection, restoreWebLinksBtn, resetUsageBtn, importThemeBtn, exportThemeBtn, deleteThemeBtn,
   themeImportInput, modalBackdrop, imageLibrary
@@ -211,6 +211,15 @@ menuAppearanceBtn.addEventListener("click",openAppearance);
 menuRefreshBtn.addEventListener("click",()=>{
   closeTopMenu();
   manualRefresh();
+});
+
+menuLogoutBtn.addEventListener("click",async()=>{
+  closeTopMenu();
+  try{
+    await fetch("/logout",{method:"POST"});
+  }finally{
+    window.location.replace("/login");
+  }
 });
 appearanceCloseBtn.addEventListener("click",closeAppearance);
 appearanceDoneBtn.addEventListener("click",closeAppearance);

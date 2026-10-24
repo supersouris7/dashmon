@@ -7,7 +7,7 @@ import {
   groupCategoryBtn, groupHostBtn, sortMenuLabel,
   sortAlphabeticalBtn, sortUsageBtn, editorTitle, closeBtn, editorSearch,
   cancelBtn, saveBtn, imageLibraryTitle, widgetConfigTitle, closeImageLibraryBtn,
-  menuRefreshBtn, hideWebLinksBtn, restoreWebLinksBtn
+  menuRefreshBtn, menuLogoutBtn, hideWebLinksBtn, restoreWebLinksBtn
 } from "./dom.js";
 
 const UI_TEXT={
@@ -62,6 +62,7 @@ const UI_TEXT={
     editDashboard:"Modifier Dashmon",
     editTheme:"Modifier le thème",
     menuRefresh:"Rafraîchir les statuts",
+    logout:"Se déconnecter",
     refreshing:"Rafraîchissement des statuts en cours…",
     theme:"Thème",
     language:"Langue",
@@ -305,6 +306,7 @@ const UI_TEXT={
     editDashboard:"Edit Dashmon",
     editTheme:"Appearance",
     menuRefresh:"Refresh statuses",
+    logout:"Sign out",
     refreshing:"Refreshing statuses…",
     theme:"Theme",
     language:"Language",
@@ -517,6 +519,9 @@ export function applyLanguage(){
 
   const refreshLabel=menuRefreshBtn.querySelector("span:nth-child(2)");
   if(refreshLabel) refreshLabel.textContent=t("menuRefresh");
+
+  const logoutLabel=menuLogoutBtn.querySelector("span:nth-child(2)");
+  if(logoutLabel) logoutLabel.textContent=t("logout");
 
   appearanceTitle.textContent=t("editTheme");
   themeFieldLabel.textContent=t("theme");
