@@ -1,10 +1,9 @@
 :root{color-scheme:dark light;--bg:#141414;--surface:#202020;--surface-2:#2a2a2a;--border:#404040;--text:#f7f7f7;--muted:#ababab;--accent:#4f8f89;--error:#ff4d6d;--shadow:0 2px 6px rgba(0,0,0,.22)}
 *{box-sizing:border-box}
-body{min-height:100vh;margin:0;padding:24px;background:radial-gradient(circle at 50% 0,color-mix(in srgb,var(--accent) 15%,var(--bg)),var(--bg) 42%);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+body{min-height:100vh;margin:0;padding:24px;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
 .login-page{display:grid;place-items:center}
 .login-panel{width:min(100%,380px);padding:32px;border:1px solid var(--border);border-radius:6px;background:var(--surface);box-shadow:0 20px 60px rgba(0,0,0,.4)}
 .login-mark{display:block;width:88px;height:88px;margin:0 auto 18px;object-fit:contain}
-.login-kicker{margin:0 0 5px;color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.16em}
 h1{margin:0;font-size:26px;letter-spacing:-.03em}.login-copy{margin:9px 0 26px;color:var(--muted);font-size:14px;line-height:1.45}
 .login-form{display:grid;gap:9px}.login-form label{font-size:13px;font-weight:600}.login-form input{width:100%;height:42px;padding:0 11px;border:1px solid var(--border);border-radius:3px;background:var(--surface-2);color:var(--text);font:inherit}.login-form input:focus{outline:2px solid var(--accent);outline-offset:1px}
 .login-form button{display:flex;align-items:center;justify-content:center;gap:9px;min-height:42px;margin-top:10px;border:0;border-radius:3px;background:var(--accent);color:var(--bg);font:inherit;font-weight:700;cursor:pointer}.login-form button:disabled{opacity:.65;cursor:wait}.login-error{margin:2px 0 0;color:var(--error);font-size:13px}
