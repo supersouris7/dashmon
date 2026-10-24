@@ -47,7 +47,8 @@ integrations and configuration.
 
 ```bash
 export DASHMON_PASSWORD='choisissez-un-mot-de-passe-solide'
-docker run -d --name dashmon -p 127.0.0.1:8080:8080 \
+docker run -d --name dashmon --cap-drop=ALL --security-opt=no-new-privileges:true \
+  -p 127.0.0.1:8080:8080 \
   -v dashmon-data:/app/data \
   -e DASHMON_PASSWORD \
   supersouris7/dashmon
