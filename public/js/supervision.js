@@ -76,18 +76,13 @@ function temperatureText(value){
 
 // Une barre de metrique : un libelle, une piste remplie a la valeur, un chiffre.
 // La classe de severite ne depend pas du theme (le remplissage reste lisible).
-function metricRow(label,value,iconClass){
+function metricRow(label,value){
   const row=document.createElement("div");
   row.className="supervision-metric";
 
   const key=document.createElement("span");
   key.className="supervision-metric-label";
-  const icon=document.createElement("i");
-  icon.className=iconClass;
-  icon.setAttribute("aria-hidden","true");
-  const text=document.createElement("span");
-  text.textContent=label;
-  key.append(icon,text);
+  key.textContent=label;
 
   const track=document.createElement("span");
   track.className="supervision-track";
@@ -266,18 +261,15 @@ function hostCard(host,metrics){
     const stateText=document.createElement("strong");
     stateText.textContent=t(health.label);
     state.append(stateIcon,stateText);
-    const hint=document.createElement("span");
-    hint.className="supervision-health-hint";
-    hint.textContent=t("supervisionHealthHint");
-    overview.append(state,hint);
+    overview.append(state);
     card.appendChild(overview);
 
     const rows=document.createElement("div");
     rows.className="supervision-rows";
     rows.append(
-      metricRow(t("supervisionCpu"),metrics.cpu,"fa-solid fa-microchip"),
-      metricRow(t("supervisionRam"),metrics.ram,"fa-solid fa-memory"),
-      metricRow(t("supervisionDisk"),metrics.disk,"fa-solid fa-hard-drive"),
+      metricRow(t("supervisionCpu"),metrics.cpu),
+      metricRow(t("supervisionRam"),metrics.ram),
+      metricRow(t("supervisionDisk"),metrics.disk),
       temperatureRow(metrics.temperature)
     );
     card.appendChild(rows);
