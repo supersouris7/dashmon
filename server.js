@@ -97,8 +97,11 @@ const pngBody=express.raw({
 const INSECURE_TLS = process.env.DASHBOARD_INSECURE_TLS === "1";
 const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "";
 // Sans mot de passe, Dashmon ne doit pas devenir une interface d'administration
-// accessible au reseau. Un bind externe est autorise seulement avec Basic Auth.
-const DASHBOARD_BIND = String(process.env.DASHBOARD_BIND || (DASHBOARD_PASSWORD ? "0.0.0.0" : "127.0.0.1")).trim();
+// accessible au reseau. Dans Docker, on choisit d'abord l'ecoute conteneur
+// normale, puis le controle ci-dessous refuse explicitement un mot de passe
+// absent au lieu de laisser un service inaccessible sur son seul loopback.
+const RUNNING_IN_DOCKER = fs.existsSync("/.dockerenv");
+const DASHBOARD_BIND = String(process.env.DASHBOARD_BIND || (DASHBOARD_PASSWORD || RUNNING_IN_DOCKER ? "0.0.0.0" : "127.0.0.1")).trim();
 const LOOPBACK_BINDS = new Set(["127.0.0.1", "::1", "localhost"]);
 if (!LOOPBACK_BINDS.has(DASHBOARD_BIND) && !DASHBOARD_PASSWORD) {
   throw new Error("DASHBOARD_PASSWORD est obligatoire pour une ecoute reseau (DASHBOARD_BIND=" + DASHBOARD_BIND + ")");
