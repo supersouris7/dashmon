@@ -4,7 +4,7 @@
 // (tag local re-pullé vers une autre image). Sinon il est compté à jour et
 // tracé dans `unknown` (à raffiner au registre distant par le backend).
 const assert = require("assert");
-const { computeDockerSummary, parseImageRef, dockerSocketError, dockerTcpTarget } = require("../docker");
+const { computeDockerSummary, parseImageRef, dockerSocketError, dockerTcpTarget, registryTarget } = require("../docker");
 
 let failures = 0;
 function check(name, actual, expected){
@@ -144,6 +144,10 @@ check("Docker TCP : link-local refusee", (() => {
 })(), true);
 check("Docker TCP : link-local IPv6 refusee", (() => {
   try { dockerTcpTarget("http://[fe80::1]:2375"); return false; } catch (error) { return /link-local/.test(error.message); }
+})(), true);
+check("registre Docker : hote public admis", registryTarget("https:", "registry.example.test:5000").target.port, "5000");
+check("registre Docker : link-local refusee", (() => {
+  try { registryTarget("http:", "169.254.169.254:5000"); return false; } catch (error) { return /link-local/.test(error.message); }
 })(), true);
 
 if (failures) {

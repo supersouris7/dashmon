@@ -258,24 +258,40 @@ function computeDockerSummary(containers, images){
 }
 
 // --- Accès au registre (lecture seule) ---
-function bareHost(host){
-  const match = /^(.*?)(?::\d+)?$/.exec(host);
-  return match ? match[1] : host;
+function registryTarget(protocol, host){
+  const target = new URL(String(protocol || "") + "//" + String(host || ""));
+  if (target.protocol !== "http:" && target.protocol !== "https:") {
+    throw new Error("Registre Docker invalide");
+  }
+  const address = target.hostname.replace(/^\[|\]$/g, "");
+  if (net.isIP(address) && isBlockedAddress(address)) {
+    throw new Error("Adresse de registre link-local refusee");
+  }
+  return { target, address };
 }
 
 function registryRequest(protocol, host, path, headers, timeout){
   return new Promise((resolve, reject)=>{
-    const client = protocol === "https:" ? https : http;
+    let target;
+    let address;
+    try {
+      ({ target, address } = registryTarget(protocol, host));
+    } catch (error) {
+      return reject(error);
+    }
+    const client = target.protocol === "https:" ? https : http;
     const started = Date.now();
     const req = client.request({
-      host,
+      hostname: target.hostname,
+      port: target.port || undefined,
       method: "GET",
       path,
       headers: Object.assign({ "User-Agent": "Dashmon-Registry/1.0" }, headers || {}),
       timeout: timeout || REGISTRY_TIMEOUT,
       family: 4,
       rejectUnauthorized: !INSECURE_TLS,
-      servername: protocol === "https:" ? bareHost(host) : undefined
+      lookup: safeLookup,
+      servername: target.protocol === "https:" && !net.isIP(address) ? target.hostname : undefined
     }, response => {
       const chunks = [];
       let size = 0;
@@ -484,6 +500,7 @@ module.exports = {
   dockerSocketError,
   dockerHostMode,
   dockerTcpTarget,
+  registryTarget,
   parseImageRef,
   classifyDockerContainers,
   computeDockerSummary,
