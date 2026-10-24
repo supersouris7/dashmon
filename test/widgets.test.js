@@ -180,6 +180,14 @@ async function main(){
   const logLines = [];
   const msCache = {};
   const httpLib = require("../lib/http");
+  check("http : link-local IPv4 refusee", httpLib.isBlockedAddress("169.254.169.254"), true);
+  check("http : link-local IPv6 refusee", httpLib.isBlockedAddress("fe80::1"), true);
+  check("http : LAN IPv4 admise", httpLib.isBlockedAddress("192.168.1.1"), false);
+  check("http : loopback admise", httpLib.isBlockedAddress("127.0.0.1"), false);
+  const blockedMetadata = await httpLib.apiRequest("http://169.254.169.254", "").catch(error => error);
+  check("http : requete metadata refusee avant connexion", blockedMetadata.code, "EHOSTUNREACH");
+  const blockedMetadataV6 = await httpLib.apiRequest("http://[fe80::1]", "").catch(error => error);
+  check("http : requete metadata IPv6 refusee avant connexion", blockedMetadataV6.code, "EHOSTUNREACH");
   const msCore = new WidgetCore({
     root: ROOT, dataDir: os.tmpdir(), log: m => logLines.push(String(m)),
     decryptSecret: v => v, encryptSecret: v => v,
