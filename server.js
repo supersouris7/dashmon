@@ -96,6 +96,13 @@ const pngBody=express.raw({
 
 const INSECURE_TLS = process.env.DASHBOARD_INSECURE_TLS === "1";
 const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "";
+// Sans mot de passe, Dashmon ne doit pas devenir une interface d'administration
+// accessible au reseau. Un bind externe est autorise seulement avec Basic Auth.
+const DASHBOARD_BIND = String(process.env.DASHBOARD_BIND || (DASHBOARD_PASSWORD ? "0.0.0.0" : "127.0.0.1")).trim();
+const LOOPBACK_BINDS = new Set(["127.0.0.1", "::1", "localhost"]);
+if (!LOOPBACK_BINDS.has(DASHBOARD_BIND) && !DASHBOARD_PASSWORD) {
+  throw new Error("DASHBOARD_PASSWORD est obligatoire pour une ecoute reseau (DASHBOARD_BIND=" + DASHBOARD_BIND + ")");
+}
 // Delai maximal d'une sonde de statut, partage par le core et les plugins.
 const STATUS_TIMEOUT = 4000;
 
@@ -1718,8 +1725,8 @@ async function start(){
     console.warn(`${ts()} Aucun plugin de lien (defaultFor: "link") : les liens web ne seront pas contrôlés`);
   }
   widgetsReady=true;
-  httpServer=app.listen(PORT,"0.0.0.0",()=>{
-    console.log(`${ts()} Dashmon : http://0.0.0.0:${PORT}`);
+  httpServer=app.listen(PORT,DASHBOARD_BIND,()=>{
+    console.log(`${ts()} Dashmon : http://${DASHBOARD_BIND}:${PORT}`);
   });
   await refreshStatuses();
 }

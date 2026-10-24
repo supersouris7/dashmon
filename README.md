@@ -46,8 +46,10 @@ integrations and configuration.
 ### Docker (recommended)
 
 ```bash
-docker run -d --name dashmon -p 8080:8080 \
+export DASHBOARD_PASSWORD='choisissez-un-mot-de-passe-solide'
+docker run -d --name dashmon -p 127.0.0.1:8080:8080 \
   -v dashmon-data:/app/data \
+  -e DASHBOARD_PASSWORD \
   supersouris7/dashmon
 ```
 
@@ -57,6 +59,7 @@ docker run -d --name dashmon -p 8080:8080 \
 
 ```bash
 cp .env.example .env
+# renseignez DASHBOARD_PASSWORD dans .env
 docker compose up -d
 ```
 
