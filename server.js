@@ -38,6 +38,7 @@ const INDEX_FILE = path.join(PUBLIC_DIR, "index.html");
 const ICONS_DIR = process.env.ICONS_DIR || path.join(DATA_DIR, "icons");
 const THEMES_NATIVE_DIR = process.env.THEMES_NATIVE_DIR || path.join(PUBLIC_DIR, "themes");
 const THEMES_CUSTOM_DIR = process.env.THEMES_CUSTOM_DIR || path.join(DATA_DIR, "themes");
+const LOGIN_FILE = path.join(PUBLIC_DIR, "login.html");
 
 // Version de release affichee dans le pied de page. Elle suit le tag plutot que
 // le champ "version" du paquet, qui reste fige entre deux releases : sur une
@@ -96,6 +97,7 @@ const pngBody=express.raw({
 
 const INSECURE_TLS = process.env.DASHBOARD_INSECURE_TLS === "1";
 const DASHMON_PASSWORD = process.env.DASHMON_PASSWORD || "";
+const SESSION_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
 // Sans mot de passe, Dashmon ne doit pas devenir une interface d'administration
 // accessible au reseau. Dans Docker, l'ecoute doit rester disponible pour le
 // proxy et le port publie : un mot de passe y est donc obligatoire.
@@ -106,6 +108,52 @@ if (RUNNING_IN_DOCKER && !DASHMON_PASSWORD) {
 const DASHBOARD_BIND = DASHMON_PASSWORD ? "0.0.0.0" : "127.0.0.1";
 // Delai maximal d'une sonde de statut, partage par le core et les plugins.
 const STATUS_TIMEOUT = 4000;
+
+function isSecureRequest(req) {
+  return req.secure || req.get("x-forwarded-proto") === "https";
+}
+
+function cookieValue(req, name) {
+  const prefix = name + "=";
+  const match = String(req.get("Cookie") || "").split(";").map(value => value.trim())
+    .find(value => value.startsWith(prefix));
+  if (!match) return "";
+  try { return decodeURIComponent(match.slice(prefix.length)); } catch (_error) { return ""; }
+}
+
+function sessionValue(expiresAt, nonce = crypto.randomBytes(18).toString("base64url")) {
+  const expires = String(expiresAt);
+  const signature = crypto.createHmac("sha256", DASHMON_PASSWORD)
+    .update("dashmon-session:" + expires + ":" + nonce).digest("base64url");
+  return expires + "." + nonce + "." + signature;
+}
+
+function validSession(req) {
+  const value = cookieValue(req, "dashmon_session");
+  const match = /^(\d{13})\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/.exec(value);
+  if (!match || Number(match[1]) < Date.now()) return false;
+  const expected = Buffer.from(sessionValue(match[1], match[2]));
+  const received = Buffer.from(value);
+  return received.length === expected.length && crypto.timingSafeEqual(received, expected);
+}
+
+function validBasicAuth(req) {
+  const expected = "Basic " + Buffer.from("admin:" + DASHMON_PASSWORD).toString("base64");
+  const received = Buffer.from(req.get("Authorization") || "");
+  return received.length === Buffer.byteLength(expected)
+    && received.length > 0
+    && crypto.timingSafeEqual(received, Buffer.from(expected));
+}
+
+function setSessionCookie(req, res, expiresAt) {
+  const seconds = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+  const attributes = [
+    "dashmon_session=" + encodeURIComponent(sessionValue(expiresAt)),
+    "Path=/", "HttpOnly", "SameSite=Strict", "Max-Age=" + seconds
+  ];
+  if (isSecureRequest(req)) attributes.push("Secure");
+  res.set("Set-Cookie", attributes.join("; "));
+}
 
 // Allowlist des variables d'environnement citables comme source d'un token
 // (tokenEnv / tokenIdEnv / tokenSecretEnv d'un hote supervise). Sans elle, un
@@ -222,14 +270,25 @@ app.use("/api/status", rateLimitGet);
 app.use("/api/host-metrics", rateLimitGet);
 
 if (DASHMON_PASSWORD) {
+  app.post("/login", rateLimit, (req, res) => {
+    res.set("Cache-Control", "no-store");
+    const password = typeof req.body?.password === "string" ? req.body.password : "";
+    const expected = Buffer.from(DASHMON_PASSWORD);
+    const received = Buffer.from(password);
+    const ok = received.length === expected.length && crypto.timingSafeEqual(received, expected);
+    if (!ok) return res.status(401).json({ error: "Authentification invalide" });
+    setSessionCookie(req, res, Date.now() + SESSION_MAX_AGE);
+    res.json({ ok: true });
+  });
+
+  app.post("/logout", rateLimit, (req, res) => {
+    res.set("Cache-Control", "no-store");
+    setSessionCookie(req, res, 0);
+    res.json({ ok: true });
+  });
+
   app.use("/api", (req, res, next) => {
-    const expected = "Basic " + Buffer.from("admin:" + DASHMON_PASSWORD).toString("base64");
-    const received = Buffer.from(req.get("Authorization") || "");
-    const ok = received.length === Buffer.byteLength(expected)
-      && received.length > 0
-      && crypto.timingSafeEqual(received, Buffer.from(expected));
-    if (ok) return next();
-    res.set("WWW-Authenticate", 'Basic realm="Dashmon"');
+    if (validSession(req) || validBasicAuth(req)) return next();
     res.status(401).json({ error: "Authentification requise" });
   });
 }
@@ -1082,7 +1141,14 @@ app.delete("/api/themes/:id",(req,res)=>{
   }
 });
 
-app.get("/",(_req,res)=>{
+app.get("/login",(req,res)=>{
+  if (!DASHMON_PASSWORD || validSession(req) || validBasicAuth(req)) return res.redirect("/");
+  res.set("Cache-Control","no-store");
+  res.sendFile(LOGIN_FILE);
+});
+
+app.get(["/","/index.html"],(req,res)=>{
+  if (DASHMON_PASSWORD && !validSession(req) && !validBasicAuth(req)) return res.redirect("/login");
   // La page doit toujours etre revalidee : elle porte le libelle de version du
   // pied de page et les references des scripts. Sans cet en-tete, un
   // navigateur garde le HTML en cache et affiche une version perimee alors que

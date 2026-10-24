@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Dashmon - Connexion</title>
+  <link rel="stylesheet" href="/css/login.css">
+</head>
+<body class="login-page">
+  <main class="login-panel">
+    <div class="login-mark" aria-hidden="true">D</div>
+    <p class="login-kicker">DASHMON</p>
+    <h1>Connexion</h1>
+    <p class="login-copy">Votre session reste active pendant 30 jours sur cet appareil.</p>
+    <form id="loginForm" class="login-form">
+      <label for="password">Mot de passe</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
+      <p id="loginError" class="login-error" role="alert" hidden></p>
+      <button type="submit">Ouvrir Dashmon &gt;</button>
+    </form>
+  </main>
+  <script src="/js/login.js"></script>
+</body>
+</html>

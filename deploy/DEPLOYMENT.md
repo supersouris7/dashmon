@@ -75,7 +75,7 @@ See `.env.example`. The most important:
 | Variable | Default | Role |
 | --- | --- | --- |
 | `PORT` | `8080` | Internal HTTP port |
-| `DASHMON_PASSWORD` | empty outside Docker | HTTP Basic Auth for `/api/*`; required by Compose and for a network bind |
+| `DASHMON_PASSWORD` | empty outside Docker | Dashmon login; browser session lasts 30 days. Required by Compose and for a network bind |
 | `TRUST_PROXY` | `0` | `1` only if nginx terminates HTTPS in front of the container |
 | `DASHBOARD_INSECURE_TLS` | empty | `1` if your monitored hosts use self-signed certificates |
 | `DASHMON_MASTER_KEY` | empty | AES-256-GCM master key to encrypt widget secrets (e.g. Duplicati password) in `config.json` |
