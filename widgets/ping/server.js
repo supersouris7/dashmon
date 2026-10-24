@@ -24,6 +24,7 @@
 
 const dns = require("dns");
 const net = require("net");
+const { isBlockedAddress } = require("../../lib/http");
 
 // 3 s : au-dela, un hote qui ne repond pas est considere injoignable, et la
 // tuile ne doit pas rester bloquee plus longtemps que ses voisines.
@@ -102,6 +103,18 @@ function tcpConnect(host, port, timeout) {
   });
 }
 
+async function resolveTarget(host) {
+  if (net.isIP(host)) {
+    if (isBlockedAddress(host)) throw Object.assign(new Error("Adresse link-local refusee"), { code: "EHOSTUNREACH" });
+    return host;
+  }
+  const addresses = await dns.promises.lookup(host, { all: true, verbatim: true });
+  if (!addresses.length || addresses.some(entry => isBlockedAddress(entry.address))) {
+    throw Object.assign(new Error("Adresse link-local refusee"), { code: "EHOSTUNREACH" });
+  }
+  return addresses[0].address;
+}
+
 async function check(ctx) {
   // Le champ "host" gagne sur l'URL du service : on teste ce que l'utilisateur
   // a explicitement demande, meme si la carte pointe ailleurs. Le port vient du
@@ -111,16 +124,19 @@ async function check(ctx) {
     return { state: "down", ok: false, error: ctx.t("missingHost") };
   }
 
-  // Le nom doit d'abord se resoudre : sans cela on ne peut meme pas tenter la
-  // connexion, et "nom introuvable" est une panne tres differente de "port
-  // ferme". Sur une adresse IP, lookup est immediat.
+  // La connexion emploie l'adresse resolue et validee, pas le nom initial : une
+  // reponse DNS ne peut donc pas rebinder la sonde vers une adresse link-local.
+  let address;
   try {
-    await dns.promises.lookup(target.host);
-  } catch (_error) {
+    address = await resolveTarget(target.host);
+  } catch (error) {
+    if (error && error.code === "EHOSTUNREACH") {
+      return { state: "down", ok: false, error: ctx.t("blockedAddress") + " (" + target.host + ")" };
+    }
     return { state: "down", ok: false, error: ctx.t("unresolved") + " (" + target.host + ")" };
   }
 
-  const reachable = await tcpConnect(target.host, target.port, TIMEOUT);
+  const reachable = await tcpConnect(address, target.port, TIMEOUT);
   if (!reachable) {
     // Le port est named explicitement : sans lui, un hote saisi sans port se
     // fait tester en 80 et l'utilisateur n'a aucun moyen de deviner que c'est
@@ -130,4 +146,4 @@ async function check(ctx) {
   return { state: "up", ok: true };
 }
 
-module.exports = { check, parseTarget };
+module.exports = { check, parseTarget, resolveTarget };

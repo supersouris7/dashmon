@@ -985,6 +985,10 @@ async function main(){
   check("ping : le champ host prime sur l'URL", [badHost.state, badHost.error],
     ["down", "unresolved (hote-inexistant.exemple.lan)"]);
 
+  const blockedPing = await ping.check(pingCtx("169.254.169.254:80", null));
+  check("ping : link-local refusee avant connexion", [blockedPing.state, blockedPing.error],
+    ["down", "blockedAddress (169.254.169.254)"]);
+
   // Un port ferme doit nommer le port essaye : c'est le seul moyen pour
   // l'utilisateur de comprendre qu'un hote saisi sans port a ete teste en 80.
   const closedPort = await ping.check(pingCtx("127.0.0.1:1", null));
