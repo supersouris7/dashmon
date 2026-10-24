@@ -67,7 +67,7 @@ async function main(){
   // `_template` n'est pas un plugin : son identifiant ne respecte pas le motif
   // du registre, il sert de modele a copier.
   check("registre : widgets natifs charges, _template ignore",
-    ids, ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "web", "wireguard", "youtube"]);
+    ids, ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "qbittorrent", "uptimekuma", "web", "wireguard", "youtube"]);
   check("registre : aucun echec de chargement", registry.failures, []);
 
   for (const id of ids) {
@@ -91,7 +91,7 @@ async function main(){
   // sources des compteurs du bandeau "Liens web", donc internes au moteur.
   check("registre : les compteurs de liens ne sont pas des widgets de tuile",
     registry.publicList().filter(w => !w.hidden).map(w => w.id),
-    ["adguard", "docker", "duplicati", "lichess", "ping", "uptimekuma", "wireguard"]);
+    ["adguard", "docker", "duplicati", "lichess", "ping", "qbittorrent", "uptimekuma", "wireguard"]);
 
   // Le template est bien un modele exploitable, mais volontairement hors registre.
   ok("template : present sur disque mais non charge",
@@ -328,7 +328,7 @@ async function main(){
   // --- Exposition HTTP : liste publique et garde-fous de fichiers ---------
   const publicList = core.publicList();
   check("core : liste publique = ids installes", publicList.map(w => w.id),
-    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "uptimekuma", "web", "wireguard", "youtube"]);
+    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "qbittorrent", "uptimekuma", "web", "wireguard", "youtube"]);
   ok("core : aucune fonctionCheck exposee",
     publicList.every(w => typeof w.check === "undefined" && typeof w.createState === "undefined"));
   ok("core : la liste publique porte le schema de config",
@@ -718,6 +718,28 @@ async function main(){
   }));
   check("dockerhub : depot introuvable = tuile rouge", [hubGone.state, hubGone.ok], ["down", false]);
 
+  // qBittorrent -------------------------------------------------------------
+  const qBittorrentServer = require(path.join(WIDGETS, "qbittorrent", "server.js"));
+  check("qbittorrent : cookie de session lu", qBittorrentServer.cookieOf({ headers: { "set-cookie": ["SID=abc; HttpOnly"] } }), "SID=abc");
+  check("qbittorrent : valeur negative ramenee a zero", qBittorrentServer.numberOf(-1), 0);
+  const qBittorrentCalls = [];
+  const qBittorrent = await qBittorrentServer.check(linkCtx({
+    config: { username: "admin", password: "motdepasse" },
+    state: qBittorrentServer.createState(),
+    api: async (base, requestPath, options) => {
+      qBittorrentCalls.push([base + requestPath, options && options.headers && options.headers.Cookie]);
+      if (requestPath === "/api/v2/auth/login") return { headers: { "set-cookie": ["SID=abc; HttpOnly"] } };
+      return { connection_status: "connected", dl_info_speed: 1234567, up_info_speed: 4567, dl_info_data: 9876543, up_info_data: 7654321 };
+    }
+  }));
+  check("qbittorrent : authentification puis vitesses lues",
+    [qBittorrent.ok, qBittorrent.downloadSpeed, qBittorrent.uploadSpeed, qBittorrentCalls],
+    [true, 1234567, 4567, [["https://exemple.test/api/v2/auth/login", undefined], ["https://exemple.test/api/v2/transfer/info", "SID=abc"]]]);
+  const qBittorrentMissing = await qBittorrentServer.check(linkCtx({
+    config: {}, state: qBittorrentServer.createState()
+  }));
+  check("qbittorrent : identifiants manquants", [qBittorrentMissing.ok, qBittorrentMissing.error], [false, "Identifiants qBittorrent manquants"]);
+
   // GitHub ------------------------------------------------------------------
   const githubServer = require(path.join(WIDGETS, "github", "server.js"));
   check("github : depot valide", [githubServer.isValidRepo("exemple-org/exemple-repo"), githubServer.isValidRepo("a/")], [true, false]);
@@ -756,6 +778,7 @@ async function main(){
   const wireguardModule = await import(pathToFileURL(path.join(WIDGETS, "wireguard", "client.mjs")).href);
   const duplicatiModule = await import(pathToFileURL(path.join(WIDGETS, "duplicati", "client.mjs")).href);
   const adguardModule = await import(pathToFileURL(path.join(WIDGETS, "adguard", "client.mjs")).href);
+  const qBittorrentModule = await import(pathToFileURL(path.join(WIDGETS, "qbittorrent", "client.mjs")).href);
   const lichessModule = await import(pathToFileURL(path.join(WIDGETS, "lichess", "client.mjs")).href);
   const youtubeModule = await import(pathToFileURL(path.join(WIDGETS, "youtube", "client.mjs")).href);
   const dockerHubModule = await import(pathToFileURL(path.join(WIDGETS, "dockerhub", "client.mjs")).href);
@@ -817,6 +840,12 @@ async function main(){
   check("renderer AdGuard : pourcentage",
     pick(adguardModule.render(ctx({ ok: true, queries: 12345, ratio: 12.3, avgMs: 2 }))),
     { badge: "blocked 12 %", badgeClass: "ok", time: "queries 12345", timeClass: "" });
+
+  check("renderer qBittorrent : debits affiches",
+    pick(qBittorrentModule.render(ctx({ ok: true, connected: true, downloadSpeed: 1048576, uploadSpeed: 1024, downloaded: 0, uploaded: 0 }))),
+    { badge: "↓ 1 MiB/s", badgeClass: "ok", time: "↑ 1 KiB/s", timeClass: "" });
+  check("renderer qBittorrent : deconnecte avertit",
+    qBittorrentModule.render(ctx({ ok: true, connected: false, downloadSpeed: 0, uploadSpeed: 0 })).badgeClass, "warn");
 
   check("renderer Lichess : ELO en vert, evolution mensuelle en dessous",
     pick(lichessModule.render(ctx({ ok: true, elo: 1500, delta: 12, monthDelta: 42, monthDays: 30, variant: "blitz", updatedAt: 1 }))),

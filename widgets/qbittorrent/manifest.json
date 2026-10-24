@@ -1,0 +1,47 @@
+{
+  "id": "qbittorrent",
+  "version": "1.0.0",
+  "label": { "fr": "qBittorrent", "en": "qBittorrent" },
+  "description": {
+    "fr": "Vitesses de telechargement et d'envoi",
+    "en": "Download and upload speeds"
+  },
+  "interval": 300000,
+  "cacheKey": "service",
+  "server": "server.js",
+  "client": "client.mjs",
+  "strings": {
+    "fr": {
+      "name": "qBittorrent",
+      "username": "Identifiant",
+      "password": "Mot de passe",
+      "passwordConfigured": "Mot de passe enregistré (laisser vide pour ne pas changer)",
+      "passwordPlaceholder": "Mot de passe qBittorrent",
+      "download": "Téléchargement",
+      "upload": "Envoi",
+      "downloaded": "Téléchargé",
+      "uploaded": "Envoyé",
+      "disconnected": "Déconnecté",
+      "pending": "Vérification qBittorrent…",
+      "error": "qBittorrent"
+    },
+    "en": {
+      "name": "qBittorrent",
+      "username": "Username",
+      "password": "Password",
+      "passwordConfigured": "Password saved (leave empty to keep it)",
+      "passwordPlaceholder": "qBittorrent password",
+      "download": "Download",
+      "upload": "Upload",
+      "downloaded": "Downloaded",
+      "uploaded": "Uploaded",
+      "disconnected": "Disconnected",
+      "pending": "Checking qBittorrent…",
+      "error": "qBittorrent"
+    }
+  },
+  "config": [
+    { "key": "username", "type": "text", "label": "username", "maxLength": 200 },
+    { "key": "password", "type": "secret", "label": "password", "maxLength": 2000, "placeholder": "passwordPlaceholder" }
+  ]
+}
