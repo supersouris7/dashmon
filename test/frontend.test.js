@@ -484,6 +484,9 @@ async function main(){
   ok("tuile speciale : conservee a l'enregistrement (serveur)",
     /specialTile:sanitizeSpecialTile\(config\.specialTile,categories\)/.test(serverSrcForSpecial));
 
+  ok("config : ecriture atomique",
+    /fs\.renameSync\(temporary,CONFIG_FILE\)/.test(serverSrcForSpecial));
+
   // Le genre par service n'existe plus : la tuile fortune est une tuile
   // speciale unique, pas un service.
   ok("tuile speciale : le champ kind par service a disparu",

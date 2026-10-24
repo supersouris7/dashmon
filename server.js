@@ -347,7 +347,7 @@ function ensureDataFiles(){
     if(fs.existsSync(bundled)){
       fs.copyFileSync(bundled,CONFIG_FILE);
     }else{
-      fs.writeFileSync(CONFIG_FILE,JSON.stringify({
+      writeConfig({
         services:[],
         categories:[],
         dashboards:[{id:"main",name:"Dashboard",icon:"fa-solid fa-grip"}],
@@ -359,7 +359,7 @@ function ensureDataFiles(){
         theme:"dark",
         webLinks:[],
         smallIcons:false
-      },null,2)+"\n","utf8");
+      });
     }
   }
 }
@@ -401,7 +401,7 @@ function ensureWebLinksSeeded(){
   config.webLinksSeedVersion=WEB_LINKS_SEED_VERSION;
 
   try {
-    fs.writeFileSync(CONFIG_FILE,JSON.stringify(config,null,2)+"\n","utf8");
+    writeConfig(config);
   } catch (_error) {
     // Ne pas bloquer le démarrage si l'écriture de migration échoue.
   }
@@ -433,7 +433,7 @@ function ensureHostIds(){
   });
   if(changed){
     try{
-      fs.writeFileSync(CONFIG_FILE,JSON.stringify(config,null,2)+"\n","utf8");
+      writeConfig(config);
     }catch(_error){}
   }
 }
@@ -760,7 +760,14 @@ function buildConfigOutput(config){
 }
 
 function writeConfig(output){
-  fs.writeFileSync(CONFIG_FILE,JSON.stringify(output,null,2)+"\n","utf8");
+  const payload=JSON.stringify(output,null,2)+"\n";
+  const temporary=`${CONFIG_FILE}.${process.pid}.${crypto.randomBytes(6).toString("hex")}.tmp`;
+  try{
+    fs.writeFileSync(temporary,payload,"utf8");
+    fs.renameSync(temporary,CONFIG_FILE);
+  }finally{
+    try{ fs.unlinkSync(temporary); }catch(_error){}
+  }
 }
 
 app.put("/api/config",(req,res)=>{
@@ -809,7 +816,7 @@ app.post("/api/usage",(req,res)=>{
     const n=Number(config.usageCounts[key]);
     config.usageCounts[key]=Number.isFinite(n)&&n>=0 ? Math.floor(n)+1 : 1;
 
-    fs.writeFileSync(CONFIG_FILE,JSON.stringify(config,null,2)+"\n","utf8");
+    writeConfig(config);
     res.json({ok:true});
   }catch(error){
     console.error("Incrément usage:",error);
