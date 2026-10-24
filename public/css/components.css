@@ -1235,25 +1235,25 @@ body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
 }
 
 @media (max-width:700px){
-  /* Sur telephone, les actions restent immediatement accessibles. La navigation
-     passe sous forme de select pour ne pas comprimer ni faire defiler les noms. */
+  /* Sur telephone, le select de navigation occupe l'espace souple a gauche et
+     les actions restent immediatement accessibles a droite, sur une ligne. */
   .toolbar{
     display:flex;
-    flex-wrap:wrap;
+    flex-wrap:nowrap;
   }
   .toolbar-actions{
     display:flex;
-    order:1;
+    order:2;
+    flex:0 0 auto;
     align-items:center;
     justify-content:flex-end;
     gap:6px;
-    width:100%;
   }
   .page-switch{display:none}
   .mobile-page-select{
     display:block;
-    order:2;
-    width:100%;
+    order:1;
+    flex:1 1 auto;
     height:40px;
     min-width:0;
     padding:0 10px;
