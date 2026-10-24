@@ -67,7 +67,7 @@ async function main(){
   // `_template` n'est pas un plugin : son identifiant ne respecte pas le motif
   // du registre, il sert de modele a copier.
   check("registre : widgets natifs charges, _template ignore",
-    ids, ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "qbittorrent", "uptimekuma", "web", "wireguard", "youtube"]);
+    ids, ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "qbittorrent", "uptimekuma", "web", "youtube"]);
   check("registre : aucun echec de chargement", registry.failures, []);
 
   for (const id of ids) {
@@ -91,7 +91,7 @@ async function main(){
   // sources des compteurs du bandeau "Liens web", donc internes au moteur.
   check("registre : les compteurs de liens ne sont pas des widgets de tuile",
     registry.publicList().filter(w => !w.hidden).map(w => w.id),
-    ["adguard", "docker", "duplicati", "lichess", "ping", "qbittorrent", "uptimekuma", "wireguard"]);
+    ["adguard", "docker", "duplicati", "lichess", "ping", "qbittorrent", "uptimekuma"]);
 
   // Le template est bien un modele exploitable, mais volontairement hors registre.
   ok("template : present sur disque mais non charge",
@@ -328,7 +328,7 @@ async function main(){
   // --- Exposition HTTP : liste publique et garde-fous de fichiers ---------
   const publicList = core.publicList();
   check("core : liste publique = ids installes", publicList.map(w => w.id),
-    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "qbittorrent", "uptimekuma", "web", "wireguard", "youtube"]);
+    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "qbittorrent", "uptimekuma", "web", "youtube"]);
   ok("core : aucune fonctionCheck exposee",
     publicList.every(w => typeof w.check === "undefined" && typeof w.createState === "undefined"));
   ok("core : la liste publique porte le schema de config",
@@ -775,7 +775,6 @@ async function main(){
 
   // --- Renderers client (ESM, aucune dependance au DOM) ------------------
   const dockerModule = await import(pathToFileURL(path.join(WIDGETS, "docker", "client.mjs")).href);
-  const wireguardModule = await import(pathToFileURL(path.join(WIDGETS, "wireguard", "client.mjs")).href);
   const duplicatiModule = await import(pathToFileURL(path.join(WIDGETS, "duplicati", "client.mjs")).href);
   const adguardModule = await import(pathToFileURL(path.join(WIDGETS, "adguard", "client.mjs")).href);
   const qBittorrentModule = await import(pathToFileURL(path.join(WIDGETS, "qbittorrent", "client.mjs")).href);
@@ -802,12 +801,6 @@ async function main(){
     dockerModule.render(ctx({ error: "ECONNREFUSED" })).badgeClass, "pending");
   check("renderer Docker : jamais verifie = tirets",
     dockerModule.render(ctx(null)).badge, "—");
-  check("renderer WireGuard : expose les pastilles par pair", typeof wireguardModule.element, "function");
-  check("renderer WireGuard : handshake recent = vert",
-    wireguardModule.isConnected({ latestHandshake: Math.floor(Date.now() / 1000) }), true);
-  check("renderer WireGuard : sans handshake = vide",
-    wireguardModule.isConnected({ latestHandshake: 0 }), false);
-
   // Les deux libelles de la tuile Docker doivent suivre la langue de
   // l'interface : le renderer ne doit contenir aucun mot en dur.
   const dockerStrings = JSON.parse(fs.readFileSync(path.join(WIDGETS, "docker", "manifest.json"), "utf8")).strings;
