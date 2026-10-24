@@ -49,26 +49,28 @@ export async function loadWidgetRegistry() {
   if (!Array.isArray(list)) return [];
 
   const styles = [];
-  for (const meta of list) {
-    if (!meta || !meta.id) continue;
+  const loads = list.map(meta => {
+    if (!meta || !meta.id) return null;
     metas.set(meta.id, meta);
     if (meta.hasCss) styles.push({ id: meta.id, version: meta.version || "" });
-    try {
+    return import("/widget-client/" + encodeURIComponent(meta.id)
+      + ".js?v=" + encodeURIComponent(meta.version || ""))
+      .then(module => {
       // La version du manifeste entre dans l'URL : sans elle, l'URL reste la
       // meme apres une mise a jour de widget et le navigateur peut resservir
       // l'ancien code pendant toute la duree de son cache. Un widget corrige
       // doit etre visible immediatement, donc la version change -> URL change.
-      const module = await import("/widget-client/" + encodeURIComponent(meta.id)
-        + ".js?v=" + encodeURIComponent(meta.version || ""));
       if (typeof module.render === "function" || typeof module.element === "function") {
         renderers.set(meta.id, module);
       }
-    } catch (error) {
+      })
+      .catch(error => {
       // Widget sans renderer ou module en erreur : la config reste editable,
       // seule l'affichage de la tuile reste neutre.
       console.warn("Renderer de widget indisponible : " + meta.id, error);
-    }
-  }
+      });
+  }).filter(Boolean);
+  await Promise.all(loads);
   injectStyles(styles);
   return [...metas.keys()];
 }

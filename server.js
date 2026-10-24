@@ -1204,7 +1204,35 @@ function linkCounterServices(config){
   return links.map(linkCounterService).filter(Boolean);
 }
 
+let statusRefreshInflight=null;
+let statusRefreshForced=false;
+
 async function refreshStatuses(force=false){
+  // Un cycle peut inclure plusieurs sondes lentes. Les minuteurs et le bouton
+  // manuel partagent donc le meme travail; un clic manuel demande un cycle force
+  // juste apres le cycle courant au lieu d'ouvrir une seconde salve en parallele.
+  if(statusRefreshInflight){
+    if(force) statusRefreshForced=true;
+    return statusRefreshInflight;
+  }
+
+  const refresh=(async()=>{
+    let shouldForce=force;
+    do{
+      statusRefreshForced=false;
+      await refreshStatusesCycle(shouldForce);
+      shouldForce=statusRefreshForced;
+    }while(shouldForce);
+  })();
+  statusRefreshInflight=refresh;
+  try{
+    await refresh;
+  }finally{
+    if(statusRefreshInflight===refresh) statusRefreshInflight=null;
+  }
+}
+
+async function refreshStatusesCycle(force){
   let config;
   try{
     config=readConfig();
@@ -1221,10 +1249,21 @@ async function refreshStatuses(force=false){
   // des widgets (jetons, historiques) : chaque widget purge ce qu'il veut via
   // son hook purge(), le core ne connaît aucun widget.
   widgetCore.purge(monitored);
-  const due=force ? monitored : monitored.filter(svc=>{
+  const candidates=force ? monitored : monitored.filter(svc=>{
     const cache=statusCache[serviceCacheKey(svc)];
     return !(cache && cache.lastCheck && (Date.now()-cache.lastCheck) < checkInterval(svc));
   });
+  // Les widgets a cle de configuration (Docker, par exemple) peuvent etre
+  // affiches plusieurs fois. Une seule sonde suffit par cle et evite de frapper
+  // la meme API ou le meme registre en parallele.
+  const due=[];
+  const seen=new Set();
+  for(const svc of candidates){
+    const key=serviceCacheKey(svc);
+    if(seen.has(key)) continue;
+    seen.add(key);
+    due.push(svc);
+  }
   // Checks par lots de 3 espacés : évite les rafales de connexions en gardant
   // un cycle de rafraîchissement raisonnable.
   for(let i=0;i<due.length;i+=3){

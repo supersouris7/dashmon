@@ -4,13 +4,24 @@ import { updateStatusIndicators } from "./render.js";
 import { t } from "./i18n.js";
 import { refreshBar, menuRefreshBtn } from "./dom.js";
 
+let statusInflight=null;
+
 async function refreshStatus(){
+  if(statusInflight) return statusInflight;
+  const refresh=(async()=>{
   try{
     const response=await fetch("/api/status",{cache:"no-store"});
     if(!response.ok) return;
     state.serviceStatus=await response.json();
     updateStatusIndicators();
   }catch(_error){}
+  })();
+  statusInflight=refresh;
+  try{
+    await refresh;
+  }finally{
+    if(statusInflight===refresh) statusInflight=null;
+  }
 }
 
 // Duree minimale pendant laquelle le retour d'activite reste affiche. Sans elle,
