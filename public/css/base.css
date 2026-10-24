@@ -71,7 +71,7 @@ main{
 .toolbar .top-menu-wrap{flex:0 0 auto}
 
 .toolbar-actions{display:contents}
-.mobile-page-select{display:none}
+.mobile-page-menu{display:none}
 
 /* Les deux boutons de page ouvrent le meme gabarit, la recherche et les
    actions restent alignees a droite par la marge automatique. */

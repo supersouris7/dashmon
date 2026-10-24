@@ -77,7 +77,10 @@
 
   <div class="toolbar">
     <div class="page-switch" role="group" id="pageSwitchGroup" aria-label="Navigation"></div>
-    <select id="mobilePageSelect" class="mobile-page-select" aria-label="Navigation"></select>
+    <div class="mobile-page-menu">
+      <button id="mobilePageBtn" class="mobile-page-btn" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="mobilePageMenu"></button>
+      <div id="mobilePageMenu" class="mobile-page-menu-list" role="menu"></div>
+    </div>
 
     <div class="search-box">
       <i class="fa-solid fa-magnifying-glass"></i>

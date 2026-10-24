@@ -4,7 +4,7 @@
 import { state } from "./state.js";
 import { render } from "./render.js";
 import { renderSupervision, startSupervisionMetrics, stopSupervisionMetrics } from "./supervision.js";
-import { pageSwitchGroup, mobilePageSelect } from "./dom.js";
+import { pageSwitchGroup, mobilePageBtn, mobilePageMenu } from "./dom.js";
 import { saveViewPrefs } from "./view-prefs.js";
 import { t } from "./i18n.js";
 
@@ -33,13 +33,36 @@ function selectDashboard(id){
   state.page="dashboard";
   state.dashboardId=id;
   saveViewPrefs({page:state.page,dashboardId:state.dashboardId});
+  closeMobilePageMenu();
   applyPage();
 }
 
 function selectSupervision(){
   state.page="supervision";
   saveViewPrefs({page:state.page});
+  closeMobilePageMenu();
   applyPage();
+}
+
+function closeMobilePageMenu(){
+  mobilePageBtn.setAttribute("aria-expanded","false");
+  mobilePageMenu.classList.remove("show");
+}
+
+function mobileMenuItem(icon,label,active,onClick){
+  const item=document.createElement("button");
+  item.className="mobile-page-menu-item";
+  item.type="button";
+  item.setAttribute("role","menuitem");
+  item.setAttribute("aria-current",active ? "page" : "false");
+  const marker=document.createElement("i");
+  marker.className=icon;
+  marker.setAttribute("aria-hidden","true");
+  const text=document.createElement("span");
+  text.textContent=label;
+  item.append(marker,text);
+  item.addEventListener("click",onClick);
+  return item;
 }
 
 function applyPage(){
@@ -58,44 +81,55 @@ function applyPage(){
 
 export function renderPageSwitch(){
   pageSwitchGroup.replaceChildren();
-  mobilePageSelect.replaceChildren();
+  mobilePageMenu.replaceChildren();
   const activeId=activeDashboardId();
+  let mobileCurrent=null;
 
   state.dashboards.forEach(d=>{
     const id=d.id||"main";
+    const active=state.page==="dashboard" && id===activeId;
     const btn=button("dashboard",d.icon||"fa-solid fa-grip",d.name||t("pageDashboard"),
-      state.page==="dashboard" && id===activeId);
+      active);
     btn.dataset.dashboardId=id;
     btn.title=d.name||t("pageDashboard");
     btn.addEventListener("click",()=>selectDashboard(id));
     pageSwitchGroup.appendChild(btn);
-
-    const option=document.createElement("option");
-    option.value="dashboard:"+id;
-    option.textContent=d.name||t("pageDashboard");
-    option.selected=state.page==="dashboard" && id===activeId;
-    mobilePageSelect.appendChild(option);
+    const icon=d.icon||"fa-solid fa-grip";
+    const label=d.name||t("pageDashboard");
+    mobilePageMenu.appendChild(mobileMenuItem(icon,label,active,()=>selectDashboard(id)));
+    if(active) mobileCurrent={icon,label};
   });
 
-  const sup=button("supervision","fa-solid fa-shield-halved",t("pageSupervision"),state.page==="supervision");
+  const supervisionActive=state.page==="supervision";
+  const sup=button("supervision","fa-solid fa-shield-halved",t("pageSupervision"),supervisionActive);
   sup.addEventListener("click",selectSupervision);
   pageSwitchGroup.appendChild(sup);
+  const supervisionLabel=t("pageSupervision");
+  mobilePageMenu.appendChild(mobileMenuItem("fa-solid fa-shield-halved",supervisionLabel,supervisionActive,selectSupervision));
+  if(supervisionActive) mobileCurrent={icon:"fa-solid fa-shield-halved",label:supervisionLabel};
 
-  const supervisionOption=document.createElement("option");
-  supervisionOption.value="supervision";
-  supervisionOption.textContent=t("pageSupervision");
-  supervisionOption.selected=state.page==="supervision";
-  mobilePageSelect.appendChild(supervisionOption);
-  mobilePageSelect.setAttribute("aria-label",t("pageSwitch"));
+  const current=mobileCurrent||{icon:"fa-solid fa-grip",label:t("pageDashboard")};
+  mobilePageBtn.replaceChildren();
+  const icon=document.createElement("i");
+  icon.className=current.icon;
+  icon.setAttribute("aria-hidden","true");
+  const text=document.createElement("span");
+  text.textContent=current.label;
+  const chevron=document.createElement("i");
+  chevron.className="fa-solid fa-chevron-down";
+  chevron.setAttribute("aria-hidden","true");
+  mobilePageBtn.append(icon,text,chevron);
+  mobilePageBtn.setAttribute("aria-label",t("pageSwitch"));
 }
 
-mobilePageSelect.addEventListener("change",()=>{
-  if(mobilePageSelect.value==="supervision"){
-    selectSupervision();
-    return;
-  }
-  const id=mobilePageSelect.value.replace(/^dashboard:/,"");
-  if(state.dashboards.some(d=>d.id===id)) selectDashboard(id);
+mobilePageBtn.addEventListener("click",()=>{
+  const open=mobilePageBtn.getAttribute("aria-expanded")!=="true";
+  mobilePageBtn.setAttribute("aria-expanded",String(open));
+  mobilePageMenu.classList.toggle("show",open);
+});
+
+document.addEventListener("click",event=>{
+  if(!event.target.closest(".mobile-page-menu")) closeMobilePageMenu();
 });
 
 // Applique une page sans forcement persister : le rendu initial de l'application

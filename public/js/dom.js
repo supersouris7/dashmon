@@ -1,7 +1,8 @@
 // Références DOM centralisées : seul endroit qui lit le HTML par id.
 export const dashboard=document.getElementById("dashboard");
 export const pageSwitchGroup=document.getElementById("pageSwitchGroup");
-export const mobilePageSelect=document.getElementById("mobilePageSelect");
+export const mobilePageBtn=document.getElementById("mobilePageBtn");
+export const mobilePageMenu=document.getElementById("mobilePageMenu");
 export const supervisionPage=document.getElementById("supervisionPage");
 export const supervisionList=document.getElementById("supervisionList");
 export const refreshBar=document.getElementById("refreshBar");
