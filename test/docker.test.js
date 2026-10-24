@@ -4,7 +4,7 @@
 // (tag local re-pullé vers une autre image). Sinon il est compté à jour et
 // tracé dans `unknown` (à raffiner au registre distant par le backend).
 const assert = require("assert");
-const { computeDockerSummary, parseImageRef, dockerSocketError } = require("../docker");
+const { computeDockerSummary, parseImageRef, dockerSocketError, dockerTcpTarget } = require("../docker");
 
 let failures = 0;
 function check(name, actual, expected){
@@ -136,6 +136,15 @@ check("une erreur de timeout reste intacte",
 check("une erreur sans code reste intacte",
   dockerSocketError(new Error("boom")).message, "boom");
 check("pas d'erreur = pas d'exception", dockerSocketError(undefined), undefined);
+
+// --- Docker TCP ---
+check("Docker TCP : LAN admis", dockerTcpTarget("http://192.168.1.10:2375").hostname, "192.168.1.10");
+check("Docker TCP : link-local refusee", (() => {
+  try { dockerTcpTarget("http://169.254.169.254:2375"); return false; } catch (error) { return /link-local/.test(error.message); }
+})(), true);
+check("Docker TCP : link-local IPv6 refusee", (() => {
+  try { dockerTcpTarget("http://[fe80::1]:2375"); return false; } catch (error) { return /link-local/.test(error.message); }
+})(), true);
 
 if (failures) {
   console.error(failures + " échec(s)");

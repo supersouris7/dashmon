@@ -21,6 +21,8 @@
 const http = require("http");
 const https = require("https");
 const crypto = require("crypto");
+const net = require("net");
+const { isBlockedAddress, safeLookup } = require("./lib/http");
 
 const DOCKER_API_VERSION = process.env.DOCKER_API_VERSION || "v1.41";
 const DOCKER_SOCKET = process.env.DOCKER_SOCKET || "/var/run/docker.sock";
@@ -45,6 +47,18 @@ const MANIFEST_ACCEPT = [
 function dockerHostMode(host){
   const docker = host && host.monitoring && host.monitoring.docker;
   return docker && docker.mode === "tcp" ? "tcp" : "local";
+}
+
+function dockerTcpTarget(value) {
+  const target = new URL(String(value || ""));
+  if (target.protocol !== "http:" && target.protocol !== "https:") {
+    throw new Error("Connexion Docker TCP invalide");
+  }
+  const address = target.hostname.replace(/^\[|\]$/g, "");
+  if (net.isIP(address) && isBlockedAddress(address)) {
+    throw new Error("Adresse Docker link-local refusee");
+  }
+  return target;
 }
 
 // L'image tourne sous l'utilisateur non-root node : sans groupe supplémentaire,
@@ -89,14 +103,13 @@ function dockerRequest(host, endpoint, timeout){
 
     try {
       if (tcp) {
-        const target = new URL(String(host && host.monitoring && host.monitoring.docker && host.monitoring.docker.url || ""));
-        if (target.protocol !== "http:" && target.protocol !== "https:") {
-          return reject(new Error("Connexion Docker TCP invalide"));
-        }
+        const target = dockerTcpTarget(host && host.monitoring && host.monitoring.docker && host.monitoring.docker.url);
         req = (target.protocol === "https:" ? https : http).request(target, {
           method: "GET",
           timeout: timeoutMs,
           rejectUnauthorized: !INSECURE_TLS,
+          lookup: safeLookup,
+          family: 4,
           headers: { "Accept": "application/json" }
         }, onResponse);
       } else {
@@ -470,6 +483,7 @@ module.exports = {
   dockerRequest,
   dockerSocketError,
   dockerHostMode,
+  dockerTcpTarget,
   parseImageRef,
   classifyDockerContainers,
   computeDockerSummary,
