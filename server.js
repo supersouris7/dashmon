@@ -95,22 +95,22 @@ const pngBody=express.raw({
 });
 
 const INSECURE_TLS = process.env.DASHBOARD_INSECURE_TLS === "1";
-const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "";
+const DASHMON_PASSWORD = process.env.DASHMON_PASSWORD || "";
 // Sans mot de passe, Dashmon ne doit pas devenir une interface d'administration
 // accessible au reseau. Dans Docker, l'ecoute doit rester disponible pour le
 // proxy et le port publie : un mot de passe y est donc obligatoire.
 const RUNNING_IN_DOCKER = fs.existsSync("/.dockerenv");
-if (RUNNING_IN_DOCKER && !DASHBOARD_PASSWORD) {
-  throw new Error("DASHBOARD_PASSWORD est obligatoire dans Docker");
+if (RUNNING_IN_DOCKER && !DASHMON_PASSWORD) {
+  throw new Error("DASHMON_PASSWORD est obligatoire dans Docker");
 }
-const DASHBOARD_BIND = DASHBOARD_PASSWORD ? "0.0.0.0" : "127.0.0.1";
+const DASHBOARD_BIND = DASHMON_PASSWORD ? "0.0.0.0" : "127.0.0.1";
 // Delai maximal d'une sonde de statut, partage par le core et les plugins.
 const STATUS_TIMEOUT = 4000;
 
 // Allowlist des variables d'environnement citables comme source d'un token
 // (tokenEnv / tokenIdEnv / tokenSecretEnv d'un hote supervise). Sans elle, un
 // champ de configuration pourrait faire lire n'importe quelle variable du
-// conteneur (DASHMON_MASTER_KEY, DASHBOARD_PASSWORD...) et l'envoyer a un hote
+// conteneur (DASHMON_MASTER_KEY, DASHMON_PASSWORD...) et l'envoyer a un hote
 // distant. Le defaut couvre les tokens documentes ; DASHBOARD_TOKEN_ENVS,
 // separee par des virgules, l'etend pour un agent maison.
 const TOKEN_ENV_ALLOWLIST = new Set(
@@ -221,9 +221,9 @@ app.use("/api/status", rateLimitGet);
 // plafond que /api/status pour qu'un onglet ne puisse pas arroser un hôte.
 app.use("/api/host-metrics", rateLimitGet);
 
-if (DASHBOARD_PASSWORD) {
+if (DASHMON_PASSWORD) {
   app.use("/api", (req, res, next) => {
-    const expected = "Basic " + Buffer.from("admin:" + DASHBOARD_PASSWORD).toString("base64");
+    const expected = "Basic " + Buffer.from("admin:" + DASHMON_PASSWORD).toString("base64");
     const received = Buffer.from(req.get("Authorization") || "");
     const ok = received.length === Buffer.byteLength(expected)
       && received.length > 0

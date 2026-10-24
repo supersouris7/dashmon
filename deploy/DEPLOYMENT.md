@@ -12,7 +12,7 @@ With Compose:
 
 ```bash
 cp .env.example .env
-# edit .env: DASHBOARD_PASSWORD is mandatory; also set DASHMON_MASTER_KEY…
+# edit .env: DASHMON_PASSWORD is mandatory; also set DASHMON_MASTER_KEY…
 docker compose up -d
 ```
 
@@ -21,11 +21,11 @@ Or directly:
 ```bash
 docker run -d --name dashmon -p 127.0.0.1:8080:8080 \
   -v dashmon-data:/app/data \
-  -e DASHBOARD_PASSWORD \
+  -e DASHMON_PASSWORD \
   supersouris7/dashmon:latest
 ```
 
-Set `DASHBOARD_PASSWORD` in your shell environment before running the command.
+Set `DASHMON_PASSWORD` in your shell environment before running the command.
 
 → http://localhost:8080
 
@@ -74,7 +74,7 @@ See `.env.example`. The most important:
 | Variable | Default | Role |
 | --- | --- | --- |
 | `PORT` | `8080` | Internal HTTP port |
-| `DASHBOARD_PASSWORD` | empty outside Docker | HTTP Basic Auth for `/api/*`; required by Compose and for a network bind |
+| `DASHMON_PASSWORD` | empty outside Docker | HTTP Basic Auth for `/api/*`; required by Compose and for a network bind |
 | `TRUST_PROXY` | `0` | `1` only if nginx terminates HTTPS in front of the container |
 | `DASHBOARD_INSECURE_TLS` | empty | `1` if your monitored hosts use self-signed certificates |
 | `DASHMON_MASTER_KEY` | empty | AES-256-GCM master key to encrypt widget secrets (e.g. Duplicati password) in `config.json` |
