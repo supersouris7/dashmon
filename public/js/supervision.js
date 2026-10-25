@@ -2,7 +2,7 @@
 // Le rendu est pur (il lit state.hostMetrics) ; la lecture reseau vit dans
 // refreshHostMetrics, declenchee a l'ouverture de la page et par un minuteur.
 import { t } from "./i18n.js";
-import { state } from "./state.js";
+import { state, sanitizeTileColor } from "./state.js";
 import { supervisionList, supervisionPage, collapseAllBtn } from "./dom.js";
 
 // Intervalle injecte par le serveur (voir HOST_METRICS_INTERVAL). Un HTML
@@ -49,6 +49,13 @@ export function toggleAllSmartDetails(){
 
 function typeLabel(type){
   return t(TYPE_LABEL[type] || "hostTypeLocal");
+}
+
+function applyHostColor(card,host){
+  const color=sanitizeTileColor(host && host.color);
+  if(!color) return;
+  card.classList.add("tinted");
+  card.style.setProperty("--tile-color",color);
 }
 
 // null ou undefined = metrique indisponible. Number(null) vaut 0 : sans ce
@@ -233,6 +240,7 @@ function peerRow(peer){
 function hostCard(host,metrics){
   const card=document.createElement("article");
   card.className="supervision-card supervision-card-host";
+  applyHostColor(card,host);
 
   const head=document.createElement("div");
   head.className="supervision-head";
@@ -310,6 +318,7 @@ function hasWireguardDump(host,metrics){
 function wireguardCard(host,metrics,interfaces){
   const card=document.createElement("article");
   card.className="supervision-card supervision-card-wireguard";
+  applyHostColor(card,host);
 
   const head=document.createElement("div");
   head.className="supervision-head";
@@ -431,6 +440,7 @@ function visibleSmartDisks(host,metrics){
 function smartCard(host,metrics,disks){
   const card=document.createElement("article");
   card.className="supervision-card supervision-card-smart";
+  applyHostColor(card,host);
   card.setAttribute("role","button");
   card.tabIndex=0;
   card.setAttribute("aria-expanded","false");
@@ -556,6 +566,7 @@ function aptUpdatesCard(host,metrics){
   const updated=Number(report?.updated)||0;
   const reboot=report?.rebootRequired===true;
   card.className="supervision-card supervision-card-apt "+(!report ? "unknown" : failed ? "failed" : reboot ? "warning" : "ok");
+  applyHostColor(card,host);
   const head=document.createElement("div");
   head.className="supervision-head";
   const icon=document.createElement("i");

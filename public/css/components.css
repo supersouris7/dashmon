@@ -924,6 +924,13 @@ body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
   border-radius:6px;
   background:var(--surface);
   box-shadow:var(--shadow);
+  transition:transform .1s ease,box-shadow .1s ease,background .1s ease,border-color .1s ease;
+}
+
+.supervision-card.tinted:hover{
+  transform:translateY(-1px);
+  border-color:var(--tile-color);
+  background:color-mix(in srgb,var(--tile-color) 9%,var(--surface));
 }
 
 .supervision-head{
