@@ -12,6 +12,7 @@ It applies immediately, no restart.
 | [Duplicati](#duplicati) | Last backup OK/NOK and its date | API password |
 | [AdGuard Home](#adguard-home) | Blocked queries, as a percentage | protocol, URL, user, password |
 | [qBittorrent](#qbittorrent) | Download and upload speeds | username, password |
+| [MeTube](#metube) | Active and queued downloads | *nothing* |
 | [Lichess](#lichess) | ELO rating and one-month evolution | username, variant |
 | [Uptime Kuma](#uptime-kuma) | Public status-page monitors | URL, one or two slugs |
 | [Ping](#ping) | TCP reachability | host, port (optional) |
@@ -84,6 +85,14 @@ total data downloaded and uploaded since qBittorrent started.
 
 Dashmon calls the qBittorrent Web API on the service URL already configured for
 the tile. Enable the Web UI in qBittorrent's settings before adding the widget.
+
+## MeTube
+
+**Shows** the number of downloads currently running and waiting in the queue.
+The tooltip also includes the count of completed downloads retained by MeTube.
+
+MeTube needs no additional configuration: Dashmon reads its public `/history`
+endpoint on the service URL already configured for the tile.
 
 ## Lichess
 

@@ -84,7 +84,7 @@ async function main(){
   globalThis.fetch = realFetch;
 
   check("registre client : widgets charges", loaded.slice().sort(),
-    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "ping", "qbittorrent", "uptimekuma", "web", "youtube"]);
+    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "metube", "ping", "qbittorrent", "uptimekuma", "web", "youtube"]);
   ok("registre client : metadonnees disponibles", !!registry.getWidgetMeta("docker"));
   ok("registre client : widget inconnu -> null", registry.getWidgetMeta("inconnu") === null);
   // Les sources des compteurs de liens (GitHub, Docker Hub, YouTube) sont aussi
@@ -92,7 +92,7 @@ async function main(){
   // widgets de tuile.
   check("registre client : le menu ne propose pas les plugins internes",
     registry.listWidgetMetas().map(m => m.id),
-    ["adguard", "docker", "duplicati", "lichess", "ping", "qbittorrent", "uptimekuma"]);
+    ["adguard", "docker", "duplicati", "lichess", "metube", "ping", "qbittorrent", "uptimekuma"]);
   ok("registre client : le plugin interne reste interrogeable (config, libelles)",
     !!registry.getWidgetMeta("web") && registry.widgetLabel(registry.getWidgetMeta("web"), "fr") === "Lien");
   // Les compteurs de liens gardent leur schema de config, meme internes : c'est

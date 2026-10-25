@@ -15,7 +15,7 @@ you stop guessing whether *that* thing is working.
   with its own icon; group by category or by host, search, three view modes
   (rows / columns / full), small or large icons.
 - **Live widgets, not just green/red dots** — Docker, Duplicati, AdGuard, qBittorrent,
-  Lichess, Uptime Kuma and Ping report straight onto the tile.
+  MeTube, Lichess, Uptime Kuma and Ping report straight onto the tile.
   → [widget catalog](docs/WIDGETS.md)
 - **Web-link counters** — show GitHub stars, Docker Hub pulls or YouTube
   subscribers right in the web-links banner, e.g. *GitHub (109)*.

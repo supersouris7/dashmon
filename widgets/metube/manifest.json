@@ -1,0 +1,38 @@
+{
+  "id": "metube",
+  "version": "1.0.0",
+  "label": { "fr": "MeTube", "en": "MeTube" },
+  "description": {
+    "fr": "Telechargements actifs et en attente",
+    "en": "Active and queued downloads"
+  },
+  "interval": 300000,
+  "cacheKey": "service",
+  "server": "server.js",
+  "client": "client.mjs",
+  "strings": {
+    "fr": {
+      "name": "MeTube",
+      "activeOne": "téléchargement actif",
+      "activeMany": "téléchargements actifs",
+      "queuedOne": "en attente",
+      "queuedMany": "en attente",
+      "idle": "Aucun téléchargement actif",
+      "completed": "Terminés",
+      "pending": "Vérification MeTube…",
+      "error": "MeTube"
+    },
+    "en": {
+      "name": "MeTube",
+      "activeOne": "active download",
+      "activeMany": "active downloads",
+      "queuedOne": "queued",
+      "queuedMany": "queued",
+      "idle": "No active download",
+      "completed": "Completed",
+      "pending": "Checking MeTube…",
+      "error": "MeTube"
+    }
+  },
+  "config": []
+}
