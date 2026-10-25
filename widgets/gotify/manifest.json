@@ -1,0 +1,38 @@
+{
+  "id": "gotify",
+  "version": "1.0.0",
+  "label": { "fr": "Gotify", "en": "Gotify" },
+  "description": {
+    "fr": "Derniere notification recue",
+    "en": "Latest received notification"
+  },
+  "interval": 300000,
+  "cacheKey": "service",
+  "server": "server.js",
+  "client": "client.mjs",
+  "strings": {
+    "fr": {
+      "name": "Gotify",
+      "token": "Jeton client",
+      "tokenConfigured": "Jeton enregistré (laisser vide pour ne pas changer)",
+      "tokenPlaceholder": "Jeton client Gotify",
+      "priority": "Priorité",
+      "empty": "Aucune notification",
+      "pending": "Vérification Gotify…",
+      "error": "Gotify"
+    },
+    "en": {
+      "name": "Gotify",
+      "token": "Client token",
+      "tokenConfigured": "Token saved (leave empty to keep it)",
+      "tokenPlaceholder": "Gotify client token",
+      "priority": "Priority",
+      "empty": "No notification",
+      "pending": "Checking Gotify…",
+      "error": "Gotify"
+    }
+  },
+  "config": [
+    { "key": "token", "type": "secret", "label": "token", "maxLength": 2000, "placeholder": "tokenPlaceholder" }
+  ]
+}

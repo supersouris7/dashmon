@@ -11,6 +11,7 @@ It applies immediately, no restart.
 | [Docker](#docker) | Running containers + out-of-date images | mode, URL |
 | [Duplicati](#duplicati) | Last backup OK/NOK and its date | API password |
 | [AdGuard Home](#adguard-home) | Blocked queries, as a percentage | protocol, URL, user, password |
+| [Gotify](#gotify) | Latest notification and priority | client token |
 | [qBittorrent](#qbittorrent) | Download and upload speeds | username, password |
 | [MeTube](#metube) | Active and queued downloads | *nothing* |
 | [Lichess](#lichess) | ELO rating and one-month evolution | username, variant |
@@ -72,6 +73,19 @@ the tile.
 - **url** — host and port of AdGuard Home, e.g. `portainer.exemple.lan:3000`.
 - **username** and **password** — your AdGuard Home web credentials. The
   password is stored encrypted and never leaves the server.
+
+## Gotify
+
+**Shows** the latest notification and its priority. A priority of 5 or more is
+highlighted, and a priority of 8 or more marks the tile as an alert.
+
+**Configuration**
+
+- **client token** — create a client token in Gotify, then paste it here. It is
+  stored encrypted and never leaves the server.
+
+Dashmon reads the latest notification from the Gotify API on the service URL
+already configured for the tile.
 
 ## qBittorrent
 

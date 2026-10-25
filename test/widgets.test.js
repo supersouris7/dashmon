@@ -67,7 +67,7 @@ async function main(){
   // `_template` n'est pas un plugin : son identifiant ne respecte pas le motif
   // du registre, il sert de modele a copier.
   check("registre : widgets natifs charges, _template ignore",
-    ids, ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "metube", "ping", "qbittorrent", "uptimekuma", "web", "youtube"]);
+    ids, ["adguard", "docker", "dockerhub", "duplicati", "github", "gotify", "lichess", "metube", "ping", "qbittorrent", "uptimekuma", "web", "youtube"]);
   check("registre : aucun echec de chargement", registry.failures, []);
 
   for (const id of ids) {
@@ -91,7 +91,7 @@ async function main(){
   // sources des compteurs du bandeau "Liens web", donc internes au moteur.
   check("registre : les compteurs de liens ne sont pas des widgets de tuile",
     registry.publicList().filter(w => !w.hidden).map(w => w.id),
-    ["adguard", "docker", "duplicati", "lichess", "metube", "ping", "qbittorrent", "uptimekuma"]);
+    ["adguard", "docker", "duplicati", "gotify", "lichess", "metube", "ping", "qbittorrent", "uptimekuma"]);
 
   // Le template est bien un modele exploitable, mais volontairement hors registre.
   ok("template : present sur disque mais non charge",
@@ -328,7 +328,7 @@ async function main(){
   // --- Exposition HTTP : liste publique et garde-fous de fichiers ---------
   const publicList = core.publicList();
   check("core : liste publique = ids installes", publicList.map(w => w.id),
-    ["adguard", "docker", "dockerhub", "duplicati", "github", "lichess", "metube", "ping", "qbittorrent", "uptimekuma", "web", "youtube"]);
+    ["adguard", "docker", "dockerhub", "duplicati", "github", "gotify", "lichess", "metube", "ping", "qbittorrent", "uptimekuma", "web", "youtube"]);
   ok("core : aucune fonctionCheck exposee",
     publicList.every(w => typeof w.check === "undefined" && typeof w.createState === "undefined"));
   ok("core : la liste publique porte le schema de config",
@@ -752,6 +752,20 @@ async function main(){
   }));
   check("metube : activite lue", [metube.ok, metube.active, metube.queued, metube.completed], [true, 1, 2, 0]);
 
+  // Gotify ------------------------------------------------------------------
+  const gotifyServer = require(path.join(WIDGETS, "gotify", "server.js"));
+  check("gotify : dernier message normalise", gotifyServer.latestMessage({
+    messages: [{ title: "Sauvegarde", message: "Terminée", priority: 5, date: "2026-10-25T12:00:00Z" }]
+  }, value => String(value).slice(0, 200)), { title: "Sauvegarde", message: "Terminée", priority: 5, receivedAt: 1792929600000 });
+  const gotify = await gotifyServer.check(linkCtx({
+    config: { token: "jeton" },
+    api: async (base, requestPath, options) => {
+      check("gotify : dernier message demande", [base + requestPath, options.headers["X-Gotify-Key"]], ["https://exemple.test/message?limit=1", "jeton"]);
+      return { messages: [] };
+    }
+  }));
+  check("gotify : aucune notification toleree", [gotify.ok, gotify.latest], [true, null]);
+
   // GitHub ------------------------------------------------------------------
   const githubServer = require(path.join(WIDGETS, "github", "server.js"));
   check("github : depot valide", [githubServer.isValidRepo("exemple-org/exemple-repo"), githubServer.isValidRepo("a/")], [true, false]);
@@ -791,6 +805,7 @@ async function main(){
   const adguardModule = await import(pathToFileURL(path.join(WIDGETS, "adguard", "client.mjs")).href);
   const qBittorrentModule = await import(pathToFileURL(path.join(WIDGETS, "qbittorrent", "client.mjs")).href);
   const metubeModule = await import(pathToFileURL(path.join(WIDGETS, "metube", "client.mjs")).href);
+  const gotifyModule = await import(pathToFileURL(path.join(WIDGETS, "gotify", "client.mjs")).href);
   const lichessModule = await import(pathToFileURL(path.join(WIDGETS, "lichess", "client.mjs")).href);
   const youtubeModule = await import(pathToFileURL(path.join(WIDGETS, "youtube", "client.mjs")).href);
   const dockerHubModule = await import(pathToFileURL(path.join(WIDGETS, "dockerhub", "client.mjs")).href);
@@ -855,6 +870,9 @@ async function main(){
   check("renderer MeTube : activite et file affichees",
     pick(metubeModule.render(ctx({ ok: true, active: 2, queued: 1, completed: 3 }))),
     { badge: "2 activeMany", badgeClass: "ok", time: "1 queuedOne", timeClass: "" });
+  check("renderer Gotify : derniere notification affichee",
+    pick(gotifyModule.render(ctx({ ok: true, latest: { title: "Sauvegarde", message: "Terminée", priority: 5, receivedAt: 1 } }))),
+    { badge: "Sauvegarde", badgeClass: "warn", time: "priority 5", timeClass: "" });
 
   check("renderer Lichess : ELO en vert, evolution mensuelle en dessous",
     pick(lichessModule.render(ctx({ ok: true, elo: 1500, delta: 12, monthDelta: 42, monthDays: 30, variant: "blitz", updatedAt: 1 }))),
