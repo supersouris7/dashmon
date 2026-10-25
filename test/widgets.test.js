@@ -869,7 +869,7 @@ async function main(){
     qBittorrentModule.render(ctx({ ok: true, connected: false, downloadSpeed: 0, uploadSpeed: 0 })).badgeClass, "warn");
   check("renderer MeTube : activite et file affichees",
     pick(metubeModule.render(ctx({ ok: true, active: 2, queued: 1, completed: 3 }))),
-    { badge: "2 activeMany", badgeClass: "ok", time: "1 queuedOne", timeClass: "" });
+    { badge: "3 completedMany", badgeClass: "ok", time: "2 activeMany", timeClass: "" });
   check("renderer Gotify : derniere notification affichee",
     pick(gotifyModule.render(ctx({ ok: true, latest: { title: "Sauvegarde", message: "Terminée", priority: 5, receivedAt: 1 } }))),
     { badge: "Sauvegarde", badgeClass: "warn", time: "priority 5", timeClass: "" });

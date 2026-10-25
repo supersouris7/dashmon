@@ -17,7 +17,7 @@
       "tokenConfigured": "Jeton enregistré (laisser vide pour ne pas changer)",
       "tokenPlaceholder": "Jeton client Gotify",
       "priority": "Priorité",
-      "empty": "Aucune notification",
+      "empty": "aucune notification",
       "pending": "Vérification Gotify…",
       "error": "Gotify"
     },
@@ -27,7 +27,7 @@
       "tokenConfigured": "Token saved (leave empty to keep it)",
       "tokenPlaceholder": "Gotify client token",
       "priority": "Priority",
-      "empty": "No notification",
+      "empty": "no notification",
       "pending": "Checking Gotify…",
       "error": "Gotify"
     }

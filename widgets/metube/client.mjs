@@ -17,11 +17,12 @@ export function render(ctx) {
   const completed = countOf(info.completed);
   const activeText = active + " " + t(active === 1 ? "activeOne" : "activeMany");
   const queuedText = queued + " " + t(queued === 1 ? "queuedOne" : "queuedMany");
+  const completedText = completed + " " + t(completed === 1 ? "completedOne" : "completedMany");
   return {
-    badge: active ? activeText : t("idle"),
+    badge: completed ? completedText : t("empty"),
     badgeClass: "ok",
-    time: queued ? queuedText : "",
+    time: active ? activeText : (queued ? queuedText : ""),
     timeClass: "",
-    title: `${t("name")} · ${activeText} · ${queuedText} · ${t("completed")} ${completed}`
+    title: `${t("name")} · ${completedText} · ${activeText} · ${queuedText}`
   };
 }

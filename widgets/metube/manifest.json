@@ -17,8 +17,9 @@
       "activeMany": "téléchargements actifs",
       "queuedOne": "en attente",
       "queuedMany": "en attente",
-      "idle": "Aucun téléchargement actif",
-      "completed": "Terminés",
+      "completedOne": "vidéo",
+      "completedMany": "vidéos",
+      "empty": "aucune vidéo",
       "pending": "Vérification MeTube…",
       "error": "MeTube"
     },
@@ -28,8 +29,9 @@
       "activeMany": "active downloads",
       "queuedOne": "queued",
       "queuedMany": "queued",
-      "idle": "No active download",
-      "completed": "Completed",
+      "completedOne": "video",
+      "completedMany": "videos",
+      "empty": "no video",
       "pending": "Checking MeTube…",
       "error": "MeTube"
     }
