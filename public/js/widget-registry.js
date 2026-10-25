@@ -113,6 +113,24 @@ export function hasWidget(id) {
   return metas.has(String(id || ""));
 }
 
+// Retrouve un widget a partir du titre saisi dans l'editeur. Les espaces,
+// accents et la casse ne comptent pas : "Me Tube" propose donc "MeTube".
+function normalizedWidgetName(value) {
+  return String(value == null ? "" : value)
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+export function suggestedWidgetId(title) {
+  const wanted = normalizedWidgetName(title);
+  if (!wanted) return "";
+  const match = listWidgetMetas().find(meta => {
+    const labels = Object.values(meta.label || {});
+    return [meta.id, ...labels].some(name => normalizedWidgetName(name) === wanted);
+  });
+  return match ? match.id : "";
+}
+
 // Libelle affiche du widget (menu de l'editeur, tuile).
 export function widgetLabel(meta, lang) {
   if (!meta) return "";

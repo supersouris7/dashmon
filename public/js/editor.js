@@ -11,7 +11,8 @@ import { openImageLibrary, renderImageManager } from "./images.js";
 import { createIconPicker, createHostIconPicker, createWebLinkIconPicker, createDashboardIconPicker } from "./icons.js";
 import {
   getWidgetMeta, listWidgetMetas, widgetLabel, widgetString, fieldLabel, fieldPlaceholder,
-  fieldTitle, visibleFields, inheritWidgetConfig, normalizeWidgetConfig, isEncryptedSecret
+  fieldTitle, visibleFields, inheritWidgetConfig, normalizeWidgetConfig, isEncryptedSecret,
+  suggestedWidgetId
 } from "./widget-registry.js";
 import {
   serviceEditor, categoryEditor, dashboardEditor, hostEditor, webLinksEditor, widgetsEditor,
@@ -140,7 +141,17 @@ export function renderServiceEditor(){
     name.className="edit-input";
     name.placeholder=t("nameLabel");
     name.value=service.name||"";
-    name.addEventListener("input",()=>state.editServices[index].name=name.value);
+    name.addEventListener("input",()=>{
+      const edited=state.editServices[index];
+      edited.name=name.value;
+      if (manualWidgetChoices.has(edited) || edited.widget) return;
+      const suggested=suggestedWidgetId(name.value);
+      if (!suggested) return;
+      edited.widget=inheritWidgetConfig(suggested,null);
+      widgetType.value=suggested;
+      widgetConfigBtn.classList.remove("disabled");
+      widgetConfigBtn.title=t("widgetConfigTitle");
+    });
 
     const host=document.createElement("select");
     host.className="edit-select";
@@ -270,7 +281,9 @@ export function renderServiceEditor(){
     widgetType.addEventListener("change",()=>{
       // Changer de widget : on repart des defauts du manifest et on ne
       // conserve que les cles communes (inheritWidgetConfig).
-      state.editServices[index].widget=widgetType.value
+      const edited=state.editServices[index];
+      manualWidgetChoices.add(edited);
+      edited.widget=widgetType.value
         ? inheritWidgetConfig(widgetType.value,service.widget)
         : null;
       renderServiceEditor();
@@ -296,6 +309,9 @@ export function renderServiceEditor(){
 
 let widgetConfigIndex=-1;
 let widgetDraft=null;
+// Un choix explicite, y compris "Standard", ne doit jamais etre ecrase par
+// une suggestion issue du titre de l'application.
+const manualWidgetChoices=new WeakSet();
 
 // Un widget absent du registre est traite comme "standard" dans le menu : on ne
 // propose jamais une option qui ne serait pas exploitable.

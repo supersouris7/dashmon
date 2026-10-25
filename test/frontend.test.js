@@ -87,6 +87,11 @@ async function main(){
     ["adguard", "docker", "dockerhub", "duplicati", "github", "gotify", "lichess", "metube", "ping", "qbittorrent", "uptimekuma", "web", "youtube"]);
   ok("registre client : metadonnees disponibles", !!registry.getWidgetMeta("docker"));
   ok("registre client : widget inconnu -> null", registry.getWidgetMeta("inconnu") === null);
+  check("registre client : widget suggere depuis le titre", [
+    registry.suggestedWidgetId("MeTube"),
+    registry.suggestedWidgetId("me tube"),
+    registry.suggestedWidgetId("application inconnue")
+  ], ["metube", "metube", ""]);
   // Les sources des compteurs de liens (GitHub, Docker Hub, YouTube) sont aussi
   // internes au moteur : elles ne doivent pas apparaitre dans le menu des
   // widgets de tuile.
