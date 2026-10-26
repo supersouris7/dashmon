@@ -1,6 +1,6 @@
 # Keepalived
 
-Dashmon can show the Keepalived role of each Linux agent host. The supplied
+Dashmon can show the Keepalived role from two global agent endpoints. The supplied
 agent reports `MASTER` when its configured virtual IP is present locally and
 `BACKUP` otherwise. The virtual IP itself is never sent to Dashmon.
 
@@ -26,8 +26,9 @@ KEEPALIVED_PORT=PORT_NUMBER
 LINUX_METRICS_TOKEN=
 ```
 
-Generate a token with `openssl rand -hex 32`, set it as `LINUX_METRICS_TOKEN`, then
-keep the file mode at `600`. Do not store the token in a repository.
+Generate one token with `openssl rand -hex 32`, set the same `LINUX_METRICS_TOKEN`
+value on both nodes, then keep each file mode at `600`. Do not store the token in a
+repository.
 
 Start the agent:
 
@@ -42,14 +43,13 @@ Restrict the firewall so only Dashmon can reach the agent.
 ## Configure Dashmon
 
 Use the same `LINUX_METRICS_TOKEN` value on both Keepalived nodes. Dashmon does
-not need this variable in its own environment when the token is entered in the
-supervision settings.
+not need this variable in its environment.
 
-In *Edit supervision* > *Hosts*, create one host for each Keepalived node:
+In *Edit supervision* > *Keepalived*:
 
-1. Enable monitoring and choose **Linux agent**.
-2. Set the URL to that node's Keepalived agent endpoint.
-3. In **Bearer token**, enter the same token value as on the agents.
-4. Save the supervision settings.
+1. Set the URL of each Keepalived agent endpoint.
+2. Enter the shared token in **Shared Bearer token**.
+3. Save the supervision settings.
 
-Dashmon displays one Keepalived card for each agent that returns this field.
+Dashmon polls both agents independently of host metrics and displays one role card
+per configured endpoint.

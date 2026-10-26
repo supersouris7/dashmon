@@ -1349,6 +1349,16 @@ function renderAptUpdatesEditor(){
   });
 }
 
+function renderKeepalivedEditor(){
+  const editor=document.getElementById("keepalivedEditor");
+  const settings=state.editKeepalived;
+  editor.replaceChildren(
+    monitoringField(t("keepalivedPrimaryUrl"),monitoringInput("phMetricsUrl",settings.primaryUrl,value=>settings.primaryUrl=value)),
+    monitoringField(t("keepalivedSecondaryUrl"),monitoringInput("phMetricsUrl",settings.secondaryUrl,value=>settings.secondaryUrl=value)),
+    monitoringField(t("keepalivedToken"),monitoringInput("phKeepalivedToken",settings.token,value=>settings.token=value))
+  );
+}
+
 const SUPERVISION_PANELS=["hostsPanel","wireguardPanel","smartPanel","aptUpdatesPanel","keepalivedPanel"];
 
 // Le meme dialogue sert a deux usages : "Modifier Dashmon" (tous les onglets)
@@ -1386,6 +1396,7 @@ export function openEditor(mode="all"){
   state.editCategories=clone(state.categories);
   state.editDashboards=clone(state.dashboards);
   state.editHosts=clone(state.hosts);
+  state.editKeepalived=clone(state.keepalived);
   state.editWebLinks=clone(state.webLinks);
   state.editSpecialTile=clone(state.specialTile);
   editorSearch.value="";
@@ -1395,6 +1406,7 @@ export function openEditor(mode="all"){
   renderCategoryEditor();
   renderDashboardEditor();
   renderHostEditor();
+  renderKeepalivedEditor();
   renderWebLinksEditor();
   renderWidgetsEditor();
   applyEditorMode(mode);
@@ -1424,6 +1436,7 @@ function refreshEditorDrafts(){
   state.editCategories=clone(state.categories);
   state.editDashboards=clone(state.dashboards);
   state.editHosts=clone(state.hosts);
+  state.editKeepalived=clone(state.keepalived);
   state.editWebLinks=clone(state.webLinks);
   state.editSpecialTile=clone(state.specialTile);
   renderServiceEditor();
@@ -1433,6 +1446,7 @@ function refreshEditorDrafts(){
   renderWireguardEditor();
   renderSmartEditor();
   renderAptUpdatesEditor();
+  renderKeepalivedEditor();
   renderWebLinksEditor();
   renderWidgetsEditor();
 }
@@ -1564,12 +1578,14 @@ configImportInput.addEventListener("change",async()=>{
     state.editCategories=clone(imported.categories);
     state.editDashboards=clone(imported.dashboards);
     state.editHosts=clone(imported.hosts);
+    state.editKeepalived=clone(imported.keepalived);
     state.editWebLinks=clone(imported.webLinks);
     state.editSpecialTile=clone(imported.specialTile);
     renderServiceEditor();
     renderCategoryEditor();
     renderDashboardEditor();
     renderHostEditor();
+    renderKeepalivedEditor();
     renderWebLinksEditor();
     renderWidgetsEditor();
     importExportStatus.textContent=t("importReady");
@@ -1667,6 +1683,11 @@ async function applyEditorChanges(closeWhenSaved){
         monitoring:serializeHostMonitoring(h.monitoring)
     }))
     .filter(h=>h.name);
+  const cleanedKeepalived={
+    primaryUrl:(state.editKeepalived.primaryUrl||"").trim(),
+    secondaryUrl:(state.editKeepalived.secondaryUrl||"").trim(),
+    token:(state.editKeepalived.token||"").trim()
+  };
 
   const validNames=new Set(cleanedCategories.map(c=>c.name));
   const validHosts=new Set(cleanedHosts.map(h=>h.name));
@@ -1711,6 +1732,7 @@ async function applyEditorChanges(closeWhenSaved){
   state.categories=cleanedCategories;
   state.dashboards=cleanedDashboards;
   state.hosts=cleanedHosts;
+  state.keepalived=cleanedKeepalived;
   state.webLinks=cleanedWebLinks;
   state.specialTile=cleanedSpecialTile;
 

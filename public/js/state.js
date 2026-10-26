@@ -330,6 +330,7 @@ export const state = {
   categories: [],
   dashboards: [],
   hosts: [],
+  keepalived: {primaryUrl:"",secondaryUrl:"",token:""},
   collapsed: {},
   viewMode: "columns",
   page: "dashboard",
@@ -349,6 +350,7 @@ export const state = {
   editCategories: [],
   editDashboards: [],
   editHosts: [],
+  editKeepalived: {primaryUrl:"",secondaryUrl:"",token:""},
   editWebLinks: [],
   specialTile: null,
   editSpecialTile: null,
@@ -359,6 +361,7 @@ export const state = {
   hostMetrics: null,
   hostMetricsError: false,
   hostMetricsTimer: null,
+  keepalivedMetrics: null,
   themes: { native: [], custom: [] }
 };
 
@@ -616,6 +619,15 @@ export function normalizeWireguardPrefs(raw){
   };
 }
 
+export function normalizeKeepalived(raw){
+  const source=raw&&typeof raw==="object"&&!Array.isArray(raw) ? raw : {};
+  return {
+    primaryUrl:sanitizeUrl(source.primaryUrl),
+    secondaryUrl:sanitizeUrl(source.secondaryUrl),
+    token:sanitizeText(source.token,100)
+  };
+}
+
 // Preference SMART : section visible par defaut, avec un filtre facultatif de
 // noms de peripheriques (`/dev/sda`, `/dev/nvme0`, ...).
 export function normalizeSmartPrefs(raw){
@@ -680,6 +692,7 @@ export function normalizeConfig(cfg={}){
           ...host,
           id:host.id||"host-"+Math.random().toString(36).slice(2,10)
         })),
+    keepalived:normalizeKeepalived(cfg.keepalived),
     theme:typeof cfg.theme==="string" && cfg.theme.trim() ? cfg.theme.trim() : "dark",
     language:cfg.language==="en" ? "en" : "fr",
     usageCounts:cfg.usageCounts && typeof cfg.usageCounts==="object" && !Array.isArray(cfg.usageCounts) ? cfg.usageCounts : {},

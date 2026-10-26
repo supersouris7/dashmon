@@ -672,6 +672,16 @@ function sanitizeSpecialTile(raw,categories){
 // de configuration ne peut donc pas exposer une variable sensible du conteneur.
 const HOST_MONITORING_TYPES = new Set(["local", "linux", "proxmox"]);
 
+function sanitizeKeepalived(raw){
+  const source=raw&&typeof raw==="object"&&!Array.isArray(raw) ? raw : {};
+  return {
+    primaryUrl:sanitizeUrl(source.primaryUrl||""),
+    secondaryUrl:sanitizeUrl(source.secondaryUrl||""),
+    // Jeton direct partage par les deux agents Keepalived.
+    token:sanitizeText(source.token,100)
+  };
+}
+
 function sanitizeHostMonitoring(raw){
   if(!raw || typeof raw!=="object" || Array.isArray(raw)) return undefined;
   const type = HOST_MONITORING_TYPES.has(raw.type) ? raw.type : "local";
@@ -783,6 +793,7 @@ function buildConfigOutput(config){
             };
           })
         : [],
+      keepalived:sanitizeKeepalived(config.keepalived),
       collapsed:config.collapsed && typeof config.collapsed==="object" && !Array.isArray(config.collapsed)
         ? config.collapsed : {},
       viewMode:["rows","columns","plain"].includes(config.viewMode) ? config.viewMode : "columns",
@@ -1697,6 +1708,13 @@ async function getProxmoxMetrics(host){
   };
 }
 
+async function readKeepalivedMetrics(url,token){
+  const data=await httpClient.apiRequest(url,"",{token:token||undefined});
+  const keepalived=normalizeKeepalived(data?.keepalived);
+  if(!keepalived) throw new Error("Etat Keepalived invalide");
+  return keepalived;
+}
+
 const HOST_METRICS_TTL=HOST_METRICS_INTERVAL;
 let hostMetricsCache={ts:0,payload:null};
 let hostMetricsInflight=null;
@@ -1797,6 +1815,47 @@ app.get("/api/host-metrics",async(_req,res)=>{
     res.status(500).json({error:"Lecture des mesures impossible"});
   }finally{
     if(hostMetricsInflight===refresh) hostMetricsInflight=null;
+  }
+});
+
+const KEEPALIVED_METRICS_TTL=HOST_METRICS_INTERVAL;
+let keepalivedMetricsCache={ts:0,payload:null};
+let keepalivedMetricsInflight=null;
+
+app.get("/api/keepalived-metrics",async(_req,res)=>{
+  res.set("Cache-Control","no-store");
+  if(keepalivedMetricsCache.payload && Date.now()-keepalivedMetricsCache.ts<KEEPALIVED_METRICS_TTL){
+    return res.json(keepalivedMetricsCache.payload);
+  }
+  if(keepalivedMetricsInflight){
+    try{return res.json(await keepalivedMetricsInflight);}
+    catch(_error){return res.status(500).json({error:"Lecture Keepalived impossible"});}
+  }
+  let config;
+  try{config=readConfig();}
+  catch(_error){return res.status(500).json({error:"Lecture de config.json impossible"});}
+  const settings=sanitizeKeepalived(config.keepalived);
+  const agents=[
+    {id:"primary",name:"Keepalived 1",url:settings.primaryUrl},
+    {id:"secondary",name:"Keepalived 2",url:settings.secondaryUrl}
+  ].filter(agent=>agent.url);
+  const refresh=Promise.all(agents.map(async agent=>{
+    try{
+      return {...agent,ok:true,keepalived:await readKeepalivedMetrics(agent.url,settings.token)};
+    }catch(error){
+      return {id:agent.id,name:agent.name,ok:false,error:error.message};
+    }
+  })).then(agents=>({agents}));
+  keepalivedMetricsInflight=refresh;
+  try{
+    const payload=await refresh;
+    keepalivedMetricsCache={ts:Date.now(),payload};
+    res.json(payload);
+  }catch(error){
+    console.error("Refresh Keepalived:",error);
+    res.status(500).json({error:"Lecture Keepalived impossible"});
+  }finally{
+    if(keepalivedMetricsInflight===refresh) keepalivedMetricsInflight=null;
   }
 });
 

@@ -289,6 +289,9 @@ async function main(){
     check("config : hote sans supervision reste sans objet",
       stateModule.normalizeConfig({ hosts: [{ name: "H", icon: "fa-solid fa-server" }] }).hosts[0].monitoring,
       null);
+    check("config : Keepalived global conserve les deux agents et le jeton",
+      stateModule.normalizeConfig({keepalived:{primaryUrl:"https://primary.exemple.lan",secondaryUrl:"https://secondary.exemple.lan",token:"shared-token"}}).keepalived,
+      {primaryUrl:"https://primary.exemple.lan/",secondaryUrl:"https://secondary.exemple.lan/",token:"shared-token"});
     check("config : options retirees ignorees", [legacy.faviconEnabled, legacy.webLinksCollapsed], [undefined, undefined]);
 
     prefs.saveViewPrefs({ viewMode: "rows" });

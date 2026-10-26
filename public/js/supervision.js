@@ -351,11 +351,11 @@ function hostCard(host,metrics){
   return card;
 }
 
-function keepalivedCard(host,metrics){
+function keepalivedCard(agent){
   const card=document.createElement("article");
-  const role=metrics.keepalived?.state||"";
+  const role=agent.keepalived?.state||"";
   card.className="supervision-card supervision-card-keepalived "+role.toLowerCase();
-  applyHostColor(card,host);
+  if(!agent.ok) card.classList.add("is-unreachable");
   const head=document.createElement("div");
   head.className="supervision-head";
   const icon=document.createElement("i");
@@ -363,7 +363,7 @@ function keepalivedCard(host,metrics){
   icon.setAttribute("aria-hidden","true");
   const name=document.createElement("span");
   name.className="supervision-name";
-  name.textContent=host.name||t("hostName");
+  name.textContent=agent.name;
   const badge=document.createElement("span");
   badge.className="supervision-type";
   badge.textContent=t("supervisionKeepalived");
@@ -373,11 +373,11 @@ function keepalivedCard(host,metrics){
   const dot=document.createElement("span");
   dot.className="supervision-keepalived-dot";
   const text=document.createElement("strong");
-  text.textContent=t("supervisionKeepalived"+role[0]+role.slice(1).toLowerCase());
+  text.textContent=role ? t("supervisionKeepalived"+role[0]+role.slice(1).toLowerCase()) : t("supervisionUnreachable");
   status.append(dot,text);
   const note=document.createElement("p");
   note.className="supervision-keepalived-note";
-  note.textContent=t("supervisionKeepalivedNote");
+  note.textContent=agent.ok ? t("supervisionKeepalivedNote") : (agent.error||t("supervisionUnreachable"));
   card.append(head,status,note);
   return card;
 }
@@ -727,10 +727,11 @@ export function renderSupervision(){
   supervisionPage.setAttribute("aria-label",t("supervisionTitle"));
 
   const monitored=state.hosts.filter(host=>host.monitoring && host.monitoring.enabled===true);
+  const keepalivedAgents=Array.isArray(state.keepalivedMetrics) ? state.keepalivedMetrics : [];
 
   // Aucun hote surveille : on explique ou activer la supervision plutot que
   // d'afficher une grille vide et muette.
-  if(!monitored.length){
+  if(!monitored.length && !keepalivedAgents.length){
     const empty=document.createElement("p");
     empty.className="supervision-empty";
     empty.textContent=t("supervisionEmpty");
@@ -740,7 +741,7 @@ export function renderSupervision(){
   }
 
   // Donnees pas encore disponibles : un message unique, pas une erreur par carte.
-  if(!Array.isArray(state.hostMetrics)){
+  if(monitored.length && !Array.isArray(state.hostMetrics)){
     const status=document.createElement("p");
     status.className="supervision-empty";
     status.textContent=state.hostMetricsError ? t("supervisionError") : t("supervisionLoading");
@@ -749,17 +750,14 @@ export function renderSupervision(){
     return;
   }
 
-  const byId=new Map(state.hostMetrics.filter(m=>m && m.id).map(m=>[m.id,m]));
+  const byId=new Map((state.hostMetrics||[]).filter(m=>m && m.id).map(m=>[m.id,m]));
   // Une seule grille evite de reserver une ligne entiere aux details : WireGuard
   // et SMART prennent la premiere case libre apres les hotes, sans agrandir une
   // carte isolee. L'ordre reste lisible : hotes, WireGuard, puis SMART.
   const grid=document.createElement("div");
   grid.className="supervision-grid";
   monitored.forEach(host=>grid.appendChild(hostCard(host,byId.get(host.id))));
-  monitored.forEach(host=>{
-    const metrics=byId.get(host.id);
-    if(metrics?.ok && metrics.keepalived?.state) grid.appendChild(keepalivedCard(host,metrics));
-  });
+  keepalivedAgents.forEach(agent=>grid.appendChild(keepalivedCard(agent)));
   const wgCards=[];
   monitored.forEach(host=>{
     const metrics=byId.get(host.id);
@@ -801,6 +799,24 @@ export async function refreshHostMetrics(){
   }
 }
 
+let keepalivedMetricsInflight=false;
+
+async function refreshKeepalivedMetrics(){
+  if(keepalivedMetricsInflight) return;
+  keepalivedMetricsInflight=true;
+  try{
+    const response=await fetch("/api/keepalived-metrics",{cache:"no-store"});
+    if(!response.ok) throw new Error("HTTP "+response.status);
+    const data=await response.json();
+    state.keepalivedMetrics=Array.isArray(data.agents) ? data.agents : [];
+  }catch(_error){
+    state.keepalivedMetrics=[];
+  }finally{
+    keepalivedMetricsInflight=false;
+    if(state.page==="supervision") renderSupervision();
+  }
+}
+
 function pageHidden(){
   return typeof document!=="undefined" && document.visibilityState==="hidden";
 }
@@ -810,8 +826,12 @@ function pageHidden(){
 export function startSupervisionMetrics(){
   stopSupervisionMetrics();
   refreshHostMetrics();
+  refreshKeepalivedMetrics();
   state.hostMetricsTimer=setInterval(()=>{
-    if(!pageHidden()) refreshHostMetrics();
+    if(!pageHidden()){
+      refreshHostMetrics();
+      refreshKeepalivedMetrics();
+    }
   },HOST_METRICS_INTERVAL);
 }
 

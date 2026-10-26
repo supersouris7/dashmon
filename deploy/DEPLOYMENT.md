@@ -305,7 +305,8 @@ The smallest valid response is an empty JSON object. A practical response is:
   when the request crosses an untrusted network.
 - Store the bearer token in `LINUX_METRICS_TOKEN` (or an allowed environment
   variable) and put its **name** in the editor. Dashmon resolves it server-side.
-- For Keepalived role reporting, install the bundled agent described in
+- Keepalived role reporting uses two global agent endpoints configured in the
+  Keepalived supervision tab. Install the bundled agent as described in
   [the Keepalived guide](../docs/KEEPALIVED.md).
 
 ### WireGuard peers
