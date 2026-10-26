@@ -41,17 +41,15 @@ Restrict the firewall so only Dashmon can reach the agent.
 
 ## Configure Dashmon
 
-Use the same `LINUX_METRICS_TOKEN` value on both nodes and in Dashmon's
-environment, then redeploy Dashmon. With Compose, this is the
-`LINUX_METRICS_TOKEN` entry in its `.env` file; `docker-compose.yml` already
-forwards it to the container.
+Use the same `LINUX_METRICS_TOKEN` value on both Keepalived nodes. Dashmon does
+not need this variable in its own environment when the token is entered in the
+supervision settings.
 
 In *Edit supervision* > *Hosts*, create one host for each Keepalived node:
 
 1. Enable monitoring and choose **Linux agent**.
 2. Set the URL to that node's Keepalived agent endpoint.
-3. In **Bearer token**, enter `LINUX_METRICS_TOKEN` exactly, not the token
-   value.
+3. In **Bearer token**, enter the same token value as on the agents.
 4. Save the supervision settings.
 
 Dashmon displays one Keepalived card for each agent that returns this field.
