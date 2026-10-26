@@ -14,7 +14,7 @@ function metricsInterval(){
   return Number.isFinite(value) && value>=5000 ? Math.min(value,3600000) : 60000;
 }
 const HOST_METRICS_INTERVAL=metricsInterval();
-const TYPE_LABEL={local:"hostTypeLocal",linux:"hostTypeLinux",proxmox:"hostTypeProxmox"};
+const TYPE_LABEL={local:"hostTypeLocal",proxmox:"hostTypeProxmox"};
 let smartDetailsExpanded=false;
 const expandedHostDetails=new Set();
 

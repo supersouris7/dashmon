@@ -23,10 +23,10 @@ Set the real virtual IP, LAN bind address and a free port in
 KEEPALIVED_VIP=192.0.2.10
 KEEPALIVED_BIND=192.0.2.20
 KEEPALIVED_PORT=PORT_NUMBER
-LINUX_METRICS_TOKEN=
+KEEPALIVED_TOKEN=
 ```
 
-Generate one token with `openssl rand -hex 32`, set the same `LINUX_METRICS_TOKEN`
+Generate one token with `openssl rand -hex 32`, set the same `KEEPALIVED_TOKEN`
 value on both nodes, then keep each file mode at `600`. Do not store the token in a
 repository.
 
@@ -42,7 +42,7 @@ Restrict the firewall so only Dashmon can reach the agent.
 
 ## Configure Dashmon
 
-Use the same `LINUX_METRICS_TOKEN` value on both Keepalived nodes. Dashmon does
+Use the same `KEEPALIVED_TOKEN` value on both Keepalived nodes. Dashmon does
 not need this variable in its environment.
 
 In *Edit supervision* > *Keepalived*:

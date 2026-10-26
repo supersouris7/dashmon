@@ -21,10 +21,9 @@ you stop guessing whether *that* thing is working.
   subscribers right in the web-links banner, e.g. *GitHub (109)*.
 - **Real status monitoring** — an up/down pill per URL, refreshed automatically.
 - **Host supervision** — a dedicated page with CPU, memory, disk and temperature
-  per host, read from Dashmon itself, a [Proxmox](https://www.proxmox.com) node,
-  or your own small JSON agent. WireGuard peers can be read from a local
-  `wg show all dump` file, or reported by the agent; a dedicated *Edit
-  supervision* screen configures hosts and peer display.
+  per host, read from Dashmon itself or a [Proxmox](https://www.proxmox.com)
+  node. WireGuard peers can be read from a local `wg show all dump` file; a
+  dedicated *Edit supervision* screen configures hosts and peer display.
 - **Themes** — dark and light built in, plus your own custom themes and CSS.
 - **Two languages** — English and French, throughout the interface.
 - **Learns your habits** — services you open often float to the top.
@@ -119,6 +118,7 @@ them to a service. A good source of plain self-hosted app logos is the
 | --- | --- |
 | **[docs/WIDGETS.md](docs/WIDGETS.md)** | Widgets and web-link counters. |
 | **[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)** | Installation, environment and troubleshooting. |
+| **[docs/KEEPALIVED.md](docs/KEEPALIVED.md)** | Global Keepalived agents. |
 | **[docs/WIREGUARD.md](docs/WIREGUARD.md)** | WireGuard dump and cron script. |
 | **[docs/SMART.md](docs/SMART.md)** / **[docs/APT_UPDATES.md](docs/APT_UPDATES.md)** | Local SMART and APT supervision. |
 | **[CUSTOMIZATION.md](CUSTOMIZATION.md)** | Themes and icons. |

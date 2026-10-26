@@ -3,14 +3,13 @@
 Dashmon can show your WireGuard peers in two independent places:
 
 - **Host supervision** — its own card on the *Supervision* page, detached from
-  the host cards, for a monitored host of type **Local** or **Linux agent**. It
+  the host cards, for a monitored host of type **Local**. It
   shows a “last check” line dated from the dump file.
 - **Tile widget** — a standalone tile, assigned like any other widget in the
   service editor (**Edit Dashmon** → service → **Widget** → **WireGuard**), with
   no host involved.
 
-Both read the same thing: a dump of `wg show all dump`, either from a file on the
-Dashmon host (local dump) or reported by an agent.
+Both read the same local dump of `wg show all dump`.
 
 This guide covers the **local dump**: the script, its installation, and the cron
 schedule.
@@ -171,12 +170,6 @@ regenerating it more often than that.
 - No `NET_ADMIN` capability and no host network mode are required on the Dashmon
   side: it only reads the file.
 
-## 5. Agent alternative
-
-Instead of a file, a type **Linux agent** host may report peers in its JSON
-`wireguard` field. See
-[deploy/DEPLOYMENT.md §8](../deploy/DEPLOYMENT.md#8-host-supervision).
-
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
@@ -187,6 +180,6 @@ Instead of a file, a type **Linux agent** host may report peers in its JSON
 | No peers in Dashmon | File missing or empty, or written at the wrong path | `docker exec dashmon wc -c /app/data/wireguard.dump`, and check `WIREGUARD_DUMP_FILE` if you override it. |
 | Peers look stale | Cron too infrequent | Refresh hourly. |
 
-If WireGuard runs in a **container**, use a Linux agent or the host-file variant
-to provide the filtered dump; do not copy raw `wg show all dump` output into
+If WireGuard runs in a **container**, use the host-file variant to provide the
+filtered dump; do not copy raw `wg show all dump` output into
 Dashmon because it contains secret key material.

@@ -156,13 +156,13 @@ function setSessionCookie(req, res, expiresAt) {
 }
 
 // Allowlist des variables d'environnement citables comme source d'un token
-// (tokenEnv / tokenIdEnv / tokenSecretEnv d'un hote supervise). Sans elle, un
+// (tokenIdEnv / tokenSecretEnv d'un hote supervise). Sans elle, un
 // champ de configuration pourrait faire lire n'importe quelle variable du
 // conteneur (DASHMON_MASTER_KEY, DASHMON_PASSWORD...) et l'envoyer a un hote
 // distant. Le defaut couvre les tokens documentes ; DASHBOARD_TOKEN_ENVS,
-// separee par des virgules, l'etend pour un agent maison.
+// separee par des virgules, l'etend pour une instance Proxmox.
 const TOKEN_ENV_ALLOWLIST = new Set(
-  ["PROXMOX_TOKEN_ID", "PROXMOX_TOKEN_SECRET", "LINUX_METRICS_TOKEN"]
+  ["PROXMOX_TOKEN_ID", "PROXMOX_TOKEN_SECRET"]
     .concat(String(process.env.DASHBOARD_TOKEN_ENVS || "").split(","))
     .map(name => name.trim())
     .filter(Boolean)
@@ -265,7 +265,7 @@ function rateLimitGet(req, res, next) {
 }
 
 app.use("/api/status", rateLimitGet);
-// /api/host-metrics interroge des hôtes distants (Proxmox, agent Linux) : même
+// /api/host-metrics interroge des hôtes distants (Proxmox) : même
 // plafond que /api/status pour qu'un onglet ne puisse pas arroser un hôte.
 app.use("/api/host-metrics", rateLimitGet);
 
@@ -666,11 +666,11 @@ function sanitizeSpecialTile(raw,categories){
 }
 
 // Supervision d'un hote : la source des metriques (local = la machine qui
-// heberge Dashmon, linux = un agent HTTP JSON, proxmox = l'API PVE). Les champs
+// heberge Dashmon, proxmox = l'API PVE). Les champs
 // token portent soit le nom d'une variable d'environnement, soit une valeur
 // saisie. Un nom n'est relu que s'il figure dans TOKEN_ENV_ALLOWLIST : un champ
 // de configuration ne peut donc pas exposer une variable sensible du conteneur.
-const HOST_MONITORING_TYPES = new Set(["local", "linux", "proxmox"]);
+const HOST_MONITORING_TYPES = new Set(["local", "proxmox"]);
 
 function sanitizeKeepalived(raw){
   const source=raw&&typeof raw==="object"&&!Array.isArray(raw) ? raw : {};
@@ -691,14 +691,13 @@ function sanitizeHostMonitoring(raw){
     url: sanitizeUrl(raw.url || ""),
     node: sanitizeText(raw.node, 50),
     path: sanitizeText(raw.path, 200),
-    tokenEnv: sanitizeText(raw.tokenEnv, 100),
     tokenIdEnv: sanitizeText(raw.tokenIdEnv, 100),
     tokenSecretEnv: sanitizeText(raw.tokenSecretEnv, 100)
   };
   // Preferences d'affichage WireGuard : uniquement conservees si elles disent
   // quelque chose (section masquee ou interface filtree), pour ne pas alourdir
   // la configuration avec les valeurs par defaut.
-  const wgRaw = raw.wireguard && typeof raw.wireguard === "object" && !Array.isArray(raw.wireguard)
+  const wgRaw = type === "local" && raw.wireguard && typeof raw.wireguard === "object" && !Array.isArray(raw.wireguard)
     ? raw.wireguard : null;
   if(wgRaw){
     const wireguard = {
@@ -723,7 +722,7 @@ function sanitizeHostMonitoring(raw){
   // Un hote sans supervision activee et sans aucun parametre ne garde pas un
   // objet vide dans config.json : la config reste lisible.
   const meaningful = monitoring.url || monitoring.node || monitoring.path
-    || monitoring.tokenEnv || monitoring.tokenIdEnv || monitoring.tokenSecretEnv
+    || monitoring.tokenIdEnv || monitoring.tokenSecretEnv
     || monitoring.wireguard || monitoring.smart || monitoring.aptUpdates;
   if(!monitoring.enabled && !meaningful) return undefined;
   return monitoring;
@@ -1291,7 +1290,6 @@ async function refreshStatusesCycle(force){
 // --- Supervision des hotes ------------------------------------------------
 // CPU, RAM, temperature et disque d'un hote. Trois sources :
 //   local   : la machine qui heberge le conteneur (os, /sys, statfs) ;
-//   linux   : un agent HTTP renvoyant un JSON { cpu, ram, temperature, disk } ;
 //   proxmox : l'API PVE (token) ; le noeud en ligne est auto-detecte.
 // Chaque valeur est un pourcentage 0..100, sauf la temperature en degres. Une
 // metrique indisponible vaut null (affichee "—") : zero est une mesure, son
@@ -1416,31 +1414,12 @@ function envToken(name,fallbackName){
   return TOKEN_ENV_ALLOWLIST.has(fallback) ? String(process.env[fallback]||"") : "";
 }
 
-function pickPercent(...candidates){
-  for(const candidate of candidates){
-    const n=Number(candidate);
-    if(Number.isFinite(n)) return clampPercent(n);
-  }
-  return null;
-}
-
-function pickTemperature(value){
-  const n=Number(value);
-  if(!Number.isFinite(n)) return null;
-  return Math.round(n*10)/10;
-}
-
 function normalizeKeepalived(value){
   const source=value&&typeof value==="object" ? value : {};
   const state=String(source.state||"").trim().toUpperCase();
   return ["MASTER","BACKUP","FAULT"].includes(state) ? {state} : null;
 }
 
-// WireGuard via l'agent Linux : l'agent renvoie les pairs qu'il a lus (par
-// exemple avec "wg show all dump"). On accepte une interface unique, une liste
-// d'interfaces, ou { interfaces: [...] }. Tout ce qui s'affiche est du texte :
-// les valeurs sont bornees et normalisees ici, jamais interpretees comme du
-// HTML. Un agent qui n'envoie pas le champ reste simplement sans section.
 const WG_MAX_INTERFACES=10;
 const WG_MAX_PEERS=200;
 
@@ -1631,33 +1610,6 @@ function readAptUpdatesReport(){
   };
 }
 
-// Contrat de l'agent Linux : un JSON simple, chaque champ facultatif. Un champ
-// absent ou invalide devient null plutot qu'un zero trompeur.
-function normalizeMetricsPayload(data){
-  const source=data && typeof data==="object" ? data : {};
-  const details=source.details&&typeof source.details==="object" ? source.details : source;
-  return {
-    cpu:pickPercent(source.cpu),
-    ram:pickPercent(source.ram),
-    temperature:pickTemperature(source.temperature === undefined ? source.temp : source.temperature),
-    disk:pickPercent(source.disk),
-    wireguard:normalizeWireguard(source.wireguard),
-    keepalived:normalizeKeepalived(source.keepalived),
-    os:sanitizeText(details.os||details.osVersion,200),
-    cpuModel:sanitizeText(details.cpuModel||details.processor||(source.details&&source.details.cpu),200),
-    cpuCores:positiveInteger(details.cpuCores||details.cores,1024),
-    ramTotal:positiveInteger(details.ramTotal||details.memoryTotal,Number.MAX_SAFE_INTEGER)
-  };
-}
-
-async function readHttpMetrics(host){
-  const url=String(host.monitoring?.url||"").trim();
-  if(!url) throw new Error("URL de mesures manquante");
-  const token=resolveTokenValue(host.monitoring?.tokenEnv);
-  const data=await httpClient.apiRequest(url,"",{ token:token||undefined });
-  return normalizeMetricsPayload(data);
-}
-
 function proxmoxRequest(base,tokenId,tokenSecret,apiPath){
   return httpClient.apiRequest(base,apiPath,{
     headers:{ Authorization:`PVEAPIToken=${tokenId}=${tokenSecret}` }
@@ -1761,7 +1713,6 @@ app.get("/api/host-metrics",async(_req,res)=>{
       let wireguardFetchedAt=null;
       let smartFetchedAt=null;
       if(type==="proxmox") metrics=await getProxmoxMetrics(host);
-      else if(type==="linux") metrics=await readHttpMetrics(host);
       else {
         // Le dump local est le meme pour tous les hotes "local" : on le lit une
         // fois et on date chaque copie de l'heure du fichier.

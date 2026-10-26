@@ -585,31 +585,31 @@ function normalizeDashboards(raw){  const seen=new Set();
 }
 
 // Supervision d'un hote (voir server.js) : la source des mesures est "local"
-// (la machine qui heberge Dashmon), "linux" (un agent HTTP JSON) ou "proxmox"
-// (l'API PVE). Les champs token ne portent jamais un secret en clair ici : ce
+// (la machine qui heberge Dashmon) ou "proxmox" (l'API PVE). Les champs token
+// ne portent jamais un secret en clair ici : ce
 // sont des noms de variables d'environnement OU des valeurs collees, que le
 // serveur relit au moment de la mesure en appliquant son allowlist.
-export const HOST_MONITORING_TYPES=Object.freeze(["local","linux","proxmox"]);
+export const HOST_MONITORING_TYPES=Object.freeze(["local","proxmox"]);
 
 export function normalizeHostMonitoring(raw){
   if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
+  const type=HOST_MONITORING_TYPES.includes(raw.type) ? raw.type : "local";
   return {
     enabled:raw.enabled===true,
-    type:HOST_MONITORING_TYPES.includes(raw.type) ? raw.type : "local",
+    type,
     url:sanitizeUrl(raw.url),
     node:sanitizeText(raw.node,50),
     path:sanitizeText(raw.path,200),
-    tokenEnv:sanitizeText(raw.tokenEnv,100),
     tokenIdEnv:sanitizeText(raw.tokenIdEnv,100),
     tokenSecretEnv:sanitizeText(raw.tokenSecretEnv,100),
-    wireguard:normalizeWireguardPrefs(raw.wireguard),
+    wireguard:type === "local" ? normalizeWireguardPrefs(raw.wireguard) : {enabled:true,interface:""},
     smart:normalizeSmartPrefs(raw.smart),
     aptUpdates:normalizeAptUpdatesPrefs(raw.aptUpdates)
   };
 }
 
 // Preference d'affichage des pairs WireGuard d'un hote. Absente, la section
-// reste visible des que l'agent renvoie des donnees ; un filtre d'interface
+// reste visible des que le dump local contient des donnees ; un filtre d'interface
 // facultatif permet de n'afficher qu'un tunnel.
 export function normalizeWireguardPrefs(raw){
   const src=(raw && typeof raw==="object" && !Array.isArray(raw)) ? raw : {};

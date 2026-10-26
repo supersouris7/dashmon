@@ -886,7 +886,7 @@ document.addEventListener("keydown",event=>{
 function blankMonitoring(){
   return {
     enabled:false,type:"local",url:"",node:"",path:"",
-    tokenEnv:"",tokenIdEnv:"",tokenSecretEnv:"",
+    tokenIdEnv:"",tokenSecretEnv:"",
     wireguard:{enabled:true,interface:""},
     smart:{enabled:true,disks:[]},
     aptUpdates:{enabled:true}
@@ -904,13 +904,12 @@ function serializeHostMonitoring(m){
     url:(m.url||"").trim(),
     node:(m.node||"").trim(),
     path:(m.path||"").trim(),
-    tokenEnv:(m.tokenEnv||"").trim(),
     tokenIdEnv:(m.tokenIdEnv||"").trim(),
     tokenSecretEnv:(m.tokenSecretEnv||"").trim()
   };
   // WireGuard : n'ecrire la preference que si elle differe du defaut (section
   // affichee, toutes les interfaces), pour garder une config lisible.
-  const wg=m.wireguard && typeof m.wireguard==="object" ? m.wireguard : null;
+  const wg=m.type==="local" && m.wireguard && typeof m.wireguard==="object" ? m.wireguard : null;
   if(wg){
     const wireguard={enabled:wg.enabled!==false,interface:(wg.interface||"").trim()};
     if(!wireguard.enabled || wireguard.interface) out.wireguard=wireguard;
@@ -924,7 +923,7 @@ function serializeHostMonitoring(m){
   }
   const aptUpdates=m.aptUpdates && typeof m.aptUpdates==="object" ? {enabled:m.aptUpdates.enabled!==false} : null;
   if(aptUpdates && !aptUpdates.enabled) out.aptUpdates=aptUpdates;
-  const meaningful=out.url||out.node||out.path||out.tokenEnv||out.tokenIdEnv||out.tokenSecretEnv||out.wireguard||out.smart||out.aptUpdates;
+  const meaningful=out.url||out.node||out.path||out.tokenIdEnv||out.tokenSecretEnv||out.wireguard||out.smart||out.aptUpdates;
   if(!out.enabled && !meaningful) return undefined;
   return out;
 }
@@ -948,8 +947,7 @@ function monitoringInput(placeholderKey,value,onInput){
 }
 
 // Panneau deplie sous un hote surveille : le type decide des champs utiles.
-// Pour le type local, seul le chemin du disque importe ; pour un agent Linux,
-// l'URL et un jeton facultatif ; pour Proxmox, l'URL, le noeud et les deux
+// Pour le type local, seul le chemin du disque importe ; pour Proxmox, l'URL, le noeud et les deux
 // moities du jeton API.
 function renderMonitoringPanel(host,index){
   const m=host.monitoring;
@@ -959,7 +957,7 @@ function renderMonitoringPanel(host,index){
   const type=document.createElement("select");
   type.className="edit-select host-monitor-type";
   type.title=t("hostMonitoringType");
-  [["local","hostTypeLocal"],["linux","hostTypeLinux"],["proxmox","hostTypeProxmox"]].forEach(([value,key])=>{
+  [["local","hostTypeLocal"],["proxmox","hostTypeProxmox"]].forEach(([value,key])=>{
     const option=document.createElement("option");
     option.value=value;
     option.textContent=t(key);
@@ -998,15 +996,6 @@ function renderMonitoringPanel(host,index){
     return panel;
   }
 
-  // Agent Linux : un JSON simple, avec un jeton Bearer facultatif.
-  panel.appendChild(monitoringField(t("metricsUrl"),
-    monitoringInput("phMetricsUrl",m.url,v=>state.editHosts[index].monitoring.url=v)));
-  panel.appendChild(monitoringField(t("bearerTokenEnv"),
-    monitoringInput("phTokenEnv",m.tokenEnv,v=>state.editHosts[index].monitoring.tokenEnv=v)));
-  const hint=document.createElement("p");
-  hint.className="host-monitor-hint";
-  hint.textContent=t("tokenEnvHint");
-  panel.appendChild(hint);
   return panel;
 }
 
@@ -1130,8 +1119,8 @@ function wireguardHelpBlock(){
 }
 
 // Onglet WireGuard de l'editeur de supervision : hotes "local" (fichier dump
-// monte) et "Agent Linux" (champ wireguard du JSON). Les preferences portent sur
-// l'affichage (section visible ou non) et sur un filtre d'interface.
+// monte). Les preferences portent sur l'affichage (section visible ou non) et
+// sur un filtre d'interface.
 function renderWireguardEditor(){
   const list=document.getElementById("wireguardEditor");
   if(!list) return;
@@ -1141,7 +1130,7 @@ function renderWireguardEditor(){
   const hostIndexes=[];
   state.editHosts.forEach((host,index)=>{
     const m=host.monitoring;
-    if(m && m.enabled && (m.type==="local" || m.type==="linux")) hostIndexes.push(index);
+    if(m && m.enabled && m.type==="local") hostIndexes.push(index);
   });
 
   if(!hostIndexes.length){
@@ -1192,7 +1181,7 @@ function renderWireguardEditor(){
 
     const hint=document.createElement("p");
     hint.className="host-monitor-hint";
-    hint.textContent=t(host.monitoring.type==="local" ? "wireguardLocalHint" : "wireguardEditorHint");
+    hint.textContent=t("wireguardLocalHint");
     block.appendChild(hint);
 
     list.appendChild(block);

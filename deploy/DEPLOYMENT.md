@@ -80,7 +80,6 @@ See `.env.example`. The most important:
 | `DASHBOARD_INSECURE_TLS` | empty | `1` if your monitored hosts use self-signed certificates |
 | `DASHMON_MASTER_KEY` | empty | AES-256-GCM master key to encrypt widget secrets (e.g. Duplicati password) in `config.json` |
 | `PROXMOX_TOKEN_ID` / `PROXMOX_TOKEN_SECRET` | empty | Proxmox API token used by host supervision (type Proxmox) |
-| `LINUX_METRICS_TOKEN` | empty | Bearer token expected by a custom Linux metric agent |
 | `DASHBOARD_TOKEN_ENVS` | empty | Comma-separated allowlist extending the token variables above |
 
 ### Widget secrets (Duplicati…)
@@ -267,90 +266,20 @@ host picks one source:
 | Type | What it reads | Fields |
 | --- | --- | --- |
 | Local | The machine running the container (`os`, `/sys`, `statfs`) | disk path (default `/`) |
-| Linux agent | A JSON endpoint you host: `{ "cpu": 12, "ram": 40, "disk": 55, "temperature": 48 }` (all optional, percentages 0–100) | URL, optional bearer token |
 | Proxmox | The PVE JSON API (`/api2/json/nodes/<node>/status`) | URL, node, token ID, token secret |
 
 Temperature is unavailable for Proxmox (the PVE API does not expose it) and shows
 as `—`; likewise any metric a source does not provide.
 
-### Linux metric agent
-
-Dashmon does not ship an agent: expose a small HTTPS JSON endpoint on the host
-to monitor, then select **Linux agent** in *Edit supervision*. Enter the endpoint
-URL and, if used, the token field. Dashmon requests it with `GET` and sends the
-token as `Authorization: Bearer <token>`.
-
-The smallest valid response is an empty JSON object. A practical response is:
-
-```json
-{
-  "cpu": 12,
-  "ram": 40,
-  "disk": 55,
-  "temperature": 48,
-  "details": {
-    "os": "Linux 6.x (x64)",
-    "cpuModel": "CPU model",
-    "cpuCores": 8,
-    "ramTotal": 17179869184
-  }
-}
-```
-
-- `cpu`, `ram` and `disk` are percentages from 0 to 100; `temperature` is in
-  Celsius.
-- `ramTotal` is expressed in bytes. The `details` object and every one of its
-  fields are optional; they fill the expanded Host card.
-- Return `200` with JSON, keep the endpoint private to Dashmon, and use HTTPS
-  when the request crosses an untrusted network.
-- Store the bearer token in `LINUX_METRICS_TOKEN` (or an allowed environment
-  variable) and put its **name** in the editor. Dashmon resolves it server-side.
-- Keepalived role reporting uses two global agent endpoints configured in the
-  Keepalived supervision tab. Install the bundled agent as described in
-  [the Keepalived guide](../docs/KEEPALIVED.md).
+Keepalived roles use two global agent endpoints rather than host supervision.
+Configure them in the Keepalived supervision tab as described in [the Keepalived
+guide](../docs/KEEPALIVED.md).
 
 ### WireGuard peers
 
-WireGuard peers can come from two sources:
-
-- **Local** — read from a filtered dump file. Follow
-  [the WireGuard guide](../docs/WIREGUARD.md); Dashmon needs no extra capability.
-- **Linux agent** — reported in the JSON `wireguard` field described here.
-
-With an agent, add an optional `wireguard` field to the JSON; the supervision
-card then lists each peer with its last handshake and traffic:
-
-```json
-{
-  "cpu": 12, "ram": 40, "disk": 55, "temperature": 48,
-  "wireguard": {
-    "interface": "wg0",
-    "peers": [
-      { "name": "phone", "endpoint": "198.51.100.10:51820",
-        "latestHandshake": 1760000000, "rx": 1234567, "tx": 7654321 }
-    ]
-  }
-}
-```
-
-- `wireguard` may be one interface, an array of interfaces, or
-  `{ "interfaces": [ ... ] }`. Each interface has an `interface` name and a
-  `peers` array (max 10 interfaces, 200 peers each).
-- `latestHandshake` is an epoch timestamp in **seconds** (milliseconds and ISO
-  dates are also accepted). `rx` and `tx` are byte counters.
-- `connected` is optional. Without it, a peer is shown as connected when its last
-  handshake is less than three minutes old; `latestHandshake: null` shows
-  `never`.
-- Values are plain text on the page (no HTML), so names and endpoints are safe.
-  The agent reads them itself, for example from `wg show all dump`; Dashmon needs
-  no privilege on the WireGuard host.
-- The *WireGuard* tab of the supervision editor controls the display: hide the
-  peer section for a host, or restrict it to a single interface name (empty means
-  all interfaces). These preferences are stored in `config.json` under
-  `host.monitoring.wireguard` and do not change what the agent reports.
-
-The bundled script refreshes the local file with cron and removes private key
-material before Dashmon reads it. The same file also feeds the standalone
+WireGuard peers for local hosts are read from a filtered dump file. The bundled
+script refreshes it with cron and removes private key material before Dashmon
+reads it. The same file also feeds the standalone
 WireGuard tile. See [the WireGuard guide](../docs/WIREGUARD.md) for installation,
 names and bind mounts. SMART and APT have their own local guides:
 [SMART](../docs/SMART.md) and [APT updates](../docs/APT_UPDATES.md).
@@ -373,7 +302,7 @@ are normal when a path does not exist or `/sys` is not exposed.
 ### Tokens
 
 Token fields hold **either** the name of an allowlisted environment variable
-(`PROXMOX_TOKEN_ID`, `PROXMOX_TOKEN_SECRET`, `LINUX_METRICS_TOKEN`, or any name
+(`PROXMOX_TOKEN_ID`, `PROXMOX_TOKEN_SECRET`, or any name
 listed in `DASHBOARD_TOKEN_ENVS`) **or** the literal value. The server resolves
 and sends them at read time; a name outside the allowlist is sent literally, it
 never exposes an arbitrary container variable.
