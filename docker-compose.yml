@@ -29,6 +29,7 @@ services:
       # Chiffre les mots de passe des widgets (ex. Duplicati) dans config.json.
       # Sans clé, les secrets sont stockés en clair (warning au démarrage).
       DASHMON_MASTER_KEY: ${DASHMON_MASTER_KEY:-}
+      DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:-}
       # Supervision des hôtes et rapports locaux (voir deploy/DEPLOYMENT.md).
       HOST_METRICS_INTERVAL: ${HOST_METRICS_INTERVAL:-60}
       PROXMOX_TOKEN_ID: ${PROXMOX_TOKEN_ID:-}

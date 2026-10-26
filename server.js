@@ -97,6 +97,9 @@ const pngBody=express.raw({
 
 const INSECURE_TLS = process.env.DASHBOARD_INSECURE_TLS === "1";
 const DASHMON_PASSWORD = process.env.DASHMON_PASSWORD || "";
+// Secret partage exclusivement entre instances couplees. Il ne transite jamais
+// dans config.json ni dans une reponse HTTP.
+const DASHMON_SYNC_TOKEN = String(process.env.DASHMON_SYNC_TOKEN || "");
 const SESSION_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
 // Sans mot de passe, Dashmon ne doit pas devenir une interface d'administration
 // accessible au reseau. Dans Docker, l'ecoute doit rester disponible pour le
@@ -288,6 +291,9 @@ if (DASHMON_PASSWORD) {
   });
 
   app.use("/api", (req, res, next) => {
+    // Les deux routes de federation ont leur propre authentification par jeton
+    // afin qu'une instance n'ait pas a connaitre le mot de passe web d'une autre.
+    if (req.path.startsWith("/sync/")) return next();
     if (validSession(req) || validBasicAuth(req)) return next();
     res.status(401).json({ error: "Authentification requise" });
   });
@@ -770,7 +776,8 @@ function buildConfigOutput(config){
       // Tuile speciale unique du tableau de bord, placee dans une categorie.
       // Le type est verifie contre la liste blanche ; la categorie est
       // obligatoire, on retombe sur la premiere definie faute de mieux.
-      specialTile:sanitizeSpecialTile(config.specialTile,categories),
+       specialTile:sanitizeSpecialTile(config.specialTile,categories),
+       replication:sanitizeReplication(config.replication),
       hosts:Array.isArray(config.hosts)
         ? config.hosts.slice(0,50).map(host=>{
             return {
@@ -828,21 +835,111 @@ function writeConfig(output){
   }
 }
 
-app.put("/api/config",(req,res)=>{
+function keepOneLocalHost(config){
+  let found=false;
+  for(const host of config.hosts||[]){
+    if(host.monitoring?.enabled && host.monitoring.type==="local"){
+      if(found) host.monitoring.enabled=false;
+      found=true;
+    }
+  }
+  return config;
+}
+
+function syncPayload(config){
+  const payload={...config};
+  delete payload.replication;
+  return payload;
+}
+
+async function replicateConfig(config){
+  const replication=sanitizeReplication(config.replication);
+  if(replication.role!=="primary" || !replication.secondaries.length) return [];
+  if(!DASHMON_SYNC_TOKEN){
+    console.warn(`${ts()} Réplication ignorée : DASHMON_SYNC_TOKEN absent`);
+    return [];
+  }
+  return Promise.all(replication.secondaries.map(async url=>{
+    try{
+      await httpClient.apiRequest(url,"/api/sync/config",{
+        method:"PUT",body:syncPayload(config),timeout:STATUS_TIMEOUT,
+        headers:{"X-Dashmon-Sync-Token":DASHMON_SYNC_TOKEN}
+      });
+      return {url,ok:true};
+    }catch(error){
+      console.warn(`${ts()} Réplication vers ${url} impossible : ${error.message}`);
+      return {url,ok:false};
+    }
+  }));
+}
+
+function validSyncToken(req){
+  const received=Buffer.from(req.get("X-Dashmon-Sync-Token")||"");
+  const expected=Buffer.from(DASHMON_SYNC_TOKEN);
+  return expected.length>0 && received.length===expected.length && crypto.timingSafeEqual(received,expected);
+}
+
+// Les routes de federation ne reposent pas sur la session navigateur. Elles
+// restent toutefois inaccessibles sans le secret d'environnement partage.
+app.put("/api/sync/config",(req,res)=>{
+  if(!validSyncToken(req)) return res.status(401).json({error:"Authentification de synchronisation requise"});
+  try{
+    const current=readConfig();
+    if(sanitizeReplication(current.replication).role!=="secondary"){
+      return res.status(409).json({error:"Cette instance n'est pas secondaire"});
+    }
+    if(!req.body || typeof req.body!=="object" || Array.isArray(req.body)){
+      return res.status(400).json({error:"Configuration invalide"});
+    }
+    // L'identite, le role et les destinations sont toujours locaux au secondaire.
+    const output=keepOneLocalHost(buildConfigOutput({...req.body,replication:current.replication}));
+    writeConfig(output);
+    res.json({ok:true});
+  }catch(error){
+    console.error("Réplication config:",error);
+    res.status(500).json({error:"Réplication impossible"});
+  }
+});
+
+app.get("/api/sync/metrics",(req,res)=>{
+  if(!validSyncToken(req)) return res.status(401).json({error:"Authentification de synchronisation requise"});
+  res.set("Cache-Control","no-store");
+  res.json(hostMetricsCache.payload || {hosts:[]});
+});
+
+app.get("/api/replication/metrics",async(_req,res)=>{
+  const replication=sanitizeReplication(readConfig().replication);
+  if(replication.role!=="primary") return res.json({instances:[]});
+  if(!DASHMON_SYNC_TOKEN) return res.status(503).json({error:"DASHMON_SYNC_TOKEN absent"});
+  const instances=await Promise.all(replication.secondaries.map(async url=>{
+    try{
+      const payload=await httpClient.apiRequest(url,"/api/sync/metrics",{
+        timeout:STATUS_TIMEOUT,headers:{"X-Dashmon-Sync-Token":DASHMON_SYNC_TOKEN}
+      });
+      return {url,ok:true,hosts:Array.isArray(payload?.hosts) ? payload.hosts : []};
+    }catch(error){ return {url,ok:false,error:"Instance inaccessible",hosts:[]}; }
+  }));
+  res.set("Cache-Control","no-store");
+  res.json({instances});
+});
+
+app.put("/api/config",async(req,res)=>{
   try{
     const config=req.body;
     if(!config || typeof config!=="object" || Array.isArray(config)){
       return res.status(400).json({error:"Configuration invalide"});
     }
-    writeConfig(buildConfigOutput(config));
-    res.json({ok:true});
+    if(sanitizeReplication(readConfig().replication).role==="secondary") return res.status(403).json({error:"Cette instance secondaire est en lecture seule"});
+    const output=keepOneLocalHost(buildConfigOutput(config));
+    writeConfig(output);
+    res.json({ok:true,replication:await replicateConfig(output)});
   }catch(error){
     console.error("Écriture config:",error);
     res.status(500).json({error:"Écriture de config.json impossible"});
   }
 });
 
-app.patch("/api/config",(req,res)=>{
+app.patch("/api/config",async(req,res)=>{
   try{
     const patch=req.body;
     if(!patch || typeof patch!=="object" || Array.isArray(patch)){
@@ -852,8 +949,10 @@ app.patch("/api/config",(req,res)=>{
     for(const key of Object.keys(patch)){
       config[key]=patch[key];
     }
-    writeConfig(buildConfigOutput(config));
-    res.json({ok:true});
+    if(sanitizeReplication(config.replication).role==="secondary") return res.status(403).json({error:"Cette instance secondaire est en lecture seule"});
+    const output=keepOneLocalHost(buildConfigOutput(config));
+    writeConfig(output);
+    res.json({ok:true,replication:await replicateConfig(output)});
   }catch(error){
     console.error("Écriture config (patch):",error);
     res.status(500).json({error:"Écriture de config.json impossible"});
@@ -1229,6 +1328,28 @@ async function refreshStatuses(force=false){
   }finally{
     if(statusRefreshInflight===refresh) statusRefreshInflight=null;
   }
+}
+
+function sanitizeSyncUrl(value) {
+  const url = sanitizeUrl(value);
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    // Une URL de synchronisation est une origine, jamais un chemin choisi par
+    // l'editeur : cela empeche de transformer la replication en proxy HTTP.
+    if (parsed.username || parsed.password || parsed.search || parsed.hash) return "";
+    return parsed.href;
+  } catch (_error) { return ""; }
+}
+
+function sanitizeReplication(raw) {
+  const source = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  const role = source.role === "secondary" ? "secondary" : "primary";
+  const instanceName = sanitizeText(source.instanceName, 100) || os.hostname().slice(0, 100) || "Dashmon";
+  const secondaries = role === "primary" && Array.isArray(source.secondaries)
+    ? [...new Set(source.secondaries.map(sanitizeSyncUrl).filter(Boolean))].slice(0, 20)
+    : [];
+  return { role, instanceName, secondaries };
 }
 
 async function refreshStatusesCycle(force){

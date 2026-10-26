@@ -20,7 +20,7 @@ import {
   modalBackdrop, editorTitle, closeBtn, cancelBtn, saveBtn,
   addServiceBtn, addCategoryBtn, addDashboardBtn, addWebLinkBtn, addHostBtn,
   exportConfigBtn, importConfigBtn, applyConfigBtn, configImportInput, importExportStatus,
-  widgetConfig, widgetConfigBody, widgetConfigCloseBtn, widgetConfigSaveBtn
+  widgetConfig, widgetConfigBody, widgetConfigCloseBtn, widgetConfigSaveBtn, replicationEditor
 } from "./dom.js";
 
 function moveItem(list,fromIndex,toIndex){
@@ -1386,7 +1386,13 @@ export function openEditor(mode="all"){
   renderHostEditor();
   renderWebLinksEditor();
   renderWidgetsEditor();
+  renderReplicationEditor();
   applyEditorMode(mode);
+  if(state.replication?.role==="secondary"){
+    modalBackdrop.querySelectorAll("input, select, textarea, button").forEach(control=>{
+      if(control!==closeBtn && control!==cancelBtn) control.disabled=true;
+    });
+  }
   modalBackdrop.classList.add("show");
   modalBackdrop.setAttribute("aria-hidden","false");
   document.body.classList.add("modal-open");
@@ -1398,6 +1404,35 @@ export function closeEditor(){
   document.body.classList.remove("modal-open");
   closeWidgetConfig();
   document.querySelectorAll(".icon-picker.open").forEach(p=>p.classList.remove("open"));
+}
+
+function renderReplicationEditor(){
+  replicationEditor.replaceChildren();
+  const replication=state.replication||{role:"primary",instanceName:"Dashmon",secondaries:[]};
+  const readOnly=replication.role==="secondary";
+  const note=document.createElement("p");
+  note.className="host-monitor-hint";
+  note.textContent=readOnly
+    ? "This secondary is read-only. Its primary sends configuration changes."
+    : "The primary sends every saved configuration to these secondary instances.";
+  replicationEditor.appendChild(note);
+  const name=document.createElement("input");
+  name.className="edit-input"; name.placeholder="Instance name"; name.value=replication.instanceName||""; name.disabled=readOnly;
+  name.addEventListener("input",()=>state.replication.instanceName=name.value);
+  replicationEditor.appendChild(name);
+  const role=document.createElement("select");
+  role.className="edit-select"; role.disabled=readOnly;
+  ["primary","secondary"].forEach(value=>{const option=document.createElement("option"); option.value=value; option.textContent=value.toUpperCase(); role.appendChild(option);});
+  role.value=replication.role;
+  role.addEventListener("change",()=>{state.replication.role=role.value; if(role.value==="secondary") state.replication.secondaries=[]; renderReplicationEditor();});
+  replicationEditor.appendChild(role);
+  if(!readOnly && replication.role==="primary"){
+    const urls=document.createElement("textarea");
+    urls.className="edit-input"; urls.rows=5; urls.placeholder="https://dashmon-secondary.example";
+    urls.value=(replication.secondaries||[]).join("\n");
+    urls.addEventListener("input",()=>{state.replication.secondaries=urls.value.split(/\r?\n/).map(value=>value.trim()).filter(Boolean);});
+    replicationEditor.appendChild(urls);
+  }
 }
 
 // Applique le bon rendu sans quitter les parametres : le tableau de bord et la
@@ -1424,6 +1459,7 @@ function refreshEditorDrafts(){
   renderAptUpdatesEditor();
   renderWebLinksEditor();
   renderWidgetsEditor();
+  renderReplicationEditor();
 }
 
 let importedConfigDraft=null;
@@ -1656,6 +1692,13 @@ async function applyEditorChanges(closeWhenSaved){
         monitoring:serializeHostMonitoring(h.monitoring)
     }))
     .filter(h=>h.name);
+  let localHostSeen=false;
+  cleanedHosts.forEach(host=>{
+    if(host.monitoring?.enabled && host.monitoring.type==="local"){
+      if(localHostSeen) host.monitoring.enabled=false;
+      localHostSeen=true;
+    }
+  });
   const validNames=new Set(cleanedCategories.map(c=>c.name));
   const validHosts=new Set(cleanedHosts.map(h=>h.name));
 

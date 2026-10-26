@@ -18,6 +18,7 @@ export function saveConfig(immediate=false){
       categories:state.categories,
       dashboards:state.dashboards,
       hosts:state.hosts,
+      replication:state.replication,
       specialTile:state.specialTile,
       theme:state.theme,
       language:state.language,

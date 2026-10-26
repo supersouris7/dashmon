@@ -3,7 +3,7 @@
 // refreshHostMetrics, declenchee a l'ouverture de la page et par un minuteur.
 import { t } from "./i18n.js";
 import { state, sanitizeTileColor } from "./state.js";
-import { supervisionList, supervisionPage, collapseAllBtn } from "./dom.js";
+import { supervisionList, supervisionPage, supervisionTabs, collapseAllBtn } from "./dom.js";
 
 // Intervalle injecte par le serveur (voir HOST_METRICS_INTERVAL). Un HTML
 // servi sans substitution (test, fichier local) retombe sur 60 s.
@@ -17,6 +17,29 @@ const HOST_METRICS_INTERVAL=metricsInterval();
 const TYPE_LABEL={local:"hostTypeLocal",proxmox:"hostTypeProxmox"};
 let smartDetailsExpanded=false;
 const expandedHostDetails=new Set();
+let activeInstance="local";
+let remoteInstances=[];
+
+function instanceLabel(instance){
+  return instance.name || instance.url || "Dashmon";
+}
+
+function renderInstanceTabs(){
+  supervisionTabs.replaceChildren();
+  const local=state.replication?.instanceName||"Dashmon";
+  const instances=[{id:"local",name:local},...remoteInstances];
+  if(instances.length<2){ supervisionTabs.hidden=true; return; }
+  supervisionTabs.hidden=false;
+  instances.forEach(instance=>{
+    const button=document.createElement("button");
+    button.type="button"; button.className="page-btn"; button.setAttribute("role","tab");
+    button.setAttribute("aria-selected",String(activeInstance===instance.id));
+    button.innerHTML='<i class="fa-solid fa-shield-halved" aria-hidden="true"></i>';
+    const label=document.createElement("span"); label.textContent=instanceLabel(instance); button.appendChild(label);
+    button.addEventListener("click",()=>{activeInstance=instance.id; renderSupervision();});
+    supervisionTabs.appendChild(button);
+  });
+}
 
 function setAllSmartDetails(expanded){
   smartDetailsExpanded=expanded;
@@ -690,12 +713,16 @@ function aptUpdatesCard(host,metrics){
 
 export function renderSupervision(){
   supervisionList.replaceChildren();
+  renderInstanceTabs();
 
   // Le titre n'est plus affiche : les onglets suffisent. On garde un nom
   // accessible sur la section pour les lecteurs d'ecran.
   supervisionPage.setAttribute("aria-label",t("supervisionTitle"));
 
-  const monitored=state.hosts.filter(host=>host.monitoring && host.monitoring.enabled===true);
+  const selected=remoteInstances.find(instance=>instance.id===activeInstance);
+  const monitored=selected
+    ? selected.hosts.map(metric=>({id:metric.id,name:metric.name,icon:"fa-solid fa-server",monitoring:{enabled:true,type:metric.type}}))
+    : state.hosts.filter(host=>host.monitoring && host.monitoring.enabled===true);
   // Aucun hote surveille : on explique ou activer la supervision plutot que
   // d'afficher une grille vide et muette.
   if(!monitored.length){
@@ -708,7 +735,7 @@ export function renderSupervision(){
   }
 
   // Donnees pas encore disponibles : un message unique, pas une erreur par carte.
-  if(monitored.length && !Array.isArray(state.hostMetrics)){
+  if(!selected && monitored.length && !Array.isArray(state.hostMetrics)){
     const status=document.createElement("p");
     status.className="supervision-empty";
     status.textContent=state.hostMetricsError ? t("supervisionError") : t("supervisionLoading");
@@ -717,7 +744,7 @@ export function renderSupervision(){
     return;
   }
 
-  const byId=new Map((state.hostMetrics||[]).filter(m=>m && m.id).map(m=>[m.id,m]));
+  const byId=new Map((selected ? selected.hosts : state.hostMetrics||[]).filter(m=>m && m.id).map(m=>[m.id,m]));
   // Une seule grille evite de reserver une ligne entiere aux details : WireGuard
   // et SMART prennent la premiere case libre apres les hotes, sans agrandir une
   // carte isolee. L'ordre reste lisible : hotes, WireGuard, puis SMART.
@@ -755,6 +782,13 @@ export async function refreshHostMetrics(){
     if(!response.ok) throw new Error("HTTP "+response.status);
     const data=await response.json();
     state.hostMetrics=Array.isArray(data.hosts) ? data.hosts : [];
+    const replication=await fetch("/api/replication/metrics",{cache:"no-store"});
+    if(replication.ok){
+      const data=await replication.json();
+      remoteInstances=(data.instances||[]).map((instance,index)=>({
+        id:"remote-"+index,name:instance.url,hosts:instance.hosts||[],error:instance.error
+      }));
+    }
     state.hostMetricsError=false;
   }catch(_error){
     state.hostMetricsError=true;

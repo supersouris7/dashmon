@@ -330,6 +330,7 @@ export const state = {
   categories: [],
   dashboards: [],
   hosts: [],
+  replication: {role:"primary",instanceName:"Dashmon",secondaries:[]},
   collapsed: {},
   viewMode: "columns",
   page: "dashboard",
@@ -679,7 +680,13 @@ export function normalizeConfig(cfg={}){
       : derivedHosts.map(host=>({
           ...host,
           id:host.id||"host-"+Math.random().toString(36).slice(2,10)
-        })),
+       })),
+    replication:{
+      role:cfg.replication?.role==="secondary" ? "secondary" : "primary",
+      instanceName:sanitizeText(cfg.replication?.instanceName,100)||"Dashmon",
+      secondaries:Array.isArray(cfg.replication?.secondaries)
+        ? [...new Set(cfg.replication.secondaries.map(value=>sanitizeUrl(value)).filter(Boolean))].slice(0,20) : []
+    },
     theme:typeof cfg.theme==="string" && cfg.theme.trim() ? cfg.theme.trim() : "dark",
     language:cfg.language==="en" ? "en" : "fr",
     usageCounts:cfg.usageCounts && typeof cfg.usageCounts==="object" && !Array.isArray(cfg.usageCounts) ? cfg.usageCounts : {},

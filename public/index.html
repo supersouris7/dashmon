@@ -159,6 +159,7 @@
 <main>
 <div id="dashboard" data-view="columns"></div>
 <section id="supervisionPage" class="supervision-page" aria-label="Supervision">
+  <div id="supervisionTabs" class="page-switch-group supervision-tabs" role="tablist"></div>
   <div id="supervisionList" class="supervision-list"></div>
 </section>
 </main>
@@ -205,6 +206,9 @@
       </button>
       <button class="edit-tab" type="button" data-panel="importExportPanel">
         <i class="fa-solid fa-file-import"></i>&nbsp; <span id="editorTabImportExport">Import / Export</span>
+      </button>
+      <button class="edit-tab" type="button" data-panel="replicationPanel">
+        <i class="fa-solid fa-shield-halved"></i>&nbsp; <span>Replication</span>
       </button>
     </div>
 
@@ -308,6 +312,10 @@
           </button>
         </div>
       </div>
+    </div>
+
+    <div id="replicationPanel" class="edit-panel">
+      <div id="replicationEditor" class="edit-list"></div>
     </div>
 
     <div class="modal-header editor-footer">

@@ -79,6 +79,7 @@ See `.env.example`. The most important:
 | `TRUST_PROXY` | `0` | `1` only if nginx terminates HTTPS in front of the container |
 | `DASHBOARD_INSECURE_TLS` | empty | `1` if your monitored hosts use self-signed certificates |
 | `DASHMON_MASTER_KEY` | empty | AES-256-GCM master key to encrypt widget secrets (e.g. Duplicati password) in `config.json` |
+| `DASHMON_SYNC_TOKEN` | empty | Shared secret authorizing primary/secondary configuration replication |
 | `PROXMOX_TOKEN_ID` / `PROXMOX_TOKEN_SECRET` | empty | Proxmox API token used by host supervision (type Proxmox) |
 | `DASHBOARD_TOKEN_ENVS` | empty | Comma-separated allowlist extending the token variables above |
 
@@ -111,6 +112,27 @@ Behaviour:
 - If the key changes later, previously encrypted passwords become unreadable — re-enter them in the editor (empty field keeps the stored secret).
 
 ## 3. Data
+
+## Primary / secondary replication
+
+Set the same long random `DASHMON_SYNC_TOKEN` on every coupled instance, then
+restart them. Do not put this value in the web editor or in `config.json`.
+
+On the source instance, open **Edit Dashmon → Replication**, keep the
+**PRIMARY** role, set a recognizable instance name, and enter each secondary's
+base HTTPS URL, one per line. Save: every later configuration save is pushed to
+those secondaries. A failed target does not prevent the primary from saving; it
+will be retried at the next save.
+
+On every receiving instance, select **SECONDARY** once before coupling it. Its
+editor then becomes read-only and only its authenticated `/api/sync/*` routes
+accept replicated configuration. The replication token is sent only as an HTTP
+request header and is never returned by Dashmon.
+
+Each instance may have one enabled **Local** supervision host. This setting is
+instance-specific; use the Supervision page tabs to view local and remote
+instances. Put replication URLs behind HTTPS or an authenticated private
+network, and never configure a link-local or metadata-service address.
 
 The `dashmon-data` volume (`/app/data`) persists config, images and custom themes.
 Backup: `docker cp dashmon:/app/data ./backup-data` (container stopped).
