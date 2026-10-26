@@ -351,6 +351,37 @@ function hostCard(host,metrics){
   return card;
 }
 
+function keepalivedCard(host,metrics){
+  const card=document.createElement("article");
+  const role=metrics.keepalived?.state||"";
+  card.className="supervision-card supervision-card-keepalived "+role.toLowerCase();
+  applyHostColor(card,host);
+  const head=document.createElement("div");
+  head.className="supervision-head";
+  const icon=document.createElement("i");
+  icon.className="fa-solid fa-network-wired";
+  icon.setAttribute("aria-hidden","true");
+  const name=document.createElement("span");
+  name.className="supervision-name";
+  name.textContent=host.name||t("hostName");
+  const badge=document.createElement("span");
+  badge.className="supervision-type";
+  badge.textContent=t("supervisionKeepalived");
+  head.append(icon,name,badge);
+  const status=document.createElement("div");
+  status.className="supervision-keepalived-status";
+  const dot=document.createElement("span");
+  dot.className="supervision-keepalived-dot";
+  const text=document.createElement("strong");
+  text.textContent=t("supervisionKeepalived"+role[0]+role.slice(1).toLowerCase());
+  status.append(dot,text);
+  const note=document.createElement("p");
+  note.className="supervision-keepalived-note";
+  note.textContent=t("supervisionKeepalivedNote");
+  card.append(head,status,note);
+  return card;
+}
+
 // Les interfaces d'un hote retenues par ses preferences : section masquable
 // (enabled===false) et filtre d'interface. Un tableau vide peut signaler un
 // dump valide sans pair, que la carte doit tout de meme rendre.
@@ -725,6 +756,10 @@ export function renderSupervision(){
   const grid=document.createElement("div");
   grid.className="supervision-grid";
   monitored.forEach(host=>grid.appendChild(hostCard(host,byId.get(host.id))));
+  monitored.forEach(host=>{
+    const metrics=byId.get(host.id);
+    if(metrics?.ok && metrics.keepalived?.state) grid.appendChild(keepalivedCard(host,metrics));
+  });
   const wgCards=[];
   monitored.forEach(host=>{
     const metrics=byId.get(host.id);

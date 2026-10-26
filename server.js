@@ -1419,6 +1419,12 @@ function pickTemperature(value){
   return Math.round(n*10)/10;
 }
 
+function normalizeKeepalived(value){
+  const source=value&&typeof value==="object" ? value : {};
+  const state=String(source.state||"").trim().toUpperCase();
+  return ["MASTER","BACKUP","FAULT"].includes(state) ? {state} : null;
+}
+
 // WireGuard via l'agent Linux : l'agent renvoie les pairs qu'il a lus (par
 // exemple avec "wg show all dump"). On accepte une interface unique, une liste
 // d'interfaces, ou { interfaces: [...] }. Tout ce qui s'affiche est du texte :
@@ -1625,6 +1631,7 @@ function normalizeMetricsPayload(data){
     temperature:pickTemperature(source.temperature === undefined ? source.temp : source.temperature),
     disk:pickPercent(source.disk),
     wireguard:normalizeWireguard(source.wireguard),
+    keepalived:normalizeKeepalived(source.keepalived),
     os:sanitizeText(details.os||details.osVersion,200),
     cpuModel:sanitizeText(details.cpuModel||details.processor||(source.details&&source.details.cpu),200),
     cpuCores:positiveInteger(details.cpuCores||details.cores,1024),
@@ -1758,6 +1765,7 @@ app.get("/api/host-metrics",async(_req,res)=>{
         ram:metrics.ram,
         temperature:metrics.temperature,
         disk:metrics.disk,
+        keepalived:metrics.keepalived||null,
         os:sanitizeText(metrics.os,200),
         cpuModel:sanitizeText(metrics.cpuModel,200),
         cpuCores:positiveInteger(metrics.cpuCores,1024),
