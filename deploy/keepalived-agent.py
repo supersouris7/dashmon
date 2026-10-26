@@ -9,12 +9,12 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 
 VIP = os.environ.get("KEEPALIVED_VIP", "").strip()
-TOKEN = os.environ.get("KEEPALIVED_TOKEN", "")
+TOKEN = os.environ.get("LINUX_METRICS_TOKEN", "")
 BIND = os.environ.get("KEEPALIVED_BIND", "").strip()
 PORT = os.environ.get("KEEPALIVED_PORT", "").strip()
 
 if not VIP or not TOKEN or not BIND or not PORT:
-    raise SystemExit("KEEPALIVED_VIP, KEEPALIVED_TOKEN, KEEPALIVED_BIND and KEEPALIVED_PORT are required")
+    raise SystemExit("KEEPALIVED_VIP, LINUX_METRICS_TOKEN, KEEPALIVED_BIND and KEEPALIVED_PORT are required")
 
 
 def owns_vip():

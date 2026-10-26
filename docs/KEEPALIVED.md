@@ -23,10 +23,10 @@ Set the real virtual IP, LAN bind address and a free port in
 KEEPALIVED_VIP=192.0.2.10
 KEEPALIVED_BIND=192.0.2.20
 KEEPALIVED_PORT=PORT_NUMBER
-KEEPALIVED_TOKEN=
+LINUX_METRICS_TOKEN=
 ```
 
-Generate a token with `openssl rand -hex 32`, set it as `KEEPALIVED_TOKEN`, then
+Generate a token with `openssl rand -hex 32`, set it as `LINUX_METRICS_TOKEN`, then
 keep the file mode at `600`. Do not store the token in a repository.
 
 Start the agent:
@@ -41,10 +41,10 @@ Restrict the firewall so only Dashmon can reach the agent.
 
 ## Configure Dashmon
 
-For the simplest setup, use the same generated `KEEPALIVED_TOKEN` on both
-nodes. Set the same value as `LINUX_METRICS_TOKEN` in Dashmon's environment,
-then redeploy Dashmon. With Compose, this is the `LINUX_METRICS_TOKEN` entry in
-its `.env` file; `docker-compose.yml` already forwards it to the container.
+Use the same `LINUX_METRICS_TOKEN` value on both nodes and in Dashmon's
+environment, then redeploy Dashmon. With Compose, this is the
+`LINUX_METRICS_TOKEN` entry in its `.env` file; `docker-compose.yml` already
+forwards it to the container.
 
 In *Edit supervision* > *Hosts*, create one host for each Keepalived node:
 
