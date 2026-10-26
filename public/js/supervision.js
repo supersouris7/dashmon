@@ -20,15 +20,19 @@ const expandedHostDetails=new Set();
 
 function setAllSmartDetails(expanded){
   smartDetailsExpanded=expanded;
-  supervisionList.querySelectorAll(".supervision-card-smart").forEach(card=>{
+  supervisionList.querySelectorAll(".supervision-card-smart,.supervision-card-host.has-details").forEach(card=>{
     card.classList.toggle("expanded",expanded);
     card.setAttribute("aria-expanded",String(expanded));
+    if(card.dataset.hostId){
+      if(expanded) expandedHostDetails.add(card.dataset.hostId);
+      else expandedHostDetails.delete(card.dataset.hostId);
+    }
   });
 }
 
 export function updateSmartCollapseButton(){
   if(state.page!=="supervision") return;
-  const cards=[...supervisionList.querySelectorAll(".supervision-card-smart")];
+  const cards=[...supervisionList.querySelectorAll(".supervision-card-smart,.supervision-card-host.has-details")];
   const expanded=cards.filter(card=>card.classList.contains("expanded")).length;
   const collapsed=cards.length-expanded;
   const actionExpand=collapsed>expanded;
@@ -41,7 +45,7 @@ export function updateSmartCollapseButton(){
 }
 
 export function toggleAllSmartDetails(){
-  const cards=[...supervisionList.querySelectorAll(".supervision-card-smart")];
+  const cards=[...supervisionList.querySelectorAll(".supervision-card-smart,.supervision-card-host.has-details")];
   if(!cards.length) return;
   const expanded=cards.filter(card=>card.classList.contains("expanded")).length;
   setAllSmartDetails(cards.length-expanded>expanded);
@@ -269,6 +273,7 @@ function hostCard(host,metrics){
   let chevron=null;
   if(details){
     card.classList.add("has-details");
+    card.dataset.hostId=host.id||"";
     card.setAttribute("role","button");
     card.tabIndex=0;
     const expanded=expandedHostDetails.has(host.id);
@@ -327,6 +332,7 @@ function hostCard(host,metrics){
         if(expanded) expandedHostDetails.add(host.id);
         else expandedHostDetails.delete(host.id);
         card.setAttribute("aria-expanded",String(expanded));
+        updateSmartCollapseButton();
       };
       card.addEventListener("click",toggleDetails);
       card.addEventListener("keydown",event=>{
