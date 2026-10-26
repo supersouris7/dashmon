@@ -1338,10 +1338,10 @@ function renderAptUpdatesEditor(){
   });
 }
 
-const SUPERVISION_PANELS=["hostsPanel","wireguardPanel","smartPanel","aptUpdatesPanel"];
+const SUPERVISION_PANELS=["hostsPanel","replicationPanel","wireguardPanel","smartPanel","aptUpdatesPanel"];
 
 // Le meme dialogue sert a deux usages : "Modifier Dashmon" (tous les onglets)
-// et "Modifier la supervision" (hotes et WireGuard seulement). On masque les
+// et "Modifier la supervision" (hotes, replication et sondes locales). On masque les
 // onglets inutiles plutot que de dupliquer le formulaire et son enregistrement.
 function applyEditorMode(mode){
   const supervision=mode==="supervision";
@@ -1350,7 +1350,7 @@ function applyEditorMode(mode){
   // dialogue "Modifier Dashmon" ne les montre donc jamais.
   const visible=panel=>supervision
     ? SUPERVISION_PANELS.includes(panel)
-    : panel!=="wireguardPanel" && panel!=="smartPanel" && panel!=="aptUpdatesPanel";
+    : panel!=="replicationPanel" && panel!=="wireguardPanel" && panel!=="smartPanel" && panel!=="aptUpdatesPanel";
   const tabs=[...document.querySelectorAll(".edit-tab")];
   tabs.forEach(tab=>{
     tab.hidden=!visible(tab.dataset.panel);
