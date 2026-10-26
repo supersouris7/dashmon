@@ -1344,9 +1344,18 @@ function localSystemDetails(){
 // entier, qui demanderait un compteur electrique externe.
 let previousRaplEnergy=null;
 function localPowerWatts(){
-  const root="/sys/class/powercap";
   let entries=[];
-  try{ entries=fs.readdirSync(root); }catch(_error){ return null; }
+  // Docker peut interdire un bind mount directement dans /sys. Le montage
+  // applicatif /host-sys/powercap garde donc le conteneur non privilegie.
+  let root="";
+  for(const candidate of ["/sys/class/powercap","/host-sys/powercap"]){
+    try{
+      entries=fs.readdirSync(candidate);
+      root=candidate;
+      break;
+    }catch(_error){}
+  }
+  if(!root) return null;
   const counters=[];
   for(const entry of entries){
     if(!/^(?:intel|amd)-rapl:\d+$/.test(entry)) continue;

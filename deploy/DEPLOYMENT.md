@@ -313,11 +313,12 @@ not the complete server consumption. A complete measurement requires an
 external meter exposed by a Linux agent through `power`.
 
 If the card stays unavailable although RAPL exists on the Docker host, expose
-only this directory to Dashmon, read-only:
+only this directory to Dashmon, read-only. Mount it outside `/sys`: Docker and
+Portainer can refuse an overlay inside that protected filesystem.
 
 ```yaml
     volumes:
-      - /sys/class/powercap:/sys/class/powercap:ro
+      - /sys/class/powercap:/host-sys/powercap:ro
 ```
 
 An unavailable measurement is expected when the CPU or kernel does not expose
