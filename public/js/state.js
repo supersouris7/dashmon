@@ -335,6 +335,7 @@ export const state = {
   viewMode: "columns",
   page: "dashboard",
   dashboardId: "main",
+  supervisionInstanceId: "local",
   openMode: "same",
   groupMode: "category",
   theme: "dark",
@@ -491,7 +492,7 @@ function normalizeCollapsed(collapsed){
 // navigateur ne puisse pas casser le rendu.
 export const VIEW_PREF_KEYS=Object.freeze([
   "viewMode","sortMode","groupMode","openMode",
-  "smallIcons","collapsed","webLinksHidden","page","dashboardId"
+  "smallIcons","collapsed","webLinksHidden","page","dashboardId","supervisionInstanceId"
 ]);
 
 export function normalizeViewPrefs(cfg={}){
@@ -504,6 +505,8 @@ export function normalizeViewPrefs(cfg={}){
     // Dashboard actif : la valeur est validee plus tard contre la liste des
     // dashboards de la config (ici on ne connait que la preference brute).
     dashboardId:typeof cfg.dashboardId==="string" && cfg.dashboardId.trim() ? cfg.dashboardId.trim().slice(0,64) : "",
+    supervisionInstanceId:typeof cfg.supervisionInstanceId==="string" && cfg.supervisionInstanceId.trim()
+      ? cfg.supervisionInstanceId.trim().slice(0,200) : "local",
     smallIcons:cfg.smallIcons===true,
     webLinksHidden:cfg.webLinksHidden===true,
     collapsed:normalizeCollapsed(cfg.collapsed)

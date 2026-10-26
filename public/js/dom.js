@@ -5,7 +5,6 @@ export const mobilePageBtn=document.getElementById("mobilePageBtn");
 export const mobilePageMenu=document.getElementById("mobilePageMenu");
 export const supervisionPage=document.getElementById("supervisionPage");
 export const supervisionList=document.getElementById("supervisionList");
-export const supervisionTabs=document.getElementById("supervisionTabs");
 export const refreshBar=document.getElementById("refreshBar");
 export const searchInput=document.getElementById("search");
 export const viewBtn=document.getElementById("viewBtn");

@@ -1,9 +1,10 @@
-// Navigation du tableau de bord : un bouton par dashboard, puis Supervision.
+// Navigation du tableau de bord : un bouton par dashboard et par instance supervisee.
 // Le panneau de boutons est construit en JavaScript car son contenu depend de
 // la liste des dashboards et du libelle courant (langue, renommage en editeur).
 import { state } from "./state.js";
 import { render } from "./render.js";
-import { renderSupervision, startSupervisionMetrics, stopSupervisionMetrics } from "./supervision.js";
+import { renderSupervision, startSupervisionMetrics, stopSupervisionMetrics,
+  selectedSupervisionInstanceId, supervisionInstanceLabel, supervisionInstances } from "./supervision.js";
 import { pageSwitchGroup, mobilePageBtn, mobilePageMenu } from "./dom.js";
 import { saveViewPrefs } from "./view-prefs.js";
 import { t } from "./i18n.js";
@@ -37,9 +38,11 @@ function selectDashboard(id){
   applyPage();
 }
 
-function selectSupervision(){
+function selectSupervision(instanceId){
   state.page="supervision";
-  saveViewPrefs({page:state.page});
+  state.supervisionInstanceId=instanceId;
+  selectedSupervisionInstanceId();
+  saveViewPrefs({page:state.page,supervisionInstanceId:state.supervisionInstanceId});
   closeMobilePageMenu();
   applyPage();
 }
@@ -100,13 +103,22 @@ export function renderPageSwitch(){
     if(active) mobileCurrent={icon,label};
   });
 
-  const supervisionActive=state.page==="supervision";
-  const sup=button("supervision","fa-solid fa-shield-halved",t("pageSupervision"),supervisionActive);
-  sup.addEventListener("click",selectSupervision);
-  pageSwitchGroup.appendChild(sup);
-  const supervisionLabel=t("pageSupervision");
-  mobilePageMenu.appendChild(mobileMenuItem("fa-solid fa-shield-halved",supervisionLabel,supervisionActive,selectSupervision));
-  if(supervisionActive) mobileCurrent={icon:"fa-solid fa-shield-halved",label:supervisionLabel};
+  const requestedInstanceId=state.supervisionInstanceId;
+  const activeInstanceId=selectedSupervisionInstanceId();
+  if(requestedInstanceId!==activeInstanceId){
+    saveViewPrefs({supervisionInstanceId:activeInstanceId});
+  }
+  supervisionInstances().forEach(instance=>{
+    const label=supervisionInstanceLabel(instance);
+    const active=state.page==="supervision" && instance.id===activeInstanceId;
+    const sup=button("supervision","fa-solid fa-shield-halved",label,active);
+    sup.dataset.supervisionInstanceId=instance.id;
+    sup.title=label;
+    sup.addEventListener("click",()=>selectSupervision(instance.id));
+    pageSwitchGroup.appendChild(sup);
+    mobilePageMenu.appendChild(mobileMenuItem("fa-solid fa-shield-halved",label,active,()=>selectSupervision(instance.id)));
+    if(active) mobileCurrent={icon:"fa-solid fa-shield-halved",label};
+  });
 
   const current=mobileCurrent||{icon:"fa-solid fa-grip",label:t("pageDashboard")};
   mobilePageBtn.replaceChildren();

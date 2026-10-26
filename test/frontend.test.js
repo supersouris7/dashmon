@@ -214,7 +214,7 @@ async function main(){
 
     check("prefs : la liste des cles est stable", stateModule.VIEW_PREF_KEYS.slice(),
       ["viewMode", "sortMode", "groupMode", "openMode",
-        "smallIcons", "collapsed", "webLinksHidden", "page", "dashboardId"]);
+        "smallIcons", "collapsed", "webLinksHidden", "page", "dashboardId", "supervisionInstanceId"]);
 
     // Rien d'ecrit tant que l'utilisateur n'a rien change.
     check("prefs : navigateur neuf = aucune preference", prefs.loadViewPrefs(), {});
@@ -233,6 +233,8 @@ async function main(){
     check("pages : page inconnue recalee", stateModule.normalizeViewPrefs({ page: "admin" }).page, "dashboard");
     check("pages : dashboard actif normalise", stateModule.normalizeViewPrefs({ dashboardId: " main " }).dashboardId, "main");
     check("pages : dashboard actif vide par defaut", stateModule.normalizeViewPrefs({}).dashboardId, "");
+    check("pages : instance de supervision conservee", stateModule.normalizeViewPrefs({ supervisionInstanceId: "https://dashmon.exemple.lan" }).supervisionInstanceId, "https://dashmon.exemple.lan");
+    check("pages : instance de supervision vide recalee sur local", stateModule.normalizeViewPrefs({ supervisionInstanceId: " " }).supervisionInstanceId, "local");
 
     check("dashboards : un onglet par defaut", stateModule.normalizeConfig({}).dashboards,
       [{ id: "main", name: "Dashboard", icon: "fa-solid fa-grip" }]);

@@ -3,7 +3,7 @@
 // refreshHostMetrics, declenchee a l'ouverture de la page et par un minuteur.
 import { t } from "./i18n.js";
 import { state, sanitizeTileColor } from "./state.js";
-import { supervisionList, supervisionPage, supervisionTabs, collapseAllBtn } from "./dom.js";
+import { supervisionList, supervisionPage, collapseAllBtn } from "./dom.js";
 
 // Intervalle injecte par le serveur (voir HOST_METRICS_INTERVAL). Un HTML
 // servi sans substitution (test, fichier local) retombe sur 60 s.
@@ -17,28 +17,29 @@ const HOST_METRICS_INTERVAL=metricsInterval();
 const TYPE_LABEL={local:"hostTypeLocal",proxmox:"hostTypeProxmox"};
 let smartDetailsExpanded=false;
 const expandedHostDetails=new Set();
-let activeInstance="local";
 let remoteInstances=[];
 
 function instanceLabel(instance){
-  return instance.name || instance.url || "Dashmon";
+  if(instance.id==="local") return instance.name || "Dashmon";
+  try{ return new URL(instance.url).hostname || instance.url; }catch(_error){ return instance.url || "Dashmon"; }
 }
 
-function renderInstanceTabs(){
-  supervisionTabs.replaceChildren();
+export function supervisionInstances(){
   const local=state.replication?.instanceName||"Dashmon";
-  const instances=[{id:"local",name:local},...remoteInstances];
-  if(instances.length<2){ supervisionTabs.hidden=true; return; }
-  supervisionTabs.hidden=false;
-  instances.forEach(instance=>{
-    const button=document.createElement("button");
-    button.type="button"; button.className="page-btn"; button.setAttribute("role","tab");
-    button.setAttribute("aria-selected",String(activeInstance===instance.id));
-    button.innerHTML='<i class="fa-solid fa-shield-halved" aria-hidden="true"></i>';
-    const label=document.createElement("span"); label.textContent=instanceLabel(instance); button.appendChild(label);
-    button.addEventListener("click",()=>{activeInstance=instance.id; renderSupervision();});
-    supervisionTabs.appendChild(button);
-  });
+  const configured=state.replication?.secondaries||[];
+  return [{id:"local",name:local},...configured.map(url=>({id:url,url}))];
+}
+
+export function selectedSupervisionInstanceId(){
+  const instances=supervisionInstances();
+  if(!instances.some(instance=>instance.id===state.supervisionInstanceId)){
+    state.supervisionInstanceId="local";
+  }
+  return state.supervisionInstanceId;
+}
+
+export function supervisionInstanceLabel(instance){
+  return instanceLabel(instance);
 }
 
 function setAllSmartDetails(expanded){
@@ -713,13 +714,24 @@ function aptUpdatesCard(host,metrics){
 
 export function renderSupervision(){
   supervisionList.replaceChildren();
-  renderInstanceTabs();
+  const activeInstance=selectedSupervisionInstanceId();
 
-  // Le titre n'est plus affiche : les onglets suffisent. On garde un nom
-  // accessible sur la section pour les lecteurs d'ecran.
+  // Le titre n'est plus affiche : la navigation nomme deja l'instance. On
+  // garde un nom accessible sur la section pour les lecteurs d'ecran.
   supervisionPage.setAttribute("aria-label",t("supervisionTitle"));
 
-  const selected=remoteInstances.find(instance=>instance.id===activeInstance);
+  const selected=activeInstance==="local" ? null
+    : remoteInstances.find(instance=>instance.id===activeInstance) || {id:activeInstance,hosts:null};
+  // L'instance distante est navigable avant la premiere reponse de metriques :
+  // dans cet intervalle, elle doit afficher le chargement plutot qu'un faux vide.
+  if(selected && !Array.isArray(selected.hosts)){
+    const status=document.createElement("p");
+    status.className="supervision-empty";
+    status.textContent=t("supervisionLoading");
+    supervisionList.append(status);
+    updateSmartCollapseButton();
+    return;
+  }
   const monitored=selected
     ? selected.hosts.map(metric=>({id:metric.id,name:metric.name,icon:"fa-solid fa-server",monitoring:{enabled:true,type:metric.type}}))
     : state.hosts.filter(host=>host.monitoring && host.monitoring.enabled===true);
@@ -785,8 +797,8 @@ export async function refreshHostMetrics(){
     const replication=await fetch("/api/replication/metrics",{cache:"no-store"});
     if(replication.ok){
       const data=await replication.json();
-      remoteInstances=(data.instances||[]).map((instance,index)=>({
-        id:"remote-"+index,name:instance.url,hosts:instance.hosts||[],error:instance.error
+      remoteInstances=(data.instances||[]).map(instance=>({
+        id:instance.url,url:instance.url,hosts:instance.hosts||[],error:instance.error
       }));
     }
     state.hostMetricsError=false;

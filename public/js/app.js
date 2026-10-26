@@ -57,6 +57,7 @@ async function loadConfig(){
     state.smallIcons=viewPrefs.smallIcons;
     state.webLinksHidden=viewPrefs.webLinksHidden;
     state.page=viewPrefs.page;
+    state.supervisionInstanceId=viewPrefs.supervisionInstanceId;
     // Le dashboard actif vient de la preference, mais il est borne a la liste
     // de la config : une preference dont le dashboard a ete supprime retombe
     // sur le premier dashboard.
