@@ -271,10 +271,6 @@ host picks one source:
 Temperature is unavailable for Proxmox (the PVE API does not expose it) and shows
 as `—`; likewise any metric a source does not provide.
 
-Keepalived roles use two global agent endpoints rather than host supervision.
-Configure them in the Keepalived supervision tab as described in [the Keepalived
-guide](../docs/KEEPALIVED.md).
-
 ### WireGuard peers
 
 WireGuard peers for local hosts are read from a filtered dump file. The bundled

@@ -118,7 +118,6 @@ them to a service. A good source of plain self-hosted app logos is the
 | --- | --- |
 | **[docs/WIDGETS.md](docs/WIDGETS.md)** | Widgets and web-link counters. |
 | **[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)** | Installation, environment and troubleshooting. |
-| **[docs/KEEPALIVED.md](docs/KEEPALIVED.md)** | Global Keepalived agents. |
 | **[docs/WIREGUARD.md](docs/WIREGUARD.md)** | WireGuard dump and cron script. |
 | **[docs/SMART.md](docs/SMART.md)** / **[docs/APT_UPDATES.md](docs/APT_UPDATES.md)** | Local SMART and APT supervision. |
 | **[CUSTOMIZATION.md](CUSTOMIZATION.md)** | Themes and icons. |

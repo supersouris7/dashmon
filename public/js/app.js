@@ -44,7 +44,6 @@ async function loadConfig(){
     state.categories=cfg.categories;
     state.dashboards=cfg.dashboards;
     state.hosts=cfg.hosts;
-    state.keepalived=cfg.keepalived;
     state.specialTile=cfg.specialTile;
     // Disposition de l'écran : ce navigateur prime, la config serveur sert de
     // valeur initiale (premier chargement, ou navigateur tout neuf).

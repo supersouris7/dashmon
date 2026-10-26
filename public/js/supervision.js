@@ -351,37 +351,6 @@ function hostCard(host,metrics){
   return card;
 }
 
-function keepalivedCard(agent){
-  const card=document.createElement("article");
-  const role=agent.keepalived?.state||"";
-  card.className="supervision-card supervision-card-keepalived "+role.toLowerCase();
-  if(!agent.ok) card.classList.add("is-unreachable");
-  const head=document.createElement("div");
-  head.className="supervision-head";
-  const icon=document.createElement("i");
-  icon.className="fa-solid fa-network-wired";
-  icon.setAttribute("aria-hidden","true");
-  const name=document.createElement("span");
-  name.className="supervision-name";
-  name.textContent=agent.name;
-  const badge=document.createElement("span");
-  badge.className="supervision-type";
-  badge.textContent=t("supervisionKeepalived");
-  head.append(icon,name,badge);
-  const status=document.createElement("div");
-  status.className="supervision-keepalived-status";
-  const dot=document.createElement("span");
-  dot.className="supervision-keepalived-dot";
-  const text=document.createElement("strong");
-  text.textContent=role ? t("supervisionKeepalived"+role[0]+role.slice(1).toLowerCase()) : t("supervisionUnreachable");
-  status.append(dot,text);
-  const note=document.createElement("p");
-  note.className="supervision-keepalived-note";
-  note.textContent=agent.ok ? t("supervisionKeepalivedNote") : (agent.error||t("supervisionUnreachable"));
-  card.append(head,status,note);
-  return card;
-}
-
 // Les interfaces d'un hote retenues par ses preferences : section masquable
 // (enabled===false) et filtre d'interface. Un tableau vide peut signaler un
 // dump valide sans pair, que la carte doit tout de meme rendre.
@@ -727,11 +696,9 @@ export function renderSupervision(){
   supervisionPage.setAttribute("aria-label",t("supervisionTitle"));
 
   const monitored=state.hosts.filter(host=>host.monitoring && host.monitoring.enabled===true);
-  const keepalivedAgents=Array.isArray(state.keepalivedMetrics) ? state.keepalivedMetrics : [];
-
   // Aucun hote surveille : on explique ou activer la supervision plutot que
   // d'afficher une grille vide et muette.
-  if(!monitored.length && !keepalivedAgents.length){
+  if(!monitored.length){
     const empty=document.createElement("p");
     empty.className="supervision-empty";
     empty.textContent=t("supervisionEmpty");
@@ -757,7 +724,6 @@ export function renderSupervision(){
   const grid=document.createElement("div");
   grid.className="supervision-grid";
   monitored.forEach(host=>grid.appendChild(hostCard(host,byId.get(host.id))));
-  keepalivedAgents.forEach(agent=>grid.appendChild(keepalivedCard(agent)));
   const wgCards=[];
   monitored.forEach(host=>{
     const metrics=byId.get(host.id);
@@ -799,24 +765,6 @@ export async function refreshHostMetrics(){
   }
 }
 
-let keepalivedMetricsInflight=false;
-
-async function refreshKeepalivedMetrics(){
-  if(keepalivedMetricsInflight) return;
-  keepalivedMetricsInflight=true;
-  try{
-    const response=await fetch("/api/keepalived-metrics",{cache:"no-store"});
-    if(!response.ok) throw new Error("HTTP "+response.status);
-    const data=await response.json();
-    state.keepalivedMetrics=Array.isArray(data.agents) ? data.agents : [];
-  }catch(_error){
-    state.keepalivedMetrics=[];
-  }finally{
-    keepalivedMetricsInflight=false;
-    if(state.page==="supervision") renderSupervision();
-  }
-}
-
 function pageHidden(){
   return typeof document!=="undefined" && document.visibilityState==="hidden";
 }
@@ -826,11 +774,9 @@ function pageHidden(){
 export function startSupervisionMetrics(){
   stopSupervisionMetrics();
   refreshHostMetrics();
-  refreshKeepalivedMetrics();
   state.hostMetricsTimer=setInterval(()=>{
     if(!pageHidden()){
       refreshHostMetrics();
-      refreshKeepalivedMetrics();
     }
   },HOST_METRICS_INTERVAL);
 }
