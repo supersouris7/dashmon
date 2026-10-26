@@ -16,6 +16,7 @@ function metricsInterval(){
 const HOST_METRICS_INTERVAL=metricsInterval();
 const TYPE_LABEL={local:"hostTypeLocal",linux:"hostTypeLinux",proxmox:"hostTypeProxmox"};
 let smartDetailsExpanded=false;
+const expandedHostDetails=new Set();
 
 function setAllSmartDetails(expanded){
   smartDetailsExpanded=expanded;
@@ -204,6 +205,17 @@ function bytesText(value){
   return rounded.toString().replace(".",fr?",":".")+" "+units[index];
 }
 
+function hostDetailRow(label,value){
+  const row=document.createElement("div");
+  row.className="supervision-host-detail-row";
+  const key=document.createElement("span");
+  key.textContent=label;
+  const content=document.createElement("span");
+  content.textContent=value;
+  row.append(key,content);
+  return row;
+}
+
 // Un pair : nom, dernier handshake, puis trafic recu et emis. Le nom et
 // l'endpoint viennent de l'agent : le point d'interrogation de l'interpolation
 // est volontairement absent, tout passe par textContent.
@@ -253,7 +265,21 @@ function hostCard(host,metrics){
   const badge=document.createElement("span");
   badge.className="supervision-type";
   badge.textContent=typeLabel(host.monitoring && host.monitoring.type);
+  const details=metrics && metrics.ok && [metrics.os,metrics.cpuModel,metrics.cpuCores,metrics.ramTotal].some(value=>!isMissing(value));
+  let chevron=null;
+  if(details){
+    card.classList.add("has-details");
+    card.setAttribute("role","button");
+    card.tabIndex=0;
+    const expanded=expandedHostDetails.has(host.id);
+    card.classList.toggle("expanded",expanded);
+    card.setAttribute("aria-expanded",String(expanded));
+    chevron=document.createElement("i");
+    chevron.className="fa-solid fa-chevron-down supervision-host-chevron";
+    chevron.setAttribute("aria-hidden","true");
+  }
   head.append(icon,name,badge);
+  if(chevron) head.appendChild(chevron);
   card.appendChild(head);
 
   if(metrics && metrics.ok){
@@ -281,6 +307,34 @@ function hostCard(host,metrics){
       temperatureRow(metrics.temperature)
     );
     card.appendChild(rows);
+    if(details){
+      const detailRows=document.createElement("div");
+      detailRows.className="supervision-host-details";
+      if(metrics.os) detailRows.appendChild(hostDetailRow(t("supervisionOs"),metrics.os));
+      if(metrics.cpuModel){
+        const cores=Number(metrics.cpuCores);
+        const suffix=Number.isFinite(cores) && cores>0
+          ? " · "+t(cores===1 ? "supervisionCpuCore" : "supervisionCpuCores").replace("{count}",String(cores))
+          : "";
+        detailRows.appendChild(hostDetailRow(t("supervisionCpuModel"),metrics.cpuModel+suffix));
+      }else if(metrics.cpuCores){
+        detailRows.appendChild(hostDetailRow(t("supervisionCpuCores"),String(metrics.cpuCores)));
+      }
+      if(metrics.ramTotal) detailRows.appendChild(hostDetailRow(t("supervisionRamTotal"),bytesText(metrics.ramTotal)));
+      card.appendChild(detailRows);
+      const toggleDetails=()=>{
+        const expanded=card.classList.toggle("expanded");
+        if(expanded) expandedHostDetails.add(host.id);
+        else expandedHostDetails.delete(host.id);
+        card.setAttribute("aria-expanded",String(expanded));
+      };
+      card.addEventListener("click",toggleDetails);
+      card.addEventListener("keydown",event=>{
+        if(event.key!=="Enter" && event.key!==" ") return;
+        event.preventDefault();
+        toggleDetails();
+      });
+    }
   }else{
     card.classList.add("is-unreachable");
     const error=document.createElement("p");

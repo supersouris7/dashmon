@@ -957,6 +957,10 @@ body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
 .supervision-card-host.is-healthy .supervision-health-state i{color:var(--success)}
 .supervision-card-host.is-warning .supervision-health-state i{color:var(--warning)}
 .supervision-card-host.is-critical .supervision-health-state i{color:var(--error)}
+.supervision-card-host.has-details{cursor:pointer}
+.supervision-card-host.has-details:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.supervision-host-chevron{margin-left:2px;color:var(--muted);font-size:11px;transition:transform .18s ease}
+.supervision-card-host.expanded .supervision-host-chevron{transform:rotate(180deg)}
 
 .supervision-rows{
   display:grid;
@@ -1058,6 +1062,12 @@ body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
   min-width:0;
   cursor:pointer;
 }
+
+.supervision-host-details{display:none;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:12px}
+.supervision-card-host.expanded .supervision-host-details{display:grid}
+.supervision-host-detail-row{display:grid;grid-template-columns:78px minmax(0,1fr);gap:10px;align-items:start}
+.supervision-host-detail-row > span:first-child{color:var(--muted)}
+.supervision-host-detail-row > span:last-child{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 
 .supervision-card-smart:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .supervision-card-smart.expanded > .supervision-head .supervision-smart-chevron{transform:rotate(180deg)}

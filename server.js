@@ -1292,6 +1292,12 @@ function clampPercent(value){
   return Math.max(0,Math.min(100,n));
 }
 
+function positiveInteger(value,max){
+  const n=Number(value);
+  if(!Number.isSafeInteger(n) || n<=0) return null;
+  return Math.min(n,max);
+}
+
 function readCpuTimes(){
   return os.cpus().reduce((acc,cpu)=>{
     const times=cpu.times||{};
@@ -1319,6 +1325,18 @@ function localRamPercent(){
   const free=os.freemem();
   if(!(total>0)) return null;
   return clampPercent(((total-free)/total)*100);
+}
+
+// Informations stables et peu volumineuses pour le detail de la tuile Hote.
+// Elles ne sont pas des mesures et ne varient donc pas entre deux releves.
+function localSystemDetails(){
+  const cpus=os.cpus();
+  return {
+    os:sanitizeText(`${os.type()} ${os.release()} (${os.arch()})`,200),
+    cpuModel:sanitizeText(cpus[0]?.model||"",200),
+    cpuCores:cpus.length||null,
+    ramTotal:os.totalmem()||null
+  };
 }
 
 // Capteur thermique lu dans /sys : thermal_zone* (millidegres) ou hwmon. On
@@ -1600,12 +1618,17 @@ function readAptUpdatesReport(){
 // absent ou invalide devient null plutot qu'un zero trompeur.
 function normalizeMetricsPayload(data){
   const source=data && typeof data==="object" ? data : {};
+  const details=source.details&&typeof source.details==="object" ? source.details : source;
   return {
     cpu:pickPercent(source.cpu),
     ram:pickPercent(source.ram),
     temperature:pickTemperature(source.temperature === undefined ? source.temp : source.temperature),
     disk:pickPercent(source.disk),
-    wireguard:normalizeWireguard(source.wireguard)
+    wireguard:normalizeWireguard(source.wireguard),
+    os:sanitizeText(details.os||details.osVersion,200),
+    cpuModel:sanitizeText(details.cpuModel||details.processor||(source.details&&source.details.cpu),200),
+    cpuCores:positiveInteger(details.cpuCores||details.cores,1024),
+    ramTotal:positiveInteger(details.ramTotal||details.memoryTotal,Number.MAX_SAFE_INTEGER)
   };
 }
 
@@ -1659,7 +1682,11 @@ async function getProxmoxMetrics(host){
     // PVE n'expose pas la temperature d'un noeud via son API JSON : la valeur
     // reste indisponible plutot que d'etre inventee.
     temperature:null,
-    disk:diskTotal>0 ? clampPercent((diskUsed/diskTotal)*100) : null
+    disk:diskTotal>0 ? clampPercent((diskUsed/diskTotal)*100) : null,
+    os:sanitizeText(data.kversion||data.pveversion||"Proxmox VE",200),
+    cpuModel:sanitizeText(data.cpuinfo?.model||"",200),
+    cpuCores:positiveInteger(data.cpuinfo?.cpus,1024),
+    ramTotal:positiveInteger(memTotal,Number.MAX_SAFE_INTEGER)
   };
 }
 
@@ -1694,6 +1721,7 @@ app.get("/api/host-metrics",async(_req,res)=>{
   // la meme machine, on ne consomme donc le delta CPU qu'une fois par requete.
   const localCpu=localCpuPercent();
   const localRam=localRamPercent();
+  const localDetails=localSystemDetails();
   const localTemp=localTemperature();
   const localDump=readWireguardDump();
   const localSmart=readSmartDump();
@@ -1715,7 +1743,8 @@ app.get("/api/host-metrics",async(_req,res)=>{
         metrics={
           cpu:localCpu, ram:localRam, temperature:localTemp, disk:localDiskPercent(host.monitoring?.path),
           wireguard:localDump?.interfaces||null, smart:localSmart?.disks||null,
-          aptUpdates:localAptUpdates
+          aptUpdates:localAptUpdates,
+          ...localDetails
         };
         wireguardFetchedAt=localDump?.fetchedAt||null;
         smartFetchedAt=localSmart?.fetchedAt||null;
@@ -1729,6 +1758,10 @@ app.get("/api/host-metrics",async(_req,res)=>{
         ram:metrics.ram,
         temperature:metrics.temperature,
         disk:metrics.disk,
+        os:sanitizeText(metrics.os,200),
+        cpuModel:sanitizeText(metrics.cpuModel,200),
+        cpuCores:positiveInteger(metrics.cpuCores,1024),
+        ramTotal:positiveInteger(metrics.ramTotal,Number.MAX_SAFE_INTEGER),
         wireguard:metrics.wireguard||null,
         wireguardFetchedAt,
         smart:metrics.smart||null,
