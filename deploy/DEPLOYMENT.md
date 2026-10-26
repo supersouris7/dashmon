@@ -320,6 +320,12 @@ only this directory to Dashmon, read-only:
       - /sys/class/powercap:/sys/class/powercap:ro
 ```
 
+An unavailable measurement is expected when the CPU or kernel does not expose
+RAPL, when Dashmon runs in a virtual machine, when the mount is absent, or when
+the energy counter does not advance between two readings. Dashmon never shows
+`0 W` for this case, because a running CPU package cannot plausibly consume no
+power. Use a physical meter through a Linux agent to report complete host power.
+
 ### WireGuard peers
 
 WireGuard peers can come from two sources:
