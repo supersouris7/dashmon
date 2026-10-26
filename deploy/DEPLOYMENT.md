@@ -273,6 +273,39 @@ host picks one source:
 Temperature is unavailable for Proxmox (the PVE API does not expose it) and shows
 as `—`; likewise any metric a source does not provide.
 
+### Linux metric agent
+
+Dashmon does not ship an agent: expose a small HTTPS JSON endpoint on the host
+to monitor, then select **Linux agent** in *Edit supervision*. Enter the endpoint
+URL and, if used, the token field. Dashmon requests it with `GET` and sends the
+token as `Authorization: Bearer <token>`.
+
+The smallest valid response is an empty JSON object. A practical response is:
+
+```json
+{
+  "cpu": 12,
+  "ram": 40,
+  "disk": 55,
+  "temperature": 48,
+  "details": {
+    "os": "Linux 6.x (x64)",
+    "cpuModel": "CPU model",
+    "cpuCores": 8,
+    "ramTotal": 17179869184
+  }
+}
+```
+
+- `cpu`, `ram` and `disk` are percentages from 0 to 100; `temperature` is in
+  Celsius.
+- `ramTotal` is expressed in bytes. The `details` object and every one of its
+  fields are optional; they fill the expanded Host card.
+- Return `200` with JSON, keep the endpoint private to Dashmon, and use HTTPS
+  when the request crosses an untrusted network.
+- Store the bearer token in `LINUX_METRICS_TOKEN` (or an allowed environment
+  variable) and put its **name** in the editor. Dashmon resolves it server-side.
+
 ### WireGuard peers
 
 WireGuard peers can come from two sources:
