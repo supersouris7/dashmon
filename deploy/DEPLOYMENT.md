@@ -288,6 +288,7 @@ The smallest valid response is an empty JSON object. A practical response is:
   "ram": 40,
   "disk": 55,
   "temperature": 48,
+  "power": 32.5,
   "details": {
     "os": "Linux 6.x (x64)",
     "cpuModel": "CPU model",
@@ -298,13 +299,26 @@ The smallest valid response is an empty JSON object. A practical response is:
 ```
 
 - `cpu`, `ram` and `disk` are percentages from 0 to 100; `temperature` is in
-  Celsius.
+  Celsius; `power` is expressed in watts.
 - `ramTotal` is expressed in bytes. The `details` object and every one of its
   fields are optional; they fill the expanded Host card.
 - Return `200` with JSON, keep the endpoint private to Dashmon, and use HTTPS
   when the request crosses an untrusted network.
 - Store the bearer token in `LINUX_METRICS_TOKEN` (or an allowed environment
   variable) and put its **name** in the editor. Dashmon resolves it server-side.
+
+For a **Local** host, Dashmon reads Intel/AMD RAPL counters when the container
+can read `/sys/class/powercap`; the power card then reports CPU package power,
+not the complete server consumption. A complete measurement requires an
+external meter exposed by a Linux agent through `power`.
+
+If the card stays unavailable although RAPL exists on the Docker host, expose
+only this directory to Dashmon, read-only:
+
+```yaml
+    volumes:
+      - /sys/class/powercap:/sys/class/powercap:ro
+```
 
 ### WireGuard peers
 

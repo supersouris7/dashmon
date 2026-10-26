@@ -1069,6 +1069,10 @@ body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
 .supervision-host-detail-row > span:first-child{color:var(--muted)}
 .supervision-host-detail-row > span:last-child{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 
+.supervision-card-power{display:flex;flex-direction:column}
+.supervision-power-value{margin:4px 0 2px;font-size:34px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.supervision-power-note{margin:7px 0 0;color:var(--muted);font-size:12px}
+
 .supervision-card-smart:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .supervision-card-smart.expanded > .supervision-head .supervision-smart-chevron{transform:rotate(180deg)}
 

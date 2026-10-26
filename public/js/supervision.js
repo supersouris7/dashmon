@@ -82,6 +82,13 @@ function temperatureText(value){
   return (Math.round(n*10)/10).toString().replace(".", state.language==="fr" ? "," : ".")+" °C";
 }
 
+function powerText(value){
+  if(isMissing(value)) return "—";
+  const n=Number(value);
+  if(!Number.isFinite(n) || n<0) return "—";
+  return (Math.round(n*10)/10).toString().replace(".",state.language==="fr" ? "," : ".")+" W";
+}
+
 // Une barre de metrique : un libelle, une piste remplie a la valeur, un chiffre.
 // La classe de severite ne depend pas du theme (le remplissage reste lisible).
 function metricRow(label,value){
@@ -342,6 +349,33 @@ function hostCard(host,metrics){
     error.textContent=(metrics && metrics.error) ? metrics.error : t("supervisionUnreachable");
     card.appendChild(error);
   }
+  return card;
+}
+
+function powerCard(host,metrics){
+  const card=document.createElement("article");
+  card.className="supervision-card supervision-card-power";
+  applyHostColor(card,host);
+  const head=document.createElement("div");
+  head.className="supervision-head";
+  const icon=document.createElement("i");
+  icon.className="fa-solid fa-bolt";
+  icon.setAttribute("aria-hidden","true");
+  const name=document.createElement("span");
+  name.className="supervision-name";
+  name.textContent=host.name||t("hostName");
+  const badge=document.createElement("span");
+  badge.className="supervision-type";
+  badge.textContent=t("supervisionPower");
+  head.append(icon,name,badge);
+  const value=document.createElement("strong");
+  value.className="supervision-power-value";
+  value.textContent=powerText(metrics.power);
+  const note=document.createElement("p");
+  note.className="supervision-power-note";
+  note.textContent=isMissing(metrics.power) ? t("supervisionPowerUnavailable")
+    : host.monitoring?.type==="local" ? t("supervisionPowerCpu") : t("supervisionPowerMeasured");
+  card.append(head,value,note);
   return card;
 }
 
@@ -719,6 +753,10 @@ export function renderSupervision(){
   const grid=document.createElement("div");
   grid.className="supervision-grid";
   monitored.forEach(host=>grid.appendChild(hostCard(host,byId.get(host.id))));
+  monitored.forEach(host=>{
+    const metrics=byId.get(host.id);
+    if(metrics?.ok) grid.appendChild(powerCard(host,metrics));
+  });
 
   const wgCards=[];
   monitored.forEach(host=>{
