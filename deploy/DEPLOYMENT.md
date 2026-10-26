@@ -316,6 +316,16 @@ If the card stays unavailable although RAPL exists on the Docker host, expose
 only this directory to Dashmon, read-only. Mount it outside `/sys`: Docker and
 Portainer can refuse an overlay inside that protected filesystem.
 
+First confirm that the source directory exists on the Docker host:
+
+```sh
+test -d /sys/class/powercap && ls /sys/class/powercap
+```
+
+Do not add the mount when this command prints nothing or fails. Docker tries to
+create a missing bind-mount source, but the kernel forbids creating directories
+under `/sys`.
+
 ```yaml
     volumes:
       - /sys/class/powercap:/host-sys/powercap:ro
