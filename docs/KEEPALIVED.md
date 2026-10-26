@@ -6,43 +6,37 @@ agent reports `MASTER` when its configured virtual IP is present locally and
 
 ## Install on each node
 
-Install `deploy/keepalived-agent.py` as `/usr/local/lib/dashmon/keepalived-agent.py`
-and make it executable. Create `/etc/default/dashmon-keepalived-agent` with the
-real virtual IP, the LAN bind address and a free port:
+Run these commands on each Keepalived node:
+
+```sh
+sudo install -d -m 755 /usr/local/lib/dashmon
+sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/keepalived-agent.py -o /usr/local/lib/dashmon/keepalived-agent.py
+sudo chmod 755 /usr/local/lib/dashmon/keepalived-agent.py
+sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/keepalived-agent.service -o /etc/systemd/system/dashmon-keepalived-agent.service
+sudo install -m 600 /dev/null /etc/dashmon-keepalived-agent.env
+```
+
+Set the real virtual IP, LAN bind address and a free port in
+`/etc/dashmon-keepalived-agent.env`:
 
 ```dotenv
 KEEPALIVED_VIP=192.0.2.10
 KEEPALIVED_BIND=192.0.2.20
 KEEPALIVED_PORT=PORT_NUMBER
+KEEPALIVED_TOKEN=
 ```
 
-Provide `KEEPALIVED_TOKEN` through a protected systemd environment file or
-systemd credentials. Do not store its value in a repository.
+Generate a token with `openssl rand -hex 32`, set it as `KEEPALIVED_TOKEN`, then
+keep the file mode at `600`. Do not store the token in a repository.
 
-Create `/etc/systemd/system/dashmon-keepalived-agent.service`:
+Start the agent:
 
-```ini
-[Unit]
-Description=Dashmon Keepalived agent
-After=network-online.target keepalived.service
-Wants=network-online.target
-
-[Service]
-Type=simple
-EnvironmentFile=/etc/default/dashmon-keepalived-agent
-ExecStart=/usr/local/lib/dashmon/keepalived-agent.py
-DynamicUser=yes
-NoNewPrivileges=yes
-PrivateTmp=yes
-ProtectHome=yes
-ProtectSystem=strict
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
+```sh
+sudo systemctl daemon-reload
+sudo systemctl enable --now dashmon-keepalived-agent
+sudo systemctl status dashmon-keepalived-agent
 ```
 
-Enable it with `systemctl daemon-reload` then `systemctl enable --now dashmon-keepalived-agent`.
 Restrict the firewall so only Dashmon can reach the agent.
 
 ## Configure Dashmon
