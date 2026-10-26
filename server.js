@@ -1372,7 +1372,8 @@ function localPowerWatts(){
     if(!Number.isFinite(delta) || delta<0) return null;
     microjoules+=delta;
   }
-  return Math.round((microjoules/1000000/elapsed)*10)/10;
+  const watts=Math.round((microjoules/1000000/elapsed)*10)/10;
+  return watts>0 ? watts : null;
 }
 
 // Capteur thermique lu dans /sys : thermal_zone* (millidegres) ou hwmon. On
@@ -1578,7 +1579,7 @@ function readWireguardDump(){
 
 function pickPower(value){
   const n=Number(value);
-  return Number.isFinite(n) && n>=0 && n<=100000 ? Math.round(n*10)/10 : null;
+  return Number.isFinite(n) && n>0 && n<=100000 ? Math.round(n*10)/10 : null;
 }
 
 // Le script SMART conserve le JSON brut de smartctl : les noms de modele et les
