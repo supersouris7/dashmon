@@ -288,7 +288,6 @@ The smallest valid response is an empty JSON object. A practical response is:
   "ram": 40,
   "disk": 55,
   "temperature": 48,
-  "power": 32.5,
   "details": {
     "os": "Linux 6.x (x64)",
     "cpuModel": "CPU model",
@@ -299,43 +298,13 @@ The smallest valid response is an empty JSON object. A practical response is:
 ```
 
 - `cpu`, `ram` and `disk` are percentages from 0 to 100; `temperature` is in
-  Celsius; `power` is expressed in watts.
+  Celsius.
 - `ramTotal` is expressed in bytes. The `details` object and every one of its
   fields are optional; they fill the expanded Host card.
 - Return `200` with JSON, keep the endpoint private to Dashmon, and use HTTPS
   when the request crosses an untrusted network.
 - Store the bearer token in `LINUX_METRICS_TOKEN` (or an allowed environment
   variable) and put its **name** in the editor. Dashmon resolves it server-side.
-
-For a **Local** host, Dashmon reads Intel/AMD RAPL counters when the container
-can read `/sys/class/powercap`; the power card then reports CPU package power,
-not the complete server consumption. A complete measurement requires an
-external meter exposed by a Linux agent through `power`.
-
-If the card stays unavailable although RAPL exists on the Docker host, expose
-only this directory to Dashmon, read-only. Mount it outside `/sys`: Docker and
-Portainer can refuse an overlay inside that protected filesystem.
-
-First confirm that the source directory exists on the Docker host:
-
-```sh
-test -d /sys/class/powercap && ls /sys/class/powercap
-```
-
-Do not add the mount when this command prints nothing or fails. Docker tries to
-create a missing bind-mount source, but the kernel forbids creating directories
-under `/sys`.
-
-```yaml
-    volumes:
-      - /sys/class/powercap:/host-sys/powercap:ro
-```
-
-An unavailable measurement is expected when the CPU or kernel does not expose
-RAPL, when Dashmon runs in a virtual machine, when the mount is absent, or when
-the energy counter does not advance between two readings. Dashmon never shows
-`0 W` for this case, because a running CPU package cannot plausibly consume no
-power. Use a physical meter through a Linux agent to report complete host power.
 
 ### WireGuard peers
 

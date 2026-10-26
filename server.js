@@ -1339,52 +1339,6 @@ function localSystemDetails(){
   };
 }
 
-// RAPL expose l'energie CPU cumulee en microjoules. Deux releves permettent de
-// calculer une puissance moyenne ; ce n'est pas la consommation du serveur
-// entier, qui demanderait un compteur electrique externe.
-let previousRaplEnergy=null;
-function localPowerWatts(){
-  let entries=[];
-  // Docker peut interdire un bind mount directement dans /sys. Le montage
-  // applicatif /host-sys/powercap garde donc le conteneur non privilegie.
-  let root="";
-  for(const candidate of ["/sys/class/powercap","/host-sys/powercap"]){
-    try{
-      entries=fs.readdirSync(candidate);
-      root=candidate;
-      break;
-    }catch(_error){}
-  }
-  if(!root) return null;
-  const counters=[];
-  for(const entry of entries){
-    if(!/^(?:intel|amd)-rapl:\d+$/.test(entry)) continue;
-    const dir=`${root}/${entry}`;
-    try{
-      const energy=Number(fs.readFileSync(`${dir}/energy_uj`,"utf8").trim());
-      const max=Number(fs.readFileSync(`${dir}/max_energy_range_uj`,"utf8").trim());
-      if(Number.isFinite(energy) && energy>=0) counters.push({entry,energy,max});
-    }catch(_error){}
-  }
-  const now=Date.now();
-  const previous=previousRaplEnergy;
-  previousRaplEnergy={at:now,counters};
-  if(!previous || !counters.length || now<=previous.at) return null;
-  const elapsed=(now-previous.at)/1000;
-  if(elapsed<0.5 || elapsed>3600 || previous.counters.length!==counters.length) return null;
-  let microjoules=0;
-  for(const current of counters){
-    const old=previous.counters.find(item=>item.entry===current.entry);
-    if(!old) return null;
-    const delta=current.energy>=old.energy ? current.energy-old.energy
-      : old.max>0 ? old.max-old.energy+current.energy : NaN;
-    if(!Number.isFinite(delta) || delta<0) return null;
-    microjoules+=delta;
-  }
-  const watts=Math.round((microjoules/1000000/elapsed)*10)/10;
-  return watts>0 ? watts : null;
-}
-
 // Capteur thermique lu dans /sys : thermal_zone* (millidegres) ou hwmon. On
 // retient la valeur plausible la plus haute. Tout est enclos : sur un noyau ou
 // un conteneur sans /sys expose, la fonction renvoie null sans bruit.
@@ -1586,11 +1540,6 @@ function readWireguardDump(){
   };
 }
 
-function pickPower(value){
-  const n=Number(value);
-  return Number.isFinite(n) && n>0 && n<=100000 ? Math.round(n*10)/10 : null;
-}
-
 // Le script SMART conserve le JSON brut de smartctl : les noms de modele et les
 // compteurs restent exploitables sans exposer le numero de serie du disque.
 function smartNumber(value){
@@ -1675,7 +1624,6 @@ function normalizeMetricsPayload(data){
     ram:pickPercent(source.ram),
     temperature:pickTemperature(source.temperature === undefined ? source.temp : source.temperature),
     disk:pickPercent(source.disk),
-    power:pickPower(source.power),
     wireguard:normalizeWireguard(source.wireguard),
     os:sanitizeText(details.os||details.osVersion,200),
     cpuModel:sanitizeText(details.cpuModel||details.processor||(source.details&&source.details.cpu),200),
@@ -1735,7 +1683,6 @@ async function getProxmoxMetrics(host){
     // reste indisponible plutot que d'etre inventee.
     temperature:null,
     disk:diskTotal>0 ? clampPercent((diskUsed/diskTotal)*100) : null,
-    power:null,
     os:sanitizeText(data.kversion||data.pveversion||"Proxmox VE",200),
     cpuModel:sanitizeText(data.cpuinfo?.model||"",200),
     cpuCores:positiveInteger(data.cpuinfo?.cpus,1024),
@@ -1775,7 +1722,6 @@ app.get("/api/host-metrics",async(_req,res)=>{
   const localCpu=localCpuPercent();
   const localRam=localRamPercent();
   const localDetails=localSystemDetails();
-  const localPower=localPowerWatts();
   const localTemp=localTemperature();
   const localDump=readWireguardDump();
   const localSmart=readSmartDump();
@@ -1798,7 +1744,6 @@ app.get("/api/host-metrics",async(_req,res)=>{
           cpu:localCpu, ram:localRam, temperature:localTemp, disk:localDiskPercent(host.monitoring?.path),
           wireguard:localDump?.interfaces||null, smart:localSmart?.disks||null,
           aptUpdates:localAptUpdates,
-          power:localPower,
           ...localDetails
         };
         wireguardFetchedAt=localDump?.fetchedAt||null;
@@ -1813,7 +1758,6 @@ app.get("/api/host-metrics",async(_req,res)=>{
         ram:metrics.ram,
         temperature:metrics.temperature,
         disk:metrics.disk,
-        power:pickPower(metrics.power),
         os:sanitizeText(metrics.os,200),
         cpuModel:sanitizeText(metrics.cpuModel,200),
         cpuCores:positiveInteger(metrics.cpuCores,1024),
