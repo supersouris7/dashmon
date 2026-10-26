@@ -1349,7 +1349,7 @@ function renderAptUpdatesEditor(){
   });
 }
 
-const SUPERVISION_PANELS=["hostsPanel","wireguardPanel","smartPanel","aptUpdatesPanel"];
+const SUPERVISION_PANELS=["hostsPanel","wireguardPanel","smartPanel","aptUpdatesPanel","keepalivedPanel"];
 
 // Le meme dialogue sert a deux usages : "Modifier Dashmon" (tous les onglets)
 // et "Modifier la supervision" (hotes et WireGuard seulement). On masque les
@@ -1361,7 +1361,7 @@ function applyEditorMode(mode){
   // dialogue "Modifier Dashmon" ne les montre donc jamais.
   const visible=panel=>supervision
     ? SUPERVISION_PANELS.includes(panel)
-    : panel!=="wireguardPanel" && panel!=="smartPanel" && panel!=="aptUpdatesPanel";
+    : panel!=="wireguardPanel" && panel!=="smartPanel" && panel!=="aptUpdatesPanel" && panel!=="keepalivedPanel";
   const tabs=[...document.querySelectorAll(".edit-tab")];
   tabs.forEach(tab=>{
     tab.hidden=!visible(tab.dataset.panel);
