@@ -670,32 +670,33 @@ function aptUpdatesCard(host,metrics){
   badge.className="supervision-type";
   badge.textContent=t("supervisionAptUpdates");
   head.append(icon,name,badge);
-  if(failed){
-    const key=JSON.stringify([selectedSupervisionInstanceId(),host.id]);
-    card.dataset.aptKey=key;
-    card.classList.add("has-details");
-    card.classList.toggle("expanded",expandedAptDetails.has(key));
-    card.setAttribute("role","button");
-    card.setAttribute("aria-expanded",String(card.classList.contains("expanded")));
-    card.tabIndex=0;
-    const chevron=document.createElement("i");
-    chevron.className="fa-solid fa-chevron-down supervision-smart-chevron";
-    chevron.setAttribute("aria-hidden","true");
-    head.appendChild(chevron);
-    const toggle=()=>{
-      const expanded=card.classList.toggle("expanded");
-      card.setAttribute("aria-expanded",String(expanded));
-      if(expanded) expandedAptDetails.add(key);
-      else expandedAptDetails.delete(key);
-      updateSmartCollapseButton();
-    };
-    card.addEventListener("click",toggle);
-    card.addEventListener("keydown",event=>{
-      if(event.key!=="Enter" && event.key!==" ") return;
-      event.preventDefault();
-      toggle();
-    });
-  }
+  // Toute la carte se deplie : le resume reste visible, le detail (erreur,
+  // dates, redemarrage) est replie par defaut comme SMART et l'hote.
+  const key=JSON.stringify([selectedSupervisionInstanceId(),host.id]);
+  card.dataset.aptKey=key;
+  card.classList.add("has-details");
+  const expanded=expandedAptDetails.has(key);
+  card.classList.toggle("expanded",expanded);
+  card.setAttribute("role","button");
+  card.setAttribute("aria-expanded",String(expanded));
+  card.tabIndex=0;
+  const chevron=document.createElement("i");
+  chevron.className="fa-solid fa-chevron-down supervision-smart-chevron";
+  chevron.setAttribute("aria-hidden","true");
+  head.appendChild(chevron);
+  const toggle=()=>{
+    const open=card.classList.toggle("expanded");
+    card.setAttribute("aria-expanded",String(open));
+    if(open) expandedAptDetails.add(key);
+    else expandedAptDetails.delete(key);
+    updateSmartCollapseButton();
+  };
+  card.addEventListener("click",toggle);
+  card.addEventListener("keydown",event=>{
+    if(event.key!=="Enter" && event.key!==" ") return;
+    event.preventDefault();
+    toggle();
+  });
   card.appendChild(head);
 
   const status=document.createElement("div");
@@ -743,6 +744,21 @@ function aptUpdatesCard(host,metrics){
     const lastRunValue=document.createElement("time");
     lastRunValue.textContent=reportDateText(report.finishedAt);
     lastRun.append(lastRunLabel,lastRunValue);
+    const nextRun=document.createElement("div");
+    const nextRunLabel=document.createElement("span");
+    nextRunLabel.textContent=t("aptUpdatesNextRun");
+    const nextRunValue=document.createElement("time");
+    const next=Number(report.nextRunAt);
+    if(Number.isFinite(next) && next>0){
+      nextRunValue.textContent=reportDateText(next);
+      if(next*1000<Date.now()){
+        nextRunValue.classList.add("warning");
+        nextRunValue.textContent+=" "+t("aptUpdatesOverdue");
+      }
+    }else{
+      nextRunValue.textContent=t("aptUpdatesNextRunUnknown");
+    }
+    nextRun.append(nextRunLabel,nextRunValue);
     const rebootRow=document.createElement("div");
     const rebootLabel=document.createElement("span");
     rebootLabel.textContent=t("aptUpdatesReboot");
@@ -752,7 +768,15 @@ function aptUpdatesCard(host,metrics){
       ? (report.rebootRequested ? t("aptUpdatesRebootRequested") : t("aptUpdatesRebootRequired"))
       : t("aptUpdatesNoReboot");
     rebootRow.append(rebootLabel,rebootValue);
-    details.append(lastRun,rebootRow);
+    details.append(lastRun,nextRun,rebootRow);
+    card.appendChild(details);
+  }else{
+    const details=document.createElement("div");
+    details.className="supervision-apt-details";
+    const hint=document.createElement("p");
+    hint.className="supervision-apt-hint";
+    hint.textContent=t("aptUpdatesHint");
+    details.appendChild(hint);
     card.appendChild(details);
   }
   return card;

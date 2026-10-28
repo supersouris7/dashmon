@@ -1661,7 +1661,15 @@ function readAptUpdatesReport(){
     updated:smartNumber(raw.updated)||0,
     rebootRequired:raw.rebootRequired===true,
     rebootRequested:raw.rebootRequested===true,
-    finishedAt:smartNumber(raw.finishedAt)||Math.floor(stat.mtimeMs/1000)
+    finishedAt:smartNumber(raw.finishedAt)||Math.floor(stat.mtimeMs/1000),
+    // Le script annonce le passage suivant a partir de l'intervalle configure.
+    // Un ancien rapport ne contient pas ce champ : on l'annonce alors comme
+    // inconnu plutot que d'inventer une date.
+    nextRunAt:(()=>{
+      const next=smartNumber(raw.nextRunAt);
+      const finished=smartNumber(raw.finishedAt);
+      return next && (!finished || next>finished) ? next : null;
+    })()
   };
 }
 

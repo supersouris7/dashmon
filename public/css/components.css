@@ -1158,12 +1158,14 @@ body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
 .supervision-apt-summary strong{font-size:30px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
 .supervision-apt-summary span{color:var(--muted);font-size:12px}
 
-.supervision-apt-details{display:grid;gap:6px;padding-top:10px;border-top:1px solid var(--border);font-size:12px}
+.supervision-apt-details{display:none;gap:6px;padding-top:10px;border-top:1px solid var(--border);font-size:12px}
+.supervision-card-apt.expanded .supervision-apt-details{display:grid}
 .supervision-apt-details > div{display:flex;justify-content:space-between;gap:12px}
 .supervision-apt-details > div > span:first-child{color:var(--muted)}
 .supervision-apt-details time,.supervision-apt-details > div > span:last-child{font-variant-numeric:tabular-nums;text-align:right}
 .supervision-apt-details .ok{color:var(--success)}
 .supervision-apt-details .warning{color:var(--warning);font-weight:600}
+.supervision-apt-hint{margin:0;color:var(--muted);line-height:1.5}
 
 /* Le resume reste dense ; le clic sur le disque revele les libelles complets
    sans faire grandir toutes les cartes en permanence. */

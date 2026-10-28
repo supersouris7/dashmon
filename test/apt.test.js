@@ -30,6 +30,7 @@ try{
     });
     assert.equal(result.status,0,result.stderr);
     const data=JSON.parse(fs.readFileSync(report,"utf8"));
+    assert.equal(data.nextRunAt,data.finishedAt+168*3600,"prochain passage a 7 jours par defaut");
     if(mode==="success"){
       assert.equal(data.status,"success");
       assert.equal(data.updated,1);
@@ -42,6 +43,13 @@ try{
       assert.ok(!data.error.includes("https://"));
     }
   }
+  const custom=path.join(dir,"interval.json");
+  const customResult=spawnSync("sh",[path.join(__dirname,"..","deploy","apt-updates.sh")],{
+    env:{...process.env,PATH:bin+path.delimiter+process.env.PATH,DASHMON_APT_REPORT_FILE:custom,TMPDIR:dir,DASHMON_APT_INTERVAL_HOURS:"24"},encoding:"utf8"
+  });
+  assert.equal(customResult.status,0,customResult.stderr);
+  const customData=JSON.parse(fs.readFileSync(custom,"utf8"));
+  assert.equal(customData.nextRunAt,customData.finishedAt+24*3600,"intervalle personnalise");
   console.log("PASS APT : étapes, codes, échappement et masquage des URL");
 }finally{
   fs.rmSync(dir,{recursive:true,force:true});

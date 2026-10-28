@@ -9,6 +9,12 @@ CONT_NAME="${DASHMON_CONTAINER:-dashmon}"
 CONT_PATH="${DASHMON_APT_REPORT_CONTAINER_PATH:-/app/data/apt-updates.json}"
 HOST_FILE="${DASHMON_APT_REPORT_FILE:-}"
 AUTO_REBOOT="${DASHMON_APT_REBOOT:-0}"
+# Intervalle entre deux passages planifies, en heures. Sert uniquement a
+# annoncer le prochain passage dans Dashmon : adaptez-le si votre tache cron
+# n'est pas hebdomadaire (par exemple 24 pour un passage quotidien).
+INTERVAL_HOURS="${DASHMON_APT_INTERVAL_HOURS:-168}"
+case "$INTERVAL_HOURS" in *[!0-9]*|"") INTERVAL_HOURS=168;; esac
+[ "$INTERVAL_HOURS" -gt 0 ] 2>/dev/null || INTERVAL_HOURS=168
 
 if [ "$(id -u)" != "0" ]; then
   echo "apt-updates.sh: executez ce script en root." >&2
@@ -63,9 +69,10 @@ if [ "$STATUS" = "success" ] && [ "$REBOOT_REQUIRED" = true ] && [ "$AUTO_REBOOT
 fi
 
 FINISHED="$(date +%s)"
+NEXT_RUN=$((FINISHED + INTERVAL_HOURS * 3600))
 {
-  printf '{"status":"%s","updated":%s,"finishedAt":%s,"rebootRequired":%s,"rebootRequested":%s' \
-    "$STATUS" "$UPDATED" "$FINISHED" "$REBOOT_REQUIRED" "$REBOOT_REQUESTED"
+  printf '{"status":"%s","updated":%s,"finishedAt":%s,"nextRunAt":%s,"rebootRequired":%s,"rebootRequested":%s' \
+    "$STATUS" "$UPDATED" "$FINISHED" "$NEXT_RUN" "$REBOOT_REQUIRED" "$REBOOT_REQUESTED"
   if [ "$STATUS" = "failed" ]; then
     printf ',"failedStep":"%s","exitCode":%s,"error":"' "$FAILED_STEP" "$EXIT_CODE"
     # L'extrait peut contenir des URL de depots avec identifiants : on les

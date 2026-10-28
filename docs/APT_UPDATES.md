@@ -72,6 +72,18 @@ Pour autoriser le redémarrage sur l'hôte d'un agent :
 
 Utilisez une seule des lignes APT proposées, pas plusieurs.
 
+L'intervalle par defaut est de **7 jours**, ce qui correspond a la tache
+hebdomadaire ci-dessus. Si vous planifiez un autre rythme, indiquez-le au script
+pour que la carte affiche un prochain passage juste :
+
+```cron
+0 3 * * * DASHMON_APT_INTERVAL_HOURS=24 /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
+```
+
+La valeur est un nombre d'heures. Le prochain passage est calcule a partir de la
+fin du passage courant : il s'agit d'une prevision, pas d'une lecture du
+crontab.
+
 Le rapport est ecrit avant la demande de redemarrage, avec l'etat
 `redemarrage demande`.
 
@@ -79,8 +91,8 @@ Le rapport est ecrit avant la demande de redemarrage, avec l'etat
 
 L'hote local est toujours supervise. Dans **Modifier la supervision**, ouvrez
 l'onglet **Mises a jour APT**. La carte affiche le nombre de mises
-a jour installees, la date du dernier passage et une alerte lorsqu'un
-redemarrage est requis.
+a jour installees. Le chevron deplie le dernier passage, le prochain passage
+prevu et une alerte lorsqu'un redemarrage est requis.
 
 En cas d'echec, ouvrez **Détail de l’échec** sur la carte : le rapport indique
 l'etape (`update` ou `upgrade`), le code de sortie et un extrait borne de la
