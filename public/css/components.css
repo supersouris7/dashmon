@@ -1273,6 +1273,10 @@ body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
   font-size:12px;
 }
 
+.supervision-apt-error{margin:8px 0;color:var(--text)}
+.supervision-apt-error summary{cursor:pointer;color:var(--muted)}
+.supervision-apt-error pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:200px;overflow:auto;font:12px/1.4 ui-monospace,monospace}
+
 @media (max-width:700px){
   /* Sur telephone, le menu de navigation occupe l'espace souple a gauche et
      les actions restent immediatement accessibles a droite, sur une ligne. */

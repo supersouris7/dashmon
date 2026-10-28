@@ -30,15 +30,31 @@ STATUS="success"
 UPDATED=0
 REBOOT_REQUIRED=false
 REBOOT_REQUESTED=false
+FAILED_STEP=""
+EXIT_CODE=0
+TMP="$(mktemp "${TMPDIR:-/tmp}/dashmon-apt-report.XXXXXX")" || exit 1
+LOG="$(mktemp "${TMPDIR:-/tmp}/dashmon-apt-log.XXXXXX")" || { rm -f "$TMP"; exit 1; }
+trap 'rm -f "$TMP" "$LOG"' EXIT
 
 export DEBIAN_FRONTEND=noninteractive
 export LC_ALL=C
-if ! apt-get update -q; then
-  STATUS="failed"
-else
+if apt-get update -q > "$LOG" 2>&1; then
+  cat "$LOG"
   UPDATED="$(apt-get -s upgrade 2>/dev/null | sed -n 's/^Inst .*/1/p' | wc -l | tr -d ' ')"
   case "$UPDATED" in *[!0-9]*|"") UPDATED=0;; esac
-  if ! apt-get -y upgrade; then STATUS="failed"; fi
+  if apt-get -y upgrade > "$LOG" 2>&1; then
+    cat "$LOG"
+  else
+    EXIT_CODE=$?
+    cat "$LOG" >&2
+    STATUS="failed"
+    FAILED_STEP="upgrade"
+  fi
+else
+  EXIT_CODE=$?
+  cat "$LOG" >&2
+  STATUS="failed"
+  FAILED_STEP="update"
 fi
 
 if [ -f /var/run/reboot-required ]; then REBOOT_REQUIRED=true; fi
@@ -47,10 +63,21 @@ if [ "$STATUS" = "success" ] && [ "$REBOOT_REQUIRED" = true ] && [ "$AUTO_REBOOT
 fi
 
 FINISHED="$(date +%s)"
-TMP="$(mktemp "${TMPDIR:-/tmp}/dashmon-apt-report.XXXXXX")"
-trap 'rm -f "$TMP"' EXIT
-printf '{"status":"%s","updated":%s,"finishedAt":%s,"rebootRequired":%s,"rebootRequested":%s}\n' \
-  "$STATUS" "$UPDATED" "$FINISHED" "$REBOOT_REQUIRED" "$REBOOT_REQUESTED" > "$TMP"
+{
+  printf '{"status":"%s","updated":%s,"finishedAt":%s,"rebootRequired":%s,"rebootRequested":%s' \
+    "$STATUS" "$UPDATED" "$FINISHED" "$REBOOT_REQUIRED" "$REBOOT_REQUESTED"
+  if [ "$STATUS" = "failed" ]; then
+    printf ',"failedStep":"%s","exitCode":%s,"error":"' "$FAILED_STEP" "$EXIT_CODE"
+    # L'extrait peut contenir des URL de depots avec identifiants : on les
+    # masque avant stockage et on borne sa taille. La sortie complete reste
+    # uniquement sur stdout/stderr pour les administrateurs de l'hote.
+    tail -c 4000 "$LOG" | tail -n 20 | tr -cd '\12\40-\176' \
+      | sed -E 's#https?://[^[:space:]]+#[source]#g; s/\\/\\\\/g; s/"/\\"/g' \
+      | awk 'NR>1 {printf "\\n"} {printf "%s", $0}'
+    printf '"'
+  fi
+  printf '}\n'
+} > "$TMP"
 
 if [ -n "$HOST_FILE" ]; then
   if ! mkdir -p "$(dirname "$HOST_FILE")" \

@@ -37,6 +37,7 @@ async function main(){
   const agentDir=path.join(dir,"agent");
   fs.mkdirSync(agentDir);
   fs.writeFileSync(path.join(agentDir,"config.json"),JSON.stringify({hosts:[{id:"local",name:"Ancien",monitoring:{enabled:true,type:"local"}},{id:"other",name:"Distant",monitoring:{enabled:true,type:"proxmox"}}],replication:{role:"secondary"}}));
+  fs.writeFileSync(path.join(agentDir,"apt-updates.json"),JSON.stringify({status:"failed",failedStep:"upgrade",exitCode:100,error:"Erreur APT",finishedAt:Math.floor(Date.now()/1000)}));
   const agent=await start("agent",await freePort(),agentDir);
   let response=await fetch(agent+"/api/sync/metrics");
   assert.equal(response.status,401);
@@ -45,6 +46,9 @@ async function main(){
   let data=await response.json();
   assert.equal(data.hosts.length,1);
   assert.equal(data.hosts[0].name,"Ancien");
+  assert.equal(data.hosts[0].aptUpdates.error,"Erreur APT");
+  assert.equal(data.hosts[0].aptUpdates.failedStep,"upgrade");
+  assert.equal(data.hosts[0].aptUpdates.exitCode,100);
   response=await fetch(agent+"/api/config",{headers:{Authorization:auth}});
   assert.equal(response.status,404);
   response=await fetch(agent+"/api/agent/config",{method:"PUT",headers:{Authorization:auth,"Content-Type":"application/json"},body:JSON.stringify({name:"Agent",monitoring:{smart:{enabled:false},wireguard:{enabled:false}}})});

@@ -57,6 +57,15 @@ puis ouvrez l'onglet **Mises a jour APT**. La carte affiche le nombre de mises
 a jour installees, la date du dernier passage et une alerte lorsqu'un
 redemarrage est requis.
 
+En cas d'echec, ouvrez **Détail de l’échec** sur la carte : le rapport indique
+l'etape (`update` ou `upgrade`), le code de sortie et un extrait borne de la
+sortie APT. Les URL de depots sont masquees dans cet extrait, mais il peut
+contenir d'autres informations sur le systeme : limitez l'acces a Dashmon.
+Les anciens rapports ne contiennent pas de detail. Installez la version a jour
+du script sur chaque hote ; l'image Dashmon seule ne met pas a jour ce script.
+Pour un rapport deja en echec, consultez les journaux APT de l'hote, par exemple
+`sudo tail -n 100 /var/log/apt/term.log` s'il existe, sans relancer de mise a jour.
+
 ## Variante bind mount
 
 Si le script ne peut pas joindre Docker, montez un dossier de l'hote dans le

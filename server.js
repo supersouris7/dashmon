@@ -1698,6 +1698,9 @@ function readAptUpdatesReport(){
   if(!raw || (raw.status!=="success" && raw.status!=="failed")) return null;
   return {
     status:raw.status,
+    failedStep:raw.failedStep==="update" || raw.failedStep==="upgrade" ? raw.failedStep : null,
+    exitCode:Number.isInteger(raw.exitCode) && raw.exitCode>=0 && raw.exitCode<=255 ? raw.exitCode : null,
+    error:typeof raw.error==="string" ? sanitizeText(raw.error,4000) : "",
     updated:smartNumber(raw.updated)||0,
     rebootRequired:raw.rebootRequired===true,
     rebootRequested:raw.rebootRequested===true,

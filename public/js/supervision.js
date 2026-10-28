@@ -680,6 +680,18 @@ function aptUpdatesCard(host,metrics){
   }
   status.append(dot,text);
   card.appendChild(status);
+  if(failed){
+    const detail=document.createElement("details");
+    detail.className="supervision-apt-error";
+    const summary=document.createElement("summary");
+    summary.textContent=t("aptUpdatesErrorDetail");
+    const message=document.createElement("pre");
+    const step=report.failedStep ? "apt-get " + report.failedStep : "";
+    const code=Number.isInteger(report.exitCode) ? " (exit " + report.exitCode + ")" : "";
+    message.textContent=[step ? step+code : "",report.error || t("aptUpdatesErrorUnavailable")].filter(Boolean).join("\n");
+    detail.append(summary,message);
+    card.appendChild(detail);
+  }
 
   if(report){
     const summary=document.createElement("div");
