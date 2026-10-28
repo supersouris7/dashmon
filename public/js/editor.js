@@ -1363,6 +1363,10 @@ export function closeEditor(){
 function renderReplicationEditor(){
   replicationEditor.replaceChildren();
   const replication=state.replication||{role:"primary",instanceName:"Dashmon",secondaries:[]};
+  const intro=document.createElement("p");
+  intro.className="host-monitor-hint";
+  intro.textContent=t("agentIntro");
+  replicationEditor.appendChild(intro);
   const note=document.createElement("p");
   note.className="host-monitor-hint";
   note.textContent=t("agentHint");
