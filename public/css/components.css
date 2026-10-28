@@ -906,6 +906,15 @@ body[data-page="supervision"] #iconsBtn{display:none}
    tout a droite, directement avant le menu « ... ». */
 body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
 
+/* Quand la recherche disparait, les actions du dashboard restent elles aussi
+   alignees a droite. Sur mobile le groupe d'actions gere deja cet alignement. */
+@media (min-width:701px){
+  body[data-page="dashboard"] .toolbar.compact-search #viewBtn{margin-left:auto}
+}
+@media (min-width:701px) and (max-width:800px){
+  body[data-page="dashboard"] .toolbar #viewBtn{margin-left:auto}
+}
+
 .supervision-grid{
   display:grid;
   /* Les cartes ne grossissent pas pour remplir une ligne incomplete. La grille

@@ -66,6 +66,8 @@ async function main(){
   check("toolbar : menu a gauche recadre", toolbar.menuRightOffset(-80, 150, 800), -88);
   check("toolbar : menu bien place inchange", toolbar.menuRightOffset(500, 730, 800), 0);
   check("toolbar : menu a droite recadre", toolbar.menuRightOffset(600, 830, 800), 38);
+  const toolbarCss=fs.readFileSync(path.join(ROOT,"public","css","components.css"),"utf8");
+  ok("toolbar : actions du dashboard alignees a droite sans recherche", toolbarCss.includes('.toolbar.compact-search #viewBtn{margin-left:auto}') && toolbarCss.includes('.toolbar #viewBtn{margin-left:auto}'));
 
   // La carte APT partage la commande globale et conserve son etat au refresh.
   const supervisionSource=fs.readFileSync(path.join(JS_DIR,"supervision.js"),"utf8");
