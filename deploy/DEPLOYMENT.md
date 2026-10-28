@@ -113,12 +113,93 @@ Behaviour:
 
 ## 3. Data
 
-## Supervision agents
+## Portainer stacks
 
-Deploy `deploy/agent.compose.yml` as a Portainer stack on each monitored host.
-Set `DASHMON_PASSWORD` and a long random `DASHMON_SYNC_TOKEN` in the stack's
-environment; use the same sync token on the main Dashmon instance. The agent
-requires both values and does not expose them in its configuration API.
+These examples can be pasted into **Stacks → Add stack → Web editor** in
+Portainer. Add the named values under **Environment variables** in the stack
+editor before deploying. Do not put passwords or keys directly in the YAML or
+commit them to a repository.
+
+The examples use the `unstable` image, which receives builds from `main`.
+Use `latest` instead when a stable release containing the agent is available.
+Update the image and redeploy the stack to pick up a newer build.
+
+### Main Dashmon stack
+
+Create `DASHMON_PASSWORD` (required) and `DASHMON_MASTER_KEY` (recommended)
+in Portainer's stack environment. The master key encrypts widget credentials;
+keep a backup of it separately from the data volume. If using agents, also set
+`DASHMON_SYNC_TOKEN` to a separate, long random value. The same sync token must
+be configured on every agent connected to this main instance.
+
+```yaml
+services:
+  dashmon:
+    image: supersouris7/dashmon:unstable
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "8080:8080"
+    environment:
+      DASHMON_PASSWORD: ${DASHMON_PASSWORD:?Set DASHMON_PASSWORD}
+      DASHMON_MASTER_KEY: ${DASHMON_MASTER_KEY:-}
+      DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:-}
+    volumes:
+      - dashmon-data:/app/data
+
+volumes:
+  dashmon-data:
+```
+
+Without `DASHMON_MASTER_KEY`, widget credentials are stored in plain text. The
+published port listens on host interfaces by default: restrict access using a
+firewall or put Dashmon behind HTTPS. If accessing it only through a reverse
+proxy on the same host, bind the port to loopback instead. See the
+[Docker widget](#docker-widget-optional-socket) section before adding socket
+access.
+
+### Supervision agents
+
+Deploy this separate stack on each monitored host. In its Portainer environment,
+set `DASHMON_PASSWORD` for the agent's local page and `DASHMON_SYNC_TOKEN` to
+the same value as on the main dashboard. Both are required. The agent password
+can differ from the main dashboard password.
+
+```yaml
+services:
+  dashmon-agent:
+    image: supersouris7/dashmon:unstable
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "8080:8080"
+    environment:
+      DASHMON_MODE: agent
+      DASHMON_PASSWORD: ${DASHMON_PASSWORD:?Set DASHMON_PASSWORD}
+      DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:?Set DASHMON_SYNC_TOKEN}
+    volumes:
+      - dashmon-agent-data:/app/data
+      # Optional: mount the host filesystem read-only, then select /host
+      # as the disk path in the agent page.
+      # - /:/host:ro
+
+volumes:
+  dashmon-agent-data:
+```
+
+The equivalent standalone Compose file is `deploy/agent.compose.yml`. If the
+main dashboard and an agent run on the same host, give one stack a different
+published host port; the container port remains `8080`. Restrict access to the
+agent's port to the main dashboard and administrators. Use HTTPS or a trusted
+private network: the sync token travels in a request header.
 
 Open the agent's local page to name the host, configure the disk path and choose
 WireGuard, SMART and APT reports. The reports must be generated on the host and

@@ -65,6 +65,11 @@ cp .env.example .env
 docker compose up -d
 ```
 
+### Portainer
+
+Use the ready-to-paste [Portainer stack examples](deploy/DEPLOYMENT.md#portainer-stacks)
+for the main dashboard and its optional supervision agents.
+
 Full walkthrough, environment variables, nginx example and troubleshooting:
 [deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md).
 
