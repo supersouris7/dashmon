@@ -80,8 +80,6 @@ See `.env.example`. The most important:
 | `DASHBOARD_INSECURE_TLS` | empty | `1` if your monitored hosts use self-signed certificates |
 | `DASHMON_MASTER_KEY` | empty | AES-256-GCM master key to encrypt widget secrets (e.g. Duplicati password) in `config.json` |
 | `DASHMON_SYNC_TOKEN` | empty | Shared secret authorizing the main dashboard to read agent metrics |
-| `PROXMOX_TOKEN_ID` / `PROXMOX_TOKEN_SECRET` | empty | Proxmox API token used by host supervision (type Proxmox) |
-| `DASHBOARD_TOKEN_ENVS` | empty | Comma-separated allowlist extending the token variables above |
 
 ### Widget secrets (Duplicati…)
 
@@ -368,17 +366,14 @@ public sites, so prefer a bundle.
 
 ## 8. Host supervision
 
-The *Supervision* page shows CPU, memory, disk and temperature for the hosts you
-enable in the dedicated editor (*Modifier la supervision*, in the top menu). Each
-host picks one source:
-
-| Type | What it reads | Fields |
-| --- | --- | --- |
-| Local | The machine running the container (`os`, `/sys`, `statfs`) | disk path (default `/`) |
-| Proxmox | The PVE JSON API (`/api2/json/nodes/<node>/status`) | URL, node, token ID, token secret |
-
-Temperature is unavailable for Proxmox (the PVE API does not expose it) and shows
-as `—`; likewise any metric a source does not provide.
+The *Supervision* page always shows the local host's CPU, memory, disk and
+temperature as observed by the container. Configure the disk path in the
+supervision editor, or use [agents](#supervision-agents) for other machines.
+Unavailable measurements are shown as `—`. Direct Proxmox API monitoring is no
+longer available; existing service and host entries remain in the dashboard.
+Back up the data volume before upgrading: legacy Proxmox monitoring settings
+are removed from the configuration on the next save, while host names and
+service associations are retained.
 
 ### WireGuard peers
 
@@ -403,16 +398,6 @@ at the mount:
 
 then set the disk path to `/host` for that host. Readings of `null` (shown `—`)
 are normal when a path does not exist or `/sys` is not exposed.
-
-### Tokens
-
-Token fields hold **either** the name of an allowlisted environment variable
-(`PROXMOX_TOKEN_ID`, `PROXMOX_TOKEN_SECRET`, or any name
-listed in `DASHBOARD_TOKEN_ENVS`) **or** the literal value. The server resolves
-and sends them at read time; a name outside the allowlist is sent literally, it
-never exposes an arbitrary container variable.
-
-Create the Proxmox token with read-only (`PVEAuditor`) privileges.
 
 ## Notes
 

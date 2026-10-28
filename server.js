@@ -162,19 +162,6 @@ function setSessionCookie(req, res, expiresAt) {
   res.set("Set-Cookie", attributes.join("; "));
 }
 
-// Allowlist des variables d'environnement citables comme source d'un token
-// (tokenIdEnv / tokenSecretEnv d'un hote supervise). Sans elle, un
-// champ de configuration pourrait faire lire n'importe quelle variable du
-// conteneur (DASHMON_MASTER_KEY, DASHMON_PASSWORD...) et l'envoyer a un hote
-// distant. Le defaut couvre les tokens documentes ; DASHBOARD_TOKEN_ENVS,
-// separee par des virgules, l'etend pour une instance Proxmox.
-const TOKEN_ENV_ALLOWLIST = new Set(
-  ["PROXMOX_TOKEN_ID", "PROXMOX_TOKEN_SECRET"]
-    .concat(String(process.env.DASHBOARD_TOKEN_ENVS || "").split(","))
-    .map(name => name.trim())
-    .filter(Boolean)
-);
-
 app.use((_req, res, next) => {
   res.set("X-Content-Type-Options", "nosniff");
   res.set("X-Frame-Options", "DENY");
@@ -273,8 +260,7 @@ function rateLimitGet(req, res, next) {
 
 app.use("/api/status", rateLimitGet);
 app.use("/api/sync/metrics", rateLimitGet);
-// /api/host-metrics interroge des hôtes distants (Proxmox) : même
-// plafond que /api/status pour qu'un onglet ne puisse pas arroser un hôte.
+// Limite les demandes de mesures locales.
 app.use("/api/host-metrics", rateLimitGet);
 
 if (DASHMON_PASSWORD) {
@@ -448,6 +434,23 @@ function readConfig(){
   // sauvegarde. Le fichier existant reste lisible sans migration destructive.
   for(const key of ["favicon","faviconEnabled","hostsDisplay","webLinksCollapsed"]){
     delete config[key];
+  }
+  return ensureLocalHost(config);
+}
+
+function ensureLocalHost(config){
+  config.hosts=Array.isArray(config.hosts) ? config.hosts : [];
+  let local=config.hosts.find(host=>host?.monitoring?.type==="local" && host.monitoring.enabled===true)
+    || config.hosts.find(host=>host?.monitoring?.type==="local");
+  if(!local){
+    const used=new Set(config.hosts.map(host=>host?.id));
+    let id="dashmon-local";
+    while(used.has(id)) id+="-local";
+    local={id,name:AGENT_MODE ? "Agent" : "Dashmon",icon:"fa-solid fa-server",monitoring:{type:"local"}};
+    config.hosts.unshift(local);
+  }
+  for(const host of config.hosts){
+    if(host?.monitoring?.type==="local") host.monitoring.enabled=host===local;
   }
   return config;
 }
@@ -694,24 +697,17 @@ function sanitizeSpecialTile(raw,categories){
   return {type,category};
 }
 
-// Supervision d'un hote : la source des metriques (local = la machine qui
-// heberge Dashmon, proxmox = l'API PVE). Les champs
-// token portent soit le nom d'une variable d'environnement, soit une valeur
-// saisie. Un nom n'est relu que s'il figure dans TOKEN_ENV_ALLOWLIST : un champ
-// de configuration ne peut donc pas exposer une variable sensible du conteneur.
-const HOST_MONITORING_TYPES = new Set(["local", "proxmox"]);
+// Seule la machine locale est mesuree directement ; les autres utilisent un agent.
+const HOST_MONITORING_TYPES = new Set(["local"]);
 
 function sanitizeHostMonitoring(raw){
   if(!raw || typeof raw!=="object" || Array.isArray(raw)) return undefined;
+  if(raw.type && raw.type!=="local") return undefined;
   const type = HOST_MONITORING_TYPES.has(raw.type) ? raw.type : "local";
   const monitoring = {
     enabled: raw.enabled === true,
     type,
-    url: sanitizeUrl(raw.url || ""),
-    node: sanitizeText(raw.node, 50),
-    path: sanitizeText(raw.path, 200),
-    tokenIdEnv: sanitizeText(raw.tokenIdEnv, 100),
-    tokenSecretEnv: sanitizeText(raw.tokenSecretEnv, 100)
+    path: sanitizeText(raw.path, 200)
   };
   // Preferences d'affichage WireGuard : uniquement conservees si elles disent
   // quelque chose (section masquee ou interface filtree), pour ne pas alourdir
@@ -740,8 +736,7 @@ function sanitizeHostMonitoring(raw){
   }
   // Un hote sans supervision activee et sans aucun parametre ne garde pas un
   // objet vide dans config.json : la config reste lisible.
-  const meaningful = monitoring.url || monitoring.node || monitoring.path
-    || monitoring.tokenIdEnv || monitoring.tokenSecretEnv
+  const meaningful = monitoring.path
     || monitoring.wireguard || monitoring.smart || monitoring.aptUpdates;
   if(!monitoring.enabled && !meaningful) return undefined;
   return monitoring;
@@ -802,7 +797,7 @@ function buildConfigOutput(config){
        specialTile:sanitizeSpecialTile(config.specialTile,categories),
        replication:sanitizeReplication(config.replication),
       hosts:Array.isArray(config.hosts)
-        ? config.hosts.slice(0,50).map(host=>{
+        ? config.hosts.slice(0,51).map(host=>{
             return {
               id:sanitizeText(host.id,64) || "host-"+crypto.randomBytes(6).toString("hex"),
               name:sanitizeText(host.name,100),
@@ -859,14 +854,7 @@ function writeConfig(output){
 }
 
 function keepOneLocalHost(config){
-  let found=false;
-  for(const host of config.hosts||[]){
-    if(host.monitoring?.enabled && host.monitoring.type==="local"){
-      if(found) host.monitoring.enabled=false;
-      found=true;
-    }
-  }
-  return config;
+  return ensureLocalHost(config);
 }
 
 async function replicateConfig(config){
@@ -1389,9 +1377,7 @@ async function refreshStatusesCycle(force){
 }
 
 // --- Supervision des hotes ------------------------------------------------
-// CPU, RAM, temperature et disque d'un hote. Trois sources :
-//   local   : la machine qui heberge le conteneur (os, /sys, statfs) ;
-//   proxmox : l'API PVE (token) ; le noeud en ligne est auto-detecte.
+// CPU, RAM, temperature et disque de la machine locale (os, /sys, statfs).
 // Chaque valeur est un pourcentage 0..100, sauf la temperature en degres. Une
 // metrique indisponible vaut null (affichee "—") : zero est une mesure, son
 // absence n'en est pas une, et les confondre ferait croire a un hote au repos.
@@ -1495,24 +1481,6 @@ function localDiskPercent(target){
   }catch(_error){
     return null;
   }
-}
-
-// Lecture d'un token : un nom present dans l'allowlist designe une variable
-// d'environnement, toute autre valeur est un secret colle dans l'editeur et
-// utilise tel quel. Un nom hors allowlist ne peut donc pas faire exfiltrer une
-// variable sensible du conteneur.
-function resolveTokenValue(name){
-  const candidate=String(name||"").trim();
-  if(!candidate) return "";
-  if(TOKEN_ENV_ALLOWLIST.has(candidate)) return String(process.env[candidate]||"");
-  return candidate;
-}
-
-function envToken(name,fallbackName){
-  const direct=resolveTokenValue(name);
-  if(direct) return direct;
-  const fallback=String(fallbackName||"").trim();
-  return TOKEN_ENV_ALLOWLIST.has(fallback) ? String(process.env[fallback]||"") : "";
 }
 
 const WG_MAX_INTERFACES=10;
@@ -1708,56 +1676,6 @@ function readAptUpdatesReport(){
   };
 }
 
-function proxmoxRequest(base,tokenId,tokenSecret,apiPath){
-  return httpClient.apiRequest(base,apiPath,{
-    headers:{ Authorization:`PVEAPIToken=${tokenId}=${tokenSecret}` }
-  });
-}
-
-async function getProxmoxMetrics(host){
-  const base=String(host.monitoring?.url||"").trim().replace(/\/+$/,"");
-  if(!base) throw new Error("URL Proxmox manquante");
-  const tokenId=envToken(host.monitoring?.tokenIdEnv,"PROXMOX_TOKEN_ID");
-  const tokenSecret=envToken(host.monitoring?.tokenSecretEnv,"PROXMOX_TOKEN_SECRET");
-  if(!tokenId || !tokenSecret) throw new Error("Token Proxmox non configure");
-
-  let node=String(host.monitoring?.node||"").trim();
-  let nodes=[];
-  try{
-    const list=await proxmoxRequest(base,tokenId,tokenSecret,"/api2/json/nodes");
-    nodes=Array.isArray(list?.data) ? list.data : [];
-  }catch(_error){
-    nodes=[];
-  }
-  // Noeud : celui configure s'il existe encore, sinon le premier en ligne, sinon
-  // "pve" (l'API tranchera). Un noeud renomme ne bloque donc pas la mesure.
-  const online=nodes.filter(entry=>entry?.status==="online");
-  const configured=nodes.some(entry=>String(entry.node||"")===node) ? node : "";
-  node=configured || (online.length ? String(online[0].node||"").trim() : "") || "pve";
-
-  const payload=await proxmoxRequest(base,tokenId,tokenSecret,
-    `/api2/json/nodes/${encodeURIComponent(node)}/status`);
-  const data=payload?.data||{};
-  const memory=data.memory||{};
-  const rootfs=data.rootfs||{};
-  const memTotal=Number(memory.total);
-  const memUsed=Number(memory.used);
-  const diskTotal=Number(rootfs.total);
-  const diskUsed=Number(rootfs.used);
-  return {
-    cpu:clampPercent(Number(data.cpu)*100),
-    ram:memTotal>0 ? clampPercent((memUsed/memTotal)*100) : null,
-    // PVE n'expose pas la temperature d'un noeud via son API JSON : la valeur
-    // reste indisponible plutot que d'etre inventee.
-    temperature:null,
-    disk:diskTotal>0 ? clampPercent((diskUsed/diskTotal)*100) : null,
-    os:sanitizeText(data.kversion||data.pveversion||"Proxmox VE",200),
-    cpuModel:sanitizeText(data.cpuinfo?.model||"",200),
-    cpuCores:positiveInteger(data.cpuinfo?.cpus,1024),
-    ramTotal:positiveInteger(memTotal,Number.MAX_SAFE_INTEGER)
-  };
-}
-
 const HOST_METRICS_TTL=HOST_METRICS_INTERVAL;
 let hostMetricsCache={ts:0,payload:null};
 let hostMetricsInflight=null;
@@ -1783,9 +1701,8 @@ async function serveHostMetrics(_req,res){
   }
 
   const configuredHosts=Array.isArray(config.hosts) ? config.hosts : [];
-  const agentHost=AGENT_MODE ? configuredHosts.find(host=>host?.monitoring?.type==="local") : null;
-  const hosts=(AGENT_MODE ? (agentHost ? [agentHost] : []) : configuredHosts)
-    .filter(host=>host?.monitoring?.enabled===true);
+  const localHost=configuredHosts.find(host=>host?.monitoring?.type==="local" && host.monitoring.enabled===true);
+  const hosts=localHost ? [localHost] : [];
 
   // Les mesures locales sont lues une seule fois : deux hotes "local" designent
   // la meme machine, on ne consomme donc le delta CPU qu'une fois par requete.
@@ -1805,8 +1722,7 @@ async function serveHostMetrics(_req,res){
       let metrics;
       let wireguardFetchedAt=null;
       let smartFetchedAt=null;
-      if(type==="proxmox") metrics=await getProxmoxMetrics(host);
-      else {
+      {
         // Le dump local est le meme pour tous les hotes "local" : on le lit une
         // fois et on date chaque copie de l'heure du fichier.
         metrics={
@@ -1870,7 +1786,7 @@ app.get("/api/agent/config",(req,res)=>{
   if(!AGENT_MODE) return res.sendStatus(404);
   try{
     const config=readConfig();
-    const host=(config.hosts||[]).find(item=>item.monitoring?.type==="local");
+    const host=(config.hosts||[]).find(item=>item.monitoring?.type==="local" && item.monitoring.enabled);
     res.set("Cache-Control","no-store");
     res.json({name:host?.name||"Agent",monitoring:host?.monitoring||{enabled:true,type:"local"}});
   }catch(_error){ res.status(500).json({error:"Lecture impossible"}); }
@@ -1879,7 +1795,7 @@ app.put("/api/agent/config",(req,res)=>{
   if(!AGENT_MODE) return res.sendStatus(404);
   try{
     const current=readConfig();
-    const old=(current.hosts||[]).find(item=>item.monitoring?.type==="local");
+    const old=(current.hosts||[]).find(item=>item.monitoring?.type==="local" && item.monitoring.enabled);
     const monitoring=sanitizeHostMonitoring({...req.body?.monitoring,type:"local",enabled:true});
     const host={id:old?.id||"host-"+crypto.randomBytes(6).toString("hex"),name:sanitizeText(req.body?.name,100)||"Agent",icon:old?.icon||"fa-solid fa-server",color:old?.color||"",monitoring};
     current.hosts=(Array.isArray(current.hosts) ? current.hosts : []).filter(item=>item!==old);

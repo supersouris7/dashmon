@@ -48,8 +48,8 @@ Un releve toutes les quinze minutes est suffisant. Ajoutez cette ligne avec
 
 ## Configuration Dashmon
 
-Ajoutez un hote de supervision de type **Local**, puis ouvrez l'onglet
-**SMART**. La liste des disques est facultative : vide, elle affiche tous les
+L'hote local est toujours supervise. Ouvrez l'onglet **SMART** dans la
+configuration de supervision. La liste des disques est facultative : vide, elle affiche tous les
 disques du releve ; renseignez par exemple `/dev/sda, /dev/sdb` pour filtrer.
 Cliquez sur **Enregistrer** puis **Appliquer**.
 

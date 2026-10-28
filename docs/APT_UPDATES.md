@@ -52,8 +52,8 @@ Le rapport est ecrit avant la demande de redemarrage, avec l'etat
 
 ## Supervision Dashmon
 
-Dans **Modifier la supervision**, ajoutez ou activez un hote de type **Local**,
-puis ouvrez l'onglet **Mises a jour APT**. La carte affiche le nombre de mises
+L'hote local est toujours supervise. Dans **Modifier la supervision**, ouvrez
+l'onglet **Mises a jour APT**. La carte affiche le nombre de mises
 a jour installees, la date du dernier passage et une alerte lorsqu'un
 redemarrage est requis.
 

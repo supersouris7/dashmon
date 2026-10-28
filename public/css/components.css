@@ -6,9 +6,9 @@
 
 .host-row{
   display:grid;
-  grid-template-columns:30px minmax(0,1fr) 44px 22px 40px 38px;
+  grid-template-columns:30px minmax(0,1fr) 44px 22px 38px;
   grid-template-areas:
-    "drag name picker color monitor remove";
+    "drag name picker color remove";
   gap:8px;
   align-items:center;
   width:100%;
@@ -18,7 +18,6 @@
 .host-row .drag-handle{grid-area:drag}
 .host-row > .edit-input{grid-area:name}
 .host-row .icon-picker{grid-area:picker}
-.host-row .host-monitor-toggle{grid-area:monitor}
 .host-row .delete-btn{grid-area:remove}
 
 /* Panneau deplie sous un hote surveille : les champs utiles au type choisi. */

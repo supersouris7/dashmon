@@ -289,14 +289,13 @@ async function main(){
     check("config : supervision inconnue recalee sur local",
       stateModule.normalizeConfig({ hosts: [{ name: "H", monitoring: { enabled: true, type: "n'importe quoi" } }] }).hosts[0].monitoring.type,
       "local");
-    check("config : seul local et Proxmox sont des types de supervision",
-      stateModule.HOST_MONITORING_TYPES.slice(), ["local", "proxmox"]);
+    check("config : seul local est un type de supervision",
+      stateModule.HOST_MONITORING_TYPES.slice(), ["local"]);
     check("config : ancien type Linux recale sur local",
       stateModule.normalizeConfig({ hosts: [{ name: "H", monitoring: { enabled: true, type: "linux" } }] }).hosts[0].monitoring.type,
       "local");
-    check("config : WireGuard ignore hors hote local",
-      stateModule.normalizeHostMonitoring({ enabled: true, type: "proxmox", wireguard: { enabled: false, interface: "wg0" } }).wireguard,
-      { enabled: true, interface: "" });
+    check("config : ancienne supervision Proxmox ignoree",
+      stateModule.normalizeHostMonitoring({ enabled: true, type: "proxmox" }), null);
     check("config : rapport APT actif par defaut",
       stateModule.normalizeHostMonitoring({ enabled: true, type: "local" }).aptUpdates,
       { enabled: true });

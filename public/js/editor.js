@@ -946,29 +946,11 @@ function monitoringInput(placeholderKey,value,onInput){
   return input;
 }
 
-// Panneau deplie sous un hote surveille : le type decide des champs utiles.
-// Pour le type local, seul le chemin du disque importe ; pour Proxmox, l'URL, le noeud et les deux
-// moities du jeton API.
+// Panneau de l'hote local : seul le chemin du disque est configurable ici.
 function renderMonitoringPanel(host,index){
   const m=host.monitoring;
   const panel=document.createElement("div");
   panel.className="host-monitor-panel";
-
-  const type=document.createElement("select");
-  type.className="edit-select host-monitor-type";
-  type.title=t("hostMonitoringType");
-  [["local","hostTypeLocal"],["proxmox","hostTypeProxmox"]].forEach(([value,key])=>{
-    const option=document.createElement("option");
-    option.value=value;
-    option.textContent=t(key);
-    type.appendChild(option);
-  });
-  type.value=HOST_MONITORING_TYPES.includes(m.type) ? m.type : "local";
-  type.addEventListener("change",()=>{
-    state.editHosts[index].monitoring.type=type.value;
-    renderHostEditor();
-  });
-  panel.appendChild(monitoringField(t("hostMonitoringType"),type));
 
   if(m.type==="local"){
     panel.appendChild(monitoringField(t("hostDiskPath"),
@@ -976,22 +958,6 @@ function renderMonitoringPanel(host,index){
     const hint=document.createElement("p");
     hint.className="host-monitor-hint";
     hint.textContent=t("hostLocalHint");
-    panel.appendChild(hint);
-    return panel;
-  }
-
-  if(m.type==="proxmox"){
-    panel.appendChild(monitoringField(t("proxmoxUrl"),
-      monitoringInput("phProxmoxUrl",m.url,v=>state.editHosts[index].monitoring.url=v)));
-    panel.appendChild(monitoringField(t("proxmoxNode"),
-      monitoringInput("phProxmoxNode",m.node,v=>state.editHosts[index].monitoring.node=v)));
-    panel.appendChild(monitoringField(t("proxmoxTokenIdEnv"),
-      monitoringInput("phTokenEnv",m.tokenIdEnv,v=>state.editHosts[index].monitoring.tokenIdEnv=v)));
-    panel.appendChild(monitoringField(t("proxmoxTokenSecretEnv"),
-      monitoringInput("phTokenEnv",m.tokenSecretEnv,v=>state.editHosts[index].monitoring.tokenSecretEnv=v)));
-    const hint=document.createElement("p");
-    hint.className="host-monitor-hint";
-    hint.textContent=t("tokenEnvHint");
     panel.appendChild(hint);
     return panel;
   }
@@ -1041,17 +1007,6 @@ export function renderHostEditor(){
 
     const picker=createHostIconPicker(host,index);
 
-    const monitor=document.createElement("button");
-    monitor.className="monitor-toggle host-monitor-toggle "+(host.monitoring.enabled ? "active" : "");
-    monitor.type="button";
-    monitor.title=host.monitoring.enabled ? t("hostMonitoringEnabled") : t("hostMonitoringDisabled");
-    monitor.setAttribute("aria-pressed",String(host.monitoring.enabled));
-    monitor.innerHTML='<i class="fa-solid fa-chart-simple"></i>';
-    monitor.addEventListener("click",()=>{
-      state.editHosts[index].monitoring.enabled=!state.editHosts[index].monitoring.enabled;
-      renderHostEditor();
-    });
-
     const remove=document.createElement("button");
     remove.className="small-icon-btn delete-btn";
     remove.type="button";
@@ -1068,7 +1023,11 @@ export function renderHostEditor(){
       renderServiceEditor();
     });
 
-    row.append(drag,name,picker,createColorPicker(host),monitor,remove);
+    if(host.monitoring.enabled && host.monitoring.type==="local"){
+      remove.disabled=true;
+      remove.title=t("localHostRequired");
+    }
+    row.append(drag,name,picker,createColorPicker(host),remove);
     item.appendChild(row);
     if(host.monitoring.enabled) item.appendChild(renderMonitoringPanel(host,index));
 

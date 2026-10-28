@@ -585,15 +585,12 @@ function normalizeDashboards(raw){  const seen=new Set();
   return list;
 }
 
-// Supervision d'un hote (voir server.js) : la source des mesures est "local"
-// (la machine qui heberge Dashmon) ou "proxmox" (l'API PVE). Les champs token
-// ne portent jamais un secret en clair ici : ce
-// sont des noms de variables d'environnement OU des valeurs collees, que le
-// serveur relit au moment de la mesure en appliquant son allowlist.
-export const HOST_MONITORING_TYPES=Object.freeze(["local","proxmox"]);
+// Supervision locale : les autres machines sont interrogees par leurs agents.
+export const HOST_MONITORING_TYPES=Object.freeze(["local"]);
 
 export function normalizeHostMonitoring(raw){
   if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
+  if(raw.type==="proxmox") return null;
   const type=HOST_MONITORING_TYPES.includes(raw.type) ? raw.type : "local";
   return {
     enabled:raw.enabled===true,

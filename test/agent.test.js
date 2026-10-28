@@ -62,9 +62,17 @@ async function main(){
   assert.equal(data.hosts[0].smart,null);
   assert.equal(data.hosts[0].wireguard,null);
   const primaryDir=path.join(dir,"primary");
+  fs.mkdirSync(primaryDir);
+  fs.writeFileSync(path.join(primaryDir,"config.json"),JSON.stringify({hosts:[{id:"local",name:"Local",monitoring:{type:"local",enabled:false}},{id:"legacy",name:"Hôte",monitoring:{type:"proxmox",enabled:true}}]}));
   const primary=await start("dashboard",await freePort(),primaryDir);
   response=await fetch(primary+"/api/config",{headers:{Authorization:auth}});
   const config=await response.json();
+  assert.equal(config.hosts.filter(host=>host.monitoring?.enabled && host.monitoring.type==="local").length,1);
+  assert.ok(config.hosts.some(host=>host.id==="legacy"));
+  response=await fetch(primary+"/api/host-metrics",{headers:{Authorization:auth}});
+  const localMetrics=(await response.json()).hosts;
+  assert.equal(localMetrics.length,1);
+  assert.equal(localMetrics[0].id,"local");
   config.replication={role:"primary",instanceName:"Dashmon",secondaries:[agent],agentNames:{[agent]:"Supervision distante"}};
   response=await fetch(primary+"/api/config",{method:"PUT",headers:{Authorization:auth,"Content-Type":"application/json"},body:JSON.stringify(config)});
   assert.equal(response.status,200);
