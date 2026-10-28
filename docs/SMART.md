@@ -22,6 +22,12 @@ Le script detecte les disques accessibles avec `smartctl --scan-open`, lance
 sudo /usr/local/sbin/smart-dump.sh
 ```
 
+Pour un agent installé avec la stack du [guide de démarrage](DEMARRAGE.md) :
+
+```sh
+sudo /usr/local/sbin/smart-dump.sh dashmon-agent
+```
+
 Le nom du conteneur et le chemin peuvent etre fournis en arguments :
 
 ```sh
@@ -45,6 +51,16 @@ Un releve toutes les quinze minutes est suffisant. Ajoutez cette ligne avec
 ```cron
 */15 * * * * /usr/local/sbin/smart-dump.sh >/dev/null 2>&1
 ```
+
+Pour un agent, remplacez cette ligne par :
+
+```cron
+*/15 * * * * /usr/local/sbin/smart-dump.sh dashmon-agent >/dev/null 2>&1
+```
+
+Si votre conteneur porte un autre nom, retrouvez-le avec `docker ps` et remplacez
+`dashmon-agent`. Dans la page locale de l'agent, activez **SMART** et laissez la
+liste des disques vide pour tous les afficher.
 
 ## Configuration Dashmon
 

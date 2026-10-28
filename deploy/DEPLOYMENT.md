@@ -1,5 +1,9 @@
 # Dashmon — Docker deployment
 
+For a concise, step-by-step installation of the main dashboard and agents with
+copyable Portainer or Docker Compose stacks, start with the
+[guide de démarrage](../docs/DEMARRAGE.md).
+
 Run Dashmon from the prebuilt image on Docker Hub. No build required.
 
 ## Prerequisites
@@ -35,6 +39,8 @@ On first start, `config.json` (sample services) is copied to `/app/data` if miss
 ### Docker widget (optional socket)
 
 The Docker widget reads the Engine API read-only through `/var/run/docker.sock`.
+The socket grants powerful access to Docker: mounting the socket with `:ro` does
+not make the Docker API read-only. Only grant it to a trusted container.
 The image runs as the non-root user `node` (uid 1000), while the socket usually
 belongs to `root:docker` in mode `660`. Mounting it is not enough: without that
 group every request is refused with `EACCES` and the widget stays empty.
@@ -134,6 +140,7 @@ be configured on every agent connected to this main instance.
 services:
   dashmon:
     image: supersouris7/dashmon:unstable
+    container_name: dashmon
     restart: unless-stopped
     read_only: true
     cap_drop:
@@ -171,6 +178,7 @@ can differ from the main dashboard password.
 services:
   dashmon-agent:
     image: supersouris7/dashmon:unstable
+    container_name: dashmon-agent
     restart: unless-stopped
     read_only: true
     cap_drop:
@@ -193,7 +201,9 @@ volumes:
   dashmon-agent-data:
 ```
 
-The equivalent standalone Compose file is `deploy/agent.compose.yml`. If the
+The standalone Compose file `deploy/agent.compose.yml` lets Docker assign the
+container name; use `docker ps` to find that name when installing report scripts.
+If the
 main dashboard and an agent run on the same host, give one stack a different
 published host port; the container port remains `8080`. Restrict access to the
 agent's port to the main dashboard and administrators. Use HTTPS or a trusted
@@ -382,8 +392,7 @@ service associations are retained.
 
 WireGuard peers for local hosts are read from a filtered dump file. The bundled
 script refreshes it with cron and removes private key material before Dashmon
-reads it. The same file also feeds the standalone
-WireGuard tile. See [the WireGuard guide](../docs/WIREGUARD.md) for installation,
+reads it. See [the WireGuard guide](../docs/WIREGUARD.md) for installation,
 names and bind mounts. SMART and APT have their own local guides:
 [SMART](../docs/SMART.md) and [APT updates](../docs/APT_UPDATES.md).
 

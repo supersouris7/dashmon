@@ -5,9 +5,9 @@ de mise a jour d'un hote Debian ou Ubuntu. Dashmon ne lance jamais `apt` lui-mem
 cron locale execute le script, qui ecrit un rapport JSON atomique dans les
 donnees du conteneur, a cote des dumps WireGuard et SMART.
 
-Par defaut, cron s'execute chaque mercredi a 03:00. Le script utilise
-`apt-get -y upgrade` : il installe les mises a jour qui ne demandent pas de
+Le script utilise `apt-get -y upgrade` : il installe les mises a jour qui ne demandent pas de
 suppression ou de nouvelle dependance, puis signale un redemarrage requis.
+Il n'installe aucune tache cron automatiquement.
 
 ## Installation
 
@@ -18,10 +18,18 @@ sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/depl
 sudo chmod 755 /usr/local/sbin/apt-updates.sh
 ```
 
-Lancez un premier passage puis consultez son rapport :
+**Attention : cette commande installe réellement les mises à jour sur l'hôte.**
+Elle ne demande pas de redémarrage sauf si `DASHMON_APT_REBOOT=1` est défini.
+Pour lancer un premier passage sur le principal :
 
 ```sh
 sudo /usr/local/sbin/apt-updates.sh
+```
+
+Pour un agent installé avec la stack du [guide de démarrage](DEMARRAGE.md) :
+
+```sh
+sudo env DASHMON_CONTAINER=dashmon-agent /usr/local/sbin/apt-updates.sh
 ```
 
 Le script ecrit par defaut dans `/app/data/apt-updates.json` du conteneur
@@ -40,12 +48,29 @@ Ajoutez cette ligne au crontab root avec `sudo crontab -e` :
 0 3 * * 3 /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
 ```
 
+Pour un **agent**, utilisez à la place :
+
+```cron
+0 3 * * 3 DASHMON_CONTAINER=dashmon-agent /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
+```
+
+Si votre conteneur porte un autre nom, retrouvez-le avec `docker ps` et adaptez
+la commande. Ne créez qu'une tâche APT par hôte.
+
 Le redemarrage automatique est **desactive**. Pour l'autoriser seulement apres
 une mise a jour reussie qui le requiert, prefixez la commande cron :
 
 ```cron
 0 3 * * 3 DASHMON_APT_REBOOT=1 /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
 ```
+
+Pour autoriser le redémarrage sur l'hôte d'un agent :
+
+```cron
+0 3 * * 3 DASHMON_CONTAINER=dashmon-agent DASHMON_APT_REBOOT=1 /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
+```
+
+Utilisez une seule des lignes APT proposées, pas plusieurs.
 
 Le rapport est ecrit avant la demande de redemarrage, avec l'etat
 `redemarrage demande`.

@@ -1,15 +1,8 @@
 # WireGuard in Dashmon
 
-Dashmon can show your WireGuard peers in two independent places:
-
-- **Host supervision** — its own card on the *Supervision* page, detached from
-  the host cards, for a monitored host of type **Local**. It
-  shows a “last check” line dated from the dump file.
-- **Tile widget** — a standalone tile, assigned like any other widget in the
-  service editor (**Edit Dashmon** → service → **Widget** → **WireGuard**), with
-  no host involved.
-
-Both read the same local dump of `wg show all dump`.
+Dashmon displays WireGuard peers on the *Supervision* page using a local dump of
+`wg show all dump`. Install and schedule the script on each host to monitor,
+including hosts running an agent.
 
 This guide covers the **local dump**: the script, its installation, and the cron
 schedule.
@@ -37,6 +30,15 @@ needs a special mount:
 ```sh
 sudo /usr/local/bin/wireguard-dump.sh
 ```
+
+For an agent installed with the [startup guide](DEMARRAGE.md), use:
+
+```sh
+sudo /usr/local/bin/wireguard-dump.sh dashmon-agent
+```
+
+In the agent's local page, enable **WireGuard**. The main dashboard shows the
+report on the agent's Supervision tab.
 
 ### Parameters
 
@@ -134,6 +136,15 @@ Once per hour:
 ```cron
 0 * * * * /usr/local/bin/wireguard-dump.sh
 ```
+
+For an agent, use this line instead:
+
+```cron
+0 * * * * /usr/local/bin/wireguard-dump.sh dashmon-agent
+```
+
+If your container has another name, find it with `docker ps` and replace
+`dashmon-agent`.
 
 Once per day, at 03:00:
 

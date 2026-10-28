@@ -47,6 +47,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 ```
 
+The `:ro` mount does **not** restrict Docker API operations. Access to the socket
+is highly privileged; grant it only to a trusted container.
+
 > A remote Docker API is unauthenticated by default and is effectively root on
   that host. Keep it on a trusted network only.
 

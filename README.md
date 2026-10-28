@@ -43,10 +43,14 @@ integrations and configuration.
 
 ## Quick start
 
+**[Guide pas à pas : principal, agent, Portainer et Docker Compose](docs/DEMARRAGE.md)**
+— includes ready-to-paste stacks, shared-token setup and links to integration guides.
+
 ### Docker (recommended)
 
 ```bash
-export DASHMON_PASSWORD='choisissez-un-mot-de-passe-solide'
+read -rs -p "Dashmon password: " DASHMON_PASSWORD
+export DASHMON_PASSWORD
 docker run -d --name dashmon --read-only --cap-drop=ALL --security-opt=no-new-privileges:true \
   -p 127.0.0.1:8080:8080 \
   -v dashmon-data:/app/data \
@@ -66,7 +70,7 @@ docker compose up -d
 
 ### Portainer
 
-Use the ready-to-paste [Portainer stack examples](deploy/DEPLOYMENT.md#portainer-stacks)
+Use the ready-to-paste [Portainer stack examples](docs/DEMARRAGE.md#2-installer-le-principal)
 for the main dashboard and its optional supervision agents.
 
 Full walkthrough, environment variables, nginx example and troubleshooting:
@@ -124,6 +128,7 @@ them to a service. A good source of plain self-hosted app logos is the
 | --- | --- |
 | **[docs/WIDGETS.md](docs/WIDGETS.md)** | Widgets and web-link counters. |
 | **[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)** | Installation, environment and troubleshooting. |
+| **[docs/DEMARRAGE.md](docs/DEMARRAGE.md)** | Principal and agent setup, Portainer and Compose stacks. |
 | **[docs/WIREGUARD.md](docs/WIREGUARD.md)** | WireGuard dump and cron script. |
 | **[docs/SMART.md](docs/SMART.md)** / **[docs/APT_UPDATES.md](docs/APT_UPDATES.md)** | Local SMART and APT supervision. |
 | **[CUSTOMIZATION.md](CUSTOMIZATION.md)** | Themes and icons. |

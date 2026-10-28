@@ -1368,7 +1368,7 @@ function renderReplicationEditor(){
   note.textContent=t("agentHint");
   replicationEditor.appendChild(note);
   const docs=document.createElement("a");
-  docs.href="https://github.com/supersouris7/dashmon/blob/main/deploy/DEPLOYMENT.md#supervision-agents";
+  docs.href="https://github.com/supersouris7/dashmon/blob/main/docs/DEMARRAGE.md#3-installer-un-agent";
   docs.target="_blank";
   docs.rel="noopener noreferrer";
   docs.textContent=t("agentDocumentation");

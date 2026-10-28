@@ -82,7 +82,7 @@ async function main(){
   for(const doc of ["WIREGUARD.md","SMART.md","APT_UPDATES.md"]){
     ok("agents : guide accessible depuis les deux interfaces : "+doc,agentEditorSource.includes(doc) && agentPage.includes(doc));
   }
-  ok("agents : guide de deploiement accessible sur la page locale",agentPage.includes("DEPLOYMENT.md#supervision-agents"));
+  ok("agents : guide de deploiement accessible sur la page locale",agentPage.includes("DEMARRAGE.md#3-installer-un-agent"));
 
   // --- 2. Registre des widgets cote client ------------------------------
   // La liste publique est produite par le vrai core : le test verifie donc
