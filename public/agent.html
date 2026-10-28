@@ -11,6 +11,13 @@
   <main>
     <h1>Dashmon Agent</h1>
     <p>Supervision locale. Le tableau de bord principal interroge cet agent ; aucune configuration de tableau de bord n'est reçue.</p>
+    <nav class="agent-docs" aria-label="Documentation et guides d’intégration">
+      <a href="https://github.com/supersouris7/dashmon/blob/main/deploy/DEPLOYMENT.md#supervision-agents" target="_blank" rel="noopener noreferrer">Documentation des agents</a>
+      <span>Guides d’intégration :</span>
+      <a href="https://github.com/supersouris7/dashmon/blob/main/docs/WIREGUARD.md" target="_blank" rel="noopener noreferrer">WireGuard</a>
+      <a href="https://github.com/supersouris7/dashmon/blob/main/docs/SMART.md" target="_blank" rel="noopener noreferrer">SMART</a>
+      <a href="https://github.com/supersouris7/dashmon/blob/main/docs/APT_UPDATES.md" target="_blank" rel="noopener noreferrer">APT</a>
+    </nav>
     <form id="agent-form">
       <label>Nom de l'hôte <input name="name" maxlength="100" required></label>
       <label>Chemin du disque dans le conteneur <input name="path" maxlength="200" placeholder="/ (racine du conteneur)"></label>

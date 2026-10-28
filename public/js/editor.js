@@ -1373,6 +1373,21 @@ function renderReplicationEditor(){
   docs.rel="noopener noreferrer";
   docs.textContent=t("agentDocumentation");
   replicationEditor.appendChild(docs);
+  const integrations=document.createElement("nav");
+  integrations.className="agent-doc-links";
+  integrations.setAttribute("aria-label",t("agentIntegrationDocs"));
+  for(const [file,label] of [["WIREGUARD.md","WireGuard"],["SMART.md","SMART"],["APT_UPDATES.md","APT"]]){
+    const link=document.createElement("a");
+    link.href="https://github.com/supersouris7/dashmon/blob/main/docs/"+file;
+    link.target="_blank";
+    link.rel="noopener noreferrer";
+    link.textContent=label;
+    integrations.appendChild(link);
+  }
+  const docsLabel=document.createElement("span");
+  docsLabel.textContent=t("agentIntegrationDocs")+" :";
+  integrations.prepend(docsLabel);
+  replicationEditor.appendChild(integrations);
   const name=document.createElement("input");
   name.className="edit-input"; name.placeholder=t("agentInstanceName"); name.setAttribute("aria-label",t("agentInstanceName")); name.value=replication.instanceName||"";
   name.addEventListener("input",()=>state.replication.instanceName=name.value);

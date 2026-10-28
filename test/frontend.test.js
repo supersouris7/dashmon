@@ -78,6 +78,11 @@ async function main(){
   ok("APT : sortie affichee comme texte", aptSource.includes("message.textContent=") && !aptSource.includes("message.innerHTML"));
   const agentEditorSource=fs.readFileSync(path.join(JS_DIR,"editor.js"),"utf8");
   ok("agents : test depuis le principal et ouverture protegee", agentEditorSource.includes('fetch("/api/agents/test"') && agentEditorSource.includes('configure.rel="noopener noreferrer"'));
+  const agentPage=fs.readFileSync(path.join(ROOT,"public","agent.html"),"utf8");
+  for(const doc of ["WIREGUARD.md","SMART.md","APT_UPDATES.md"]){
+    ok("agents : guide accessible depuis les deux interfaces : "+doc,agentEditorSource.includes(doc) && agentPage.includes(doc));
+  }
+  ok("agents : guide de deploiement accessible sur la page locale",agentPage.includes("DEPLOYMENT.md#supervision-agents"));
 
   // --- 2. Registre des widgets cote client ------------------------------
   // La liste publique est produite par le vrai core : le test verifie donc
