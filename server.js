@@ -100,6 +100,10 @@ const DASHMON_PASSWORD = process.env.DASHMON_PASSWORD || "";
 // Secret partage exclusivement entre instances couplees. Il ne transite jamais
 // dans config.json ni dans une reponse HTTP.
 const DASHMON_SYNC_TOKEN = String(process.env.DASHMON_SYNC_TOKEN || "");
+const AGENT_MODE = process.env.DASHMON_MODE === "agent";
+if (AGENT_MODE && (!DASHMON_PASSWORD || !DASHMON_SYNC_TOKEN)) {
+  throw new Error("Le mode agent exige DASHMON_PASSWORD et DASHMON_SYNC_TOKEN");
+}
 const SESSION_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
 // Sans mot de passe, Dashmon ne doit pas devenir une interface d'administration
 // accessible au reseau. Dans Docker, l'ecoute doit rester disponible pour le
@@ -268,6 +272,7 @@ function rateLimitGet(req, res, next) {
 }
 
 app.use("/api/status", rateLimitGet);
+app.use("/api/sync/metrics", rateLimitGet);
 // /api/host-metrics interroge des hôtes distants (Proxmox) : même
 // plafond que /api/status pour qu'un onglet ne puisse pas arroser un hôte.
 app.use("/api/host-metrics", rateLimitGet);
@@ -298,6 +303,12 @@ if (DASHMON_PASSWORD) {
     res.status(401).json({ error: "Authentification requise" });
   });
 }
+
+// L'agent n'expose que sa configuration locale et ses mesures authentifiees.
+app.use("/api", (req, res, next) => {
+  if (!AGENT_MODE || req.path === "/sync/metrics" || req.path === "/agent/config" || req.path === "/agent/metrics") return next();
+  res.status(404).json({error:"Route indisponible en mode agent"});
+});
 
 app.use((_req,res,next)=>{
   const start=Date.now();
@@ -504,6 +515,18 @@ function ensureHostIds(){
 }
 
 ensureHostIds();
+if(AGENT_MODE){
+  const config=readConfig();
+  const local=(config.hosts||[]).find(host=>host.monitoring?.type==="local");
+  if(!local){
+    config.hosts=Array.isArray(config.hosts) ? config.hosts : [];
+    config.hosts.push({id:"host-"+crypto.randomBytes(6).toString("hex"),name:"Agent",icon:"fa-solid fa-server",monitoring:{enabled:true,type:"local"}});
+    writeConfig(config);
+  }else if(local.monitoring.enabled!==true){
+    local.monitoring.enabled=true;
+    writeConfig(config);
+  }
+}
 
 app.get("/healthz",(_req,res)=>{
   res.set("Cache-Control","no-store");
@@ -846,31 +869,9 @@ function keepOneLocalHost(config){
   return config;
 }
 
-function syncPayload(config){
-  const payload={...config};
-  delete payload.replication;
-  return payload;
-}
-
 async function replicateConfig(config){
-  const replication=sanitizeReplication(config.replication);
-  if(replication.role!=="primary" || !replication.secondaries.length) return [];
-  if(!DASHMON_SYNC_TOKEN){
-    console.warn(`${ts()} Réplication ignorée : DASHMON_SYNC_TOKEN absent`);
-    return [];
-  }
-  return Promise.all(replication.secondaries.map(async url=>{
-    try{
-      await httpClient.apiRequest(url,"/api/sync/config",{
-        method:"PUT",body:syncPayload(config),timeout:STATUS_TIMEOUT,
-        headers:{"X-Dashmon-Sync-Token":DASHMON_SYNC_TOKEN}
-      });
-      return {url,ok:true};
-    }catch(error){
-      console.warn(`${ts()} Réplication vers ${url} impossible : ${error.message}`);
-      return {url,ok:false};
-    }
-  }));
+  // Les agents ne recoivent jamais la configuration du tableau de bord.
+  return [];
 }
 
 function validSyncToken(req){
@@ -882,29 +883,13 @@ function validSyncToken(req){
 // Les routes de federation ne reposent pas sur la session navigateur. Elles
 // restent toutefois inaccessibles sans le secret d'environnement partage.
 app.put("/api/sync/config",(req,res)=>{
-  if(!validSyncToken(req)) return res.status(401).json({error:"Authentification de synchronisation requise"});
-  try{
-    const current=readConfig();
-    if(sanitizeReplication(current.replication).role!=="secondary"){
-      return res.status(409).json({error:"Cette instance n'est pas secondaire"});
-    }
-    if(!req.body || typeof req.body!=="object" || Array.isArray(req.body)){
-      return res.status(400).json({error:"Configuration invalide"});
-    }
-    // L'identite, le role et les destinations sont toujours locaux au secondaire.
-    const output=keepOneLocalHost(buildConfigOutput({...req.body,replication:current.replication}));
-    writeConfig(output);
-    res.json({ok:true});
-  }catch(error){
-    console.error("Réplication config:",error);
-    res.status(500).json({error:"Réplication impossible"});
-  }
+  res.status(410).json({error:"La réplication est remplacée par le mode agent"});
 });
 
 app.get("/api/sync/metrics",(req,res)=>{
   if(!validSyncToken(req)) return res.status(401).json({error:"Authentification de synchronisation requise"});
-  res.set("Cache-Control","no-store");
-  res.json(hostMetricsCache.payload || {hosts:[]});
+  if(!AGENT_MODE) return res.status(404).json({error:"Agent non activé"});
+  return serveHostMetrics(req,res);
 });
 
 app.get("/api/replication/metrics",async(_req,res)=>{
@@ -929,7 +914,6 @@ app.put("/api/config",async(req,res)=>{
     if(!config || typeof config!=="object" || Array.isArray(config)){
       return res.status(400).json({error:"Configuration invalide"});
     }
-    if(sanitizeReplication(readConfig().replication).role==="secondary") return res.status(403).json({error:"Cette instance secondaire est en lecture seule"});
     const output=keepOneLocalHost(buildConfigOutput(config));
     writeConfig(output);
     res.json({ok:true,replication:await replicateConfig(output)});
@@ -949,7 +933,6 @@ app.patch("/api/config",async(req,res)=>{
     for(const key of Object.keys(patch)){
       config[key]=patch[key];
     }
-    if(sanitizeReplication(config.replication).role==="secondary") return res.status(403).json({error:"Cette instance secondaire est en lecture seule"});
     const output=keepOneLocalHost(buildConfigOutput(config));
     writeConfig(output);
     res.json({ok:true,replication:await replicateConfig(output)});
@@ -1253,6 +1236,7 @@ app.get(["/","/index.html"],(req,res)=>{
   // les scripts, eux, sont bien charges a jour. Les routes API sont deja en
   // no-store pour la meme raison.
   res.set("Cache-Control","no-store");
+  if(AGENT_MODE) return res.sendFile(path.join(PUBLIC_DIR,"agent.html"));
   res.type("html").send(INDEX_HTML);
 });
 app.use(express.static(PUBLIC_DIR));
@@ -1344,7 +1328,7 @@ function sanitizeSyncUrl(value) {
 
 function sanitizeReplication(raw) {
   const source = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
-  const role = source.role === "secondary" ? "secondary" : "primary";
+  const role = "primary";
   const instanceName = sanitizeText(source.instanceName, 100) || os.hostname().slice(0, 100) || "Dashmon";
   const secondaries = role === "primary" && Array.isArray(source.secondaries)
     ? [...new Set(source.secondaries.map(sanitizeSyncUrl).filter(Boolean))].slice(0, 20)
@@ -1768,7 +1752,7 @@ const HOST_METRICS_TTL=HOST_METRICS_INTERVAL;
 let hostMetricsCache={ts:0,payload:null};
 let hostMetricsInflight=null;
 
-app.get("/api/host-metrics",async(_req,res)=>{
+async function serveHostMetrics(_req,res){
   res.set("Cache-Control","no-store");
 
   if(hostMetricsCache.payload && Date.now()-hostMetricsCache.ts < HOST_METRICS_TTL){
@@ -1788,7 +1772,9 @@ app.get("/api/host-metrics",async(_req,res)=>{
     return res.status(500).json({error:"Lecture de config.json impossible"});
   }
 
-  const hosts=(Array.isArray(config.hosts) ? config.hosts : [])
+  const configuredHosts=Array.isArray(config.hosts) ? config.hosts : [];
+  const agentHost=AGENT_MODE ? configuredHosts.find(host=>host?.monitoring?.type==="local") : null;
+  const hosts=(AGENT_MODE ? (agentHost ? [agentHost] : []) : configuredHosts)
     .filter(host=>host?.monitoring?.enabled===true);
 
   // Les mesures locales sont lues une seule fois : deux hotes "local" designent
@@ -1815,10 +1801,13 @@ app.get("/api/host-metrics",async(_req,res)=>{
         // fois et on date chaque copie de l'heure du fichier.
         metrics={
           cpu:localCpu, ram:localRam, temperature:localTemp, disk:localDiskPercent(host.monitoring?.path),
-          wireguard:localDump?.interfaces||null, smart:localSmart?.disks||null,
+          wireguard:host.monitoring?.wireguard?.enabled===false ? null : (localDump?.interfaces||null),
+          smart:host.monitoring?.smart?.enabled===false ? null : (localSmart?.disks||null),
           aptUpdates:localAptUpdates,
           ...localDetails
         };
+        if(host.monitoring?.wireguard?.interface && metrics.wireguard) metrics.wireguard=metrics.wireguard.filter(item=>item.interface===host.monitoring.wireguard.interface);
+        if(host.monitoring?.smart?.disks?.length && metrics.smart) metrics.smart=metrics.smart.filter(item=>host.monitoring.smart.disks.includes(item.device));
         wireguardFetchedAt=localDump?.fetchedAt||null;
         smartFetchedAt=localSmart?.fetchedAt||null;
       }
@@ -1863,6 +1852,32 @@ app.get("/api/host-metrics",async(_req,res)=>{
   }finally{
     if(hostMetricsInflight===refresh) hostMetricsInflight=null;
   }
+}
+app.get("/api/host-metrics",serveHostMetrics);
+app.get("/api/agent/metrics",(req,res)=> AGENT_MODE ? serveHostMetrics(req,res) : res.sendStatus(404));
+
+app.get("/api/agent/config",(req,res)=>{
+  if(!AGENT_MODE) return res.sendStatus(404);
+  try{
+    const config=readConfig();
+    const host=(config.hosts||[]).find(item=>item.monitoring?.type==="local");
+    res.set("Cache-Control","no-store");
+    res.json({name:host?.name||"Agent",monitoring:host?.monitoring||{enabled:true,type:"local"}});
+  }catch(_error){ res.status(500).json({error:"Lecture impossible"}); }
+});
+app.put("/api/agent/config",(req,res)=>{
+  if(!AGENT_MODE) return res.sendStatus(404);
+  try{
+    const current=readConfig();
+    const old=(current.hosts||[]).find(item=>item.monitoring?.type==="local");
+    const monitoring=sanitizeHostMonitoring({...req.body?.monitoring,type:"local",enabled:true});
+    const host={id:old?.id||"host-"+crypto.randomBytes(6).toString("hex"),name:sanitizeText(req.body?.name,100)||"Agent",icon:old?.icon||"fa-solid fa-server",color:old?.color||"",monitoring};
+    current.hosts=(Array.isArray(current.hosts) ? current.hosts : []).filter(item=>item!==old);
+    current.hosts.push(host);
+    writeConfig(current);
+    hostMetricsCache={ts:0,payload:null};
+    res.json({ok:true});
+  }catch(_error){ res.status(500).json({error:"Enregistrement impossible"}); }
 });
 
 app.get("/api/status",(_req,res)=>{
@@ -1947,7 +1962,7 @@ async function start(){
   httpServer=app.listen(PORT,DASHBOARD_BIND,()=>{
     console.log(`${ts()} Dashmon : http://${DASHBOARD_BIND}:${PORT}`);
   });
-  await refreshStatuses();
+  if(!AGENT_MODE) await refreshStatuses();
 }
 
 start().catch(error=>{
@@ -1956,5 +1971,5 @@ start().catch(error=>{
 });
 
 const statusTimer=setInterval(()=>{
-  if(widgetsReady) refreshStatuses();
+  if(widgetsReady && !AGENT_MODE) refreshStatuses();
 },STATUS_INTERVAL);

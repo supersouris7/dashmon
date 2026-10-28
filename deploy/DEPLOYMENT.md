@@ -79,7 +79,7 @@ See `.env.example`. The most important:
 | `TRUST_PROXY` | `0` | `1` only if nginx terminates HTTPS in front of the container |
 | `DASHBOARD_INSECURE_TLS` | empty | `1` if your monitored hosts use self-signed certificates |
 | `DASHMON_MASTER_KEY` | empty | AES-256-GCM master key to encrypt widget secrets (e.g. Duplicati password) in `config.json` |
-| `DASHMON_SYNC_TOKEN` | empty | Shared secret authorizing primary/secondary configuration replication |
+| `DASHMON_SYNC_TOKEN` | empty | Shared secret authorizing the main dashboard to read agent metrics |
 | `PROXMOX_TOKEN_ID` / `PROXMOX_TOKEN_SECRET` | empty | Proxmox API token used by host supervision (type Proxmox) |
 | `DASHBOARD_TOKEN_ENVS` | empty | Comma-separated allowlist extending the token variables above |
 
@@ -113,26 +113,31 @@ Behaviour:
 
 ## 3. Data
 
-## Primary / secondary replication
+## Supervision agents
 
-Set the same long random `DASHMON_SYNC_TOKEN` on every coupled instance, then
-restart them. Do not put this value in the web editor or in `config.json`.
+Deploy `deploy/agent.compose.yml` as a Portainer stack on each monitored host.
+Set `DASHMON_PASSWORD` and a long random `DASHMON_SYNC_TOKEN` in the stack's
+environment; use the same sync token on the main Dashmon instance. The agent
+requires both values and does not expose them in its configuration API.
 
-On the source instance, open **Edit Dashmon → Replication**, keep the
-**PRIMARY** role, set a recognizable instance name, and enter each secondary's
-base HTTPS URL, one per line. Save: every later configuration save is pushed to
-those secondaries. A failed target does not prevent the primary from saving; it
-will be retried at the next save.
+Open the agent's local page to name the host, configure the disk path and choose
+WireGuard, SMART and APT reports. The reports must be generated on the host and
+mounted into the agent as described in their respective documentation. CPU and
+RAM reflect what the container can observe; the default disk is the container
+filesystem. To monitor a host filesystem, mount it read-only and set its
+container path in the agent page.
 
-On every receiving instance, select **SECONDARY** once before coupling it. Its
-editor then becomes read-only and only its authenticated `/api/sync/*` routes
-accept replicated configuration. The replication token is sent only as an HTTP
-request header and is never returned by Dashmon.
+On the main instance, open **Edit supervision → Agents**, enter each agent's
+base URL on its own line and save. The Supervision page can then select each
+agent. The main instance fetches metrics on demand; it never sends dashboard
+configuration to an agent. Configure HTTPS or a trusted private network: the
+shared token travels in an HTTP header. Restrict access to the published port.
 
-Each instance may have one enabled **Local** supervision host. This setting is
-instance-specific; use the Supervision page tabs to view local and remote
-instances. Put replication URLs behind HTTPS or an authenticated private
-network, and never configure a link-local or metadata-service address.
+Existing secondary configurations are retained. To convert one, back up its
+data volume, start it with `DASHMON_MODE=agent` and the two required secrets,
+then review the local agent page. The first existing local host is reused. The
+old replication endpoint no longer accepts configuration; legacy secondary
+roles no longer lock the dashboard when running in normal mode.
 
 The `dashmon-data` volume (`/app/data`) persists config, images and custom themes.
 Backup: `docker cp dashmon:/app/data ./backup-data` (container stopped).

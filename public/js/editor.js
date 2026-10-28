@@ -1388,11 +1388,6 @@ export function openEditor(mode="all"){
   renderWidgetsEditor();
   renderReplicationEditor();
   applyEditorMode(mode);
-  if(state.replication?.role==="secondary"){
-    modalBackdrop.querySelectorAll("input, select, textarea, button").forEach(control=>{
-      if(control!==closeBtn && control!==cancelBtn) control.disabled=true;
-    });
-  }
   modalBackdrop.classList.add("show");
   modalBackdrop.setAttribute("aria-hidden","false");
   document.body.classList.add("modal-open");
@@ -1409,26 +1404,17 @@ export function closeEditor(){
 function renderReplicationEditor(){
   replicationEditor.replaceChildren();
   const replication=state.replication||{role:"primary",instanceName:"Dashmon",secondaries:[]};
-  const readOnly=replication.role==="secondary";
   const note=document.createElement("p");
   note.className="host-monitor-hint";
-  note.textContent=readOnly
-    ? "This secondary is read-only. Its primary sends configuration changes."
-    : "The primary sends every saved configuration to these secondary instances.";
+  note.textContent="Agents expose local supervision only. Configure the same DASHMON_SYNC_TOKEN on each agent and this instance.";
   replicationEditor.appendChild(note);
   const name=document.createElement("input");
-  name.className="edit-input"; name.placeholder="Instance name"; name.value=replication.instanceName||""; name.disabled=readOnly;
+  name.className="edit-input"; name.placeholder="Instance name"; name.value=replication.instanceName||"";
   name.addEventListener("input",()=>state.replication.instanceName=name.value);
   replicationEditor.appendChild(name);
-  const role=document.createElement("select");
-  role.className="edit-select"; role.disabled=readOnly;
-  ["primary","secondary"].forEach(value=>{const option=document.createElement("option"); option.value=value; option.textContent=value.toUpperCase(); role.appendChild(option);});
-  role.value=replication.role;
-  role.addEventListener("change",()=>{state.replication.role=role.value; if(role.value==="secondary") state.replication.secondaries=[]; renderReplicationEditor();});
-  replicationEditor.appendChild(role);
-  if(!readOnly && replication.role==="primary"){
+  {
     const urls=document.createElement("textarea");
-    urls.className="edit-input"; urls.rows=5; urls.placeholder="https://dashmon-secondary.example";
+    urls.className="edit-input"; urls.rows=5; urls.placeholder="https://agent.exemple.lan";
     urls.value=(replication.secondaries||[]).join("\n");
     urls.addEventListener("input",()=>{state.replication.secondaries=urls.value.split(/\r?\n/).map(value=>value.trim()).filter(Boolean);});
     replicationEditor.appendChild(urls);

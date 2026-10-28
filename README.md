@@ -24,8 +24,8 @@ you stop guessing whether *that* thing is working.
   per host, read from Dashmon itself or a [Proxmox](https://www.proxmox.com)
   node. WireGuard peers can be read from a local `wg show all dump` file; a
    dedicated *Edit supervision* screen configures hosts and peer display.
-- **Primary / secondary replication** — one primary pushes saved configuration
-  to read-only secondary instances, while each instance keeps its supervision.
+- **Supervision agents** — deploy a lightweight agent on another host and view
+  its local metrics from the main dashboard, without copying its configuration.
 - **Themes** — dark and light built in, plus your own custom themes and CSS.
 - **Two languages** — English and French, throughout the interface.
 - **Learns your habits** — services you open often float to the top.

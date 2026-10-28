@@ -685,7 +685,7 @@ export function normalizeConfig(cfg={}){
           id:host.id||"host-"+Math.random().toString(36).slice(2,10)
        })),
     replication:{
-      role:cfg.replication?.role==="secondary" ? "secondary" : "primary",
+      role:"primary",
       instanceName:sanitizeText(cfg.replication?.instanceName,100)||"Dashmon",
       secondaries:Array.isArray(cfg.replication?.secondaries)
         ? [...new Set(cfg.replication.secondaries.map(value=>sanitizeUrl(value)).filter(Boolean))].slice(0,20) : []

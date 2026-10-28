@@ -1,0 +1,25 @@
+# Portainer: set DASHMON_PASSWORD and DASHMON_SYNC_TOKEN in stack environment.
+# Restrict the published port to a trusted network or use a TLS reverse proxy.
+services:
+  dashmon-agent:
+    image: supersouris7/dashmon:latest
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "8080:8080"
+    environment:
+      DASHMON_MODE: agent
+      DASHMON_PASSWORD: ${DASHMON_PASSWORD:?Set DASHMON_PASSWORD}
+      DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:?Set DASHMON_SYNC_TOKEN}
+    volumes:
+      - dashmon-agent-data:/app/data
+      # Optional host filesystem: set /host as disk path on the agent page.
+      # - /:/host:ro
+      # Mount generated WireGuard, SMART and APT reports individually as needed.
+
+volumes:
+  dashmon-agent-data:

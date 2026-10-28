@@ -722,6 +722,14 @@ export function renderSupervision(){
 
   const selected=activeInstance==="local" ? null
     : remoteInstances.find(instance=>instance.id===activeInstance) || {id:activeInstance,hosts:null};
+  if(selected?.error){
+    const status=document.createElement("p");
+    status.className="supervision-empty";
+    status.textContent=t("supervisionError");
+    supervisionList.append(status);
+    updateSmartCollapseButton();
+    return;
+  }
   // L'instance distante est navigable avant la premiere reponse de metriques :
   // dans cet intervalle, elle doit afficher le chargement plutot qu'un faux vide.
   if(selected && !Array.isArray(selected.hosts)){
