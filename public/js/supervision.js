@@ -17,6 +17,8 @@ const HOST_METRICS_INTERVAL=metricsInterval();
 const TYPE_LABEL={local:"hostTypeLocal"};
 let smartDetailsExpanded=false;
 const expandedHostDetails=new Set();
+const expandedAptDetails=new Set();
+const EXPANDABLE_CARDS=".supervision-card-smart,.supervision-card-host.has-details,.supervision-card-apt.has-details";
 let remoteInstances=[];
 
 function instanceLabel(instance){
@@ -46,19 +48,23 @@ export function supervisionInstanceLabel(instance){
 
 function setAllSmartDetails(expanded){
   smartDetailsExpanded=expanded;
-  supervisionList.querySelectorAll(".supervision-card-smart,.supervision-card-host.has-details").forEach(card=>{
+  supervisionList.querySelectorAll(EXPANDABLE_CARDS).forEach(card=>{
     card.classList.toggle("expanded",expanded);
     card.setAttribute("aria-expanded",String(expanded));
     if(card.dataset.hostId){
       if(expanded) expandedHostDetails.add(card.dataset.hostId);
       else expandedHostDetails.delete(card.dataset.hostId);
     }
+    if(card.dataset.aptKey){
+      if(expanded) expandedAptDetails.add(card.dataset.aptKey);
+      else expandedAptDetails.delete(card.dataset.aptKey);
+    }
   });
 }
 
 export function updateSmartCollapseButton(){
   if(state.page!=="supervision") return;
-  const cards=[...supervisionList.querySelectorAll(".supervision-card-smart,.supervision-card-host.has-details")];
+  const cards=[...supervisionList.querySelectorAll(EXPANDABLE_CARDS)];
   const expanded=cards.filter(card=>card.classList.contains("expanded")).length;
   const collapsed=cards.length-expanded;
   const actionExpand=collapsed>expanded;
@@ -71,7 +77,7 @@ export function updateSmartCollapseButton(){
 }
 
 export function toggleAllSmartDetails(){
-  const cards=[...supervisionList.querySelectorAll(".supervision-card-smart,.supervision-card-host.has-details")];
+  const cards=[...supervisionList.querySelectorAll(EXPANDABLE_CARDS)];
   if(!cards.length) return;
   const expanded=cards.filter(card=>card.classList.contains("expanded")).length;
   setAllSmartDetails(cards.length-expanded>expanded);
@@ -664,6 +670,32 @@ function aptUpdatesCard(host,metrics){
   badge.className="supervision-type";
   badge.textContent=t("supervisionAptUpdates");
   head.append(icon,name,badge);
+  if(failed){
+    const key=JSON.stringify([selectedSupervisionInstanceId(),host.id]);
+    card.dataset.aptKey=key;
+    card.classList.add("has-details");
+    card.classList.toggle("expanded",expandedAptDetails.has(key));
+    card.setAttribute("role","button");
+    card.setAttribute("aria-expanded",String(card.classList.contains("expanded")));
+    card.tabIndex=0;
+    const chevron=document.createElement("i");
+    chevron.className="fa-solid fa-chevron-down supervision-smart-chevron";
+    chevron.setAttribute("aria-hidden","true");
+    head.appendChild(chevron);
+    const toggle=()=>{
+      const expanded=card.classList.toggle("expanded");
+      card.setAttribute("aria-expanded",String(expanded));
+      if(expanded) expandedAptDetails.add(key);
+      else expandedAptDetails.delete(key);
+      updateSmartCollapseButton();
+    };
+    card.addEventListener("click",toggle);
+    card.addEventListener("keydown",event=>{
+      if(event.key!=="Enter" && event.key!==" ") return;
+      event.preventDefault();
+      toggle();
+    });
+  }
   card.appendChild(head);
 
   const status=document.createElement("div");
@@ -681,9 +713,9 @@ function aptUpdatesCard(host,metrics){
   status.append(dot,text);
   card.appendChild(status);
   if(failed){
-    const detail=document.createElement("details");
+    const detail=document.createElement("div");
     detail.className="supervision-apt-error";
-    const summary=document.createElement("summary");
+    const summary=document.createElement("strong");
     summary.textContent=t("aptUpdatesErrorDetail");
     const message=document.createElement("pre");
     const step=report.failedStep ? "apt-get " + report.failedStep : "";

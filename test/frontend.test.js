@@ -67,6 +67,14 @@ async function main(){
   check("toolbar : menu bien place inchange", toolbar.menuRightOffset(500, 730, 800), 0);
   check("toolbar : menu a droite recadre", toolbar.menuRightOffset(600, 830, 800), 38);
 
+  // La carte APT partage la commande globale et conserve son etat au refresh.
+  const supervisionSource=fs.readFileSync(path.join(JS_DIR,"supervision.js"),"utf8");
+  const aptSource=supervisionSource.slice(supervisionSource.indexOf("function aptUpdatesCard("),supervisionSource.indexOf("export function renderSupervision("));
+  ok("APT : carte incluse dans le depliage global", supervisionSource.includes(".supervision-card-apt.has-details"));
+  ok("APT : chevron et clavier", aptSource.includes("supervision-smart-chevron") && aptSource.includes('event.key!=="Enter"') && aptSource.includes('event.key!==" "'));
+  ok("APT : etat conserve par instance et hote", aptSource.includes("expandedAptDetails.has(key)") && aptSource.includes("selectedSupervisionInstanceId(),host.id"));
+  ok("APT : sortie affichee comme texte", aptSource.includes("message.textContent=") && !aptSource.includes("message.innerHTML"));
+
   // --- 2. Registre des widgets cote client ------------------------------
   // La liste publique est produite par le vrai core : le test verifie donc
   // aussi que le contrat serveur -> navigateur tient.
