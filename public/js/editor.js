@@ -1406,8 +1406,14 @@ function renderReplicationEditor(){
   const replication=state.replication||{role:"primary",instanceName:"Dashmon",secondaries:[]};
   const note=document.createElement("p");
   note.className="host-monitor-hint";
-  note.textContent="Agents expose local supervision only. Configure the same DASHMON_SYNC_TOKEN on each agent and this instance.";
+  note.textContent=t("agentHint");
   replicationEditor.appendChild(note);
+  const docs=document.createElement("a");
+  docs.href="https://github.com/supersouris7/dashmon/blob/main/deploy/DEPLOYMENT.md#supervision-agents";
+  docs.target="_blank";
+  docs.rel="noopener noreferrer";
+  docs.textContent=t("agentDocumentation");
+  replicationEditor.appendChild(docs);
   const name=document.createElement("input");
   name.className="edit-input"; name.placeholder="Instance name"; name.value=replication.instanceName||"";
   name.addEventListener("input",()=>state.replication.instanceName=name.value);

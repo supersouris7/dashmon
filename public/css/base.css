@@ -134,6 +134,7 @@ main{
   min-width:0;
   height:40px;
 }
+.toolbar.compact-search .search-box{display:none}
 
 .search-box > i{
   position:absolute;
@@ -283,6 +284,10 @@ main{
   right:0;
   z-index:100;
   width:230px;
+  max-width:calc(100vw - 16px);
+  max-height:calc(100vh - 70px);
+  overflow-y:auto;
+  box-sizing:border-box;
   padding:6px;
   background:var(--surface);
   border:1px solid var(--border);

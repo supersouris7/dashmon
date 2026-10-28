@@ -60,6 +60,13 @@ async function main(){
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 
+  const toolbar = await import(pathToFileURL(path.join(JS_DIR, "toolbar.js")).href);
+  check("toolbar : recherche visible si assez de place", toolbar.hideToolbarSearch(900, 400, 160, 50), false);
+  check("toolbar : recherche masquee si les onglets prennent la place", toolbar.hideToolbarSearch(700, 400, 160, 50), true);
+  check("toolbar : menu a gauche recadre", toolbar.menuRightOffset(-80, 150, 800), -88);
+  check("toolbar : menu bien place inchange", toolbar.menuRightOffset(500, 730, 800), 0);
+  check("toolbar : menu a droite recadre", toolbar.menuRightOffset(600, 830, 800), 38);
+
   // --- 2. Registre des widgets cote client ------------------------------
   // La liste publique est produite par le vrai core : le test verifie donc
   // aussi que le contrat serveur -> navigateur tient.

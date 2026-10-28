@@ -17,6 +17,7 @@ import { openEditor, closeEditor, renderServiceEditor, renderCategoryEditor,
   renderDashboardEditor, renderHostEditor, renderWebLinksEditor, renderWidgetsEditor } from "./editor.js";
 import { closeImageLibrary } from "./images.js";
 import { loadWidgetRegistry } from "./widget-registry.js";
+import { hideToolbarSearch, menuRightOffset } from "./toolbar.js";
 import {
     searchInput, viewBtn, iconsBtn, collapseAllBtn, moreBtn, topMenu,
   openModeSelect, groupCategoryBtn, groupHostBtn,
@@ -107,10 +108,41 @@ function setToolbarHeight(){
   document.documentElement.style.setProperty("--toolbar-h",bottom+"px");
 }
 
-window.addEventListener("resize",setToolbarHeight);
+const toolbar=document.querySelector(".toolbar");
+const pageSwitch=document.getElementById("pageSwitchGroup");
+const searchBox=searchInput.closest(".search-box");
+function updateToolbarLayout(){
+  const styles=getComputedStyle(toolbar);
+  const gap=parseFloat(styles.columnGap)||0;
+  const available=toolbar.clientWidth-(parseFloat(styles.paddingLeft)||0)-(parseFloat(styles.paddingRight)||0);
+  const buttons=[...pageSwitch.children].filter(button=>button.getClientRects().length);
+  const nav=buttons.reduce((sum,button)=>sum+button.getBoundingClientRect().width,0)
+    + Math.max(0,buttons.length-1)*(parseFloat(getComputedStyle(pageSwitch).columnGap)||0);
+  const actions=[viewBtn,iconsBtn,collapseAllBtn,moreBtn].filter(button=>button.getClientRects().length);
+  const actionWidth=actions.reduce((sum,button)=>sum+button.getBoundingClientRect().width,0);
+  const compact=window.innerWidth>800 && hideToolbarSearch(available,nav,actionWidth,gap*(actions.length+1));
+  toolbar.classList.toggle("compact-search",compact);
+  // Ne pas laisser un filtre actif invisible apres un redimensionnement.
+  if((compact || window.innerWidth<=800) && searchInput.value){
+    searchInput.value="";
+    searchBox.classList.remove("has-value");
+    if(state.page==="dashboard") render();
+  }
+  if(topMenu.classList.contains("show")) positionTopMenu();
+}
+function positionTopMenu(){
+  topMenu.style.right="0px";
+  const rect=topMenu.getBoundingClientRect();
+  topMenu.style.right=menuRightOffset(rect.left,rect.right,window.innerWidth)+"px";
+}
+window.addEventListener("resize",()=>{updateToolbarLayout();setToolbarHeight();});
 window.addEventListener("scroll",setToolbarHeight,{passive:true});
 const headerObserver=new ResizeObserver(setToolbarHeight);
 for(const element of [webLinksSection,restoreWebLinksBtn,document.querySelector(".toolbar")]) headerObserver.observe(element);
+const toolbarObserver=new ResizeObserver(updateToolbarLayout);
+toolbarObserver.observe(toolbar);
+toolbarObserver.observe(pageSwitch);
+new MutationObserver(updateToolbarLayout).observe(pageSwitch,{childList:true});
 
 function openAppearance(){
   setToolbarHeight();
@@ -143,6 +175,7 @@ moreBtn.addEventListener("click",e=>{
   e.stopPropagation();
   const open=topMenu.classList.toggle("show");
   moreBtn.setAttribute("aria-expanded",open ? "true" : "false");
+  if(open) positionTopMenu();
 });
 
 topMenu.addEventListener("click",e=>e.stopPropagation());
@@ -327,7 +360,7 @@ document.addEventListener("keydown",e=>{
     return;
   }
 
-  if(e.key==="/" && state.page==="dashboard" && !isTypingTarget(document.activeElement) && !modalBackdrop.classList.contains("show")){
+  if(e.key==="/" && state.page==="dashboard" && searchInput.getClientRects().length && !isTypingTarget(document.activeElement) && !modalBackdrop.classList.contains("show")){
     e.preventDefault();
     searchInput.focus();
   }
