@@ -175,6 +175,21 @@ body.modal-open{
   gap:8px;
 }
 
+/* Tous les champs et libelles des parametres gardent la meme taille,
+   independamment du panneau ou d'un label d'aide parent. */
+.modal .edit-input,.modal .edit-select,.modal .edit-tab,.modal .action-btn,
+.modal .host-monitor-field,.modal .host-monitor-hint,.modal .wireguard-help-text,
+.modal .import-export-hint,.modal .import-export-status,.modal .appearance-field,
+.modal .smart-disk-choices,.modal .widget-hint,.widget-config-panel .widget-cfg-field,
+.widget-config-panel .widget-cfg-note,.widget-config-panel .action-btn{font-size:16px}
+.modal textarea.edit-input{height:auto;min-height:80px;padding:8px 10px}
+.agent-editor-item{display:grid;gap:8px}
+.agent-editor-item label{display:grid;gap:4px;overflow-wrap:anywhere}
+.agent-editor-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.agent-configure{display:inline-flex;align-items:center;text-decoration:none}
+.agent-configure:not([href]){opacity:.45;pointer-events:none}
+.agent-test-status{color:var(--muted);overflow-wrap:anywhere}
+
 .import-export-panel{
   display:flex;
   flex-direction:column;

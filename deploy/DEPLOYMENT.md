@@ -212,6 +212,9 @@ Without a name, the tab uses the address's hostname. The Supervision page can
 then select each agent. The main instance fetches metrics on demand; it never sends dashboard
 configuration to an agent. Configure HTTPS or a trusted private network: the
 shared token travels in an HTTP header. Restrict access to the published port.
+For each address, **Test connection** checks access and the sync token from the
+main server, even before saving; **Configure** opens the agent's local page in
+a new tab. Test only addresses you trust: the sync token is sent to the address.
 
 Existing secondary configurations are retained. To convert one, back up its
 data volume, start it with `DASHMON_MODE=agent` and the two required secrets,

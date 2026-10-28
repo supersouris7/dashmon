@@ -4,6 +4,7 @@ const fs=require("fs");
 const os=require("os");
 const path=require("path");
 const net=require("net");
+const http=require("http");
 const crypto=require("crypto");
 const {spawn}=require("child_process");
 
@@ -65,6 +66,26 @@ async function main(){
   fs.mkdirSync(primaryDir);
   fs.writeFileSync(path.join(primaryDir,"config.json"),JSON.stringify({hosts:[{id:"local",name:"Local",monitoring:{type:"local",enabled:false}},{id:"legacy",name:"Hôte",monitoring:{type:"proxmox",enabled:true}}]}));
   const primary=await start("dashboard",await freePort(),primaryDir);
+  response=await fetch(primary+"/api/agents/test",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:agent})});
+  assert.equal(response.status,401);
+  response=await fetch(primary+"/api/agents/test",{method:"POST",headers:{Authorization:auth,"Content-Type":"application/json"},body:JSON.stringify({url:agent})});
+  assert.equal(response.status,200);
+  assert.equal((await response.json()).ok,true);
+  response=await fetch(primary+"/api/agents/test",{method:"POST",headers:{Authorization:auth,"Content-Type":"application/json"},body:JSON.stringify({url:"file:///etc/passwd"})});
+  assert.equal(response.status,400);
+  assert.equal((await response.json()).reason,"invalid_url");
+  let fakeStatus=401;
+  const fake=http.createServer((_req,res)=>{res.writeHead(fakeStatus,{"Content-Type":"application/json"});res.end("{}");});
+  await new Promise(resolve=>fake.listen(0,loopback,resolve));
+  try{
+    const url=`http://${loopback}:${fake.address().port}`;
+    const options={method:"POST",headers:{Authorization:auth,"Content-Type":"application/json"},body:JSON.stringify({url})};
+    response=await fetch(primary+"/api/agents/test",options);
+    assert.equal((await response.json()).reason,"unauthorized");
+    fakeStatus=200;
+    response=await fetch(primary+"/api/agents/test",options);
+    assert.equal((await response.json()).reason,"invalid_response");
+  }finally{ await new Promise(resolve=>fake.close(resolve)); }
   response=await fetch(primary+"/api/config",{headers:{Authorization:auth}});
   const config=await response.json();
   assert.equal(config.hosts.filter(host=>host.monitoring?.enabled && host.monitoring.type==="local").length,1);

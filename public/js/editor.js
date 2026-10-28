@@ -1374,7 +1374,7 @@ function renderReplicationEditor(){
   docs.textContent=t("agentDocumentation");
   replicationEditor.appendChild(docs);
   const name=document.createElement("input");
-  name.className="edit-input"; name.placeholder="Instance name"; name.value=replication.instanceName||"";
+  name.className="edit-input"; name.placeholder=t("agentInstanceName"); name.setAttribute("aria-label",t("agentInstanceName")); name.value=replication.instanceName||"";
   name.addEventListener("input",()=>state.replication.instanceName=name.value);
   replicationEditor.appendChild(name);
   {
@@ -1388,6 +1388,8 @@ function renderReplicationEditor(){
       const unique=[...new Set((state.replication.secondaries||[]).map(sanitizeUrl).filter(Boolean))].slice(0,20);
       state.replication.agentNames=state.replication.agentNames||{};
       unique.forEach(url=>{
+        const group=document.createElement("div");
+        group.className="agent-editor-item";
         const label=document.createElement("label");
         label.className="host-monitor-hint";
         label.textContent=url;
@@ -1399,7 +1401,39 @@ function renderReplicationEditor(){
         input.value=state.replication.agentNames[url]||"";
         input.addEventListener("input",()=>{state.replication.agentNames[url]=input.value;});
         label.appendChild(input);
-        names.appendChild(label);
+        group.appendChild(label);
+        const actions=document.createElement("div");
+        actions.className="agent-editor-actions";
+        const test=document.createElement("button");
+        test.type="button";
+        test.className="action-btn";
+        test.textContent=t("agentTest");
+        const status=document.createElement("span");
+        status.className="agent-test-status";
+        status.setAttribute("role","status");
+        test.addEventListener("click",async()=>{
+          test.disabled=true;
+          status.textContent=t("agentTesting");
+          try{
+            const response=await fetch("/api/agents/test",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});
+            const result=await response.json();
+            const reasons={token_missing:"agentTokenMissing",unauthorized:"agentUnauthorized",invalid_url:"agentInvalidUrl",invalid_response:"agentInvalidResponse"};
+            status.textContent=t(result.ok ? "agentConnected" : reasons[result.reason]||"agentUnreachable");
+          }catch(_error){ status.textContent=t("agentUnreachable"); }
+          finally{ test.disabled=false; }
+        });
+        const configure=document.createElement("a");
+        configure.className="action-btn agent-configure";
+        configure.textContent=t("agentConfigure");
+        configure.target="_blank";
+        configure.rel="noopener noreferrer";
+        try{
+          const target=new URL(url);
+          if(!target.username && !target.password && !target.search && !target.hash) configure.href=target.href;
+        }catch(_error){}
+        actions.append(test,configure,status);
+        group.appendChild(actions);
+        names.appendChild(group);
       });
     };
     urls.addEventListener("input",()=>{state.replication.secondaries=urls.value.split(/\r?\n/).map(value=>value.trim()).filter(Boolean);renderNames();});

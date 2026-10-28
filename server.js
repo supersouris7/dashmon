@@ -896,6 +896,24 @@ app.get("/api/replication/metrics",async(_req,res)=>{
   res.json({instances});
 });
 
+// Teste aussi une adresse qui n'a pas encore ete enregistree dans l'editeur.
+// Comme pour la supervision, la connexion est bornee et ne suit pas de redirection.
+app.post("/api/agents/test",async(req,res)=>{
+  res.set("Cache-Control","no-store");
+  if(!DASHMON_SYNC_TOKEN) return res.status(503).json({ok:false,reason:"token_missing"});
+  const url=sanitizeSyncUrl(typeof req.body?.url==="string" ? req.body.url : "");
+  if(!url) return res.status(400).json({ok:false,reason:"invalid_url"});
+  try{
+    const payload=await httpClient.apiRequest(url,"/api/sync/metrics",{
+      timeout:STATUS_TIMEOUT,headers:{"X-Dashmon-Sync-Token":DASHMON_SYNC_TOKEN}
+    });
+    if(!payload || !Array.isArray(payload.hosts)) return res.status(502).json({ok:false,reason:"invalid_response"});
+    return res.json({ok:true});
+  }catch(error){
+    return res.status(502).json({ok:false,reason:error.status===401 ? "unauthorized" : "unreachable"});
+  }
+});
+
 app.put("/api/config",async(req,res)=>{
   try{
     const config=req.body;

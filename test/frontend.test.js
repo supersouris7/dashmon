@@ -74,6 +74,8 @@ async function main(){
   ok("APT : chevron et clavier", aptSource.includes("supervision-smart-chevron") && aptSource.includes('event.key!=="Enter"') && aptSource.includes('event.key!==" "'));
   ok("APT : etat conserve par instance et hote", aptSource.includes("expandedAptDetails.has(key)") && aptSource.includes("selectedSupervisionInstanceId(),host.id"));
   ok("APT : sortie affichee comme texte", aptSource.includes("message.textContent=") && !aptSource.includes("message.innerHTML"));
+  const agentEditorSource=fs.readFileSync(path.join(JS_DIR,"editor.js"),"utf8");
+  ok("agents : test depuis le principal et ouverture protegee", agentEditorSource.includes('fetch("/api/agents/test"') && agentEditorSource.includes('configure.rel="noopener noreferrer"'));
 
   // --- 2. Registre des widgets cote client ------------------------------
   // La liste publique est produite par le vrai core : le test verifie donc
