@@ -61,9 +61,12 @@ async function main(){
   const primary=await start("dashboard",await freePort(),primaryDir);
   response=await fetch(primary+"/api/config",{headers:{Authorization:auth}});
   const config=await response.json();
-  config.replication={role:"primary",instanceName:"Dashmon",secondaries:[agent]};
+  config.replication={role:"primary",instanceName:"Dashmon",secondaries:[agent],agentNames:{[agent]:"Supervision distante"}};
   response=await fetch(primary+"/api/config",{method:"PUT",headers:{Authorization:auth,"Content-Type":"application/json"},body:JSON.stringify(config)});
   assert.equal(response.status,200);
+  response=await fetch(primary+"/api/config",{headers:{Authorization:auth}});
+  const saved=await response.json();
+  assert.equal(saved.replication.agentNames[new URL(agent).href],"Supervision distante");
   response=await fetch(primary+"/api/replication/metrics",{headers:{Authorization:auth}});
   data=await response.json();
   assert.equal(data.instances[0].ok,true);

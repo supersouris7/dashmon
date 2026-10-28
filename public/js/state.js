@@ -688,7 +688,9 @@ export function normalizeConfig(cfg={}){
       role:"primary",
       instanceName:sanitizeText(cfg.replication?.instanceName,100)||"Dashmon",
       secondaries:Array.isArray(cfg.replication?.secondaries)
-        ? [...new Set(cfg.replication.secondaries.map(value=>sanitizeUrl(value)).filter(Boolean))].slice(0,20) : []
+        ? [...new Set(cfg.replication.secondaries.map(value=>sanitizeUrl(value)).filter(Boolean))].slice(0,20) : [],
+      agentNames:cfg.replication?.agentNames && typeof cfg.replication.agentNames==="object" && !Array.isArray(cfg.replication.agentNames)
+        ? Object.fromEntries(Object.entries(cfg.replication.agentNames).map(([url,name])=>[sanitizeUrl(url),sanitizeText(name,100)]).filter(([url,name])=>url && name)) : {}
     },
     theme:typeof cfg.theme==="string" && cfg.theme.trim() ? cfg.theme.trim() : "dark",
     language:cfg.language==="en" ? "en" : "fr",

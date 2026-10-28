@@ -209,8 +209,9 @@ filesystem. To monitor a host filesystem, mount it read-only and set its
 container path in the agent page.
 
 On the main instance, open **Edit supervision → Agents**, enter each agent's
-base URL on its own line and save. The Supervision page can then select each
-agent. The main instance fetches metrics on demand; it never sends dashboard
+base URL on its own line, optionally enter a tab name for each agent, and save.
+Without a name, the tab uses the address's hostname. The Supervision page can
+then select each agent. The main instance fetches metrics on demand; it never sends dashboard
 configuration to an agent. Configure HTTPS or a trusted private network: the
 shared token travels in an HTTP header. Restrict access to the published port.
 

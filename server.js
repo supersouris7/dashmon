@@ -1333,7 +1333,14 @@ function sanitizeReplication(raw) {
   const secondaries = role === "primary" && Array.isArray(source.secondaries)
     ? [...new Set(source.secondaries.map(sanitizeSyncUrl).filter(Boolean))].slice(0, 20)
     : [];
-  return { role, instanceName, secondaries };
+  const names=source.agentNames && typeof source.agentNames==="object" && !Array.isArray(source.agentNames) ? source.agentNames : {};
+  const agentNames={};
+  for(const [url,value] of Object.entries(names)){
+    const normalized=sanitizeSyncUrl(url);
+    const name=sanitizeText(value,100);
+    if(normalized && name && secondaries.includes(normalized)) agentNames[normalized]=name;
+  }
+  return { role, instanceName, secondaries, agentNames };
 }
 
 async function refreshStatusesCycle(force){

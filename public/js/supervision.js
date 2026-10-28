@@ -20,14 +20,16 @@ const expandedHostDetails=new Set();
 let remoteInstances=[];
 
 function instanceLabel(instance){
-  if(instance.id==="local") return instance.name || "Dashmon";
+  if(instance.name) return instance.name;
+  if(instance.id==="local") return "Dashmon";
   try{ return new URL(instance.url).hostname || instance.url; }catch(_error){ return instance.url || "Dashmon"; }
 }
 
 export function supervisionInstances(){
   const local=state.replication?.instanceName||"Dashmon";
   const configured=state.replication?.secondaries||[];
-  return [{id:"local",name:local},...configured.map(url=>({id:url,url}))];
+  const names=state.replication?.agentNames||{};
+  return [{id:"local",name:local},...configured.map(url=>({id:url,url,name:names[url]||""}))];
 }
 
 export function selectedSupervisionInstanceId(){

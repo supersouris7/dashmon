@@ -1,5 +1,5 @@
 // Éditeur de configuration : services, catégories, hôtes, liens web, import/export config.
-import { state, clone, normalize, normalizeConfig, compareNames, TILE_COLORS, sanitizeTileColor, normalizeSpecialTile, normalizeLinkCounter, LINK_COUNTER_TYPES, HOST_MONITORING_TYPES } from "./state.js";
+import { state, clone, normalize, normalizeConfig, compareNames, TILE_COLORS, sanitizeTileColor, sanitizeUrl, normalizeSpecialTile, normalizeLinkCounter, LINK_COUNTER_TYPES, HOST_MONITORING_TYPES } from "./state.js";
 import { t, applyLanguage } from "./i18n.js";
 import { saveConfig, fetchConfig } from "./api.js";
 import { saveViewPrefs } from "./view-prefs.js";
@@ -1422,8 +1422,31 @@ function renderReplicationEditor(){
     const urls=document.createElement("textarea");
     urls.className="edit-input"; urls.rows=5; urls.placeholder="https://agent.exemple.lan";
     urls.value=(replication.secondaries||[]).join("\n");
-    urls.addEventListener("input",()=>{state.replication.secondaries=urls.value.split(/\r?\n/).map(value=>value.trim()).filter(Boolean);});
+    const names=document.createElement("div");
+    names.className="edit-list";
+    const renderNames=()=>{
+      names.replaceChildren();
+      const unique=[...new Set((state.replication.secondaries||[]).map(sanitizeUrl).filter(Boolean))].slice(0,20);
+      state.replication.agentNames=state.replication.agentNames||{};
+      unique.forEach(url=>{
+        const label=document.createElement("label");
+        label.className="host-monitor-hint";
+        label.textContent=url;
+        const input=document.createElement("input");
+        input.className="edit-input";
+        input.maxLength=100;
+        input.placeholder=t("agentTabName");
+        input.setAttribute("aria-label",t("agentTabName")+" : "+url);
+        input.value=state.replication.agentNames[url]||"";
+        input.addEventListener("input",()=>{state.replication.agentNames[url]=input.value;});
+        label.appendChild(input);
+        names.appendChild(label);
+      });
+    };
+    urls.addEventListener("input",()=>{state.replication.secondaries=urls.value.split(/\r?\n/).map(value=>value.trim()).filter(Boolean);renderNames();});
     replicationEditor.appendChild(urls);
+    replicationEditor.appendChild(names);
+    renderNames();
   }
 }
 
@@ -1772,6 +1795,8 @@ async function applyEditorChanges(closeWhenSaved){
     alert(t("saveError"));
     return;
   }
+  // Utiliser immediatement les URL canoniques, comme au prochain chargement.
+  state.replication=normalizeConfig({replication:state.replication}).replication;
   if(importedConfigDraft){
     applyTheme();
     applyLanguage();

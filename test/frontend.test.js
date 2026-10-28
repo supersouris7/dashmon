@@ -351,6 +351,9 @@ async function main(){
   // configuree. L'affectation se fait a la normalisation, donc elle doit
   // fonctionner meme sans jamais ouvrir l'editeur.
   const stateModule = await import(pathToFileURL(path.join(JS_DIR, "state.js")).href);
+  const namedAgent=stateModule.normalizeConfig({replication:{secondaries:["https://exemple.lan"],agentNames:{"https://exemple.lan":"Supervision"}}}).replication;
+  check("agent : nom et URL normalises", namedAgent.agentNames["https://exemple.lan/"], "Supervision");
+  check("agent : ancienne configuration sans noms", stateModule.normalizeConfig({replication:{secondaries:["https://exemple.lan"]}}).replication.agentNames, {});
   const PALETTE = stateModule.TILE_COLORS;
   const assign = stateModule.assignTileColors;
   const cats = [{ name: "A" }, { name: "B" }, { name: "C" }];
