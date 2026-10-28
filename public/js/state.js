@@ -332,6 +332,9 @@ export const state = {
   hosts: [],
   replication: {role:"primary",instanceName:"Dashmon",secondaries:[]},
   collapsed: {},
+  supervisionSmartExpanded: [],
+  supervisionHostExpanded: [],
+  supervisionAptExpanded: [],
   viewMode: "columns",
   page: "dashboard",
   dashboardId: "main",
@@ -492,8 +495,25 @@ function normalizeCollapsed(collapsed){
 // navigateur ne puisse pas casser le rendu.
 export const VIEW_PREF_KEYS=Object.freeze([
   "viewMode","sortMode","groupMode","openMode",
-  "smallIcons","collapsed","webLinksHidden","page","dashboardId","supervisionInstanceId"
+  "smallIcons","collapsed","webLinksHidden","page","dashboardId","supervisionInstanceId",
+  "supervisionSmartExpanded","supervisionHostExpanded","supervisionAptExpanded"
 ]);
+
+// Les tuiles depliees sont stockees comme une liste de cles (instance + hote),
+// jamais comme une structure libre : un stockage bricole ne peut donc pas
+// injecter de HTML ou faire grossir le fichier sans limite.
+function normalizeExpandedKeys(value){
+  if(!Array.isArray(value)) return [];
+  const out=[];
+  for(const item of value){
+    if(typeof item!=="string") continue;
+    const key=item.trim().slice(0,200);
+    if(!key || out.includes(key)) continue;
+    out.push(key);
+    if(out.length>=200) break;
+  }
+  return out;
+}
 
 export function normalizeViewPrefs(cfg={}){
   return {
@@ -509,7 +529,10 @@ export function normalizeViewPrefs(cfg={}){
       ? cfg.supervisionInstanceId.trim().slice(0,200) : "local",
     smallIcons:cfg.smallIcons===true,
     webLinksHidden:cfg.webLinksHidden===true,
-    collapsed:normalizeCollapsed(cfg.collapsed)
+    collapsed:normalizeCollapsed(cfg.collapsed),
+    supervisionSmartExpanded:normalizeExpandedKeys(cfg.supervisionSmartExpanded),
+    supervisionHostExpanded:normalizeExpandedKeys(cfg.supervisionHostExpanded),
+    supervisionAptExpanded:normalizeExpandedKeys(cfg.supervisionAptExpanded)
   };
 }
 

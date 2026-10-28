@@ -3,6 +3,7 @@
 // refreshHostMetrics, declenchee a l'ouverture de la page et par un minuteur.
 import { t } from "./i18n.js";
 import { state, sanitizeTileColor } from "./state.js";
+import { saveViewPrefs } from "./view-prefs.js";
 import { supervisionList, supervisionPage, collapseAllBtn } from "./dom.js";
 
 // Intervalle injecte par le serveur (voir HOST_METRICS_INTERVAL). Un HTML
@@ -15,11 +16,29 @@ function metricsInterval(){
 }
 const HOST_METRICS_INTERVAL=metricsInterval();
 const TYPE_LABEL={local:"hostTypeLocal"};
-let smartDetailsExpanded=false;
-const expandedHostDetails=new Set();
-const expandedAptDetails=new Set();
 const EXPANDABLE_CARDS=".supervision-card-smart,.supervision-card-host.has-details,.supervision-card-apt.has-details";
 let remoteInstances=[];
+
+// Une tuile est identifiee par l'instance et l'hote : la meme machine vue
+// depuis le principal et depuis un agent garde donc deux etats distincts.
+function cardKey(host){
+  return JSON.stringify([selectedSupervisionInstanceId(),host.id||""]);
+}
+
+function isExpanded(field,key){
+  return Array.isArray(state[field]) && state[field].includes(key);
+}
+
+// Enregistrement immediat : deplier une tuile n'attend pas le bouton
+// Enregistrer des parametres, car ce n'est pas de la configuration mais une
+// preference de cet ecran.
+function setExpanded(field,key,expanded){
+  const keys=new Set(Array.isArray(state[field]) ? state[field] : []);
+  if(expanded) keys.add(key);
+  else keys.delete(key);
+  state[field]=[...keys].slice(0,200);
+  saveViewPrefs({[field]:state[field]});
+}
 
 function instanceLabel(instance){
   if(instance.name) return instance.name;
@@ -47,18 +66,33 @@ export function supervisionInstanceLabel(instance){
 }
 
 function setAllSmartDetails(expanded){
-  smartDetailsExpanded=expanded;
+  // Les cles visibles de chaque type sont collectees en une passe, puis les
+  // preferences sont ecrites une seule fois : pas d'ecriture localStorage par
+  // tuile. Les tuiles des autres instances restent intactes.
+  const fields={
+    supervisionSmartExpanded:[],
+    supervisionHostExpanded:[],
+    supervisionAptExpanded:[]
+  };
   supervisionList.querySelectorAll(EXPANDABLE_CARDS).forEach(card=>{
     card.classList.toggle("expanded",expanded);
     card.setAttribute("aria-expanded",String(expanded));
-    if(card.dataset.hostId){
-      if(expanded) expandedHostDetails.add(card.dataset.hostId);
-      else expandedHostDetails.delete(card.dataset.hostId);
+    if(card.dataset.smartKey) fields.supervisionSmartExpanded.push(card.dataset.smartKey);
+    if(card.dataset.hostKey) fields.supervisionHostExpanded.push(card.dataset.hostKey);
+    if(card.dataset.aptKey) fields.supervisionAptExpanded.push(card.dataset.aptKey);
+  });
+  for(const [field,keys] of Object.entries(fields)){
+    const merged=new Set(Array.isArray(state[field]) ? state[field] : []);
+    for(const key of keys){
+      if(expanded) merged.add(key);
+      else merged.delete(key);
     }
-    if(card.dataset.aptKey){
-      if(expanded) expandedAptDetails.add(card.dataset.aptKey);
-      else expandedAptDetails.delete(card.dataset.aptKey);
-    }
+    state[field]=[...merged].slice(0,200);
+  }
+  saveViewPrefs({
+    supervisionSmartExpanded:state.supervisionSmartExpanded,
+    supervisionHostExpanded:state.supervisionHostExpanded,
+    supervisionAptExpanded:state.supervisionAptExpanded
   });
 }
 
@@ -305,10 +339,11 @@ function hostCard(host,metrics){
   let chevron=null;
   if(details){
     card.classList.add("has-details");
-    card.dataset.hostId=host.id||"";
+    const key=cardKey(host);
+    card.dataset.hostKey=key;
     card.setAttribute("role","button");
     card.tabIndex=0;
-    const expanded=expandedHostDetails.has(host.id);
+    const expanded=isExpanded("supervisionHostExpanded",key);
     card.classList.toggle("expanded",expanded);
     card.setAttribute("aria-expanded",String(expanded));
     chevron=document.createElement("i");
@@ -361,8 +396,7 @@ function hostCard(host,metrics){
       card.appendChild(detailRows);
       const toggleDetails=()=>{
         const expanded=card.classList.toggle("expanded");
-        if(expanded) expandedHostDetails.add(host.id);
-        else expandedHostDetails.delete(host.id);
+        setExpanded("supervisionHostExpanded",key,expanded);
         card.setAttribute("aria-expanded",String(expanded));
         updateSmartCollapseButton();
       };
@@ -535,11 +569,11 @@ function smartCard(host,metrics,disks){
   applyHostColor(card,host);
   card.setAttribute("role","button");
   card.tabIndex=0;
-  card.setAttribute("aria-expanded","false");
-  if(smartDetailsExpanded){
-    card.classList.add("expanded");
-    card.setAttribute("aria-expanded","true");
-  }
+  const key=cardKey(host);
+  card.dataset.smartKey=key;
+  const expanded=isExpanded("supervisionSmartExpanded",key);
+  card.setAttribute("aria-expanded",String(expanded));
+  if(expanded) card.classList.add("expanded");
   const head=document.createElement("div");
   head.className="supervision-head";
   const icon=document.createElement("i");
@@ -569,6 +603,7 @@ function smartCard(host,metrics,disks){
   // une cible minuscule. Entree et Espace couvrent aussi le clavier.
   const toggleDetails=()=>{
     const expanded=card.classList.toggle("expanded");
+    setExpanded("supervisionSmartExpanded",key,expanded);
     card.setAttribute("aria-expanded",String(expanded));
     updateSmartCollapseButton();
   };
@@ -672,10 +707,10 @@ function aptUpdatesCard(host,metrics){
   head.append(icon,name,badge);
   // Toute la carte se deplie : le resume reste visible, le detail (erreur,
   // dates, redemarrage) est replie par defaut comme SMART et l'hote.
-  const key=JSON.stringify([selectedSupervisionInstanceId(),host.id]);
+  const key=cardKey(host);
   card.dataset.aptKey=key;
   card.classList.add("has-details");
-  const expanded=expandedAptDetails.has(key);
+  const expanded=isExpanded("supervisionAptExpanded",key);
   card.classList.toggle("expanded",expanded);
   card.setAttribute("role","button");
   card.setAttribute("aria-expanded",String(expanded));
@@ -687,8 +722,7 @@ function aptUpdatesCard(host,metrics){
   const toggle=()=>{
     const open=card.classList.toggle("expanded");
     card.setAttribute("aria-expanded",String(open));
-    if(open) expandedAptDetails.add(key);
-    else expandedAptDetails.delete(key);
+    setExpanded("supervisionAptExpanded",key,open);
     updateSmartCollapseButton();
   };
   card.addEventListener("click",toggle);

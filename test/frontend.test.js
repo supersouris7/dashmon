@@ -74,7 +74,8 @@ async function main(){
   const aptSource=supervisionSource.slice(supervisionSource.indexOf("function aptUpdatesCard("),supervisionSource.indexOf("export function renderSupervision("));
   ok("APT : carte incluse dans le depliage global", supervisionSource.includes(".supervision-card-apt.has-details"));
   ok("APT : chevron et clavier", aptSource.includes("supervision-smart-chevron") && aptSource.includes('event.key!=="Enter"') && aptSource.includes('event.key!==" "'));
-  ok("APT : etat conserve par instance et hote", aptSource.includes("expandedAptDetails.has(key)") && aptSource.includes("selectedSupervisionInstanceId(),host.id"));
+  ok("APT : etat conserve par instance et hote", aptSource.includes('isExpanded("supervisionAptExpanded",key)') && supervisionSource.includes("selectedSupervisionInstanceId(),host.id"));
+  ok("supervision : le depliage est enregistre en direct", supervisionSource.includes("setExpanded(\"supervisionSmartExpanded\",key,expanded)") && supervisionSource.includes("setExpanded(\"supervisionHostExpanded\",key,expanded)") && supervisionSource.includes("setExpanded(\"supervisionAptExpanded\",key,open)") && supervisionSource.includes("saveViewPrefs({[field]:state[field]})"));
   ok("APT : sortie affichee comme texte", aptSource.includes("message.textContent=") && !aptSource.includes("message.innerHTML"));
   ok("APT : prochain passage sous le dernier passage", aptSource.indexOf("aptUpdatesNextRun")>aptSource.indexOf("aptUpdatesLastRun"));
   ok("APT : details replies par defaut", (()=>{
@@ -243,7 +244,8 @@ async function main(){
 
     check("prefs : la liste des cles est stable", stateModule.VIEW_PREF_KEYS.slice(),
       ["viewMode", "sortMode", "groupMode", "openMode",
-        "smallIcons", "collapsed", "webLinksHidden", "page", "dashboardId", "supervisionInstanceId"]);
+        "smallIcons", "collapsed", "webLinksHidden", "page", "dashboardId", "supervisionInstanceId",
+        "supervisionSmartExpanded", "supervisionHostExpanded", "supervisionAptExpanded"]);
 
     // Rien d'ecrit tant que l'utilisateur n'a rien change.
     check("prefs : navigateur neuf = aucune preference", prefs.loadViewPrefs(), {});
@@ -264,6 +266,16 @@ async function main(){
     check("pages : dashboard actif vide par defaut", stateModule.normalizeViewPrefs({}).dashboardId, "");
     check("pages : instance de supervision conservee", stateModule.normalizeViewPrefs({ supervisionInstanceId: "https://dashmon.exemple.lan" }).supervisionInstanceId, "https://dashmon.exemple.lan");
     check("pages : instance de supervision vide recalee sur local", stateModule.normalizeViewPrefs({ supervisionInstanceId: " " }).supervisionInstanceId, "local");
+    check("tuiles : etat de depliage normalise", stateModule.normalizeViewPrefs({
+      supervisionSmartExpanded: ['["local","hote"]', 42, "", '["local","hote"]'],
+      supervisionHostExpanded: "oops",
+      supervisionAptExpanded: ['["local","hote"]']
+    }), {
+      viewMode:"columns", openMode:"same", groupMode:"category", sortMode:"alphabetical",
+      page:"dashboard", dashboardId:"", supervisionInstanceId:"local",
+      smallIcons:false, webLinksHidden:false, collapsed:{},
+      supervisionSmartExpanded:['["local","hote"]'], supervisionHostExpanded:[], supervisionAptExpanded:['["local","hote"]']
+    });
 
     check("dashboards : un onglet par defaut", stateModule.normalizeConfig({}).dashboards,
       [{ id: "main", name: "Dashboard", icon: "fa-solid fa-grip" }]);
@@ -341,6 +353,10 @@ async function main(){
     prefs.saveViewPrefs({ collapsed: { "category:Jeux": true } });
     check("prefs : les prefs s'accumulent sans s'ecraser",
       prefs.loadViewPrefs().collapsed, { "category:Jeux": true });
+
+    prefs.saveViewPrefs({ supervisionAptExpanded: ['["local","hote"]'] });
+    check("prefs : depliage des tuiles relu",
+      prefs.loadViewPrefs().supervisionAptExpanded, ['["local","hote"]']);
 
     // Valeur bricolee a la main dans le navigateur : la normalisation de
     // state.js doit la remplacer par un defaut sur, jamais la propager.

@@ -19,7 +19,8 @@ const STORAGE_KEY="dashmon.view";
 // circulaire.
 const ALLOWED=Object.freeze([
   "viewMode","sortMode","groupMode","openMode",
-  "smallIcons","collapsed","webLinksHidden","page","dashboardId","supervisionInstanceId"
+  "smallIcons","collapsed","webLinksHidden","page","dashboardId","supervisionInstanceId",
+  "supervisionSmartExpanded","supervisionHostExpanded","supervisionAptExpanded"
 ]);
 
 function storage(){
