@@ -111,7 +111,7 @@ export function renderPageSwitch(){
   supervisionInstances().forEach(instance=>{
     const label=supervisionInstanceLabel(instance);
     const active=state.page==="supervision" && instance.id===activeInstanceId;
-    const icon=instance.id==="local" ? "fa-solid fa-shield-halved" : "fa-solid fa-satellite-dish";
+    const icon=instance.id==="local" ? "fa-solid fa-shield-halved" : "fa-solid fa-link";
     const sup=button("supervision",icon,label,active);
     sup.dataset.supervisionInstanceId=instance.id;
     sup.title=label;
