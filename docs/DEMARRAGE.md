@@ -103,6 +103,10 @@ pare-feu et utilisez HTTPS ou un réseau privé de confiance. Pour un accès
 exclusivement local par un proxy sur le même serveur, utilisez
 `127.0.0.1:8080:8080` à la place.
 
+Pour un accès en HTTPS avec nginx, suivez le guide
+**[HTTPS avec nginx](HTTPS.md)** : configuration prête à copier, certificat
+Let's Encrypt ou certificat local, et vérifications.
+
 ## 3. Installer un agent
 
 Sur la machine à superviser, créez une **autre stack** et renseignez son mot
@@ -201,4 +205,5 @@ image ne met pas à jour les scripts installés sur les hôtes.
 | Dossier monté non inscriptible | Le conteneur utilise l'UID `1000` ; vérifiez le propriétaire et les droits du dossier. |
 
 La [documentation de déploiement](../deploy/DEPLOYMENT.md) couvre également le
-proxy, le DNS, les certificats et le socket Docker facultatif.
+proxy, le DNS, les certificats et le socket Docker facultatif. Pour une mise en
+place HTTPS pas à pas, voir [HTTPS avec nginx](HTTPS.md).

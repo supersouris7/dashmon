@@ -245,6 +245,10 @@ Backup: `docker cp dashmon:/app/data ./backup-data` (container stopped).
 A full example: `deploy/nginx.example.conf`. If you use it, set `TRUST_PROXY=1`
 and enable `client_max_body_size` in nginx for image imports.
 
+For a step-by-step, copy-paste guide (host nginx, Let's Encrypt, local
+certificates, Docker variant and troubleshooting), see
+[docs/HTTPS.md](../docs/HTTPS.md).
+
 ## 5. Verification
 
 - `docker inspect --format '{{.State.Health.Status}}' dashmon` → `healthy`

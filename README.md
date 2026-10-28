@@ -74,7 +74,8 @@ Use the ready-to-paste [Portainer stack examples](docs/DEMARRAGE.md#2-installer-
 for the main dashboard and its optional supervision agents.
 
 Full walkthrough, environment variables, nginx example and troubleshooting:
-[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md).
+[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md). For a copy-paste HTTPS setup,
+see **[docs/HTTPS.md](docs/HTTPS.md)**.
 
 ### From source
 
@@ -129,6 +130,7 @@ them to a service. A good source of plain self-hosted app logos is the
 | **[docs/WIDGETS.md](docs/WIDGETS.md)** | Widgets and web-link counters. |
 | **[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)** | Installation, environment and troubleshooting. |
 | **[docs/DEMARRAGE.md](docs/DEMARRAGE.md)** | Principal and agent setup, Portainer and Compose stacks. |
+| **[docs/HTTPS.md](docs/HTTPS.md)** | HTTPS with nginx: copy-paste configuration, Let's Encrypt or local certificate. |
 | **[docs/WIREGUARD.md](docs/WIREGUARD.md)** | WireGuard dump and cron script. |
 | **[docs/SMART.md](docs/SMART.md)** / **[docs/APT_UPDATES.md](docs/APT_UPDATES.md)** | Local SMART and APT supervision. |
 | **[CUSTOMIZATION.md](CUSTOMIZATION.md)** | Themes and icons. |
