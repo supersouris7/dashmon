@@ -1360,6 +1360,16 @@ export function closeEditor(){
   document.querySelectorAll(".icon-picker.open").forEach(p=>p.classList.remove("open"));
 }
 
+function setAgentTestStatus(status,state,text){
+  status.className="agent-test-status"+(state ? " "+state : "");
+  const icon=document.createElement("i");
+  icon.className=state==="ok" ? "fa-solid fa-circle-check"
+    : state==="error" ? "fa-solid fa-circle-xmark"
+      : "fa-solid fa-spinner fa-spin";
+  icon.setAttribute("aria-hidden","true");
+  status.replaceChildren(icon,document.createTextNode(text));
+}
+
 function renderReplicationEditor(){
   replicationEditor.replaceChildren();
   const replication=state.replication||{role:"primary",instanceName:"Dashmon",secondaries:[]};
@@ -1395,11 +1405,20 @@ function renderReplicationEditor(){
   const name=document.createElement("input");
   name.className="edit-input"; name.placeholder=t("agentInstanceName"); name.setAttribute("aria-label",t("agentInstanceName")); name.value=replication.instanceName||"";
   name.addEventListener("input",()=>state.replication.instanceName=name.value);
-  replicationEditor.appendChild(name);
+  replicationEditor.appendChild(monitoringField(t("agentInstanceName"),name));
+  const nameHint=document.createElement("p");
+  nameHint.className="host-monitor-hint";
+  nameHint.textContent=t("agentInstanceNameHint");
+  replicationEditor.appendChild(nameHint);
   {
     const urls=document.createElement("textarea");
     urls.className="edit-input"; urls.rows=5; urls.placeholder="https://agent.exemple.lan";
     urls.value=(replication.secondaries||[]).join("\n");
+    replicationEditor.appendChild(monitoringField(t("agentUrlsLabel"),urls));
+    const urlsHint=document.createElement("p");
+    urlsHint.className="host-monitor-hint";
+    urlsHint.textContent=t("agentUrlsHint");
+    replicationEditor.appendChild(urlsHint);
     const names=document.createElement("div");
     names.className="edit-list";
     const renderNames=()=>{
@@ -1432,13 +1451,13 @@ function renderReplicationEditor(){
         status.setAttribute("role","status");
         test.addEventListener("click",async()=>{
           test.disabled=true;
-          status.textContent=t("agentTesting");
+          setAgentTestStatus(status,"pending",t("agentTesting"));
           try{
             const response=await fetch("/api/agents/test",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});
             const result=await response.json();
             const reasons={token_missing:"agentTokenMissing",unauthorized:"agentUnauthorized",invalid_url:"agentInvalidUrl",invalid_response:"agentInvalidResponse",incompatible_protocol:"agentIncompatible"};
-            status.textContent=t(result.ok ? "agentConnected" : reasons[result.reason]||"agentUnreachable");
-          }catch(_error){ status.textContent=t("agentUnreachable"); }
+            setAgentTestStatus(status,result.ok ? "ok" : "error",t(result.ok ? "agentConnected" : reasons[result.reason]||"agentUnreachable"));
+          }catch(_error){ setAgentTestStatus(status,"error",t("agentUnreachable")); }
           finally{ test.disabled=false; }
         });
         const configure=document.createElement("a");
