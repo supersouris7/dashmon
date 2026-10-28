@@ -4,8 +4,11 @@ import { state } from "./state.js";
 let configSaveTimer;
 let configSaveChain=Promise.resolve();
 let configPatchTimer;
+let configRevision="";
+export function setConfigRevision(value){configRevision=String(value||"");}
+export let configConflict=false;
 
-export function saveConfig(immediate=false){
+export function saveConfig(immediate=false,{replaceUsage=false}={}){
   clearTimeout(configSaveTimer);
 
   const run=()=>{
@@ -30,12 +33,15 @@ export function saveConfig(immediate=false){
     configSaveChain=configSaveChain
       .catch(()=>{})
       .then(async()=>{
+        configConflict=false;
         const response=await fetch("/api/config",{
           method:"PUT",
-          headers:{"Content-Type":"application/json"},
+          headers:{"Content-Type":"application/json",...(configRevision ? {"If-Match":configRevision} : {}),...(replaceUsage ? {"X-Dashmon-Replace-Usage":"1"} : {})},
           body:payload
         });
+        if(response.status===412) configConflict=true;
         if(!response.ok) throw new Error("HTTP "+response.status);
+        setConfigRevision(response.headers.get("ETag"));
         return true;
       })
       .catch(error=>{
@@ -61,10 +67,15 @@ export function patchConfig(patch,immediate=false){
       .then(async()=>{
         const response=await fetch("/api/config",{
           method:"PATCH",
-          headers:{"Content-Type":"application/json"},
+          headers:{"Content-Type":"application/json",...(configRevision ? {"If-Match":configRevision} : {})},
           body:payload
         });
+        if(response.status===412){
+          window.dispatchEvent(new Event("dashmon:config-conflict"));
+          throw new Error("HTTP 412");
+        }
         if(!response.ok) throw new Error("HTTP "+response.status);
+        setConfigRevision(response.headers.get("ETag"));
       })
       .catch(error=>console.error("Mise à jour de config.json impossible",error));
     return configSaveChain;

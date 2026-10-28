@@ -111,13 +111,14 @@ export function renderPageSwitch(){
   supervisionInstances().forEach(instance=>{
     const label=supervisionInstanceLabel(instance);
     const active=state.page==="supervision" && instance.id===activeInstanceId;
-    const sup=button("supervision","fa-solid fa-shield-halved",label,active);
+    const icon=instance.id==="local" ? "fa-solid fa-shield-halved" : "fa-solid fa-satellite-dish";
+    const sup=button("supervision",icon,label,active);
     sup.dataset.supervisionInstanceId=instance.id;
     sup.title=label;
     sup.addEventListener("click",()=>selectSupervision(instance.id));
     pageSwitchGroup.appendChild(sup);
-    mobilePageMenu.appendChild(mobileMenuItem("fa-solid fa-shield-halved",label,active,()=>selectSupervision(instance.id)));
-    if(active) mobileCurrent={icon:"fa-solid fa-shield-halved",label};
+    mobilePageMenu.appendChild(mobileMenuItem(icon,label,active,()=>selectSupervision(instance.id)));
+    if(active) mobileCurrent={icon,label};
   });
 
   const current=mobileCurrent||{icon:"fa-solid fa-grip",label:t("pageDashboard")};

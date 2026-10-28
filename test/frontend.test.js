@@ -526,7 +526,7 @@ async function main(){
     /specialTile:sanitizeSpecialTile\(config\.specialTile,categories\)/.test(serverSrcForSpecial));
 
   ok("config : ecriture atomique",
-    /fs\.renameSync\(temporary,CONFIG_FILE\)/.test(serverSrcForSpecial));
+    /fs\.renameSync\(temporary,this\.file\)/.test(fs.readFileSync(path.join(ROOT,"lib","config-store.js"),"utf8")));
 
   // Le genre par service n'existe plus : la tuile fortune est une tuile
   // speciale unique, pas un service.

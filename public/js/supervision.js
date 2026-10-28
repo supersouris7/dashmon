@@ -543,7 +543,7 @@ function smartCard(host,metrics,disks){
   const head=document.createElement("div");
   head.className="supervision-head";
   const icon=document.createElement("i");
-  icon.className="fa-solid fa-hard-drive";
+  icon.className="fa-solid fa-database";
   icon.setAttribute("aria-hidden","true");
   const name=document.createElement("span");
   name.className="supervision-name";
@@ -662,7 +662,7 @@ function aptUpdatesCard(host,metrics){
   const head=document.createElement("div");
   head.className="supervision-head";
   const icon=document.createElement("i");
-  icon.className="fa-solid fa-box-archive";
+  icon.className="fa-solid fa-box";
   const name=document.createElement("span");
   name.className="supervision-name";
   name.textContent=host.name||t("hostName");
@@ -771,7 +771,7 @@ export function renderSupervision(){
   if(selected?.error){
     const status=document.createElement("p");
     status.className="supervision-empty";
-    status.textContent=t("supervisionError");
+    status.textContent=t(selected.reason==="incompatible_protocol" ? "agentIncompatible" : "agentOffline");
     supervisionList.append(status);
     updateSmartCollapseButton();
     return;
@@ -785,6 +785,12 @@ export function renderSupervision(){
     supervisionList.append(status);
     updateSmartCollapseButton();
     return;
+  }
+  if(selected?.status==="stale"){
+    const warning=document.createElement("p");
+    warning.className="supervision-empty";
+    warning.textContent=t("agentStale");
+    supervisionList.append(warning);
   }
   const monitored=selected
     ? selected.hosts.map(metric=>({id:metric.id,name:metric.name,icon:"fa-solid fa-server",monitoring:{enabled:true,type:metric.type}}))
@@ -852,8 +858,10 @@ export async function refreshHostMetrics(){
     if(replication.ok){
       const data=await replication.json();
       remoteInstances=(data.instances||[]).map(instance=>({
-        id:instance.url,url:instance.url,hosts:instance.hosts||[],error:instance.error
+        id:instance.url,url:instance.url,hosts:instance.hosts||[],error:instance.error,status:instance.status,reason:instance.reason
       }));
+    }else{
+      remoteInstances=(state.replication?.secondaries||[]).map(url=>({id:url,url,hosts:[],error:true,status:"unavailable"}));
     }
     state.hostMetricsError=false;
   }catch(_error){

@@ -10,7 +10,12 @@ const os = require("os");
 const path = require("path");
 const httpClient = require("./lib/http");
 const { WidgetCore } = require("./lib/widget-core");
+const { ConfigStore } = require("./lib/config-store");
+const agentProtocol = require("./lib/agent-protocol");
+const { createAuth } = require("./lib/auth");
+const { createScheduler } = require("./lib/scheduler");
 
+function createApp(){
 const app = express();
 
 function ts(){return new Date().toISOString().replace("T"," ").replace(/\.\d{3}Z$/,"")}
@@ -25,6 +30,7 @@ const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
 const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, "data");
 const CONFIG_FILE = process.env.CONFIG_FILE || path.join(DATA_DIR, "config.json");
+const configStore = new ConfigStore(CONFIG_FILE);
 // Sortie de `wg show all dump` deja ecrite sur disque pour un hote "local".
 // Chemin fixe (surchargeable par l'administrateur) : la configuration web ne
 // peut donc pas faire lire un fichier arbitraire au serveur.
@@ -116,51 +122,7 @@ const DASHBOARD_BIND = DASHMON_PASSWORD ? "0.0.0.0" : "127.0.0.1";
 // Delai maximal d'une sonde de statut, partage par le core et les plugins.
 const STATUS_TIMEOUT = 4000;
 
-function isSecureRequest(req) {
-  return req.secure || req.get("x-forwarded-proto") === "https";
-}
-
-function cookieValue(req, name) {
-  const prefix = name + "=";
-  const match = String(req.get("Cookie") || "").split(";").map(value => value.trim())
-    .find(value => value.startsWith(prefix));
-  if (!match) return "";
-  try { return decodeURIComponent(match.slice(prefix.length)); } catch (_error) { return ""; }
-}
-
-function sessionValue(expiresAt, nonce = crypto.randomBytes(18).toString("base64url")) {
-  const expires = String(expiresAt);
-  const signature = crypto.createHmac("sha256", DASHMON_PASSWORD)
-    .update("dashmon-session:" + expires + ":" + nonce).digest("base64url");
-  return expires + "." + nonce + "." + signature;
-}
-
-function validSession(req) {
-  const value = cookieValue(req, "dashmon_session");
-  const match = /^(\d{13})\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/.exec(value);
-  if (!match || Number(match[1]) < Date.now()) return false;
-  const expected = Buffer.from(sessionValue(match[1], match[2]));
-  const received = Buffer.from(value);
-  return received.length === expected.length && crypto.timingSafeEqual(received, expected);
-}
-
-function validBasicAuth(req) {
-  const expected = "Basic " + Buffer.from("admin:" + DASHMON_PASSWORD).toString("base64");
-  const received = Buffer.from(req.get("Authorization") || "");
-  return received.length === Buffer.byteLength(expected)
-    && received.length > 0
-    && crypto.timingSafeEqual(received, Buffer.from(expected));
-}
-
-function setSessionCookie(req, res, expiresAt) {
-  const seconds = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
-  const attributes = [
-    "dashmon_session=" + encodeURIComponent(sessionValue(expiresAt)),
-    "Path=/", "HttpOnly", "SameSite=Strict", "Max-Age=" + seconds
-  ];
-  if (isSecureRequest(req)) attributes.push("Secure");
-  res.set("Set-Cookie", attributes.join("; "));
-}
+const {validSession,validBasicAuth,setSessionCookie}=createAuth({password:DASHMON_PASSWORD});
 
 app.use((_req, res, next) => {
   res.set("X-Content-Type-Options", "nosniff");
@@ -429,7 +391,7 @@ function ensureDataFiles(){
 ensureDataFiles();
 
 function readConfig(){
-  const config=JSON.parse(fs.readFileSync(CONFIG_FILE,"utf8"));
+  const config=configStore.read();
   // Les anciens reglages retires ne sont plus exposes ni recopies lors d'une
   // sauvegarde. Le fichier existant reste lisible sans migration destructive.
   for(const key of ["favicon","faviconEnabled","hostsDisplay","webLinksCollapsed"]){
@@ -518,6 +480,20 @@ function ensureHostIds(){
 }
 
 ensureHostIds();
+function agentIdentity(){
+  const file=path.join(DATA_DIR,"agent-id");
+  try{
+    const existing=fs.readFileSync(file,"utf8").trim();
+    if(/^[0-9a-f]{32}$/.test(existing)) return existing;
+    throw new Error("Identité d'agent invalide");
+  }catch(error){
+    if(error.code!=="ENOENT") throw error;
+    const id=crypto.randomBytes(16).toString("hex");
+    try{fs.writeFileSync(file,id+"\n",{encoding:"utf8",mode:0o600,flag:"wx"});return id;}
+    catch(writeError){if(writeError.code==="EEXIST") return agentIdentity();throw writeError;}
+  }
+}
+const AGENT_ID=AGENT_MODE ? agentIdentity() : "";
 if(AGENT_MODE){
   const config=readConfig();
   const local=(config.hosts||[]).find(host=>host.monitoring?.type==="local");
@@ -624,7 +600,9 @@ app.get("/api/config",(_req,res)=>{
   try{
     res.set("Cache-Control","no-store");
     ensureHostIds();
-    res.json(withCacheKeys(readConfig()));
+    const config=readConfig();
+    res.set("ETag",configStore.revision(config));
+    res.json(withCacheKeys(config));
   }catch(error){
     console.error("Lecture config:",error);
     res.status(500).json({error:"Lecture de config.json impossible"});
@@ -843,14 +821,7 @@ function buildConfigOutput(config){
 }
 
 function writeConfig(output){
-  const payload=JSON.stringify(output,null,2)+"\n";
-  const temporary=`${CONFIG_FILE}.${process.pid}.${crypto.randomBytes(6).toString("hex")}.tmp`;
-  try{
-    fs.writeFileSync(temporary,payload,"utf8");
-    fs.renameSync(temporary,CONFIG_FILE);
-  }finally{
-    try{ fs.unlinkSync(temporary); }catch(_error){}
-  }
+  configStore.write(output);
 }
 
 function keepOneLocalHost(config){
@@ -874,23 +845,38 @@ app.put("/api/sync/config",(req,res)=>{
   res.status(410).json({error:"La réplication est remplacée par le mode agent"});
 });
 
+app.get("/readyz",(_req,res)=>{
+  res.set("Cache-Control","no-store");
+  try{
+    readConfig();
+    fs.accessSync(CONFIG_FILE,fs.constants.R_OK);
+    fs.accessSync(path.dirname(CONFIG_FILE),fs.constants.W_OK);
+    res.json({ok:true,role:AGENT_MODE ? "agent" : "primary"});
+  }catch(_error){res.status(503).json({ok:false,role:AGENT_MODE ? "agent" : "primary"});}
+});
+
 app.get("/api/sync/metrics",(req,res)=>{
   if(!validSyncToken(req)) return res.status(401).json({error:"Authentification de synchronisation requise"});
   if(!AGENT_MODE) return res.status(404).json({error:"Agent non activé"});
   return serveHostMetrics(req,res);
 });
 
+const agentLastSuccess=new Map();
 app.get("/api/replication/metrics",async(_req,res)=>{
   const replication=sanitizeReplication(readConfig().replication);
   if(replication.role!=="primary") return res.json({instances:[]});
   if(!DASHMON_SYNC_TOKEN) return res.status(503).json({error:"DASHMON_SYNC_TOKEN absent"});
+  for(const url of agentLastSuccess.keys()) if(!replication.secondaries.includes(url)) agentLastSuccess.delete(url);
   const instances=await Promise.all(replication.secondaries.map(async url=>{
     try{
       const payload=await httpClient.apiRequest(url,"/api/sync/metrics",{
         timeout:STATUS_TIMEOUT,headers:{"X-Dashmon-Sync-Token":DASHMON_SYNC_TOKEN}
       });
-      return {url,ok:true,hosts:Array.isArray(payload?.hosts) ? payload.hosts : []};
-    }catch(error){ return {url,ok:false,error:"Instance inaccessible",hosts:[]}; }
+      const assessment=agentProtocol.assess(payload,{lastSuccessAt:agentLastSuccess.get(url)||null});
+      if(assessment.status==="available") agentLastSuccess.set(url,assessment.lastSuccessAt);
+      if(assessment.status==="unavailable") return {url,ok:false,error:"Instance inaccessible",hosts:[],...assessment};
+      return {url,ok:true,hosts:payload.hosts,...assessment};
+    }catch(error){ return {url,ok:false,status:"unavailable",reason:"unreachable",lastSuccessAt:agentLastSuccess.get(url)||null,error:"Instance inaccessible",hosts:[]}; }
   }));
   res.set("Cache-Control","no-store");
   res.json({instances});
@@ -907,7 +893,8 @@ app.post("/api/agents/test",async(req,res)=>{
     const payload=await httpClient.apiRequest(url,"/api/sync/metrics",{
       timeout:STATUS_TIMEOUT,headers:{"X-Dashmon-Sync-Token":DASHMON_SYNC_TOKEN}
     });
-    if(!payload || !Array.isArray(payload.hosts)) return res.status(502).json({ok:false,reason:"invalid_response"});
+    const assessment=agentProtocol.assess(payload);
+    if(assessment.status==="unavailable") return res.status(502).json({ok:false,reason:assessment.reason});
     return res.json({ok:true});
   }catch(error){
     return res.status(502).json({ok:false,reason:error.status===401 ? "unauthorized" : "unreachable"});
@@ -920,8 +907,14 @@ app.put("/api/config",async(req,res)=>{
     if(!config || typeof config!=="object" || Array.isArray(config)){
       return res.status(400).json({error:"Configuration invalide"});
     }
+    const current=readConfig();
+    if(req.get("If-Match") && req.get("If-Match")!==configStore.revision(current)){
+      return res.status(412).json({error:"La configuration a changé ; rechargez avant d'enregistrer"});
+    }
     const output=keepOneLocalHost(buildConfigOutput(config));
+    if(req.get("If-Match") && req.get("X-Dashmon-Replace-Usage")!=="1") output.usageCounts=current.usageCounts||{};
     writeConfig(output);
+    res.set("ETag",configStore.revision(readConfig()));
     res.json({ok:true,replication:await replicateConfig(output)});
   }catch(error){
     console.error("Écriture config:",error);
@@ -936,11 +929,15 @@ app.patch("/api/config",async(req,res)=>{
       return res.status(400).json({error:"Correctif de configuration invalide"});
     }
     const config=readConfig();
+    if(req.get("If-Match") && req.get("If-Match")!==configStore.revision(config)){
+      return res.status(412).json({error:"La configuration a changé ; rechargez avant d'enregistrer"});
+    }
     for(const key of Object.keys(patch)){
       config[key]=patch[key];
     }
     const output=keepOneLocalHost(buildConfigOutput(config));
     writeConfig(output);
+    res.set("ETag",configStore.revision(readConfig()));
     res.json({ok:true,replication:await replicateConfig(output)});
   }catch(error){
     console.error("Écriture config (patch):",error);
@@ -1292,33 +1289,7 @@ function linkCounterServices(config){
   return links.map(linkCounterService).filter(Boolean);
 }
 
-let statusRefreshInflight=null;
-let statusRefreshForced=false;
-
-async function refreshStatuses(force=false){
-  // Un cycle peut inclure plusieurs sondes lentes. Les minuteurs et le bouton
-  // manuel partagent donc le meme travail; un clic manuel demande un cycle force
-  // juste apres le cycle courant au lieu d'ouvrir une seconde salve en parallele.
-  if(statusRefreshInflight){
-    if(force) statusRefreshForced=true;
-    return statusRefreshInflight;
-  }
-
-  const refresh=(async()=>{
-    let shouldForce=force;
-    do{
-      statusRefreshForced=false;
-      await refreshStatusesCycle(shouldForce);
-      shouldForce=statusRefreshForced;
-    }while(shouldForce);
-  })();
-  statusRefreshInflight=refresh;
-  try{
-    await refresh;
-  }finally{
-    if(statusRefreshInflight===refresh) statusRefreshInflight=null;
-  }
-}
+const refreshStatuses=createScheduler({runCycle:refreshStatusesCycle});
 
 function sanitizeSyncUrl(value) {
   const url = sanitizeUrl(value);
@@ -1697,6 +1668,7 @@ function readAptUpdatesReport(){
 const HOST_METRICS_TTL=HOST_METRICS_INTERVAL;
 let hostMetricsCache={ts:0,payload:null};
 let hostMetricsInflight=null;
+let lastLocalSuccessAt=null;
 
 async function serveHostMetrics(_req,res){
   res.set("Cache-Control","no-store");
@@ -1783,7 +1755,15 @@ async function serveHostMetrics(_req,res){
         error:error.message
       };
     }
-  })).then(results=>({hosts:results}));
+  })).then(results=>{
+    if(!AGENT_MODE) return {hosts:results};
+    const collectedAt=new Date().toISOString();
+    const ok=results.length>0 && results.every(result=>result.ok);
+    if(ok) lastLocalSuccessAt=collectedAt;
+    return {hosts:results,protocol:agentProtocol.PROTOCOL,
+      agent:{id:AGENT_ID,capabilities:agentProtocol.CAPABILITIES},
+      collection:{status:ok ? "available" : "unavailable",collectedAt,lastSuccessAt:lastLocalSuccessAt,maxAgeMs:HOST_METRICS_INTERVAL*3}};
+  });
 
   hostMetricsInflight=refresh;
   try{
@@ -1804,6 +1784,9 @@ app.get("/api/agent/config",(req,res)=>{
   if(!AGENT_MODE) return res.sendStatus(404);
   try{
     const config=readConfig();
+    if(req.get("If-Match") && req.get("If-Match")!==configStore.revision(config)){
+      return res.status(412).json({error:"La configuration a changé ; rechargez avant d'enregistrer"});
+    }
     const host=(config.hosts||[]).find(item=>item.monitoring?.type==="local" && item.monitoring.enabled);
     res.set("Cache-Control","no-store");
     res.json({name:host?.name||"Agent",monitoring:host?.monitoring||{enabled:true,type:"local"}});
@@ -1853,18 +1836,8 @@ app.use((err,_req,res,_next)=>{
   res.status(500).json({error:"Erreur interne"});
 });
 
-// Filet de sécurité : toute exception/réjection échappée est journalisée
-// (sinon Node sort en silence et Docker ne voit qu'un restart).
-process.on("uncaughtException",error=>{
-  console.error(`${ts()} Uncaught exception :`,error);
-  process.exit(1);
-});
-process.on("unhandledRejection",reason=>{
-  console.error(`${ts()} Unhandled rejection :`,reason);
-  process.exit(1);
-});
-
 let httpServer;
+let statusTimer;
 
 function shutdownGraceful(signal){
   console.log(`${ts()} ${signal} reçu, arrêt propre…`);
@@ -1881,9 +1854,6 @@ function shutdownGraceful(signal){
   },10000).unref();
 }
 
-process.on("SIGTERM",()=>shutdownGraceful("SIGTERM"));
-process.on("SIGINT",()=>shutdownGraceful("SIGINT"));
-
 // Le registre doit etre charge avant l'ecoute HTTP et avant tout cycle de
 // statut : sinon /api/widgets pourrait repondre une liste vide au tout premier
 // chargement du navigateur, et le core ignorerait les types qu'il ne connait
@@ -1891,29 +1861,37 @@ process.on("SIGINT",()=>shutdownGraceful("SIGINT"));
 let widgetsReady=false;
 
 async function start(){
-  try{
-    await widgetCore.load();
-  }catch(error){
-    console.error(`${ts()} Registre de widgets illisible : ${error.message}`);
+  process.on("uncaughtException",error=>{console.error(`${ts()} Uncaught exception :`,error);process.exit(1);});
+  process.on("unhandledRejection",reason=>{console.error(`${ts()} Unhandled rejection :`,reason);process.exit(1);});
+  process.on("SIGTERM",()=>shutdownGraceful("SIGTERM"));
+  process.on("SIGINT",()=>shutdownGraceful("SIGINT"));
+  if(!AGENT_MODE){
+    try{await widgetCore.load();}
+    catch(error){console.error(`${ts()} Registre de widgets illisible : ${error.message}`);}
   }
   // Les liens web sont des services sans widget : ils sont surveilles par le
   // plugin qui revendique le slot "link". Sans lui, plus rien ne les controle,
   // autant le dire au demarrage plutot que de laisser des tuiles grises.
-  if(!widgetCore.linkPlugin()){
+  if(!AGENT_MODE && !widgetCore.linkPlugin()){
     console.warn(`${ts()} Aucun plugin de lien (defaultFor: "link") : les liens web ne seront pas contrôlés`);
   }
   widgetsReady=true;
   httpServer=app.listen(PORT,DASHBOARD_BIND,()=>{
     console.log(`${ts()} Dashmon : http://${DASHBOARD_BIND}:${PORT}`);
   });
+  statusTimer=setInterval(()=>{
+    if(widgetsReady && !AGENT_MODE) refreshStatuses();
+  },STATUS_INTERVAL);
   if(!AGENT_MODE) await refreshStatuses();
 }
 
-start().catch(error=>{
-  console.error(`${ts()} Demarrage impossible :`,error);
-  process.exit(1);
-});
+return {app,start};
+}
 
-const statusTimer=setInterval(()=>{
-  if(widgetsReady && !AGENT_MODE) refreshStatuses();
-},STATUS_INTERVAL);
+if(require.main===module){
+  createApp().start().catch(error=>{
+    console.error("Demarrage impossible :",error);
+    process.exit(1);
+  });
+}
+module.exports={createApp};

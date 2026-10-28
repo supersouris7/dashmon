@@ -16,6 +16,13 @@ widgets/<id>/
 Le point de départ le plus rapide : copiez `widgets/_template/` (non chargé par
 Dashmon, c'est un modèle), renommez le dossier, editez les trois fichiers.
 
+Les widgets livrés dans `widgets/` sont officiels. Les dossiers externes
+`DASHMON_WIDGET_DIR` / `DASHMON_PLUGINS_DIR` sont **désactivés par défaut**.
+L'activation explicite par `DASHMON_ALLOW_UNSAFE_PLUGINS=1` exécute leur code
+dans le processus principal, **sans isolation de sécurité** : n'utilisez que du
+code de confiance. Une véritable isolation des contributions tierces n'est pas
+encore disponible ; ne montez pas de code inconnu.
+
 ## manifest.json
 
 ```json

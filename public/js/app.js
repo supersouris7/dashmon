@@ -1,11 +1,11 @@
 // Point d'entrée : initialisation, menu principal, modals (éditeur/apparence), événements globaux.
 import { state, normalizeConfig, normalizeViewPrefs, isTypingTarget, sanitizeUrl } from "./state.js";
-import { patchConfig } from "./api.js";
+import { patchConfig, setConfigRevision } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
 import { render, updateViewButton, updateIconsButton, updateOpenModeMenu, updateGroupModeMenu,
   updateSortModeMenu, setGroupMode, getCollapseAllState, updateCollapseAllButton,
   updateStatusIndicators } from "./render.js";
-import { applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater, setSupervisionUpdater, setPageSwitchUpdater } from "./i18n.js";
+import { t, applyLanguage, setThemeLabelsUpdater, setCollapseButtonUpdater, setSupervisionUpdater, setPageSwitchUpdater } from "./i18n.js";
 import {
   loadThemes, applyTheme, setTheme, currentTheme, downloadTheme,
   importThemeFile, deleteCustomTheme, applyThemeLabels
@@ -32,6 +32,7 @@ setThemeLabelsUpdater(applyThemeLabels);
 setCollapseButtonUpdater(updateCollapseAllButton);
 setSupervisionUpdater(renderSupervision);
 setPageSwitchUpdater(renderPageSwitch);
+window.addEventListener("dashmon:config-conflict",()=>alert(t("configConflict")));
 
 async function loadConfig(){
   try{
@@ -39,6 +40,7 @@ async function loadConfig(){
     // resservent l'ancienne configuration apres une suppression.
     const response=await fetch("/api/config?_="+Date.now(),{cache:"no-store"});
     if(!response.ok) throw new Error("HTTP "+response.status);
+    setConfigRevision(response.headers.get("ETag"));
 
     const cfg=normalizeConfig(await response.json());
     state.services=cfg.services;

@@ -1,7 +1,7 @@
 // Éditeur de configuration : services, catégories, hôtes, liens web, import/export config.
 import { state, clone, normalize, normalizeConfig, compareNames, TILE_COLORS, sanitizeTileColor, sanitizeUrl, normalizeSpecialTile, normalizeLinkCounter, LINK_COUNTER_TYPES, HOST_MONITORING_TYPES } from "./state.js";
 import { t, applyLanguage } from "./i18n.js";
-import { saveConfig, fetchConfig } from "./api.js";
+import { saveConfig, fetchConfig, configConflict } from "./api.js";
 import { saveViewPrefs } from "./view-prefs.js";
 import { render, updateViewButton, updateIconsButton, updateOpenModeMenu, updateGroupModeMenu, updateSortModeMenu } from "./render.js";
 import { renderPageSwitch } from "./pages.js";
@@ -1210,7 +1210,7 @@ function renderSmartEditor(){
     toggle.className="monitor-toggle "+(prefs.enabled ? "active" : "");
     toggle.title=prefs.enabled ? t("smartShowDisks") : t("smartShowDisks");
     toggle.setAttribute("aria-pressed",String(prefs.enabled));
-    toggle.innerHTML='<i class="fa-solid fa-hard-drive"></i>';
+    toggle.innerHTML='<i class="fa-solid fa-database"></i>';
     toggle.addEventListener("click",()=>{
       state.editHosts[index].monitoring.smart.enabled=!state.editHosts[index].monitoring.smart.enabled;
       renderSmartEditor();
@@ -1283,7 +1283,7 @@ function renderAptUpdatesEditor(){
     toggle.type="button";
     toggle.className="monitor-toggle "+(host.monitoring.aptUpdates.enabled ? "active" : "");
     toggle.setAttribute("aria-pressed",String(host.monitoring.aptUpdates.enabled));
-    toggle.innerHTML='<i class="fa-solid fa-box-archive"></i>';
+    toggle.innerHTML='<i class="fa-solid fa-box"></i>';
     toggle.addEventListener("click",()=>{
       state.editHosts[index].monitoring.aptUpdates.enabled=!state.editHosts[index].monitoring.aptUpdates.enabled;
       renderAptUpdatesEditor();
@@ -1432,7 +1432,7 @@ function renderReplicationEditor(){
           try{
             const response=await fetch("/api/agents/test",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});
             const result=await response.json();
-            const reasons={token_missing:"agentTokenMissing",unauthorized:"agentUnauthorized",invalid_url:"agentInvalidUrl",invalid_response:"agentInvalidResponse"};
+            const reasons={token_missing:"agentTokenMissing",unauthorized:"agentUnauthorized",invalid_url:"agentInvalidUrl",invalid_response:"agentInvalidResponse",incompatible_protocol:"agentIncompatible"};
             status.textContent=t(result.ok ? "agentConnected" : reasons[result.reason]||"agentUnreachable");
           }catch(_error){ status.textContent=t("agentUnreachable"); }
           finally{ test.disabled=false; }
@@ -1796,11 +1796,11 @@ async function applyEditorChanges(closeWhenSaved){
   // le navigateur, pas dans config.json.
   saveViewPrefs({collapsed:state.collapsed});
 
-  const saved=await saveConfig(true);
+  const saved=await saveConfig(true,{replaceUsage:!!importedConfigDraft});
   if(!saved){
     // Ne pas fermer l'editeur en silence : sans ce garde, l'interface montrait
     // la suppression alors que le fichier n'avait pas ete ecrit.
-    alert(t("saveError"));
+    alert(t(configConflict ? "configConflict" : "saveError"));
     return;
   }
   // Utiliser immediatement les URL canoniques, comme au prochain chargement.

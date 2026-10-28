@@ -7,6 +7,7 @@ const net=require("net");
 const http=require("http");
 const crypto=require("crypto");
 const {spawn}=require("child_process");
+const protocol=require("../lib/agent-protocol");
 
 const root=path.join(__dirname,"..");
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),"dashmon-agent-test-"));
@@ -45,6 +46,11 @@ async function main(){
   response=await fetch(agent+"/api/sync/metrics",{headers:{"X-Dashmon-Sync-Token":token}});
   assert.equal(response.status,200);
   let data=await response.json();
+  assert.deepEqual(data.protocol,{major:1,minor:0});
+  assert.ok(data.agent.id && data.agent.capabilities.includes("host-metrics"));
+  assert.equal(data.collection.status,"available");
+  assert.ok(Date.parse(data.collection.collectedAt));
+  const agentId=data.agent.id;
   assert.equal(data.hosts.length,1);
   assert.equal(data.hosts[0].name,"Ancien");
   assert.equal(data.hosts[0].aptUpdates.error,"Erreur APT");
@@ -66,6 +72,10 @@ async function main(){
   fs.mkdirSync(primaryDir);
   fs.writeFileSync(path.join(primaryDir,"config.json"),JSON.stringify({hosts:[{id:"local",name:"Local",monitoring:{type:"local",enabled:false}},{id:"legacy",name:"Hôte",monitoring:{type:"proxmox",enabled:true}}]}));
   const primary=await start("dashboard",await freePort(),primaryDir);
+  response=await fetch(primary+"/healthz");
+  assert.equal(response.status,200);
+  response=await fetch(primary+"/readyz");
+  assert.equal(response.status,200);
   response=await fetch(primary+"/api/agents/test",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:agent})});
   assert.equal(response.status,401);
   response=await fetch(primary+"/api/agents/test",{method:"POST",headers:{Authorization:auth,"Content-Type":"application/json"},body:JSON.stringify({url:agent})});
@@ -88,6 +98,8 @@ async function main(){
   }finally{ await new Promise(resolve=>fake.close(resolve)); }
   response=await fetch(primary+"/api/config",{headers:{Authorization:auth}});
   const config=await response.json();
+  const originalRevision=response.headers.get("etag");
+  assert.ok(originalRevision);
   assert.equal(config.hosts.filter(host=>host.monitoring?.enabled && host.monitoring.type==="local").length,1);
   assert.ok(config.hosts.some(host=>host.id==="legacy"));
   response=await fetch(primary+"/api/host-metrics",{headers:{Authorization:auth}});
@@ -95,20 +107,42 @@ async function main(){
   assert.equal(localMetrics.length,1);
   assert.equal(localMetrics[0].id,"local");
   config.replication={role:"primary",instanceName:"Dashmon",secondaries:[agent],agentNames:{[agent]:"Supervision distante"}};
-  response=await fetch(primary+"/api/config",{method:"PUT",headers:{Authorization:auth,"Content-Type":"application/json"},body:JSON.stringify(config)});
+  response=await fetch(primary+"/api/usage",{method:"POST",headers:{Authorization:auth,"Content-Type":"application/json"},body:JSON.stringify({key:"service"})});
   assert.equal(response.status,200);
+  response=await fetch(primary+"/api/config",{method:"PUT",headers:{Authorization:auth,"Content-Type":"application/json","If-Match":originalRevision},body:JSON.stringify(config)});
+  assert.equal(response.status,200);
+  assert.notEqual(response.headers.get("etag"),originalRevision);
+  response=await fetch(primary+"/api/config",{method:"PUT",headers:{Authorization:auth,"Content-Type":"application/json","If-Match":originalRevision},body:JSON.stringify(config)});
+  assert.equal(response.status,412);
   response=await fetch(primary+"/api/config",{headers:{Authorization:auth}});
   const saved=await response.json();
+  assert.equal(saved.usageCounts.service,1);
   assert.equal(saved.replication.agentNames[new URL(agent).href],"Supervision distante");
   response=await fetch(primary+"/api/replication/metrics",{headers:{Authorization:auth}});
   data=await response.json();
   assert.equal(data.instances[0].ok,true);
+  assert.equal(data.instances[0].status,"available");
   assert.equal(data.instances[0].hosts[0].name,"Agent");
+  assert.ok(data.instances[0].lastSuccessAt);
+  const now=Date.now();
+  assert.equal(protocol.assess({hosts:[]},{now}).legacy,true);
+  const old={hosts:[],protocol:{major:1,minor:10},agent:{id:agentId,capabilities:[]},collection:{status:"available",collectedAt:new Date(now-10000).toISOString(),lastSuccessAt:new Date(now-10000).toISOString(),maxAgeMs:5000}};
+  assert.equal(protocol.assess(old,{now}).status,"stale");
+  assert.equal(protocol.assess({...old,protocol:{major:2,minor:0}},{now}).reason,"incompatible_protocol");
+  await new Promise(resolve=>{children[0].once("exit",resolve);children[0].kill("SIGTERM");});
+  response=await fetch(primary+"/api/replication/metrics",{headers:{Authorization:auth}});
+  data=await response.json();
+  assert.equal(data.instances[0].status,"unavailable");
+  assert.ok(data.instances[0].lastSuccessAt);
+  assert.equal((await fetch(primary+"/readyz")).status,200);
+  const restarted=await start("agent",await freePort(),agentDir);
+  response=await fetch(restarted+"/api/sync/metrics",{headers:{"X-Dashmon-Sync-Token":token}});
+  assert.equal((await response.json()).agent.id,agentId);
   console.log("PASS agent : authentification, migration, configuration et collecte principale");
 }
 main().catch(error=>{console.error(error);process.exitCode=1;}).finally(async()=>{
   await Promise.all(children.map(child=>new Promise(resolve=>{
-    if(child.exitCode!==null) return resolve();
+    if(child.exitCode!==null || child.signalCode!==null) return resolve();
     child.once("exit",resolve);
     child.kill("SIGTERM");
   })));
