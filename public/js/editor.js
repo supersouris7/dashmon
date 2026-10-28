@@ -1360,6 +1360,19 @@ export function closeEditor(){
   document.querySelectorAll(".icon-picker.open").forEach(p=>p.classList.remove("open"));
 }
 
+function agentUrl(value){
+  const raw=String(value||"").trim();
+  if(!raw) return "";
+  const candidate=/^[a-z][a-z0-9+.-]*:\/\//i.test(raw) ? raw : "http://"+raw;
+  const url=sanitizeUrl(candidate);
+  if(!url) return "";
+  try{
+    const parsed=new URL(url);
+    if(parsed.username || parsed.password || parsed.search || parsed.hash) return "";
+    return parsed.href;
+  }catch(_error){ return ""; }
+}
+
 function setAgentTestStatus(status,state,text){
   status.className="agent-test-status"+(state ? " "+state : "");
   const icon=document.createElement("i");
@@ -1372,7 +1385,6 @@ function setAgentTestStatus(status,state,text){
 
 function renderReplicationEditor(){
   replicationEditor.replaceChildren();
-  const replication=state.replication||{role:"primary",instanceName:"Dashmon",secondaries:[]};
   const intro=document.createElement("p");
   intro.className="host-monitor-hint";
   intro.textContent=t("agentIntro");
@@ -1402,83 +1414,179 @@ function renderReplicationEditor(){
   docsLabel.textContent=t("agentIntegrationDocs")+" :";
   integrations.prepend(docsLabel);
   replicationEditor.appendChild(integrations);
+  if(!state.replication) state.replication={role:"primary",instanceName:"Dashmon",secondaries:[],agentNames:{}};
   const name=document.createElement("input");
-  name.className="edit-input"; name.placeholder=t("agentInstanceName"); name.setAttribute("aria-label",t("agentInstanceName")); name.value=replication.instanceName||"";
+  name.className="edit-input"; name.placeholder=t("agentInstanceName"); name.setAttribute("aria-label",t("agentInstanceName")); name.value=state.replication.instanceName||"";
   name.addEventListener("input",()=>state.replication.instanceName=name.value);
   replicationEditor.appendChild(monitoringField(t("agentInstanceName"),name));
   const nameHint=document.createElement("p");
   nameHint.className="host-monitor-hint";
   nameHint.textContent=t("agentInstanceNameHint");
   replicationEditor.appendChild(nameHint);
-  {
-    const urls=document.createElement("textarea");
-    urls.className="edit-input"; urls.rows=5; urls.placeholder="https://agent.exemple.lan";
-    urls.value=(replication.secondaries||[]).join("\n");
-    replicationEditor.appendChild(monitoringField(t("agentUrlsLabel"),urls));
-    const urlsHint=document.createElement("p");
-    urlsHint.className="host-monitor-hint";
-    urlsHint.textContent=t("agentUrlsHint");
-    replicationEditor.appendChild(urlsHint);
-    const names=document.createElement("div");
-    names.className="edit-list";
-    const renderNames=()=>{
-      names.replaceChildren();
-      const unique=[...new Set((state.replication.secondaries||[]).map(sanitizeUrl).filter(Boolean))].slice(0,20);
-      state.replication.agentNames=state.replication.agentNames||{};
-      unique.forEach(url=>{
-        const group=document.createElement("div");
-        group.className="agent-editor-item";
-        const label=document.createElement("label");
-        label.className="host-monitor-hint";
-        label.textContent=url;
-        const input=document.createElement("input");
-        input.className="edit-input";
-        input.maxLength=100;
-        input.placeholder=t("agentTabName");
-        input.setAttribute("aria-label",t("agentTabName")+" : "+url);
-        input.value=state.replication.agentNames[url]||"";
-        input.addEventListener("input",()=>{state.replication.agentNames[url]=input.value;});
-        label.appendChild(input);
-        group.appendChild(label);
-        const actions=document.createElement("div");
-        actions.className="agent-editor-actions";
-        const test=document.createElement("button");
-        test.type="button";
-        test.className="action-btn";
-        test.textContent=t("agentTest");
-        const status=document.createElement("span");
-        status.className="agent-test-status";
-        status.setAttribute("role","status");
-        test.addEventListener("click",async()=>{
-          test.disabled=true;
-          setAgentTestStatus(status,"pending",t("agentTesting"));
-          try{
-            const response=await fetch("/api/agents/test",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});
-            const result=await response.json();
-            const reasons={token_missing:"agentTokenMissing",unauthorized:"agentUnauthorized",invalid_url:"agentInvalidUrl",invalid_response:"agentInvalidResponse",incompatible_protocol:"agentIncompatible"};
-            setAgentTestStatus(status,result.ok ? "ok" : "error",t(result.ok ? "agentConnected" : reasons[result.reason]||"agentUnreachable"));
-          }catch(_error){ setAgentTestStatus(status,"error",t("agentUnreachable")); }
-          finally{ test.disabled=false; }
-        });
-        const configure=document.createElement("a");
-        configure.className="action-btn agent-configure";
-        configure.textContent=t("agentConfigure");
-        configure.target="_blank";
-        configure.rel="noopener noreferrer";
-        try{
-          const target=new URL(url);
-          if(!target.username && !target.password && !target.search && !target.hash) configure.href=target.href;
-        }catch(_error){}
-        actions.append(test,configure,status);
-        group.appendChild(actions);
-        names.appendChild(group);
+
+  const pairsHint=document.createElement("p");
+  pairsHint.className="host-monitor-hint";
+  pairsHint.textContent=t("agentUrlHint");
+  replicationEditor.appendChild(pairsHint);
+
+  const entries=(state.replication.secondaries||[]).map(url=>({
+    url,
+    name:(state.replication.agentNames||{})[url]||""
+  }));
+  const syncPairs=()=>{
+    const urls=[];
+    const names={};
+    for(const entry of entries){
+      const url=agentUrl(entry.url);
+      if(!url) continue;
+      if(!urls.includes(url)) urls.push(url);
+      const label=String(entry.name||"").trim();
+      if(label) names[url]=label;
+    }
+    state.replication.secondaries=urls.slice(0,20);
+    state.replication.agentNames=names;
+  };
+
+  const list=document.createElement("div");
+  list.className="agent-editor-list";
+
+  const renderPairs=()=>{
+    list.replaceChildren();
+    if(!entries.length){
+      const empty=document.createElement("p");
+      empty.className="host-monitor-hint";
+      empty.textContent=t("agentNoPairs");
+      list.appendChild(empty);
+      return;
+    }
+    entries.forEach((entry,index)=>{
+      const item=document.createElement("div");
+      item.className="agent-editor-item";
+
+      const urlInput=document.createElement("input");
+      urlInput.className="edit-input";
+      urlInput.placeholder="https://agent.exemple.lan:8080";
+      urlInput.maxLength=300;
+      urlInput.value=entry.url||"";
+      const invalid=document.createElement("p");
+      invalid.className="host-monitor-hint agent-url-error";
+      invalid.textContent=t("agentInvalidUrl");
+      invalid.hidden=true;
+
+      const validate=()=>{
+        const raw=String(entry.url||"").trim();
+        const ok=!raw || Boolean(agentUrl(raw));
+        urlInput.setAttribute("aria-invalid",String(!ok));
+        invalid.hidden=ok;
+      };
+
+      const nameInput=document.createElement("input");
+      nameInput.className="edit-input";
+      nameInput.maxLength=100;
+      nameInput.placeholder=t("agentTabName");
+      nameInput.value=entry.name||"";
+      nameInput.addEventListener("input",()=>{entry.name=nameInput.value;syncPairs();});
+
+      const status=document.createElement("span");
+      status.className="agent-test-status";
+      status.setAttribute("role","status");
+
+      const test=document.createElement("button");
+      test.type="button";
+      test.className="action-btn";
+      test.textContent=t("agentTest");
+
+      const configure=document.createElement("a");
+      configure.className="action-btn agent-configure";
+      configure.textContent=t("agentConfigure");
+      configure.target="_blank";
+      configure.rel="noopener noreferrer";
+      const updateConfigure=()=>{
+        const target=agentUrl(entry.url);
+        if(target) configure.href=target;
+        else configure.removeAttribute("href");
+      };
+      updateConfigure();
+
+      const remove=document.createElement("button");
+      remove.type="button";
+      remove.className="action-btn danger";
+      remove.textContent=t("agentRemove");
+      remove.addEventListener("click",()=>{
+        entries.splice(index,1);
+        syncPairs();
+        renderPairs();
+        add.disabled=entries.length>=20;
       });
-    };
-    urls.addEventListener("input",()=>{state.replication.secondaries=urls.value.split(/\r?\n/).map(value=>value.trim()).filter(Boolean);renderNames();});
-    replicationEditor.appendChild(urls);
-    replicationEditor.appendChild(names);
-    renderNames();
-  }
+
+      urlInput.addEventListener("input",()=>{
+        entry.url=urlInput.value;
+        syncPairs();
+        updateConfigure();
+        validate();
+        status.className="agent-test-status";
+        status.replaceChildren();
+      });
+      urlInput.addEventListener("blur",()=>{
+        const normalized=agentUrl(entry.url);
+        if(normalized) entry.url=normalized;
+        urlInput.value=entry.url||"";
+        syncPairs();
+        updateConfigure();
+        validate();
+      });
+
+      test.addEventListener("click",async()=>{
+        const target=agentUrl(entry.url);
+        if(!target){
+          setAgentTestStatus(status,"error",t("agentInvalidUrl"));
+          return;
+        }
+        test.disabled=true;
+        setAgentTestStatus(status,"pending",t("agentTesting"));
+        try{
+          const response=await fetch("/api/agents/test",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:target})});
+          const result=await response.json();
+          const reasons={token_missing:"agentTokenMissing",unauthorized:"agentUnauthorized",invalid_url:"agentInvalidUrl",invalid_response:"agentInvalidResponse",incompatible_protocol:"agentIncompatible"};
+          setAgentTestStatus(status,result.ok ? "ok" : "error",t(result.ok ? "agentConnected" : reasons[result.reason]||"agentUnreachable"));
+        }catch(_error){ setAgentTestStatus(status,"error",t("agentUnreachable")); }
+        finally{ test.disabled=false; }
+      });
+
+      const actions=document.createElement("div");
+      actions.className="agent-editor-actions";
+      actions.append(test,configure,remove,status);
+      item.append(
+        monitoringField(t("agentUrlLabel"),urlInput),
+        invalid,
+        monitoringField(t("agentTabName"),nameInput),
+        actions
+      );
+      list.appendChild(item);
+      validate();
+    });
+  };
+
+  const add=document.createElement("button");
+  add.type="button";
+  add.className="action-btn";
+  add.innerHTML='<i class="fa-solid fa-plus"></i>&nbsp; ';
+  add.append(document.createTextNode(t("agentAddPair")));
+  add.disabled=entries.length>=20;
+  add.addEventListener("click",()=>{
+    if(entries.length>=20) return;
+    entries.push({url:"",name:""});
+    syncPairs();
+    renderPairs();
+    add.disabled=entries.length>=20;
+    list.lastElementChild?.querySelector("input")?.focus();
+  });
+
+  const addRow=document.createElement("div");
+  addRow.className="agent-editor-actions";
+  addRow.appendChild(add);
+  replicationEditor.append(list,addRow);
+  renderPairs();
 }
 
 // Applique le bon rendu sans quitter les parametres : le tableau de bord et la

@@ -183,9 +183,11 @@ body.modal-open{
 .modal .smart-disk-choices,.modal .widget-hint,.widget-config-panel .widget-cfg-field,
 .widget-config-panel .widget-cfg-note,.widget-config-panel .action-btn{font-size:16px}
 .modal textarea.edit-input{height:auto;min-height:80px;padding:8px 10px}
-.agent-editor-item{display:grid;gap:8px}
+.agent-editor-list{display:grid;gap:12px}
+.agent-editor-item{display:grid;gap:8px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
 .agent-doc-links{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
 .agent-editor-item label{display:grid;gap:4px;overflow-wrap:anywhere}
+.agent-url-error{color:var(--error)}
 .agent-editor-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .agent-configure{display:inline-flex;align-items:center;text-decoration:none}
 .agent-configure:not([href]){opacity:.45;pointer-events:none}
