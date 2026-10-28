@@ -25,6 +25,56 @@ body.modal-open{
   overflow:hidden;
 }
 
+.confirm-backdrop{
+  z-index:1600;
+  background:rgba(0,0,0,.62);
+}
+
+.confirm-backdrop.show{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+
+.confirm-modal{
+  width:min(480px,100%);
+  display:grid;
+  gap:16px;
+  padding:24px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--surface);
+  box-shadow:var(--shadow);
+}
+
+.confirm-title{
+  margin:0;
+  font-size:18px;
+}
+
+.confirm-message{
+  margin:0;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+.confirm-actions{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:8px;
+}
+
+.save-status{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-right:4px;
+  color:var(--success);
+  font-size:14px;
+}
+
 .modal{
   width:100%;
   max-width:none;

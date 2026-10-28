@@ -13,7 +13,7 @@ import {
 import { startStatusLoop, setupVisibilityPause, manualRefresh } from "./metrics.js";
 import { renderSupervision, toggleAllSmartDetails } from "./supervision.js";
 import { renderPageSwitch, setPage } from "./pages.js";
-import { openEditor, closeEditor, renderServiceEditor, renderCategoryEditor,
+import { openEditor, requestCloseEditor, dismissConfirm, renderServiceEditor, renderCategoryEditor,
   renderDashboardEditor, renderHostEditor, renderWebLinksEditor, renderWidgetsEditor } from "./editor.js";
 import { closeImageLibrary } from "./images.js";
 import { loadWidgetRegistry } from "./widget-registry.js";
@@ -358,7 +358,11 @@ document.addEventListener("keydown",e=>{
       closeAppearance();
       return;
     }
-    if(modalBackdrop.classList.contains("show")) closeEditor();
+    if(document.getElementById("confirmBackdrop").classList.contains("show")){
+      dismissConfirm();
+      return;
+    }
+    if(modalBackdrop.classList.contains("show")) requestCloseEditor();
     return;
   }
 

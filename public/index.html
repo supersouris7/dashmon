@@ -319,13 +319,19 @@
 
     <div class="modal-header editor-footer">
       <div class="action-group">
+        <span id="saveStatus" class="save-status" role="status" aria-live="polite"></span>
         <button id="cancelBtn" class="action-btn" type="button">Annuler</button>
-        <button id="applyConfigBtn" class="action-btn" type="button">
-          <i class="fa-solid fa-check"></i>&nbsp; <span id="applyConfigLabel">Appliquer</span>
-        </button>
         <button id="saveBtn" class="action-btn primary" type="button">Enregistrer</button>
       </div>
     </div>
+  </div>
+</div>
+
+<div id="confirmBackdrop" class="modal-backdrop confirm-backdrop" aria-hidden="true">
+  <div class="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+    <h2 id="confirmTitle" class="confirm-title"></h2>
+    <p id="confirmMessage" class="confirm-message"></p>
+    <div id="confirmActions" class="confirm-actions"></div>
   </div>
 </div>
 

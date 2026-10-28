@@ -19,9 +19,82 @@ import {
   editorSearch, editorCategoryFilter, editorHostFilter,
   modalBackdrop, editorTitle, closeBtn, cancelBtn, saveBtn,
   addServiceBtn, addCategoryBtn, addDashboardBtn, addWebLinkBtn, addHostBtn,
-  exportConfigBtn, importConfigBtn, applyConfigBtn, configImportInput, importExportStatus,
+  exportConfigBtn, importConfigBtn, configImportInput, importExportStatus,
   widgetConfig, widgetConfigBody, widgetConfigCloseBtn, widgetConfigSaveBtn, replicationEditor
 } from "./dom.js";
+
+const saveStatus=document.getElementById("saveStatus");
+const confirmBackdrop=document.getElementById("confirmBackdrop");
+const confirmTitle=document.getElementById("confirmTitle");
+const confirmMessage=document.getElementById("confirmMessage");
+const confirmActions=document.getElementById("confirmActions");
+let confirmResolve=null;
+let editorBaseline="";
+let replicationAtOpen=null;
+let editorSaving=false;
+
+function editorSnapshot(){
+  return JSON.stringify({
+    services:state.editServices,
+    categories:state.editCategories,
+    dashboards:state.editDashboards,
+    hosts:state.editHosts,
+    webLinks:state.editWebLinks,
+    specialTile:state.editSpecialTile,
+    replication:state.replication
+  });
+}
+
+function openConfirm({title,message,actions}){
+  if(confirmResolve) confirmResolve("cancel");
+  confirmTitle.textContent=title;
+  confirmMessage.textContent=message;
+  confirmActions.replaceChildren();
+  return new Promise(resolve=>{
+    const finish=value=>{
+      if(confirmResolve!==finish) return;
+      confirmResolve=null;
+      confirmBackdrop.classList.remove("show");
+      confirmBackdrop.setAttribute("aria-hidden","true");
+      resolve(value);
+    };
+    confirmResolve=finish;
+    for(const action of actions){
+      const button=document.createElement("button");
+      button.type="button";
+      button.className=action.className||"action-btn";
+      button.textContent=action.label;
+      button.addEventListener("click",()=>finish(action.id));
+      confirmActions.appendChild(button);
+    }
+    confirmBackdrop.classList.add("show");
+    confirmBackdrop.setAttribute("aria-hidden","false");
+    confirmActions.querySelector("button")?.focus();
+  });
+}
+
+function confirmDelete(message){
+  return openConfirm({
+    title:t("confirmDeleteTitle"),
+    message,
+    actions:[
+      {id:"cancel",label:t("cancelBtn")},
+      {id:"confirm",label:t("deleteLabel"),className:"action-btn danger"}
+    ]
+  }).then(result=>result==="confirm");
+}
+
+function showSaveStatus(){
+  saveStatus.replaceChildren();
+  const icon=document.createElement("i");
+  icon.className="fa-solid fa-circle-check";
+  icon.setAttribute("aria-hidden","true");
+  saveStatus.append(icon,document.createTextNode(t("settingsSaved")));
+}
+
+function clearSaveStatus(){
+  saveStatus.replaceChildren();
+}
 
 function moveItem(list,fromIndex,toIndex){
   if(fromIndex===toIndex) return;
@@ -253,7 +326,8 @@ export function renderServiceEditor(){
     remove.type="button";
     remove.title=t("deleteLabel");
     remove.innerHTML='<i class="fa-solid fa-trash"></i>';
-    remove.addEventListener("click",()=>{
+    remove.addEventListener("click",async()=>{
+      if(!(await confirmDelete(t("confirmDeleteService")))) return;
       state.editServices.splice(index,1);
       renderServiceEditor();
     });
@@ -566,7 +640,8 @@ export function renderWebLinksEditor(){
     del.type="button";
     del.title=t("deleteLabel");
     del.innerHTML='<i class="fa-solid fa-trash"></i>';
-    del.addEventListener("click",()=>{
+    del.addEventListener("click",async()=>{
+      if(!(await confirmDelete(t("confirmDeleteWebLink")))) return;
       state.editWebLinks.splice(index,1);
       renderWebLinksEditor();
     });
@@ -728,7 +803,8 @@ export function renderCategoryEditor(){
     remove.type="button";
     remove.title=t("deleteLabel");
     remove.innerHTML='<i class="fa-solid fa-trash"></i>';
-    remove.addEventListener("click",()=>{
+    remove.addEventListener("click",async()=>{
+      if(!(await confirmDelete(t("confirmDeleteCategory")))) return;
       const removedName=state.editCategories[index].name;
       state.editCategories.splice(index,1);
       state.editServices.forEach(service=>{
@@ -780,9 +856,9 @@ export function renderDashboardEditor(){
     remove.type="button";
     remove.title=t("deleteLabel");
     remove.innerHTML='<i class="fa-solid fa-trash"></i>';
-    remove.addEventListener("click",()=>{
+    remove.addEventListener("click",async()=>{
       if(state.editDashboards.length<=1) return;
-      if(!confirm(t("deleteDashboardConfirm"))) return;
+      if(!(await confirmDelete(t("deleteDashboardConfirm")))) return;
       const removedId=state.editDashboards[index].id;
       state.editDashboards.splice(index,1);
       const fallbackId=state.editDashboards[0].id;
@@ -1012,7 +1088,8 @@ export function renderHostEditor(){
     remove.type="button";
     remove.title=t("deleteLabel");
     remove.innerHTML='<i class="fa-solid fa-trash"></i>';
-    remove.addEventListener("click",()=>{
+    remove.addEventListener("click",async()=>{
+      if(!(await confirmDelete(t("confirmDeleteHost")))) return;
       const removedName=state.editHosts[index].name;
       state.editHosts.splice(index,1);
       state.editServices.forEach(service=>{
@@ -1336,6 +1413,8 @@ export function openEditor(mode="all"){
   state.editHosts=clone(state.hosts);
   state.editWebLinks=clone(state.webLinks);
   state.editSpecialTile=clone(state.specialTile);
+  state.replication=normalizeConfig({replication:state.replication}).replication;
+  replicationAtOpen=clone(state.replication);
   editorSearch.value="";
   editorCategoryFilter.value="";
   editorHostFilter.value="";
@@ -1347,17 +1426,53 @@ export function openEditor(mode="all"){
   renderWidgetsEditor();
   renderReplicationEditor();
   applyEditorMode(mode);
+  clearSaveStatus();
+  editorBaseline=editorSnapshot();
   modalBackdrop.classList.add("show");
   modalBackdrop.setAttribute("aria-hidden","false");
   document.body.classList.add("modal-open");
 }
 
 export function closeEditor(){
+  clearSaveStatus();
   modalBackdrop.classList.remove("show");
   modalBackdrop.setAttribute("aria-hidden","true");
   document.body.classList.remove("modal-open");
   closeWidgetConfig();
   document.querySelectorAll(".icon-picker.open").forEach(p=>p.classList.remove("open"));
+}
+
+function discardEditor(){
+  if(replicationAtOpen) state.replication=clone(replicationAtOpen);
+  closeEditor();
+}
+
+export function dismissConfirm(){
+  if(confirmResolve) confirmResolve("cancel");
+}
+
+export function requestCloseEditor(){
+  if(!modalBackdrop.classList.contains("show")) return;
+  if(confirmResolve){ confirmResolve("cancel"); return; }
+  if(editorSnapshot()===editorBaseline){
+    closeEditor();
+    return;
+  }
+  openConfirm({
+    title:t("unsavedTitle"),
+    message:t("unsavedMessage"),
+    actions:[
+      {id:"cancel",label:t("cancelBtn")},
+      {id:"discard",label:t("discardBtn"),className:"action-btn danger"},
+      {id:"save",label:t("saveBtn"),className:"action-btn primary"}
+    ]
+  }).then(async result=>{
+    if(result==="discard") discardEditor();
+    else if(result==="save"){
+      const saved=await applyEditorChanges();
+      if(saved) closeEditor();
+    }
+  });
 }
 
 function agentUrl(value){
@@ -1512,7 +1627,8 @@ function renderReplicationEditor(){
       remove.type="button";
       remove.className="action-btn danger";
       remove.textContent=t("agentRemove");
-      remove.addEventListener("click",()=>{
+      remove.addEventListener("click",async()=>{
+        if(!(await confirmDelete(t("confirmDeleteAgent")))) return;
         entries.splice(index,1);
         syncPairs();
         renderPairs();
@@ -1786,13 +1902,20 @@ document.querySelectorAll(".edit-tab").forEach(tab=>{
   });
 });
 
-closeBtn.addEventListener("click",closeEditor);
-cancelBtn.addEventListener("click",closeEditor);
+closeBtn.addEventListener("click",requestCloseEditor);
+cancelBtn.addEventListener("click",requestCloseEditor);
 modalBackdrop.addEventListener("click",e=>{
-  if(e.target===modalBackdrop) closeEditor();
+  if(e.target===modalBackdrop) requestCloseEditor();
+});
+confirmBackdrop.addEventListener("click",e=>{
+  if(e.target===confirmBackdrop && confirmResolve) confirmResolve("cancel");
 });
 
-async function applyEditorChanges(closeWhenSaved){
+async function applyEditorChanges(){
+  if(editorSaving) return false;
+  editorSaving=true;
+  clearSaveStatus();
+  try{
   // Noms presents avant la sauvegarde : sert a verifier ensuite, aupres du
   // serveur, que les suppressions ont bien ete ecrites (et non seulement
   // affichees). Sans ce controle, une ecriture perdue ne se voyait qu'apres un
@@ -1932,10 +2055,11 @@ async function applyEditorChanges(closeWhenSaved){
     // Ne pas fermer l'editeur en silence : sans ce garde, l'interface montrait
     // la suppression alors que le fichier n'avait pas ete ecrit.
     alert(t(configConflict ? "configConflict" : "saveError"));
-    return;
+    return false;
   }
   // Utiliser immediatement les URL canoniques, comme au prochain chargement.
   state.replication=normalizeConfig({replication:state.replication}).replication;
+  replicationAtOpen=clone(state.replication);
   if(importedConfigDraft){
     applyTheme();
     applyLanguage();
@@ -1961,15 +2085,16 @@ async function applyEditorChanges(closeWhenSaved){
       }
     }catch(_error){}
   }
-  if(closeWhenSaved) closeEditor();
-  else{
-    refreshEditorDrafts();
-    importExportStatus.textContent=t("applyDone");
+  refreshEditorDrafts();
+  editorBaseline=editorSnapshot();
+  showSaveStatus();
+  return true;
+  }finally{
+    editorSaving=false;
   }
 }
 
-saveBtn.addEventListener("click",()=>applyEditorChanges(true));
-applyConfigBtn.addEventListener("click",()=>applyEditorChanges(false));
+saveBtn.addEventListener("click",applyEditorChanges);
 
 let editorSearchTimer=null;
 editorSearch.addEventListener("input",()=>{
