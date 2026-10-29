@@ -71,7 +71,7 @@ Rules:
 Semgrep est disponible dans le PATH du serveur OpenCode.
 
 Commande :
-semgrep scan --config auto --metrics=off .
+semgrep scan --config p/default --metrics=off .
 
 ### Utilisation
 
