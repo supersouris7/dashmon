@@ -15,6 +15,19 @@ const agentProtocol = require("./lib/agent-protocol");
 const { createAuth } = require("./lib/auth");
 const { createScheduler } = require("./lib/scheduler");
 const { securityHeaders } = require("./lib/security-headers");
+const { verifyRequestOrigin } = require("./lib/request-origin");
+const { createRateLimiter } = require("./lib/rate-limit");
+const { createReplicationConfig } = require("./lib/replication-config");
+const { createLocalMetrics } = require("./lib/local-metrics");
+const { sanitizeText,sanitizeUrl } = require("./lib/sanitize");
+const { createSecretCodec } = require("./lib/secrets");
+const { readAptUpdatesReport } = require("./lib/apt-report");
+const { readSmartDump } = require("./lib/smart-report");
+const { readWireguardDump } = require("./lib/wireguard-report");
+const { registerConfigRoutes } = require("./lib/config-routes");
+const { registerAgentRoutes } = require("./lib/agent-routes");
+const { HOST_MONITORING_TYPES,sanitizeHostMonitoring } = require("./lib/config-fields");
+const { createConfigNormalizer } = require("./lib/config-normalize");
 
 function createApp(){
 const app = express();
@@ -127,76 +140,23 @@ const {validSession,validBasicAuth,setSessionCookie}=createAuth({password:DASHMO
 
 app.use(securityHeaders);
 
-app.use((_req, res, next) => {
-  if (["POST", "PUT", "DELETE", "PATCH"].includes(_req.method)) {
-    const origin = _req.get("Origin");
-    if (origin) {
-      const host = _req.get("Host") || "";
-      let ok = false;
-      try {
-        const secure = _req.secure || _req.get("x-forwarded-proto") === "https";
-        const o = new URL(origin);
-        const hostNoPort = host.split(":")[0];
-        const hostPort = host.split(":")[1] || (secure ? "443" : "80");
-        const originPort = o.port || (o.protocol === "https:" ? "443" : "80");
-        ok = o.hostname === hostNoPort && originPort === hostPort;
-      } catch (_) {}
-      if (!ok) {
-        return res.status(403).json({ error: "Requête refusée (CSRF)" });
-      }
-    }
-  }
-  next();
+app.use(verifyRequestOrigin);
+
+const writesLimiter=createRateLimiter({
+  windowMs:60000,
+  max:60,
+  skip:req=>["GET","HEAD","OPTIONS"].includes(req.method),
+  retryAfter:true
 });
-
-const rateLimitStore = new Map();
-const RATE_LIMIT_WINDOW = 60000;
-const RATE_LIMIT_MAX = 60;
-
-function rateLimit(req, res, next) {
-  if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") return next();
-  const ip = req.ip || "unknown";
-  const now = Date.now();
-  const entry = rateLimitStore.get(ip);
-  if (!entry || now - entry.ts > RATE_LIMIT_WINDOW) {
-    rateLimitStore.set(ip, { ts: now, count: 1 });
-    return next();
-  }
-  entry.count++;
-  if (entry.count > RATE_LIMIT_MAX) {
-    res.set("Retry-After", String(Math.ceil((RATE_LIMIT_WINDOW - (now - entry.ts)) / 1000)));
-    return res.status(429).json({ error: "Trop de requêtes, réessayez plus tard" });
-  }
-  next();
-}
-
-setInterval(() => {
-  const cutoff = Date.now() - RATE_LIMIT_WINDOW * 2;
-  for (const [ip, entry] of rateLimitStore) {
-    if (entry.ts < cutoff) rateLimitStore.delete(ip);
-  }
-}, 300000).unref();
+const readsLimiter=createRateLimiter({windowMs:60000,max:120});
+const rateLimit=writesLimiter.middleware;
+const rateLimitGet=readsLimiter.middleware;
+setInterval(()=>{
+  writesLimiter.cleanup();
+  readsLimiter.cleanup();
+},300000).unref();
 
 app.use("/api", rateLimit);
-
-const GET_LIMIT_WINDOW = 60000;
-const GET_LIMIT_MAX = 120;
-const getLimitStore = new Map();
-
-function rateLimitGet(req, res, next) {
-  const ip = req.ip || "unknown";
-  const now = Date.now();
-  const entry = getLimitStore.get(ip);
-  if (!entry || now - entry.ts > GET_LIMIT_WINDOW) {
-    getLimitStore.set(ip, { ts: now, count: 1 });
-    return next();
-  }
-  entry.count++;
-  if (entry.count > GET_LIMIT_MAX) {
-    return res.status(429).json({ error: "Trop de requêtes, réessayez plus tard" });
-  }
-  next();
-}
 
 app.use("/api/status", rateLimitGet);
 app.use("/api/sync/metrics", rateLimitGet);
@@ -245,81 +205,13 @@ app.use((_req,res,next)=>{
   next();
 });
 
-function sanitizeText(value, max = 100) {
-  return String(value || "").trim()
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F<>]/g, "")
-    .slice(0, max);
-}
-
-// Couleur de tuille : uniquement un hexadecimal, rien d'autre. La valeur part
-// dans un attribut style du DOM, donc une couleur "fonctionnelle" (var(...),
-// url(...)) serait un vecteur d'injection de CSS. "#" est refuse aussi : on
-// n'accepte que la notation que le selecteur de l'editeur produit.
-function sanitizeColor(value) {
-  const s = String(value || "").trim().toLowerCase();
-  return /^#[0-9a-f]{6}$/.test(s) ? s : "";
-}
-
-function sanitizeUrl(url) {
-  try {
-    const u = new URL(String(url || ""));
-    if (u.protocol === "http:" || u.protocol === "https:") return u.href;
-  } catch (_) {}
-  return "";
-}
-
-function sanitizeIconClass(icon) {
-  const s = String(icon || "").trim().toLowerCase();
-  if (/^[a-z0-9][a-z0-9-]*( [a-z0-9][a-z0-9-]*)*$/.test(s) && s.length <= 80) return s;
-  return "fa-solid fa-folder";
-}
-
-function sanitizeImagePath(p) {
-  const s = String(p || "").trim();
-  const m = s.match(/^icons\/([a-zA-Z0-9._-]+)\.png$/);
-  return m ? `icons/${m[1]}.png` : "";
-}
-
 // Secrets de widget chiffrés au repos : clé maîtresse en DASHMON_MASTER_KEY.
 // Sans clé, repli sur le stockage en clair (warning au démarrage) pour rester
 // utilisable sans configuration.
 const MASTER_KEY=String(process.env.DASHMON_MASTER_KEY||"");
-const MASTER_KEY_DERIVED=MASTER_KEY
-  ? crypto.createHash("sha256").update(MASTER_KEY,"utf8").digest()
-  : null;
-const SECRET_PREFIX="aes1.";
+const {isEncryptedSecret,encryptSecret,decryptSecret}=createSecretCodec(MASTER_KEY);
 if(!MASTER_KEY){
   console.warn(`${ts()} ⚠ DASHMON_MASTER_KEY absente : les mots de passe des widgets sont stockés EN CLAIR dans config.json.`);
-}
-
-function isEncryptedSecret(value){
-  return typeof value==="string" && value.startsWith(SECRET_PREFIX);
-}
-
-function encryptSecret(value){
-  if(MASTER_KEY_DERIVED===null) return String(value||"");
-  const iv=crypto.randomBytes(12);
-  const cipher=crypto.createCipheriv("aes-256-gcm",MASTER_KEY_DERIVED,iv);
-  const enc=Buffer.concat([cipher.update(String(value||""),"utf8"),cipher.final()]);
-  const tag=cipher.getAuthTag();
-  return `${SECRET_PREFIX}${iv.toString("base64")}.${tag.toString("base64")}.${enc.toString("base64")}`;
-}
-
-function decryptSecret(value){
-  if(!isEncryptedSecret(value)) return String(value||"");
-  if(MASTER_KEY_DERIVED===null) return "";
-  try{
-    const parts=value.slice(SECRET_PREFIX.length).split(".");
-    if(parts.length!==3) return "";
-    const iv=Buffer.from(parts[0],"base64");
-    const tag=Buffer.from(parts[1],"base64");
-    const data=Buffer.from(parts[2],"base64");
-    const decipher=crypto.createDecipheriv("aes-256-gcm",MASTER_KEY_DERIVED,iv);
-    decipher.setAuthTag(tag);
-    return Buffer.concat([decipher.update(data),decipher.final()]).toString("utf8");
-  }catch(_error){
-    return "";
-  }
 }
 
 // Le core widgets charge le registre, dispatche les checks, gere le cache, les
@@ -574,19 +466,6 @@ function withCacheKeys(config){
   };
 }
 
-app.get("/api/config",(_req,res)=>{
-  try{
-    res.set("Cache-Control","no-store");
-    ensureHostIds();
-    const config=readConfig();
-    res.set("ETag",configStore.revision(config));
-    res.json(withCacheKeys(config));
-  }catch(error){
-    console.error("Lecture config:",error);
-    res.status(500).json({error:"Lecture de config.json impossible"});
-  }
-});
-
 // Registre des widgets installees : metadonnees publiques (schema de config,
 // libelles, icone, periode). Ni code serveur, ni secret.
 app.get("/api/widgets",(_req,res)=>{
@@ -621,182 +500,10 @@ function serializeWidget(widget){
     : widgetCore.preserveWidget(widget);
 }
 
-// Compteurs du bandeau "Liens web" : un lien peut afficher un chiffre public
-// (etoiles GitHub, pulls Docker Hub, abonnes YouTube) a cote de son nom. Les
-// types autorises sont exactement les widgets capables de fournir ce chiffre.
-// Doit rester identique a public/js/state.js (LINK_COUNTER_TYPES).
-const WEB_LINK_COUNTER_TYPES=new Set(["github","dockerhub","youtube"]);
-
-// La cible (depot ou chaine) est obligatoire : un compteur sans cible ne peut
-// rien mesurer. Un type inconnu est refuse, le lien reste alors sans compteur.
-function sanitizeLinkCounter(raw){
-  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
-  const type=typeof raw.type==="string" ? raw.type.trim() : "";
-  if(!WEB_LINK_COUNTER_TYPES.has(type)) return null;
-  const target=sanitizeText(raw.target,200);
-  if(!target) return null;
-  return {type,target};
-}
-
-// Tuiles speciales acceptees : une seule active a la fois, d'ou un objet unique.
-// Doit rester identique a public/js/state.js (SPECIAL_TILE_TYPES).
-const SPECIAL_TILE_TYPES=new Set(["fortune"]);
-
-// Le type inconnu est refuse (la tuile disparait) ; la categorie est obligatoire
-// et retombe sur la premiere categorie, ou "Autres" s'il n'y en a aucune.
-function sanitizeSpecialTile(raw,categories){
-  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
-  const type=typeof raw.type==="string" ? raw.type : "";
-  if(!SPECIAL_TILE_TYPES.has(type)) return null;
-  const names=(categories||[]).map(cat=>sanitizeText(cat.name,100)).filter(Boolean);
-  const category=sanitizeText(raw.category,100) || names[0] || "Autres";
-  return {type,category};
-}
-
-// Seule la machine locale est mesuree directement ; les autres utilisent un agent.
-const HOST_MONITORING_TYPES = new Set(["local"]);
-
-function sanitizeHostMonitoring(raw){
-  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return undefined;
-  if(raw.type && raw.type!=="local") return undefined;
-  const type = HOST_MONITORING_TYPES.has(raw.type) ? raw.type : "local";
-  const monitoring = {
-    enabled: raw.enabled === true,
-    type,
-    path: sanitizeText(raw.path, 200)
-  };
-  // Preferences d'affichage WireGuard : uniquement conservees si elles disent
-  // quelque chose (section masquee ou interface filtree), pour ne pas alourdir
-  // la configuration avec les valeurs par defaut.
-  const wgRaw = type === "local" && raw.wireguard && typeof raw.wireguard === "object" && !Array.isArray(raw.wireguard)
-    ? raw.wireguard : null;
-  if(wgRaw){
-    const wireguard = {
-      enabled: wgRaw.enabled !== false,
-      interface: sanitizeText(wgRaw.interface, 50)
-    };
-    if(!wireguard.enabled || wireguard.interface) monitoring.wireguard = wireguard;
-  }
-  const smartRaw = raw.smart && typeof raw.smart === "object" && !Array.isArray(raw.smart)
-    ? raw.smart : null;
-  if(smartRaw){
-    const disks = Array.isArray(smartRaw.disks)
-      ? [...new Set(smartRaw.disks.map(value=>sanitizeText(value,100)).filter(Boolean))].slice(0,20)
-      : [];
-    const smart = { enabled: smartRaw.enabled !== false, disks };
-    if(!smart.enabled || smart.disks.length) monitoring.smart = smart;
-  }
-  if(raw.aptUpdates && typeof raw.aptUpdates==="object" && !Array.isArray(raw.aptUpdates)){
-    const aptUpdates={enabled:raw.aptUpdates.enabled!==false};
-    if(!aptUpdates.enabled) monitoring.aptUpdates=aptUpdates;
-  }
-  // Un hote sans supervision activee et sans aucun parametre ne garde pas un
-  // objet vide dans config.json : la config reste lisible.
-  const meaningful = monitoring.path
-    || monitoring.wireguard || monitoring.smart || monitoring.aptUpdates;
-  if(!monitoring.enabled && !meaningful) return undefined;
-  return monitoring;
-}
-
-function buildConfigOutput(config){
-  // Dashboards et categories partagent un lien obligatoire : une categorie
-  // appartient a un dashboard. On resout donc d'abord la liste des dashboards
-  // (toujours au moins un), puis on y rattache chaque categorie. Un
-  // identifiant de dashboard vide, reserve ("supervision") ou duplique est
-  // regenere, comme pour les hotes.
-  const dashboards=(Array.isArray(config.dashboards) ? config.dashboards : [])
-    .slice(0,20)
-    .map(d=>({
-      id:sanitizeText(d && d.id,64),
-      name:sanitizeText(d && d.name,100),
-      icon:sanitizeIconClass(d && d.icon)
-    }))
-    .filter(d=>d.name)
-    .reduce((list,d)=>{
-      let id=d.id;
-      const reserved=id==="supervision";
-      if(!id || reserved || list.some(item=>item.id===id)){
-        id="dashboard-"+crypto.randomBytes(4).toString("hex");
-      }
-      list.push({id,name:d.name,icon:d.icon});
-      return list;
-    },[]);
-  if(!dashboards.length){
-    dashboards.push({id:"main",name:"Dashboard",icon:"fa-solid fa-grip"});
-  }
-  const dashboardIds=new Set(dashboards.map(d=>d.id));
-  const categories=Array.isArray(config.categories)
-    ? config.categories.slice(0,50).map(cat=>({
-        name:sanitizeText(cat.name,100),
-        icon:sanitizeIconClass(cat.icon),
-        color:sanitizeColor(cat.color),
-        dashboardId:dashboardIds.has(sanitizeText(cat.dashboardId,64)) ? sanitizeText(cat.dashboardId,64) : dashboards[0].id
-      }))
-    : [];
-  return {
-      services:Array.isArray(config.services)
-        ? config.services.slice(0,200).map(svc=>({
-            name:sanitizeText(svc.name,100),
-            host:sanitizeText(svc.host,100),
-            category:sanitizeText(svc.category,100),
-            url:sanitizeUrl(svc.url),
-            icon:sanitizeImagePath(svc.icon),
-            monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true,
-            widget:serializeWidget(svc.widget)
-          }))
-        : [],
-      categories,
-      dashboards,
-      // Tuile speciale unique du tableau de bord, placee dans une categorie.
-      // Le type est verifie contre la liste blanche ; la categorie est
-      // obligatoire, on retombe sur la premiere definie faute de mieux.
-       specialTile:sanitizeSpecialTile(config.specialTile,categories),
-       replication:sanitizeReplication(config.replication),
-      hosts:Array.isArray(config.hosts)
-        ? config.hosts.slice(0,51).map(host=>{
-            return {
-              id:sanitizeText(host.id,64) || "host-"+crypto.randomBytes(6).toString("hex"),
-              name:sanitizeText(host.name,100),
-              icon:sanitizeIconClass(host.icon),
-              color:sanitizeColor(host.color),
-              monitoring:sanitizeHostMonitoring(host.monitoring)
-            };
-          })
-        : [],
-       collapsed:config.collapsed && typeof config.collapsed==="object" && !Array.isArray(config.collapsed)
-        ? config.collapsed : {},
-      viewMode:["rows","columns","plain"].includes(config.viewMode) ? config.viewMode : "columns",
-      openMode:config.openMode==="new" ? "new" : "same",
-      groupMode:config.groupMode==="host" ? "host" : "category",
-      theme:typeof config.theme==="string" && config.theme.trim() ? config.theme.trim() : "dark",
-      language:config.language==="fr" ? "fr" : "en",
-      sortMode:config.sortMode==="usage" ? "usage" : "alphabetical",
-      usageCounts:config.usageCounts && typeof config.usageCounts==="object" && !Array.isArray(config.usageCounts)
-        ? Object.fromEntries(
-            Object.entries(config.usageCounts)
-              .slice(0,500)
-              .map(([key,value])=>{
-                const n=Number(value);
-                return [String(key).slice(0,200),Number.isFinite(n)&&n>=0 ? Math.floor(n) : 0];
-              })
-          )
-        : {},
-      webLinks:Array.isArray(config.webLinks)
-        ? config.webLinks.slice(0,100).map(link=>({
-            name:sanitizeText(link.name,100),
-            url:sanitizeUrl(link.url),
-            icon:sanitizeIconClass(link.icon),
-            counter:sanitizeLinkCounter(link.counter)
-          }))
-        : [],
-      webLinksSeedVersion:Number.isFinite(Number(config.webLinksSeedVersion))
-        ? Number(config.webLinksSeedVersion) : 0,
-      webLinksColor:config.webLinksColor==="pastel-red" ? "red"
-        : ["dark","red","blue","green","orange","purple"].includes(config.webLinksColor)
-          ? config.webLinksColor : "dark",
-      smallIcons:config.smallIcons===true
-  };
-}
+const buildConfigOutput=createConfigNormalizer({
+  serializeWidget,
+  sanitizeReplication:value=>sanitizeReplication(value)
+});
 
 function writeConfig(output){
   configStore.write(output);
@@ -839,88 +546,19 @@ app.get("/api/sync/metrics",(req,res)=>{
   return serveHostMetrics(req,res);
 });
 
-const agentLastSuccess=new Map();
-app.get("/api/replication/metrics",async(_req,res)=>{
-  const replication=sanitizeReplication(readConfig().replication);
-  if(replication.role!=="primary") return res.json({instances:[]});
-  if(!DASHMON_SYNC_TOKEN) return res.status(503).json({error:"DASHMON_SYNC_TOKEN absent"});
-  for(const url of agentLastSuccess.keys()) if(!replication.secondaries.includes(url)) agentLastSuccess.delete(url);
-  const instances=await Promise.all(replication.secondaries.map(async url=>{
-    try{
-      const payload=await httpClient.apiRequest(url,"/api/sync/metrics",{
-        timeout:STATUS_TIMEOUT,headers:{"X-Dashmon-Sync-Token":DASHMON_SYNC_TOKEN}
-      });
-      const assessment=agentProtocol.assess(payload,{lastSuccessAt:agentLastSuccess.get(url)||null});
-      if(assessment.status==="available") agentLastSuccess.set(url,assessment.lastSuccessAt);
-      if(assessment.status==="unavailable") return {url,ok:false,error:"Instance inaccessible",hosts:[],...assessment};
-      return {url,ok:true,hosts:payload.hosts,...assessment};
-    }catch(error){ return {url,ok:false,status:"unavailable",reason:"unreachable",lastSuccessAt:agentLastSuccess.get(url)||null,error:"Instance inaccessible",hosts:[]}; }
-  }));
-  res.set("Cache-Control","no-store");
-  res.json({instances});
+registerAgentRoutes(app,{
+  readConfig,
+  sanitizeReplication:value=>sanitizeReplication(value),
+  sanitizeSyncUrl:value=>sanitizeSyncUrl(value),
+  request:httpClient.apiRequest,assess:agentProtocol.assess,
+  token:DASHMON_SYNC_TOKEN,timeout:STATUS_TIMEOUT
 });
 
-// Teste aussi une adresse qui n'a pas encore ete enregistree dans l'editeur.
-// Comme pour la supervision, la connexion est bornee et ne suit pas de redirection.
-app.post("/api/agents/test",async(req,res)=>{
-  res.set("Cache-Control","no-store");
-  if(!DASHMON_SYNC_TOKEN) return res.status(503).json({ok:false,reason:"token_missing"});
-  const url=sanitizeSyncUrl(typeof req.body?.url==="string" ? req.body.url : "");
-  if(!url) return res.status(400).json({ok:false,reason:"invalid_url"});
-  try{
-    const payload=await httpClient.apiRequest(url,"/api/sync/metrics",{
-      timeout:STATUS_TIMEOUT,headers:{"X-Dashmon-Sync-Token":DASHMON_SYNC_TOKEN}
-    });
-    const assessment=agentProtocol.assess(payload);
-    if(assessment.status==="unavailable") return res.status(502).json({ok:false,reason:assessment.reason});
-    return res.json({ok:true});
-  }catch(error){
-    return res.status(502).json({ok:false,reason:error.status===401 ? "unauthorized" : "unreachable"});
-  }
-});
-
-app.put("/api/config",async(req,res)=>{
-  try{
-    const config=req.body;
-    if(!config || typeof config!=="object" || Array.isArray(config)){
-      return res.status(400).json({error:"Configuration invalide"});
-    }
-    const current=readConfig();
-    if(req.get("If-Match") && req.get("If-Match")!==configStore.revision(current)){
-      return res.status(412).json({error:"La configuration a changé ; rechargez avant d'enregistrer"});
-    }
-    const output=keepOneLocalHost(buildConfigOutput(config));
-    if(req.get("If-Match") && req.get("X-Dashmon-Replace-Usage")!=="1") output.usageCounts=current.usageCounts||{};
-    writeConfig(output);
-    res.set("ETag",configStore.revision(readConfig()));
-    res.json({ok:true,replication:await replicateConfig(output)});
-  }catch(error){
-    console.error("Écriture config:",error);
-    res.status(500).json({error:"Écriture de config.json impossible"});
-  }
-});
-
-app.patch("/api/config",async(req,res)=>{
-  try{
-    const patch=req.body;
-    if(!patch || typeof patch!=="object" || Array.isArray(patch)){
-      return res.status(400).json({error:"Correctif de configuration invalide"});
-    }
-    const config=readConfig();
-    if(req.get("If-Match") && req.get("If-Match")!==configStore.revision(config)){
-      return res.status(412).json({error:"La configuration a changé ; rechargez avant d'enregistrer"});
-    }
-    for(const key of Object.keys(patch)){
-      config[key]=patch[key];
-    }
-    const output=keepOneLocalHost(buildConfigOutput(config));
-    writeConfig(output);
-    res.set("ETag",configStore.revision(readConfig()));
-    res.json({ok:true,replication:await replicateConfig(output)});
-  }catch(error){
-    console.error("Écriture config (patch):",error);
-    res.status(500).json({error:"Écriture de config.json impossible"});
-  }
+registerConfigRoutes(app,{
+  readConfig,writeConfig,
+  revision:config=>configStore.revision(config),
+  normalize:config=>keepOneLocalHost(buildConfigOutput(config)),
+  replicate:replicateConfig,ensureHostIds,withCacheKeys
 });
 
 // Incrément du compteur d'utilisation depuis un clic. Route légère (petit corps)
@@ -1269,41 +907,9 @@ function linkCounterServices(config){
 
 const refreshStatuses=createScheduler({runCycle:refreshStatusesCycle});
 
-function sanitizeSyncUrl(value) {
-  const url = sanitizeUrl(value);
-  if (!url) return "";
-  try {
-    const parsed = new URL(url);
-    // Une URL de synchronisation est une origine, jamais un chemin choisi par
-    // l'editeur : cela empeche de transformer la replication en proxy HTTP.
-    if (parsed.username || parsed.password || parsed.search || parsed.hash) return "";
-    return parsed.href;
-  } catch (_error) { return ""; }
-}
-
-function sanitizeReplication(raw) {
-  const source = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
-  const role = "primary";
-  const instanceName = sanitizeText(source.instanceName, 100) || os.hostname().slice(0, 100) || "Dashmon";
-  const secondaries = role === "primary" && Array.isArray(source.secondaries)
-    ? [...new Set(source.secondaries.map(sanitizeSyncUrl).filter(Boolean))].slice(0, 20)
-    : [];
-  const names=source.agentNames && typeof source.agentNames==="object" && !Array.isArray(source.agentNames) ? source.agentNames : {};
-  const agentNames={};
-  for(const [url,value] of Object.entries(names)){
-    const normalized=sanitizeSyncUrl(url);
-    const name=sanitizeText(value,100);
-    if(normalized && name && secondaries.includes(normalized)) agentNames[normalized]=name;
-  }
-  const hosts=source.agentHosts && typeof source.agentHosts==="object" && !Array.isArray(source.agentHosts) ? source.agentHosts : {};
-  const agentHosts={};
-  for(const [url,value] of Object.entries(hosts)){
-    const normalized=sanitizeSyncUrl(url);
-    const hostId=sanitizeText(value,64);
-    if(normalized && hostId && secondaries.includes(normalized)) agentHosts[normalized]=hostId;
-  }
-  return { role, instanceName, secondaries, agentNames, agentHosts };
-}
+const {sanitizeSyncUrl,sanitizeReplication}=createReplicationConfig({
+  sanitizeUrl,sanitizeText,defaultName:os.hostname().slice(0,100)
+});
 
 async function refreshStatusesCycle(force){
   let config;
@@ -1356,307 +962,14 @@ async function refreshStatusesCycle(force){
 // metrique indisponible vaut null (affichee "—") : zero est une mesure, son
 // absence n'en est pas une, et les confondre ferait croire a un hote au repos.
 
-function clampPercent(value){
-  const n=Number(value);
-  if(!Number.isFinite(n)) return null;
-  return Math.max(0,Math.min(100,n));
-}
-
 function positiveInteger(value,max){
   const n=Number(value);
   if(!Number.isSafeInteger(n) || n<=0) return null;
   return Math.min(n,max);
 }
 
-function readCpuTimes(){
-  return os.cpus().reduce((acc,cpu)=>{
-    const times=cpu.times||{};
-    acc.idle+=Number(times.idle||0);
-    acc.total+=Object.values(times).reduce((sum,value)=>sum+Number(value||0),0);
-    return acc;
-  },{idle:0,total:0});
-}
-
-let previousCpuTimes=readCpuTimes();
-
-// CPU par difference entre deux lectures : os.cpus() ne donne que des compteurs
-// cumules, la charge instantanee nait donc du delta entre deux appels.
-function localCpuPercent(){
-  const current=readCpuTimes();
-  const idleDelta=current.idle-previousCpuTimes.idle;
-  const totalDelta=current.total-previousCpuTimes.total;
-  previousCpuTimes=current;
-  if(!(totalDelta>0)) return null;
-  return clampPercent((1-(idleDelta/totalDelta))*100);
-}
-
-function localRamPercent(){
-  const total=os.totalmem();
-  const free=os.freemem();
-  if(!(total>0)) return null;
-  return clampPercent(((total-free)/total)*100);
-}
-
-// Informations stables et peu volumineuses pour le detail de la tuile Hote.
-// Elles ne sont pas des mesures et ne varient donc pas entre deux releves.
-function localSystemDetails(){
-  const cpus=os.cpus();
-  return {
-    os:sanitizeText(`${os.type()} ${os.release()} (${os.arch()})`,200),
-    cpuModel:sanitizeText(cpus[0]?.model||"",200),
-    cpuCores:cpus.length||null,
-    ramTotal:os.totalmem()||null
-  };
-}
-
-// Capteur thermique lu dans /sys : thermal_zone* (millidegres) ou hwmon. On
-// retient la valeur plausible la plus haute. Tout est enclos : sur un noyau ou
-// un conteneur sans /sys expose, la fonction renvoie null sans bruit.
-function localTemperature(){
-  const readings=[];
-  const readDir=dir=>{
-    try{ return fs.readdirSync(dir); }catch(_error){ return []; }
-  };
-  const push=file=>{
-    try{
-      const raw=Number(fs.readFileSync(file,"utf8").trim());
-      if(!Number.isFinite(raw)) return;
-      // Les capteurs se lisent en millidegres (52000 = 52 °C). Un nombre deja
-      // en degres ne depasse pas 200 : c'est ce seuil qui distingue les deux.
-      const celsius=Math.abs(raw)>200 ? raw/1000 : raw;
-      if(celsius>0 && celsius<150) readings.push(celsius);
-    }catch(_error){}
-  };
-  for(const zone of readDir("/sys/class/thermal")){
-    if(/^thermal_zone\d+$/.test(zone)) push(`/sys/class/thermal/${zone}/temp`);
-  }
-  for(const hw of readDir("/sys/class/hwmon")){
-    for(const entry of readDir(`/sys/class/hwmon/${hw}`)){
-      if(/^temp\d+_input$/.test(entry)) push(`/sys/class/hwmon/${hw}/${entry}`);
-    }
-  }
-  if(!readings.length) return null;
-  return Math.round(Math.max(...readings)*10)/10;
-}
-
-// Pourcentage occupe du systeme de fichiers porte par "path". Par defaut la
-// racine du conteneur ; pour lire le disque reel de l'hote, il faut monter son
-// systeme de fichiers dans le conteneur et pointer ce chemin dessus (voir
-// deploy/DEPLOYMENT.md). bavail (et non bfree) exclut l'espace reserve root,
-// comme le fait "df".
-function localDiskPercent(target){
-  const value=String(target||"").trim()||"/";
-  try{
-    const stats=fs.statfsSync(value);
-    const total=Number(stats.blocks);
-    const available=Number(stats.bavail);
-    if(!(total>0)) return null;
-    return clampPercent(((total-available)/total)*100);
-  }catch(_error){
-    return null;
-  }
-}
-
-const WG_MAX_INTERFACES=10;
-const WG_MAX_PEERS=200;
-
-// Dernier handshake : nombre de secondes epoch, millisecondes epoch (les
-// valeurs > 1e12 ne peuvent pas etre des secondes), ou date ISO. Toute valeur
-// douteuse devient null : "jamais" est une information, une fausse date non.
-function handshakeSeconds(value){
-  if(value===null || value===undefined || value==="") return null;
-  let n=Number(value);
-  if(!Number.isFinite(n)){
-    const parsed=Date.parse(String(value));
-    if(!Number.isFinite(parsed)) return null;
-    n=parsed/1000;
-  }else if(n>1e12){
-    n=n/1000;
-  }
-  if(!Number.isFinite(n) || n<=0) return null;
-  return Math.floor(n);
-}
-
-function normalizeWireguardPeer(raw){
-  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
-  // Un compteur absent vaut null ("—"), pas zero : zero octet est une mesure.
-  const byteCount=value=>{
-    if(value===null || value===undefined || value==="") return null;
-    const n=Number(value);
-    return Number.isFinite(n)&&n>=0 ? Math.floor(n) : null;
-  };
-  const peer={
-    name:sanitizeText(raw.name || raw.publicKey || raw.public_key,80),
-    endpoint:sanitizeText(raw.endpoint,120),
-    latestHandshake:handshakeSeconds(
-      raw.latestHandshake !== undefined ? raw.latestHandshake : raw.latest_handshake
-    ),
-    rx:byteCount(raw.rx),
-    tx:byteCount(raw.tx)
-  };
-  if(typeof raw.connected==="boolean") peer.connected=raw.connected;
-  return peer;
-}
-
-function normalizeWireguardInterface(raw){
-  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
-  const peers=(Array.isArray(raw.peers) ? raw.peers : [])
-    .slice(0,WG_MAX_PEERS)
-    .map(normalizeWireguardPeer)
-    .filter(Boolean);
-  return {
-    interface:sanitizeText(raw.interface || raw.name || raw.iface,50),
-    peers
-  };
-}
-
-function normalizeWireguard(raw){
-  if(!raw || typeof raw!=="object") return null;
-  let list;
-  if(Array.isArray(raw)) list=raw;
-  else if(Array.isArray(raw.interfaces)) list=raw.interfaces;
-  else list=[raw];
-  const interfaces=list.slice(0,WG_MAX_INTERFACES)
-    .map(normalizeWireguardInterface)
-    .filter(Boolean);
-  return interfaces.length ? interfaces : null;
-}
-
-// Hote "local" : les pairs viennent d'un fichier contenant la sortie de
-// `wg show all dump`, depose par un cron/timer sur l'hote et monte dans le
-// conteneur. Aucune capability n'est necessaire, et le format ne contient pas de
-// nom de pair : la cle publique sert de nom. Un fichier absent ou illisible est
-// simplement ignore (pas de section WireGuard sur la carte). Un fichier vide
-// reste une releve valide : la carte indique alors qu'aucun pair n'est declare.
-function readWireguardDump(){
-  let stat;
-  try{
-    stat=fs.statSync(WIREGUARD_DUMP_FILE);
-  }catch(_error){
-    return null;
-  }
-  if(!stat.isFile() || stat.size>1_000_000) return null;
-  let text;
-  try{
-    text=fs.readFileSync(WIREGUARD_DUMP_FILE,"utf8");
-  }catch(_error){
-    return null;
-  }
-  const byInterface=new Map();
-  for(const line of text.split(/\r?\n/)){
-    if(!line) continue;
-    const fields=line.split("\t");
-    const name=fields[0]||"";
-    if(!name) continue;
-    // Une ligne d'interface a 5 champs, une ligne de pair en a 9.
-    if(fields.length>=9){
-      const entry=byInterface.get(name) || {interface:name,peers:[]};
-      byInterface.set(name,entry);
-      const handshake=Number(fields[5]);
-      entry.peers.push({
-        name:fields[1],
-        endpoint:fields[3]==="(none)" ? "" : fields[3],
-        latestHandshake:Number.isFinite(handshake)&&handshake>0 ? handshake : null,
-        rx:fields[6],
-        tx:fields[7]
-      });
-    }else if(!byInterface.has(name)){
-      byInterface.set(name,{interface:name,peers:[]});
-    }
-  }
-  // L'heure de derniere modification du fichier date le dernier cron : c'est
-  // l'info "dernier releve" affichee par la page supervision.
-  const fetchedAt=Math.floor(stat.mtimeMs/1000);
-  return {
-    interfaces:normalizeWireguard([...byInterface.values()])||[],
-    fetchedAt:Number.isFinite(fetchedAt)&&fetchedAt>0 ? fetchedAt : null
-  };
-}
-
-// Le script SMART conserve le JSON brut de smartctl : les noms de modele et les
-// compteurs restent exploitables sans exposer le numero de serie du disque.
-function smartNumber(value){
-  const n=Number(value);
-  return Number.isFinite(n)&&n>=0 ? Math.floor(n) : null;
-}
-
-function smartAttribute(raw,id){
-  const table=Array.isArray(raw?.ata_smart_attributes?.table) ? raw.ata_smart_attributes.table : [];
-  const attribute=table.find(item=>Number(item?.id)===id);
-  return smartNumber(attribute?.raw?.value);
-}
-
-function normalizeSmartDisk(raw){
-  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
-  const device=sanitizeText(raw.device?.name || raw.name,100);
-  if(!device) return null;
-  const nvme=raw.nvme_smart_health_information_log||{};
-  const temperature=smartNumber(raw.temperature?.current ?? nvme.temperature);
-  const powerOnHours=smartNumber(raw.power_on_time?.hours ?? nvme.power_on_hours);
-  const smartErrors=smartNumber(raw.ata_smart_error_log?.summary?.count ?? nvme.num_err_log_entries);
-  return {
-    device,
-    model:sanitizeText(raw.model_name || raw.model_family || raw.device?.type,100),
-    passed:typeof raw.smart_status?.passed==="boolean" ? raw.smart_status.passed : null,
-    temperature,
-    powerOnHours,
-    reallocated:smartAttribute(raw,5),
-    pending:smartAttribute(raw,197),
-    uncorrectable:smartAttribute(raw,198),
-    sataCrc:smartAttribute(raw,199),
-    smartErrors,
-    loadCycle:smartAttribute(raw,193)
-  };
-}
-
-function readSmartDump(){
-  let stat;
-  try{
-    stat=fs.statSync(SMART_DUMP_FILE);
-  }catch(_error){
-    return null;
-  }
-  if(!stat.isFile() || stat.size>2_000_000) return null;
-  let source;
-  try{
-    source=JSON.parse(fs.readFileSync(SMART_DUMP_FILE,"utf8"));
-  }catch(_error){
-    return null;
-  }
-  const rawDisks=Array.isArray(source?.disks) ? source.disks : [];
-  const disks=rawDisks.map(normalizeSmartDisk).filter(Boolean).slice(0,20);
-  if(!disks.length) return null;
-  const updatedAt=smartNumber(source.updatedAt);
-  const fetchedAt=updatedAt || Math.floor(stat.mtimeMs/1000);
-  return { disks, fetchedAt:Number.isFinite(fetchedAt)&&fetchedAt>0 ? fetchedAt : null };
-}
-
-function readAptUpdatesReport(){
-  let stat;
-  try{ stat=fs.statSync(APT_UPDATES_REPORT_FILE); }catch(_error){ return null; }
-  if(!stat.isFile() || stat.size>100000) return null;
-  let raw;
-  try{ raw=JSON.parse(fs.readFileSync(APT_UPDATES_REPORT_FILE,"utf8")); }catch(_error){ return null; }
-  if(!raw || (raw.status!=="success" && raw.status!=="failed")) return null;
-  return {
-    status:raw.status,
-    failedStep:raw.failedStep==="update" || raw.failedStep==="upgrade" ? raw.failedStep : null,
-    exitCode:Number.isInteger(raw.exitCode) && raw.exitCode>=0 && raw.exitCode<=255 ? raw.exitCode : null,
-    error:typeof raw.error==="string" ? sanitizeText(raw.error,4000) : "",
-    updated:smartNumber(raw.updated)||0,
-    rebootRequired:raw.rebootRequired===true,
-    rebootRequested:raw.rebootRequested===true,
-    finishedAt:smartNumber(raw.finishedAt)||Math.floor(stat.mtimeMs/1000),
-    // Le script annonce le passage suivant a partir de l'intervalle configure.
-    // Un ancien rapport ne contient pas ce champ : on l'annonce alors comme
-    // inconnu plutot que d'inventer une date.
-    nextRunAt:(()=>{
-      const next=smartNumber(raw.nextRunAt);
-      const finished=smartNumber(raw.finishedAt);
-      return next && (!finished || next>finished) ? next : null;
-    })()
-  };
-}
+const {localCpuPercent,localRamPercent,localSystemDetails,localTemperature,localDiskPercent}=
+  createLocalMetrics({sanitizeText});
 
 const HOST_METRICS_TTL=HOST_METRICS_INTERVAL;
 let hostMetricsCache={ts:0,payload:null};
@@ -1693,10 +1006,10 @@ async function serveHostMetrics(_req,res){
   const localRam=localRamPercent();
   const localDetails=localSystemDetails();
   const localTemp=localTemperature();
-  const localDump=readWireguardDump();
-  const localSmart=readSmartDump();
+  const localDump=readWireguardDump(WIREGUARD_DUMP_FILE);
+  const localSmart=readSmartDump(SMART_DUMP_FILE);
   const localAptUpdates=hosts.some(host=>host.monitoring?.enabled && host.monitoring.type==="local" && host.monitoring.aptUpdates?.enabled!==false)
-    ? readAptUpdatesReport()
+    ? readAptUpdatesReport(APT_UPDATES_REPORT_FILE)
     : null;
 
   const refresh=Promise.all(hosts.map(async host=>{

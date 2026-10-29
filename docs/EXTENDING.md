@@ -1,5 +1,8 @@
 # Ajouter un widget à Dashmon
 
+Pour une vue des modules et des flux de l'application, voir
+[`ARCHITECTURE.md`](ARCHITECTURE.md).
+
 Dashmon n'a pas de liste de widgets dans son code. Chaque widget est un dossier
 autonome dans `widgets/`, découvert au démarrage. Ajouter une intégration ne
 modifie **aucun** fichier du cœur : ni `server.js`, ni `render.js`, ni

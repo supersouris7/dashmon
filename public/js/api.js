@@ -4,6 +4,7 @@ import { state } from "./state.js";
 let configSaveTimer;
 let configSaveChain=Promise.resolve();
 let configPatchTimer;
+let pendingConfigPatch={};
 let configRevision="";
 export function setConfigRevision(value){configRevision=String(value||"");}
 export let configConflict=false;
@@ -60,8 +61,12 @@ export function saveConfig(immediate=false,{replaceUsage=false}={}){
 // d'écrire tout le config.json à chaque clic.
 export function patchConfig(patch,immediate=false){
   clearTimeout(configPatchTimer);
+  // Plusieurs reglages modifies rapidement doivent tous survivre au debounce.
+  // Les champs de premier niveau sont remplaces, comme dans l'API PATCH.
+  pendingConfigPatch={...pendingConfigPatch,...patch};
   const run=()=>{
-    const payload=JSON.stringify(patch);
+    const payload=JSON.stringify(pendingConfigPatch);
+    pendingConfigPatch={};
     configSaveChain=configSaveChain
       .catch(()=>{})
       .then(async()=>{

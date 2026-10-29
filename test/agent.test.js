@@ -72,6 +72,13 @@ async function main(){
   fs.mkdirSync(primaryDir);
   fs.writeFileSync(path.join(primaryDir,"config.json"),JSON.stringify({hosts:[{id:"local",name:"Local",monitoring:{type:"local",enabled:false}},{id:"legacy",name:"Hôte",monitoring:{type:"proxmox",enabled:true}}]}));
   const primary=await start("dashboard",await freePort(),primaryDir);
+  response=await fetch(primary+"/api/config",{headers:{Authorization:auth}});
+  assert.equal(response.status,200);
+  assert.equal(response.headers.get("x-content-type-options"),"nosniff");
+  assert.equal(response.headers.get("x-frame-options"),"DENY");
+  assert.match(response.headers.get("content-security-policy"),/default-src 'none'/);
+  response=await fetch(primary+"/api/config",{method:"PATCH",headers:{Authorization:auth,"Content-Type":"application/json",Origin:"https://exemple.lan"},body:"{}"});
+  assert.equal(response.status,403);
   response=await fetch(primary+"/healthz");
   assert.equal(response.status,200);
   response=await fetch(primary+"/readyz");

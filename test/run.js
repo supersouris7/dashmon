@@ -5,7 +5,7 @@
 const path = require("path");
 const { spawnSync } = require("child_process");
 
-const SUITES = ["docker.test.js", "widgets.test.js", "frontend.test.js", "agent.test.js", "apt.test.js", "security-headers.test.js"];
+const SUITES = ["docker.test.js", "widgets.test.js", "frontend.test.js", "agent.test.js", "apt.test.js", "security-headers.test.js", "request-origin.test.js", "rate-limit.test.js", "replication-config.test.js", "config-patch.test.js", "local-metrics.test.js", "sanitize.test.js", "secrets.test.js", "confirm-dialog.test.js", "apt-report.test.js", "smart-report.test.js", "wireguard-report.test.js", "replication-draft.test.js", "host-monitoring-draft.test.js", "config-routes.test.js", "config-fields.test.js", "config-normalize.test.js", "editor-drag.test.js", "editor-draft.test.js"];
 
 let failed = 0;
 for (const suite of SUITES) {

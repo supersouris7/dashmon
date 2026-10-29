@@ -83,11 +83,12 @@ async function main(){
     const css=fs.readFileSync(path.join(ROOT,"public","css","components.css"),"utf8");
     return css.includes(".supervision-apt-details{display:none") && css.includes(".supervision-card-apt.expanded .supervision-apt-details{display:grid}");
   })());
-  const agentEditorSource=fs.readFileSync(path.join(JS_DIR,"editor.js"),"utf8");
+  const agentEditorSource=["editor.js","pairing-list.js","pairing-editor.js"].map(file=>fs.readFileSync(path.join(JS_DIR,file),"utf8")).join("\n");
   ok("agents : test depuis le principal et ouverture protegee", agentEditorSource.includes('fetch("/api/agents/test"') && agentEditorSource.includes('configure.rel="noopener noreferrer"'));
   ok("agents : hote associe a chaque pairage", agentEditorSource.includes("agentHosts") && agentEditorSource.includes('t("agentHostLabel")'));
   ok("agents : enregistrement possible sans hote", agentEditorSource.includes('t("agentHostRequiredTitle")') && agentEditorSource.includes('t("agentHostSaveAnyway")') && agentEditorSource.includes("createHostDraft"));
-  ok("agents : dialogue d'avertissement signale et aligne", agentEditorSource.includes("fa-triangle-exclamation") && agentEditorSource.includes('" multi"'));
+  const confirmSource=fs.readFileSync(path.join(JS_DIR,"confirm-dialog.js"),"utf8");
+  ok("agents : dialogue d'avertissement signale et aligne", agentEditorSource.includes("fa-triangle-exclamation") && confirmSource.includes('" multi"'));
   ok("agents : couleur et icone reprises de l'hote au survol", supervisionSource.includes("agentHosts[selected.id]") && supervisionSource.includes("linked?.icon") && supervisionSource.includes("sanitizeTileColor(linked?.color)"));
   const agentPage=fs.readFileSync(path.join(ROOT,"public","agent.html"),"utf8");
   for(const doc of ["WIREGUARD.md","SMART.md","APT_UPDATES.md"]){
@@ -199,7 +200,7 @@ async function main(){
   check("registre client : cle de statut publiee",
     registry.widgetStatusKey({ widget: { type: "docker", key: "docker:local|" } }), "docker:local|");
   check("registre client : repli sur l'URL du service",
-    registry.widgetStatusKey({ url: "https://a.lan", widget: { type: "adguard" } }), "https://a.lan");
+    registry.widgetStatusKey({ url: "https://exemple.lan", widget: { type: "adguard" } }), "https://exemple.lan");
 
   // Rendu : sans renderer (import impossible hors navigateur), la tuile doit
   // rester affichable et le widget ne doit jamais faire tomber le dashboard.
@@ -545,8 +546,8 @@ async function main(){
     }).specialTile.category,
     "Divers");
 
-  const editorSrcForSpecial = fs.readFileSync(path.join(JS_DIR, "editor.js"), "utf8");
-  const serverSrcForSpecial = fs.readFileSync(path.join(ROOT, "server.js"), "utf8");
+  const editorSrcForSpecial = fs.readFileSync(path.join(JS_DIR, "editor.js"), "utf8") + fs.readFileSync(path.join(JS_DIR,"editor-draft.js"),"utf8");
+  const serverSrcForSpecial = fs.readFileSync(path.join(ROOT, "server.js"), "utf8") + fs.readFileSync(path.join(ROOT,"lib","config-normalize.js"),"utf8");
 
   ok("tuile speciale : conservee a l'enregistrement (editeur)",
     /state\.specialTile=cleanedSpecialTile/.test(editorSrcForSpecial));
