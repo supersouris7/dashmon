@@ -65,3 +65,34 @@ Rules:
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
 - A committed graphify-out/graph.json is rewritten whole on every build, so a large diff to it in a pull request is expected. Do not flag it as churn or suggest skipping the graph rebuild or its hooks.
+
+## Analyse de sécurité avec Semgrep
+
+Semgrep est disponible dans le PATH du serveur OpenCode.
+
+Commande :
+semgrep scan --config auto --metrics=off .
+
+### Utilisation
+
+- Exécuter Semgrep après une modification significative du code.
+- Vérifier les modifications touchant les API, les entrées utilisateur,
+  les fichiers, les permissions, les secrets ou la sécurité.
+- Avant de proposer un commit contenant du code, effectuer une analyse.
+- Ne pas lancer Semgrep pour une simple modification documentaire.
+
+### Traitement des résultats
+
+- Examiner en priorité les alertes concernant les fichiers modifiés.
+- Distinguer les vulnérabilités confirmées des faux positifs.
+- Ne jamais corriger automatiquement une alerte sans analyse.
+- Ne pas désactiver des règles uniquement pour supprimer les alertes.
+- Relancer les tests et Semgrep après les corrections.
+- Signaler les alertes restantes à l'utilisateur.
+
+### Contraintes
+
+- Respecter les instructions Graphify et les règles de confidentialité.
+- Ne jamais transmettre de secrets à un service externe.
+- Ne pas installer de dépendances supplémentaires sans nécessité.
+- Ne pas supprimer de fonctionnalités pour satisfaire Semgrep.
