@@ -1147,12 +1147,11 @@ body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
 .supervision-smart-fact.warn{color:var(--warning);font-weight:600}
 
 /* APT : resume d'un cycle termine, avec le volume mis a jour et les deux
-   informations utiles a l'exploitation (date et redemarrage). */
-.supervision-apt-status{display:flex;align-items:center;gap:8px;margin:0;font-size:13px}
-.supervision-apt-dot{width:9px;height:9px;flex:0 0 auto;border-radius:50%;background:var(--muted)}
-.supervision-card-apt.ok .supervision-apt-dot{background:var(--success)}
-.supervision-card-apt.warning .supervision-apt-dot{background:var(--warning)}
-.supervision-card-apt.failed .supervision-apt-dot{background:var(--error)}
+   informations utiles a l'exploitation (date et redemarrage). Le statut
+   reprend la presentation de la sante de l'hote : icone + libelle. */
+.supervision-card-apt.is-healthy .supervision-health-state i{color:var(--success)}
+.supervision-card-apt.is-warning .supervision-health-state i{color:var(--warning)}
+.supervision-card-apt.is-critical .supervision-health-state i{color:var(--error)}
 
 .supervision-apt-summary{display:flex;align-items:baseline;gap:8px;margin:15px 0 12px}
 .supervision-apt-summary strong{font-size:30px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.04em}

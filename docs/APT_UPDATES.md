@@ -90,9 +90,10 @@ Le rapport est ecrit avant la demande de redemarrage, avec l'etat
 ## Supervision Dashmon
 
 L'hote local est toujours supervise. Dans **Modifier la supervision**, ouvrez
-l'onglet **Mises a jour APT**. La carte affiche le nombre de mises
-a jour installees. Le chevron deplie le dernier passage, le prochain passage
-prevu et une alerte lorsqu'un redemarrage est requis.
+l'onglet **Mises a jour APT**. La carte affiche un statut explicite, **À jour**
+ou **Pas à jour**, avec la meme icone de sante que la carte de l'hote, puis le
+nombre de mises a jour installees. Le chevron deplie le dernier passage, le
+prochain passage prevu et une alerte lorsqu'un redemarrage est requis.
 
 En cas d'echec, ouvrez **Détail de l’échec** sur la carte : le rapport indique
 l'etape (`update` ou `upgrade`), le code de sortie et un extrait borne de la

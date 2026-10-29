@@ -77,6 +77,7 @@ async function main(){
   ok("APT : etat conserve par instance et hote", aptSource.includes('isExpanded("supervisionAptExpanded",key)') && supervisionSource.includes("selectedSupervisionInstanceId(),host.id"));
   ok("supervision : le depliage est enregistre en direct", supervisionSource.includes("setExpanded(\"supervisionSmartExpanded\",key,expanded)") && supervisionSource.includes("setExpanded(\"supervisionHostExpanded\",key,expanded)") && supervisionSource.includes("setExpanded(\"supervisionAptExpanded\",key,open)") && supervisionSource.includes("saveViewPrefs({[field]:state[field]})"));
   ok("APT : sortie affichee comme texte", aptSource.includes("message.textContent=") && !aptSource.includes("message.innerHTML"));
+  ok("APT : statut a jour/pas a jour avec coche comme la sante de l'hote", aptSource.includes('className="supervision-health"') && aptSource.includes("fa-solid fa-circle-check") && aptSource.includes("aptUpdatesOutdated") && !aptSource.includes("supervision-apt-dot"));
   ok("APT : prochain passage sous le dernier passage", aptSource.indexOf("aptUpdatesNextRun")>aptSource.indexOf("aptUpdatesLastRun"));
   ok("APT : details replies par defaut", (()=>{
     const css=fs.readFileSync(path.join(ROOT,"public","css","components.css"),"utf8");

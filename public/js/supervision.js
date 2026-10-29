@@ -692,7 +692,19 @@ function aptUpdatesCard(host,metrics){
   const failed=report?.status==="failed";
   const updated=Number(report?.updated)||0;
   const reboot=report?.rebootRequired===true;
-  card.className="supervision-card supervision-card-apt "+(!report ? "unknown" : failed ? "failed" : reboot ? "warning" : "ok");
+  // Meme presentation que la sante de l'hote : une icone et un libelle
+  // explicite, au lieu d'un simple rond colore. Une mise a jour en attente ou
+  // un redemarrage requis sont des avertissements, pas une panne.
+  const health=!report
+    ? { level:"unknown", label:"aptUpdatesNoReport", icon:"fa-solid fa-circle-question" }
+    : failed
+      ? { level:"critical", label:"aptUpdatesFailed", icon:"fa-solid fa-triangle-exclamation" }
+      : updated>0
+        ? { level:"warning", label:"aptUpdatesOutdated", icon:"fa-solid fa-circle-exclamation" }
+        : reboot
+          ? { level:"warning", label:"aptUpdatesRebootRequired", icon:"fa-solid fa-circle-exclamation" }
+          : { level:"healthy", label:"aptUpdatesUpToDate", icon:"fa-solid fa-circle-check" };
+  card.className="supervision-card supervision-card-apt is-"+health.level;
   applyHostColor(card,host);
   const head=document.createElement("div");
   head.className="supervision-head";
@@ -734,18 +746,16 @@ function aptUpdatesCard(host,metrics){
   card.appendChild(head);
 
   const status=document.createElement("div");
-  status.className="supervision-apt-status";
-  const dot=document.createElement("span");
-  dot.className="supervision-apt-dot";
+  status.className="supervision-health";
+  const state=document.createElement("span");
+  state.className="supervision-health-state";
+  const stateIcon=document.createElement("i");
+  stateIcon.className=health.icon;
+  stateIcon.setAttribute("aria-hidden","true");
   const text=document.createElement("strong");
-  if(!report){
-    text.textContent=t("aptUpdatesNoReport");
-  }else if(failed){
-    text.textContent=t("aptUpdatesFailed");
-  }else{
-    text.textContent=updated ? t("aptUpdatesInstalled").replace("{count}",smartNumberText(updated)) : t("aptUpdatesUpToDate");
-  }
-  status.append(dot,text);
+  text.textContent=t(health.label);
+  state.append(stateIcon,text);
+  status.appendChild(state);
   card.appendChild(status);
   if(failed){
     const detail=document.createElement("div");
