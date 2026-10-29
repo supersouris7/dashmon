@@ -877,8 +877,9 @@ async function main(){
   check("renderer Lichess : ELO en vert, evolution mensuelle en dessous",
     pick(lichessModule.render(ctx({ ok: true, elo: 1500, delta: 12, monthDelta: 42, monthDays: 30, variant: "blitz", updatedAt: 1 }))),
     { badge: "ELO 1500", badgeClass: "ok", time: "+42 over 30 days", timeClass: "delta-up" });
-  check("renderer Lichess : perte mensuelle",
-    pick(lichessModule.render(ctx({ ok: true, elo: 1500, monthDelta: -8, monthDays: 30, variant: "blitz" }))).timeClass, "delta-down");
+  const loss = pick(lichessModule.render(ctx({ ok: true, elo: 1500, monthDelta: -8, monthDays: 30, variant: "blitz" })));
+  check("renderer Lichess : perte mensuelle en gris, pas en rouge", loss.timeClass, "");
+  check("renderer Lichess : perte mensuelle toujours chiffree", loss.time, "-8 over 30 days");
   check("renderer Lichess : historique plus court que le mois = duree reelle",
     pick(lichessModule.render(ctx({ ok: true, elo: 1500, monthDelta: 5, monthDays: 4, variant: "blitz" }))).time,
     "+5 over 4 days");

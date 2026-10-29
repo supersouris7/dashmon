@@ -24,8 +24,10 @@ function signed(value) {
 
 function trendClass(value) {
   const n = Number(value);
-  if (!Number.isFinite(n) || n === 0) return "";
-  return n > 0 ? "delta-up" : "delta-down";
+  // Une baisse de classement n'est pas une panne : elle reste en gris (classe
+  // vide) au lieu du rouge reserve aux erreurs. Seule une hausse est coloree.
+  if (!Number.isFinite(n) || n <= 0) return "";
+  return "delta-up";
 }
 
 export function render(ctx) {

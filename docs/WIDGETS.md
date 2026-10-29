@@ -113,7 +113,9 @@ endpoint on the service URL already configured for the tile.
 
 ## Lichess
 
-**Shows** your current ELO rating and how it moved over the past month.
+**Shows** your current ELO rating and how it moved over the past month. A gain
+is shown in green; a drop stays gray, because a rating change is information,
+not an error.
 
 **Configuration**
 
