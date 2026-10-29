@@ -889,7 +889,7 @@ function autoColor(){
 // deroulant de 110 px dans une ligne de reglages deja chargee finissait par
 // chevaucher les champs voisins ; le carre, lui, ne prend pas plus de place
 // que l'icone qu'il remplace.
-function createColorPicker(item,{auto=true,onChange=null}={}){
+function createColorPicker(item){
   const wrap=document.createElement("div");
   wrap.className="color-picker";
 
@@ -907,7 +907,7 @@ function createColorPicker(item,{auto=true,onChange=null}={}){
   // Les doublons sont autorises : deux categories peuvent porter la meme
   // couleur si c'est un choix, et surtout une couleur d'hote n'a rien a voir
   // avec celle d'une categorie. On n'exclut donc rien de la palette.
-  if(auto && !item.color) {
+  if(!item.color) {
     item.color=autoColor();
     button.style.setProperty("--swatch",item.color);
   }
@@ -923,16 +923,9 @@ function createColorPicker(item,{auto=true,onChange=null}={}){
     swatch.addEventListener("click",event=>{
       event.stopPropagation();
       item.color=sanitizeTileColor(color);
-      button.style.setProperty("--swatch",item.color);
-      palette.querySelectorAll(".color-chip").forEach(chip=>{
-        chip.classList.toggle("current",chip.getAttribute("aria-label")===item.color);
-      });
       closeColorPalette();
-      if(onChange) onChange();
-      else {
-        renderCategoryEditor();
-        renderHostEditor();
-      }
+      renderCategoryEditor();
+      renderHostEditor();
     });
     palette.appendChild(swatch);
   });
@@ -1536,8 +1529,8 @@ function renderReplicationEditor(){
   docsLabel.textContent=t("agentIntegrationDocs")+" :";
   integrations.prepend(docsLabel);
   replicationEditor.appendChild(integrations);
-  if(!state.replication) state.replication={role:"primary",instanceName:"Dashmon",secondaries:[],agentNames:{},agentColors:{}};
-  if(!state.replication.agentColors || typeof state.replication.agentColors!=="object") state.replication.agentColors={};
+  if(!state.replication) state.replication={role:"primary",instanceName:"Dashmon",secondaries:[],agentNames:{},agentHosts:{}};
+  if(!state.replication.agentHosts || typeof state.replication.agentHosts!=="object") state.replication.agentHosts={};
   const name=document.createElement("input");
   name.className="edit-input"; name.placeholder=t("agentInstanceName"); name.setAttribute("aria-label",t("agentInstanceName")); name.value=state.replication.instanceName||"";
   name.addEventListener("input",()=>state.replication.instanceName=name.value);
@@ -1552,28 +1545,55 @@ function renderReplicationEditor(){
   pairsHint.textContent=t("agentUrlHint");
   replicationEditor.appendChild(pairsHint);
 
+  // Chaque pairage designe un hote de l'editeur : sa couleur et son icone
+  // habillent la tuile distante. La correspondance se fait par identifiant
+  // stable, jamais par nom.
+  const hostChoices=()=>state.editHosts.filter(host=>String(host.name||"").trim());
+  const validHostIds=new Set(state.editHosts.map(host=>String(host.id||"")).filter(Boolean));
   const entries=(state.replication.secondaries||[]).map(url=>({
     url,
     name:(state.replication.agentNames||{})[url]||"",
-    color:(state.replication.agentColors||{})[url]||""
+    host:(state.replication.agentHosts||{})[url]||""
   }));
   const syncPairs=()=>{
     const urls=[];
     const names={};
-    const colors={};
+    const hosts={};
     for(const entry of entries){
       const url=agentUrl(entry.url);
       if(!url) continue;
       if(!urls.includes(url)) urls.push(url);
       const label=String(entry.name||"").trim();
       if(label) names[url]=label;
-      const color=sanitizeTileColor(entry.color);
-      if(color) colors[url]=color;
+      const hostId=String(entry.host||"").trim();
+      if(hostId && validHostIds.has(hostId)) hosts[url]=hostId;
     }
     state.replication.secondaries=urls.slice(0,20);
     state.replication.agentNames=names;
-    state.replication.agentColors=colors;
+    state.replication.agentHosts=hosts;
   };
+
+  // Sans hote dans l'inventaire, un pairage ne peut pas reprendre de couleur
+  // ni d'icone : on propose directement d'en creer un.
+  if(entries.length && !hostChoices().length){
+    const emptyHosts=document.createElement("p");
+    emptyHosts.className="host-monitor-hint";
+    emptyHosts.append(document.createTextNode(t("agentHostEmpty")+" "));
+    const createHost=document.createElement("button");
+    createHost.type="button";
+    createHost.className="action-btn";
+    createHost.textContent=t("agentHostCreate");
+    createHost.addEventListener("click",()=>{
+      const host=createHostDraft();
+      validHostIds.add(host.id);
+      const target=entries.find(entry=>agentUrl(entry.url) && !entry.host);
+      if(target) target.host=host.id;
+      syncPairs();
+      activateEditorPanel("hostsPanel");
+    });
+    emptyHosts.appendChild(createHost);
+    replicationEditor.appendChild(emptyHosts);
+  }
 
   const list=document.createElement("div");
   list.className="agent-editor-list";
@@ -1614,6 +1634,31 @@ function renderReplicationEditor(){
       nameInput.placeholder=t("agentTabName");
       nameInput.value=entry.name||"";
       nameInput.addEventListener("input",()=>{entry.name=nameInput.value;syncPairs();});
+
+      const hostSelect=document.createElement("select");
+      hostSelect.className="edit-select";
+      hostSelect.title=t("agentHostLabel");
+      const noHostOption=document.createElement("option");
+      noHostOption.value="";
+      noHostOption.textContent=t("agentHostNone");
+      hostSelect.appendChild(noHostOption);
+      hostChoices().forEach(host=>{
+        const option=document.createElement("option");
+        option.value=host.id;
+        option.textContent=host.name;
+        hostSelect.appendChild(option);
+      });
+      hostSelect.value=entry.host||"";
+      if(hostSelect.value!==(entry.host||"")){
+        // L'hote a ete supprime depuis l'editeur : la reference devient vide
+        // plutot que d'afficher un choix qui n'existe plus.
+        entry.host="";
+        syncPairs();
+      }
+      hostSelect.addEventListener("change",()=>{
+        entry.host=hostSelect.value;
+        syncPairs();
+      });
 
       const status=document.createElement("span");
       status.className="agent-test-status";
@@ -1685,12 +1730,11 @@ function renderReplicationEditor(){
       const actions=document.createElement("div");
       actions.className="agent-editor-actions";
       actions.append(test,configure,remove,status);
-      const colorPicker=createColorPicker(entry,{auto:false,onChange:()=>syncPairs()});
       item.append(
         monitoringField(t("agentUrlLabel"),urlInput),
         invalid,
         monitoringField(t("agentTabName"),nameInput),
-        monitoringField(t("agentHostColor"),colorPicker),
+        monitoringField(t("agentHostLabel"),hostSelect),
         actions
       );
       list.appendChild(item);
@@ -1706,7 +1750,7 @@ function renderReplicationEditor(){
   add.disabled=entries.length>=20;
   add.addEventListener("click",()=>{
     if(entries.length>=20) return;
-    entries.push({url:"",name:"",color:""});
+    entries.push({url:"",name:"",host:""});
     syncPairs();
     renderPairs();
     add.disabled=entries.length>=20;
@@ -1831,7 +1875,9 @@ addWebLinkBtn.addEventListener("click",()=>{
   });
 });
 
-addHostBtn.addEventListener("click",()=>{
+// Cree un brouillon d'hote, le rend et place le curseur sur son nom. Utilise
+// par le bouton "Ajouter un hote" et par le pairage quand aucun hote n'existe.
+function createHostDraft(){
   // Supervision desactivee par defaut : plusieurs hotes "local" surveilleraient
   // la meme machine, et un nouvel hote ne doit rien mesurer tant que l'utilisateur
   // ne l'a pas demande explicitement.
@@ -1849,7 +1895,10 @@ addHostBtn.addEventListener("click",()=>{
       input.select();
     }
   });
-});
+  return newHost;
+}
+
+addHostBtn.addEventListener("click",createHostDraft);
 
 importConfigBtn.addEventListener("click",()=>configImportInput.click());
 
@@ -1907,14 +1956,22 @@ exportConfigBtn.addEventListener("click",async()=>{
   }
 });
 
+// Active un onglet de l'editeur. Le pairage relit la liste des hotes a chaque
+// ouverture : un hote cree entre-temps doit apparaitre sans rouvrir le dialogue.
+function activateEditorPanel(panelId){
+  const tabs=[...document.querySelectorAll(".edit-tab")];
+  const tab=tabs.find(elm=>elm.dataset.panel===panelId);
+  if(!tab) return;
+  tabs.forEach(elm=>elm.classList.remove("active"));
+  document.querySelectorAll(".edit-panel").forEach(panel=>panel.classList.remove("active"));
+  tab.classList.add("active");
+  document.getElementById(panelId)?.classList.add("active");
+  if(panelId==="imagesPanel") renderImageManager();
+  if(panelId==="replicationPanel") renderReplicationEditor();
+}
+
 document.querySelectorAll(".edit-tab").forEach(tab=>{
-  tab.addEventListener("click",()=>{
-    document.querySelectorAll(".edit-tab").forEach(elm=>elm.classList.remove("active"));
-    document.querySelectorAll(".edit-panel").forEach(panel=>panel.classList.remove("active"));
-    tab.classList.add("active");
-    document.getElementById(tab.dataset.panel).classList.add("active");
-    if(tab.dataset.panel==="imagesPanel") renderImageManager();
-  });
+  tab.addEventListener("click",()=>activateEditorPanel(tab.dataset.panel));
 });
 
 closeBtn.addEventListener("click",requestCloseEditor);
@@ -1991,6 +2048,44 @@ async function applyEditorChanges(){
       localHostSeen=true;
     }
   });
+
+  // Un pairage sans hote ne peut pas reprendre de couleur ni d'icone. On le
+  // signale avant d'ecrire, en proposant de creer l'hote manquant sans perdre
+  // l'adresse et le nom deja saisis.
+  const cleanedHostIds=new Set(cleanedHosts.map(h=>h.id));
+  const pairsMissingHost=(state.replication?.secondaries||[]).filter(url=>{
+    const hostId=state.replication?.agentHosts?.[url];
+    return !hostId || !cleanedHostIds.has(hostId);
+  });
+  if(modalBackdrop.dataset.mode==="supervision" && pairsMissingHost.length){
+    const choice=await openConfirm({
+      title:t("agentHostRequiredTitle"),
+      message:t("agentHostRequiredMessage"),
+      actions:[
+        {id:"cancel",label:t("cancelBtn")},
+        {id:"create",label:t("agentHostCreate"),className:"action-btn primary"},
+        {id:"save",label:t("agentHostSaveAnyway")}
+      ]
+    });
+    if(choice==="cancel") return false;
+    if(choice==="create"){
+      const host=createHostDraft();
+      // Le premier pairage incomplet reprend l'hote cree : il ne reste qu'a
+      // le nommer, puis a enregistrer.
+      state.replication.agentHosts=state.replication.agentHosts||{};
+      state.replication.agentHosts[pairsMissingHost[0]]=host.id;
+      activateEditorPanel("hostsPanel");
+      return false;
+    }
+  }
+  // Les references vers un hote supprime ne sont pas conservees.
+  if(state.replication){
+    const agentHosts={};
+    for(const [url,hostId] of Object.entries(state.replication.agentHosts||{})){
+      if(cleanedHostIds.has(hostId)) agentHosts[url]=hostId;
+    }
+    state.replication.agentHosts=agentHosts;
+  }
   const validNames=new Set(cleanedCategories.map(c=>c.name));
   const validHosts=new Set(cleanedHosts.map(h=>h.name));
 

@@ -330,7 +330,7 @@ export const state = {
   categories: [],
   dashboards: [],
   hosts: [],
-  replication: {role:"primary",instanceName:"Dashmon",secondaries:[],agentNames:{},agentColors:{}},
+  replication: {role:"primary",instanceName:"Dashmon",secondaries:[],agentNames:{},agentHosts:{}},
   collapsed: {},
   supervisionSmartExpanded: [],
   supervisionHostExpanded: [],
@@ -711,10 +711,11 @@ export function normalizeConfig(cfg={}){
         ? [...new Set(cfg.replication.secondaries.map(value=>sanitizeUrl(value)).filter(Boolean))].slice(0,20) : [],
       agentNames:cfg.replication?.agentNames && typeof cfg.replication.agentNames==="object" && !Array.isArray(cfg.replication.agentNames)
         ? Object.fromEntries(Object.entries(cfg.replication.agentNames).map(([url,name])=>[sanitizeUrl(url),sanitizeText(name,100)]).filter(([url,name])=>url && name)) : {},
-      // Couleur choisie pour un hote appaire : elle vit avec son pairage, pas
-      // dans la configuration de l'agent. La tuile distante la reprend au survol.
-      agentColors:cfg.replication?.agentColors && typeof cfg.replication.agentColors==="object" && !Array.isArray(cfg.replication.agentColors)
-        ? Object.fromEntries(Object.entries(cfg.replication.agentColors).map(([url,color])=>[sanitizeUrl(url),sanitizeTileColor(color)]).filter(([url,color])=>url && color)) : {}
+      // Chaque pairage designe un hote de l'editeur : sa couleur et son icone
+      // habillent la tuile distante. La correspondance se fait par identifiant
+      // stable, jamais par nom.
+      agentHosts:cfg.replication?.agentHosts && typeof cfg.replication.agentHosts==="object" && !Array.isArray(cfg.replication.agentHosts)
+        ? Object.fromEntries(Object.entries(cfg.replication.agentHosts).map(([url,hostId])=>[sanitizeUrl(url),sanitizeText(hostId,64)]).filter(([url,hostId])=>url && hostId)) : {}
     },
     theme:typeof cfg.theme==="string" && cfg.theme.trim() ? cfg.theme.trim() : "dark",
     language:cfg.language==="en" ? "en" : "fr",

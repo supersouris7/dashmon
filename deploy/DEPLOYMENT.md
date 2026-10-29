@@ -216,11 +216,13 @@ RAM reflect what the container can observe; the default disk is the container
 filesystem. To monitor a host filesystem, mount it read-only and set its
 container path in the agent page.
 
-On the main instance, open **Edit supervision → Agents**, enter each agent's
+On the main instance, open **Edit supervision → Pairing**, enter each agent's
 base URL on its own line, optionally enter a tab name for each agent, and save.
-The optional host color is reused when hovering the host tile in Supervision.
-Without a name, the tab uses the address's hostname. The Supervision page can
-then select each agent. The main instance fetches metrics on demand; it never sends dashboard
+Then link the host created in the **Hosts** tab: its color and icon are reused
+when hovering the host tile in Supervision. Without a host, the pairing still
+works but the tile keeps its default appearance. Without a name, the tab uses
+the address's hostname. The Supervision page can then select each agent. The
+main instance fetches metrics on demand; it never sends dashboard
 configuration to an agent. Configure HTTPS or a trusted private network: the
 shared token travels in an HTTP header. Restrict access to the published port.
 For each address, **Test connection** checks access and the sync token from the

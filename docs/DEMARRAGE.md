@@ -153,10 +153,12 @@ finale. Le dossier doit être inscriptible par l'UID `1000` du conteneur.
 2. Renseignez le nom de l'hôte et les options souhaitées. Pour mesurer le disque
    de l'hôte, décommentez le montage `/host:ro`, redéployez et indiquez `/host`
    dans le champ du chemin disque. Sinon la mesure concerne le conteneur.
-3. Sur le principal : **Modifier la supervision → Agents**. Ajoutez l'adresse
+3. Sur le principal : **Modifier la supervision → Pairage**. Ajoutez l'adresse
    complète de l'agent, par exemple `http://exemple.lan:8081`, puis donnez un
-   nom à l'onglet si souhaité. La couleur de l'hôte, facultative, est reprise au
-   survol de sa tuile dans Supervision.
+   nom à l'onglet si souhaité. Associez ensuite l'hôte créé dans l'onglet
+   **Hôtes** : sa couleur et son icône sont reprises au survol de sa tuile dans
+   Supervision. Sans hôte, le pairage reste valable mais la tuile garde son
+   apparence par défaut.
 4. Cliquez sur **Tester la connexion**, puis sur **Enregistrer**. Le bouton
    **Paramétrer** ouvre la page de l'agent. L'onglet apparaît dans Supervision.
 

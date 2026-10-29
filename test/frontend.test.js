@@ -85,8 +85,9 @@ async function main(){
   })());
   const agentEditorSource=fs.readFileSync(path.join(JS_DIR,"editor.js"),"utf8");
   ok("agents : test depuis le principal et ouverture protegee", agentEditorSource.includes('fetch("/api/agents/test"') && agentEditorSource.includes('configure.rel="noopener noreferrer"'));
-  ok("agents : couleur d'hote enregistree avec le pairage", agentEditorSource.includes("agentColors") && agentEditorSource.includes('t("agentHostColor")'));
-  ok("agents : couleur reprise au survol de la tuile distante", supervisionSource.includes("agentColors[selected.id]") && supervisionSource.includes("sanitizeTileColor(agentColors"));
+  ok("agents : hote associe a chaque pairage", agentEditorSource.includes("agentHosts") && agentEditorSource.includes('t("agentHostLabel")'));
+  ok("agents : enregistrement possible sans hote", agentEditorSource.includes('t("agentHostRequiredTitle")') && agentEditorSource.includes('t("agentHostSaveAnyway")') && agentEditorSource.includes("createHostDraft"));
+  ok("agents : couleur et icone reprises de l'hote au survol", supervisionSource.includes("agentHosts[selected.id]") && supervisionSource.includes("linked?.icon") && supervisionSource.includes("sanitizeTileColor(linked?.color)"));
   const agentPage=fs.readFileSync(path.join(ROOT,"public","agent.html"),"utf8");
   for(const doc of ["WIREGUARD.md","SMART.md","APT_UPDATES.md"]){
     ok("agents : guide accessible depuis les deux interfaces : "+doc,agentEditorSource.includes(doc) && agentPage.includes(doc));
@@ -391,11 +392,11 @@ async function main(){
   // configuree. L'affectation se fait a la normalisation, donc elle doit
   // fonctionner meme sans jamais ouvrir l'editeur.
   const stateModule = await import(pathToFileURL(path.join(JS_DIR, "state.js")).href);
-  const namedAgent=stateModule.normalizeConfig({replication:{secondaries:["https://exemple.lan"],agentNames:{"https://exemple.lan":"Supervision"},agentColors:{"https://exemple.lan":"#4f8f89"}}}).replication;
+  const namedAgent=stateModule.normalizeConfig({replication:{secondaries:["https://exemple.lan"],agentNames:{"https://exemple.lan":"Supervision"},agentHosts:{"https://exemple.lan":"host-1"}}}).replication;
   check("agent : nom et URL normalises", namedAgent.agentNames["https://exemple.lan/"], "Supervision");
-  check("agent : couleur d'hote normalisee", namedAgent.agentColors["https://exemple.lan/"], "#4f8f89");
+  check("agent : hote associe normalise", namedAgent.agentHosts["https://exemple.lan/"], "host-1");
   check("agent : ancienne configuration sans noms", stateModule.normalizeConfig({replication:{secondaries:["https://exemple.lan"]}}).replication.agentNames, {});
-  check("agent : ancienne configuration sans couleurs", stateModule.normalizeConfig({replication:{secondaries:["https://exemple.lan"]}}).replication.agentColors, {});
+  check("agent : ancienne configuration sans hotes", stateModule.normalizeConfig({replication:{secondaries:["https://exemple.lan"]}}).replication.agentHosts, {});
   const PALETTE = stateModule.TILE_COLORS;
   const assign = stateModule.assignTileColors;
   const cats = [{ name: "A" }, { name: "B" }, { name: "C" }];

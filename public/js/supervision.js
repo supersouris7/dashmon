@@ -860,17 +860,22 @@ export function renderSupervision(){
     warning.textContent=t("agentStale");
     supervisionList.append(warning);
   }
-  const agentColors=state.replication?.agentColors||{};
+  const agentHosts=state.replication?.agentHosts||{};
   const monitored=selected
-    ? selected.hosts.map(metric=>({
-        id:metric.id,
-        name:metric.name,
-        icon:"fa-solid fa-server",
-        // La couleur est choisie avec le pairage : elle suit l'agent et
-        // s'applique au survol de sa tuile, comme pour un hote local.
-        color:sanitizeTileColor(agentColors[selected.id]),
-        monitoring:{enabled:true,type:metric.type}
-      }))
+    ? selected.hosts.map(metric=>{
+        // Le pairage designe un hote de l'inventaire : sa couleur et son icone
+        // habillent la tuile distante, comme pour un hote local. Une reference
+        // absente ou supprimee retombe proprement sur l'icone par defaut.
+        const hostId=agentHosts[selected.id];
+        const linked=hostId ? state.hosts.find(host=>host.id===hostId) : null;
+        return {
+          id:metric.id,
+          name:metric.name||linked?.name||t("hostName"),
+          icon:linked?.icon||"fa-solid fa-server",
+          color:sanitizeTileColor(linked?.color),
+          monitoring:{enabled:true,type:metric.type}
+        };
+      })
     : state.hosts.filter(host=>host.monitoring && host.monitoring.enabled===true);
   // Aucun hote surveille : on explique ou activer la supervision plutot que
   // d'afficher une grille vide et muette.
