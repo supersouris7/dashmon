@@ -14,6 +14,7 @@ const { ConfigStore } = require("./lib/config-store");
 const agentProtocol = require("./lib/agent-protocol");
 const { createAuth } = require("./lib/auth");
 const { createScheduler } = require("./lib/scheduler");
+const { securityHeaders } = require("./lib/security-headers");
 
 function createApp(){
 const app = express();
@@ -124,30 +125,7 @@ const STATUS_TIMEOUT = 4000;
 
 const {validSession,validBasicAuth,setSessionCookie}=createAuth({password:DASHMON_PASSWORD});
 
-app.use((_req, res, next) => {
-  res.set("X-Content-Type-Options", "nosniff");
-  res.set("X-Frame-Options", "DENY");
-  res.set("Referrer-Policy", "no-referrer");
-  res.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  res.set("Cross-Origin-Opener-Policy", "same-origin");
-  res.set("Cross-Origin-Resource-Policy", "same-origin");
-  res.set("Content-Security-Policy", [
-    "default-src 'none'",
-    "script-src 'self'",
-    "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
-    "font-src https://cdnjs.cloudflare.com",
-    "img-src 'self' data:",
-    "connect-src 'self'",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "frame-ancestors 'none'",
-    "form-action 'self'"
-  ].join("; "));
-  if (_req.secure || _req.get("x-forwarded-proto") === "https") {
-    res.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains");
-  }
-  next();
-});
+app.use(securityHeaders);
 
 app.use((_req, res, next) => {
   if (["POST", "PUT", "DELETE", "PATCH"].includes(_req.method)) {
