@@ -106,7 +106,7 @@ async function main(){
   const localMetrics=(await response.json()).hosts;
   assert.equal(localMetrics.length,1);
   assert.equal(localMetrics[0].id,"local");
-  config.replication={role:"primary",instanceName:"Dashmon",secondaries:[agent],agentNames:{[agent]:"Supervision distante"}};
+  config.replication={role:"primary",instanceName:"Dashmon",secondaries:[agent],agentNames:{[agent]:"Supervision distante"},agentColors:{[agent]:"#4f8f89"}};
   response=await fetch(primary+"/api/usage",{method:"POST",headers:{Authorization:auth,"Content-Type":"application/json"},body:JSON.stringify({key:"service"})});
   assert.equal(response.status,200);
   response=await fetch(primary+"/api/config",{method:"PUT",headers:{Authorization:auth,"Content-Type":"application/json","If-Match":originalRevision},body:JSON.stringify(config)});
@@ -118,6 +118,7 @@ async function main(){
   const saved=await response.json();
   assert.equal(saved.usageCounts.service,1);
   assert.equal(saved.replication.agentNames[new URL(agent).href],"Supervision distante");
+  assert.equal(saved.replication.agentColors[new URL(agent).href],"#4f8f89");
   response=await fetch(primary+"/api/replication/metrics",{headers:{Authorization:auth}});
   data=await response.json();
   assert.equal(data.instances[0].ok,true);

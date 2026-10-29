@@ -85,6 +85,8 @@ async function main(){
   })());
   const agentEditorSource=fs.readFileSync(path.join(JS_DIR,"editor.js"),"utf8");
   ok("agents : test depuis le principal et ouverture protegee", agentEditorSource.includes('fetch("/api/agents/test"') && agentEditorSource.includes('configure.rel="noopener noreferrer"'));
+  ok("agents : couleur d'hote enregistree avec le pairage", agentEditorSource.includes("agentColors") && agentEditorSource.includes('t("agentHostColor")'));
+  ok("agents : couleur reprise au survol de la tuile distante", supervisionSource.includes("agentColors[selected.id]") && supervisionSource.includes("sanitizeTileColor(agentColors"));
   const agentPage=fs.readFileSync(path.join(ROOT,"public","agent.html"),"utf8");
   for(const doc of ["WIREGUARD.md","SMART.md","APT_UPDATES.md"]){
     ok("agents : guide accessible depuis les deux interfaces : "+doc,agentEditorSource.includes(doc) && agentPage.includes(doc));
@@ -389,9 +391,11 @@ async function main(){
   // configuree. L'affectation se fait a la normalisation, donc elle doit
   // fonctionner meme sans jamais ouvrir l'editeur.
   const stateModule = await import(pathToFileURL(path.join(JS_DIR, "state.js")).href);
-  const namedAgent=stateModule.normalizeConfig({replication:{secondaries:["https://exemple.lan"],agentNames:{"https://exemple.lan":"Supervision"}}}).replication;
+  const namedAgent=stateModule.normalizeConfig({replication:{secondaries:["https://exemple.lan"],agentNames:{"https://exemple.lan":"Supervision"},agentColors:{"https://exemple.lan":"#4f8f89"}}}).replication;
   check("agent : nom et URL normalises", namedAgent.agentNames["https://exemple.lan/"], "Supervision");
+  check("agent : couleur d'hote normalisee", namedAgent.agentColors["https://exemple.lan/"], "#4f8f89");
   check("agent : ancienne configuration sans noms", stateModule.normalizeConfig({replication:{secondaries:["https://exemple.lan"]}}).replication.agentNames, {});
+  check("agent : ancienne configuration sans couleurs", stateModule.normalizeConfig({replication:{secondaries:["https://exemple.lan"]}}).replication.agentColors, {});
   const PALETTE = stateModule.TILE_COLORS;
   const assign = stateModule.assignTileColors;
   const cats = [{ name: "A" }, { name: "B" }, { name: "C" }];

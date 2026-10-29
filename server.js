@@ -1317,7 +1317,14 @@ function sanitizeReplication(raw) {
     const name=sanitizeText(value,100);
     if(normalized && name && secondaries.includes(normalized)) agentNames[normalized]=name;
   }
-  return { role, instanceName, secondaries, agentNames };
+  const colors=source.agentColors && typeof source.agentColors==="object" && !Array.isArray(source.agentColors) ? source.agentColors : {};
+  const agentColors={};
+  for(const [url,value] of Object.entries(colors)){
+    const normalized=sanitizeSyncUrl(url);
+    const color=sanitizeColor(value);
+    if(normalized && color && secondaries.includes(normalized)) agentColors[normalized]=color;
+  }
+  return { role, instanceName, secondaries, agentNames, agentColors };
 }
 
 async function refreshStatusesCycle(force){

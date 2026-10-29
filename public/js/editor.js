@@ -889,7 +889,7 @@ function autoColor(){
 // deroulant de 110 px dans une ligne de reglages deja chargee finissait par
 // chevaucher les champs voisins ; le carre, lui, ne prend pas plus de place
 // que l'icone qu'il remplace.
-function createColorPicker(item){
+function createColorPicker(item,{auto=true,onChange=null}={}){
   const wrap=document.createElement("div");
   wrap.className="color-picker";
 
@@ -907,7 +907,7 @@ function createColorPicker(item){
   // Les doublons sont autorises : deux categories peuvent porter la meme
   // couleur si c'est un choix, et surtout une couleur d'hote n'a rien a voir
   // avec celle d'une categorie. On n'exclut donc rien de la palette.
-  if(!item.color) {
+  if(auto && !item.color) {
     item.color=autoColor();
     button.style.setProperty("--swatch",item.color);
   }
@@ -923,9 +923,16 @@ function createColorPicker(item){
     swatch.addEventListener("click",event=>{
       event.stopPropagation();
       item.color=sanitizeTileColor(color);
+      button.style.setProperty("--swatch",item.color);
+      palette.querySelectorAll(".color-chip").forEach(chip=>{
+        chip.classList.toggle("current",chip.getAttribute("aria-label")===item.color);
+      });
       closeColorPalette();
-      renderCategoryEditor();
-      renderHostEditor();
+      if(onChange) onChange();
+      else {
+        renderCategoryEditor();
+        renderHostEditor();
+      }
     });
     palette.appendChild(swatch);
   });
@@ -1529,7 +1536,8 @@ function renderReplicationEditor(){
   docsLabel.textContent=t("agentIntegrationDocs")+" :";
   integrations.prepend(docsLabel);
   replicationEditor.appendChild(integrations);
-  if(!state.replication) state.replication={role:"primary",instanceName:"Dashmon",secondaries:[],agentNames:{}};
+  if(!state.replication) state.replication={role:"primary",instanceName:"Dashmon",secondaries:[],agentNames:{},agentColors:{}};
+  if(!state.replication.agentColors || typeof state.replication.agentColors!=="object") state.replication.agentColors={};
   const name=document.createElement("input");
   name.className="edit-input"; name.placeholder=t("agentInstanceName"); name.setAttribute("aria-label",t("agentInstanceName")); name.value=state.replication.instanceName||"";
   name.addEventListener("input",()=>state.replication.instanceName=name.value);
@@ -1546,20 +1554,25 @@ function renderReplicationEditor(){
 
   const entries=(state.replication.secondaries||[]).map(url=>({
     url,
-    name:(state.replication.agentNames||{})[url]||""
+    name:(state.replication.agentNames||{})[url]||"",
+    color:(state.replication.agentColors||{})[url]||""
   }));
   const syncPairs=()=>{
     const urls=[];
     const names={};
+    const colors={};
     for(const entry of entries){
       const url=agentUrl(entry.url);
       if(!url) continue;
       if(!urls.includes(url)) urls.push(url);
       const label=String(entry.name||"").trim();
       if(label) names[url]=label;
+      const color=sanitizeTileColor(entry.color);
+      if(color) colors[url]=color;
     }
     state.replication.secondaries=urls.slice(0,20);
     state.replication.agentNames=names;
+    state.replication.agentColors=colors;
   };
 
   const list=document.createElement("div");
@@ -1672,10 +1685,12 @@ function renderReplicationEditor(){
       const actions=document.createElement("div");
       actions.className="agent-editor-actions";
       actions.append(test,configure,remove,status);
+      const colorPicker=createColorPicker(entry,{auto:false,onChange:()=>syncPairs()});
       item.append(
         monitoringField(t("agentUrlLabel"),urlInput),
         invalid,
         monitoringField(t("agentTabName"),nameInput),
+        monitoringField(t("agentHostColor"),colorPicker),
         actions
       );
       list.appendChild(item);
@@ -1691,7 +1706,7 @@ function renderReplicationEditor(){
   add.disabled=entries.length>=20;
   add.addEventListener("click",()=>{
     if(entries.length>=20) return;
-    entries.push({url:"",name:""});
+    entries.push({url:"",name:"",color:""});
     syncPairs();
     renderPairs();
     add.disabled=entries.length>=20;

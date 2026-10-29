@@ -155,7 +155,8 @@ finale. Le dossier doit être inscriptible par l'UID `1000` du conteneur.
    dans le champ du chemin disque. Sinon la mesure concerne le conteneur.
 3. Sur le principal : **Modifier la supervision → Agents**. Ajoutez l'adresse
    complète de l'agent, par exemple `http://exemple.lan:8081`, puis donnez un
-   nom à l'onglet si souhaité.
+   nom à l'onglet si souhaité. La couleur de l'hôte, facultative, est reprise au
+   survol de sa tuile dans Supervision.
 4. Cliquez sur **Tester la connexion**, puis sur **Enregistrer**. Le bouton
    **Paramétrer** ouvre la page de l'agent. L'onglet apparaît dans Supervision.
 

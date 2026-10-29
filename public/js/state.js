@@ -330,7 +330,7 @@ export const state = {
   categories: [],
   dashboards: [],
   hosts: [],
-  replication: {role:"primary",instanceName:"Dashmon",secondaries:[]},
+  replication: {role:"primary",instanceName:"Dashmon",secondaries:[],agentNames:{},agentColors:{}},
   collapsed: {},
   supervisionSmartExpanded: [],
   supervisionHostExpanded: [],
@@ -710,7 +710,11 @@ export function normalizeConfig(cfg={}){
       secondaries:Array.isArray(cfg.replication?.secondaries)
         ? [...new Set(cfg.replication.secondaries.map(value=>sanitizeUrl(value)).filter(Boolean))].slice(0,20) : [],
       agentNames:cfg.replication?.agentNames && typeof cfg.replication.agentNames==="object" && !Array.isArray(cfg.replication.agentNames)
-        ? Object.fromEntries(Object.entries(cfg.replication.agentNames).map(([url,name])=>[sanitizeUrl(url),sanitizeText(name,100)]).filter(([url,name])=>url && name)) : {}
+        ? Object.fromEntries(Object.entries(cfg.replication.agentNames).map(([url,name])=>[sanitizeUrl(url),sanitizeText(name,100)]).filter(([url,name])=>url && name)) : {},
+      // Couleur choisie pour un hote appaire : elle vit avec son pairage, pas
+      // dans la configuration de l'agent. La tuile distante la reprend au survol.
+      agentColors:cfg.replication?.agentColors && typeof cfg.replication.agentColors==="object" && !Array.isArray(cfg.replication.agentColors)
+        ? Object.fromEntries(Object.entries(cfg.replication.agentColors).map(([url,color])=>[sanitizeUrl(url),sanitizeTileColor(color)]).filter(([url,color])=>url && color)) : {}
     },
     theme:typeof cfg.theme==="string" && cfg.theme.trim() ? cfg.theme.trim() : "dark",
     language:cfg.language==="en" ? "en" : "fr",

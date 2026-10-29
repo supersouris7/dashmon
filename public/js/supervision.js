@@ -860,8 +860,17 @@ export function renderSupervision(){
     warning.textContent=t("agentStale");
     supervisionList.append(warning);
   }
+  const agentColors=state.replication?.agentColors||{};
   const monitored=selected
-    ? selected.hosts.map(metric=>({id:metric.id,name:metric.name,icon:"fa-solid fa-server",monitoring:{enabled:true,type:metric.type}}))
+    ? selected.hosts.map(metric=>({
+        id:metric.id,
+        name:metric.name,
+        icon:"fa-solid fa-server",
+        // La couleur est choisie avec le pairage : elle suit l'agent et
+        // s'applique au survol de sa tuile, comme pour un hote local.
+        color:sanitizeTileColor(agentColors[selected.id]),
+        monitoring:{enabled:true,type:metric.type}
+      }))
     : state.hosts.filter(host=>host.monitoring && host.monitoring.enabled===true);
   // Aucun hote surveille : on explique ou activer la supervision plutot que
   // d'afficher une grille vide et muette.
