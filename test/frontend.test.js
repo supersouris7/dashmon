@@ -87,6 +87,7 @@ async function main(){
   ok("agents : test depuis le principal et ouverture protegee", agentEditorSource.includes('fetch("/api/agents/test"') && agentEditorSource.includes('configure.rel="noopener noreferrer"'));
   ok("agents : hote associe a chaque pairage", agentEditorSource.includes("agentHosts") && agentEditorSource.includes('t("agentHostLabel")'));
   ok("agents : enregistrement possible sans hote", agentEditorSource.includes('t("agentHostRequiredTitle")') && agentEditorSource.includes('t("agentHostSaveAnyway")') && agentEditorSource.includes("createHostDraft"));
+  ok("agents : dialogue d'avertissement signale et aligne", agentEditorSource.includes("fa-triangle-exclamation") && agentEditorSource.includes('" multi"'));
   ok("agents : couleur et icone reprises de l'hote au survol", supervisionSource.includes("agentHosts[selected.id]") && supervisionSource.includes("linked?.icon") && supervisionSource.includes("sanitizeTileColor(linked?.color)"));
   const agentPage=fs.readFileSync(path.join(ROOT,"public","agent.html"),"utf8");
   for(const doc of ["WIREGUARD.md","SMART.md","APT_UPDATES.md"]){

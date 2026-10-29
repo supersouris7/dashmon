@@ -25,6 +25,7 @@ import {
 
 const saveStatus=document.getElementById("saveStatus");
 const confirmBackdrop=document.getElementById("confirmBackdrop");
+const confirmIcon=document.getElementById("confirmIcon");
 const confirmTitle=document.getElementById("confirmTitle");
 const confirmMessage=document.getElementById("confirmMessage");
 const confirmActions=document.getElementById("confirmActions");
@@ -45,10 +46,13 @@ function editorSnapshot(){
   });
 }
 
-function openConfirm({title,message,actions}){
+function openConfirm({title,message,actions,icon}){
   if(confirmResolve) confirmResolve("cancel");
   confirmTitle.textContent=title;
   confirmMessage.textContent=message;
+  confirmIcon.className="confirm-icon"+(icon ? " fa-solid "+icon : "");
+  confirmIcon.hidden=!icon;
+  confirmActions.className="confirm-actions"+(actions.length>2 ? " multi" : "");
   confirmActions.replaceChildren();
   return new Promise(resolve=>{
     const finish=value=>{
@@ -2061,10 +2065,11 @@ async function applyEditorChanges(){
     const choice=await openConfirm({
       title:t("agentHostRequiredTitle"),
       message:t("agentHostRequiredMessage"),
+      icon:"fa-triangle-exclamation",
       actions:[
-        {id:"cancel",label:t("cancelBtn")},
         {id:"create",label:t("agentHostCreate"),className:"action-btn primary"},
-        {id:"save",label:t("agentHostSaveAnyway")}
+        {id:"save",label:t("agentHostSaveAnyway")},
+        {id:"cancel",label:t("cancelBtn")}
       ]
     });
     if(choice==="cancel") return false;

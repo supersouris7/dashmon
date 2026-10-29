@@ -48,6 +48,19 @@ body.modal-open{
   box-shadow:var(--shadow);
 }
 
+.confirm-heading{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.confirm-icon{
+  flex:0 0 auto;
+  font-size:20px;
+  line-height:1;
+  color:var(--warning);
+}
+
 .confirm-title{
   margin:0;
   font-size:18px;
@@ -64,6 +77,13 @@ body.modal-open{
   flex-wrap:wrap;
   justify-content:flex-end;
   gap:8px;
+}
+
+/* Trois choix ou plus : une seule colonne, pour que les boutons restent
+   alignes et lisibles au lieu de se replier sur deux lignes. */
+.confirm-actions.multi{
+  display:grid;
+  grid-template-columns:1fr;
 }
 
 .save-status{
