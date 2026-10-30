@@ -6,16 +6,18 @@ import { patchConfig, setConfigRevision } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
 import {
   render,
+  getCollapseAllState,
+  updateCollapseAllButton,
+  updateStatusIndicators
+} from "./render.js";
+import {
   updateViewButton,
   updateIconsButton,
   updateOpenModeMenu,
   updateGroupModeMenu,
   updateSortModeMenu,
-  setGroupMode,
-  getCollapseAllState,
-  updateCollapseAllButton,
-  updateStatusIndicators
-} from "./render.js";
+  setGroupMode
+} from "./dashboard/view-controls.js";
 import {
   t,
   applyLanguage,

@@ -5,14 +5,14 @@ import { clone, normalize, compareNames } from "./util.js";
 import { t, applyLanguage } from "./i18n.js";
 import { saveConfig, fetchConfig, configConflict } from "./api.js";
 import { saveViewPrefs } from "./view-prefs.js";
+import { render } from "./render.js";
 import {
-  render,
   updateViewButton,
   updateIconsButton,
   updateOpenModeMenu,
   updateGroupModeMenu,
   updateSortModeMenu
-} from "./render.js";
+} from "./dashboard/view-controls.js";
 import { renderPageSwitch } from "./pages.js";
 import { renderSupervision } from "./supervision.js";
 import { applyTheme } from "./themes.js";
