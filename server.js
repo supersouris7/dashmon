@@ -139,11 +139,6 @@ function createApp() {
   registerSystemRoutes(app, { settings, version, readConfig });
   registerWidgetRoutes(app, { widgetCore });
 
-  // Replaced by the agent mode: kept so that older instances get a clear answer.
-  app.put("/api/sync/config", (_req, res) => {
-    res.status(410).json({ error: "La réplication est remplacée par le mode agent" });
-  });
-
   registerAgentRoutes(app, {
     readConfig,
     sanitizeReplication: pairing.sanitizeReplication,
@@ -158,8 +153,6 @@ function createApp() {
     writeConfig: config => configRepository.write(config),
     revision: config => configRepository.revision(config),
     normalize: config => configRepository.ensureLocalHost(normalizeConfig(config)),
-    // Agents never receive the dashboard configuration.
-    replicate: async () => [],
     ensureHostIds: () => ensureHostIds(configRepository),
     withCacheKeys: config => widgetCore.withCacheKeys(config),
     logger: log

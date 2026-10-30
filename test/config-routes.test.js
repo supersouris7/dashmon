@@ -20,7 +20,6 @@ async function main() {
     },
     revision: value => JSON.stringify(value.theme),
     normalize: value => structuredClone(value),
-    replicate: async () => ({}),
     ensureHostIds: () => {},
     withCacheKeys: value => value,
     logger: { error: () => {} }
