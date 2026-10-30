@@ -98,6 +98,25 @@ async function main() {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 
+  // Interface texts: both languages define exactly the same keys, all of them
+  // non-empty strings.
+  const texts = Object.fromEntries(
+    ["fr", "en"].map(lang => [
+      lang,
+      JSON.parse(fs.readFileSync(path.join(JS_DIR, "i18n", lang + ".json"), "utf8"))
+    ])
+  );
+  check(
+    "i18n : memes cles en francais et en anglais",
+    Object.keys(texts.en).sort(),
+    Object.keys(texts.fr).sort()
+  );
+  ok(
+    "i18n : textes non vides",
+    Object.values(texts.fr)
+      .concat(Object.values(texts.en))
+      .every(v => typeof v === "string" && v.trim())
+  );
   const toolbar = await import(pathToFileURL(path.join(JS_DIR, "toolbar.js")).href);
   check(
     "toolbar : recherche visible si assez de place",
