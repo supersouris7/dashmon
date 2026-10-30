@@ -1,6 +1,7 @@
-// Navigation du tableau de bord : un bouton par dashboard et par instance supervisee.
-// Le panneau de boutons est construit en JavaScript car son contenu depend de
-// la liste des dashboards et du libelle courant (langue, renommage en editeur).
+// Dashboard navigation: one button per dashboard and per supervised
+// instance. The buttons are built in JavaScript because they depend on the
+// list of dashboards and on the current labels (language, renaming in the
+// editor).
 import { state } from "./state.js";
 import { render } from "./render.js";
 import {
@@ -30,8 +31,8 @@ function button(page, icon, label, active) {
   return btn;
 }
 
-// Un identifiant de dashboard inconnu ne doit jamais rendre tous les boutons
-// inactifs : on retombe sur le dashboard effectif (voir currentDashboardId).
+// An unknown dashboard id must never leave every button inactive: fall back
+// to the effective dashboard (see currentDashboardId).
 function activeDashboardId() {
   return state.dashboards.some(d => d.id === state.dashboardId)
     ? state.dashboardId
@@ -79,8 +80,8 @@ function mobileMenuItem(icon, label, active, onClick) {
 function applyPage() {
   document.body.dataset.page = state.page;
   if (state.page === "supervision") {
-    // La lecture des mesures ne tourne que sur cette page : ouvert ici, arrete
-    // au retour au tableau de bord (voir startSupervisionMetrics).
+    // Metrics are only read on this page: started here, stopped when going back
+    // to the dashboard (see startSupervisionMetrics).
     renderSupervision();
     startSupervisionMetrics();
   } else {
@@ -159,8 +160,8 @@ document.addEventListener("click", event => {
   if (!event.target.closest(".mobile-page-menu")) closeMobilePageMenu();
 });
 
-// Applique une page sans forcement persister : le rendu initial de l'application
-// fait simplement honneur a la preference deja chargee.
+// Applies a page without necessarily saving it: the initial render simply
+// honours the preference already loaded.
 export function setPage(page) {
   state.page = page === "supervision" ? "supervision" : "dashboard";
   applyPage();

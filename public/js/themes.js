@@ -1,4 +1,5 @@
-// Thèmes : chargement natifs/custom, application, import/export/suppression, menu de sélection.
+// Themes: loading native and custom themes, applying them, import / export /
+// deletion, and the theme menu.
 import { state } from "./state.js";
 import { t } from "./i18n.js";
 import { patchConfig } from "./api.js";
@@ -95,10 +96,10 @@ export async function loadThemes() {
   applyTheme();
 }
 
-// Un thème peut être clair ou sombre, et les thèmes importés le peuvent aussi :
-// on juge donc sur le fond plutôt que sur le nom. Un fond clair donne false.
-// Le seuil est la formule de luminance perçue (Rec. 601), celle qui colle le
-// plus à la perception, donc au rendu réel du texte sur ce fond.
+// A theme may be light or dark, imported themes too: judge on the background
+// rather than on the name. A light background gives false. The threshold uses
+// the perceived luminance formula (Rec. 601), the closest to perception and so
+// to how text actually renders on that background.
 function isDarkTheme(theme) {
   const bg = theme?.variables?.bg || "";
   let hex = bg.trim().replace(/^#/, "");
@@ -112,8 +113,8 @@ export function applyTheme() {
   document.documentElement.dataset.theme = state.theme;
   try {
     const theme = currentTheme();
-    // Aligne les widgets natifs du navigateur sur le thème réellement appliqué,
-    // plutôt que sur le réglage clair/sombre du poste.
+    // Align the browser's native widgets with the theme actually applied rather
+    // than with the system light / dark setting.
     document.documentElement.style.colorScheme = isDarkTheme(theme) ? "dark" : "light";
     if (theme?.variables) {
       const vars = Object.entries(theme.variables)
@@ -192,8 +193,8 @@ function sanitizeVarValue(value) {
     .slice(0, 200);
 }
 
-// Doit rester identique à server.js (sanitizeThemeCss) pour éviter des
-// divergences à l'enregistrement d'un thème.
+// Must stay identical to sanitizeThemeCss in lib/themes.js to avoid
+// differences when a theme is saved.
 const MAX_THEME_CSS_BYTES = 65536;
 
 function sanitizeThemeCss(css) {

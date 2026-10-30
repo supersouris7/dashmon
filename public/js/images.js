@@ -1,4 +1,4 @@
-// Bibliothèque et gestionnaire d'images PNG (import, sélection, suppression).
+// PNG image library and manager (upload, selection, deletion).
 import { t } from "./i18n.js";
 import {
   imageLibrary,

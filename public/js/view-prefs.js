@@ -1,22 +1,20 @@
-// Préférences d'affichage, stockées côté navigateur (localStorage).
+// View preferences, stored in the browser (localStorage).
 //
-// Pourquoi pas dans config.json ? Ces réglages décrivent la façon dont CET
-// écran regarde le tableau de bord (colonnes ou lignes, tri, sections
-// repliées), pas la configuration du dashboard (services, hôtes, langue,
-// thème). Les garder côté navigateur évite d'écrire un fichier sur le disque à
-// chaque clic, évite de propager une disposition d'un appareil à l'autre, et
-// ne renvoie rien au serveur à chaque requête — contrairement à un cookie.
+// Why not in config.json? These settings describe how THIS screen looks at
+// the dashboard (columns or rows, sorting, collapsed sections), not the
+// dashboard configuration (services, hosts, language, theme). Keeping them in
+// the browser avoids writing a file on disk at every click, avoids carrying a
+// layout from one device to another, and sends nothing to the server with each
+// request, unlike a cookie.
 //
-// Le stockage peut être indisponible (navigation privée, cookies bloqués,
-// quota) : dans ce cas l'application continue de fonctionner, la préférence
-// est simplement conservée pour la session en cours.
+// Storage may be unavailable (private browsing, blocked cookies, quota): the
+// application keeps working and the preference only lasts for the session.
 
 const STORAGE_KEY = "dashmon.view";
 
-// Liste unique des clés autorisées : rien d'autre n'est jamais écrit, même si
-// un appelant passe la config entière. La source de vérité est state.js
-// (VIEW_PREF_KEYS), on ne fait que la recopier pour éviter une dépendance
-// circulaire.
+// Single list of allowed keys: nothing else is ever written, even if a caller
+// passes the whole config. The source of truth is VIEW_PREF_KEYS in
+// config/normalize.js; it is copied here to avoid a circular dependency.
 const ALLOWED = Object.freeze([
   "viewMode",
   "sortMode",
@@ -35,7 +33,7 @@ const ALLOWED = Object.freeze([
 
 function storage() {
   try {
-    // Accès différé : le module reste chargeable hors navigateur (tests).
+    // Deferred access: the module stays loadable outside a browser (tests).
     const store = globalThis.localStorage;
     if (!store) return null;
     return store;
@@ -44,8 +42,8 @@ function storage() {
   }
 }
 
-// Ne renvoie que les préférences d'affichage contenues dans un objet (la
-// config serveur, par exemple), sans jamais en inventer.
+// Returns only the view preferences found in an object (the server config,
+// for instance), never inventing any.
 export function pickViewPrefs(source) {
   if (!source || typeof source !== "object") return {};
   const out = {};
@@ -55,8 +53,8 @@ export function pickViewPrefs(source) {
   return out;
 }
 
-// Préférences enregistrées dans ce navigateur. Jamais d'exception : un
-// stockage corrompu est traité comme un stockage vide.
+// Preferences saved in this browser. Never throws: corrupted storage is
+// treated as empty.
 export function loadViewPrefs() {
   const store = storage();
   if (!store) return {};
@@ -70,9 +68,8 @@ export function loadViewPrefs() {
   }
 }
 
-// Enregistre uniquement les préférences d'affichage connues. Retourne ce qui a
-// réellement été pris en compte, pour que l'appelant puisse mettre son état à
-// jour sans refaire le tri.
+// Saves only the known view preferences. Returns what was actually taken into
+// account, so the caller can update its state without sorting again.
 export function saveViewPrefs(patch) {
   const applied = pickViewPrefs(patch);
   if (!Object.keys(applied).length) return applied;
@@ -81,7 +78,7 @@ export function saveViewPrefs(patch) {
   try {
     store.setItem(STORAGE_KEY, JSON.stringify(Object.assign(loadViewPrefs(), applied)));
   } catch (_error) {
-    // Quota plein ou stockage désactivé : la prefs reste valable en mémoire.
+    // Quota full or storage disabled: the preference stays valid in memory.
   }
   return applied;
 }

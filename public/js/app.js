@@ -1,4 +1,5 @@
-// Point d'entrée : initialisation, menu principal, modals (éditeur/apparence), événements globaux.
+// Entry point: start-up, main menu, dialogs (editor, appearance) and global
+// events.
 import { state } from "./state.js";
 import { normalizeConfig, normalizeViewPrefs } from "./config/normalize.js";
 import { isTypingTarget } from "./util.js";
@@ -91,8 +92,8 @@ window.addEventListener("dashmon:config-conflict", () => alert(t("configConflict
 
 async function loadConfig() {
   try {
-    // Parametre anti-cache : certains reverse proxies ignorent Cache-Control et
-    // resservent l'ancienne configuration apres une suppression.
+    // Cache-busting parameter: some reverse proxies ignore Cache-Control and serve
+    // the old configuration again after a deletion.
     const response = await fetch("/api/config?_=" + Date.now(), { cache: "no-store" });
     if (!response.ok) throw new Error("HTTP " + response.status);
     setConfigRevision(response.headers.get("ETag"));
@@ -104,8 +105,8 @@ async function loadConfig() {
     state.hosts = cfg.hosts;
     state.replication = cfg.replication;
     state.specialTile = cfg.specialTile;
-    // Disposition de l'écran : ce navigateur prime, la config serveur sert de
-    // valeur initiale (premier chargement, ou navigateur tout neuf).
+    // Screen layout: this browser wins; the server config only provides the
+    // initial value (first load, or a brand new browser).
     const viewPrefs = normalizeViewPrefs(Object.assign(pickViewPrefs(cfg), loadViewPrefs()));
     state.collapsed = viewPrefs.collapsed;
     state.viewMode = viewPrefs.viewMode;
@@ -119,9 +120,8 @@ async function loadConfig() {
     state.supervisionSmartExpanded = viewPrefs.supervisionSmartExpanded;
     state.supervisionHostExpanded = viewPrefs.supervisionHostExpanded;
     state.supervisionAptExpanded = viewPrefs.supervisionAptExpanded;
-    // Le dashboard actif vient de la preference, mais il est borne a la liste
-    // de la config : une preference dont le dashboard a ete supprime retombe
-    // sur le premier dashboard.
+    // The active dashboard comes from the preference, bounded to the config's
+    // list: a preference whose dashboard was deleted falls back to the first one.
     state.dashboardId = cfg.dashboards.some(d => d.id === viewPrefs.dashboardId)
       ? viewPrefs.dashboardId
       : cfg.dashboards[0]?.id || state.dashboardId;
@@ -196,7 +196,7 @@ function updateToolbarLayout() {
     window.innerWidth > 800 &&
     hideToolbarSearch(available, nav, actionWidth, gap * (actions.length + 1));
   toolbar.classList.toggle("compact-search", compact);
-  // Ne pas laisser un filtre actif invisible apres un redimensionnement.
+  // Never leave an invisible filter active after a resize.
   if ((compact || window.innerWidth <= 800) && searchInput.value) {
     searchInput.value = "";
     searchBox.classList.remove("has-value");
@@ -361,7 +361,7 @@ languageSelect.addEventListener("change", () => {
   patchConfig({ language: state.language });
 });
 
-// Le bouton est l'unique commande du mode petites icones.
+// This button is the only control of the small icons mode.
 iconsBtn.addEventListener("click", () => {
   state.smallIcons = !state.smallIcons;
   render();
@@ -456,8 +456,8 @@ document.addEventListener("keydown", e => {
 
 async function init() {
   try {
-    // Le registre DOIT etre charge avant la config : la normalisation de
-    // l'etat et le premier rendu s'appuient sur les schemas de widgets.
+    // The registry MUST be loaded before the config: state normalisation and the
+    // first render rely on the widget schemas.
     await Promise.all([loadThemes(), loadWidgetRegistry()]);
     await loadConfig();
     setupVisibilityPause();

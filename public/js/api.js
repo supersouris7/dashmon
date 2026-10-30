@@ -1,4 +1,4 @@
-// Couche API backend : lecture/écriture de la configuration (avec anti-rebond).
+// Server API: reading and writing the configuration (with debounced saves).
 import { state } from "./state.js";
 
 let configSaveTimer;
@@ -15,10 +15,10 @@ export function saveConfig(immediate = false, { replaceUsage = false } = {}) {
   clearTimeout(configSaveTimer);
 
   const run = () => {
-    // Volontairement pas de collapsed/viewMode/sortMode/groupMode/openMode/
-    // smallIcons/webLinksHidden : la disposition de l'écran
-    // vit dans le navigateur (view-prefs.js), elle n'est ni lue ni écrite par
-    // le serveur. Le PUT sert la configuration et les préférences d'apparence.
+    // Deliberately no collapsed / viewMode / sortMode / groupMode / openMode /
+    // smallIcons / webLinksHidden: the screen layout lives in the browser
+    // (view-prefs.js) and is neither read nor written by the server. The PUT carries
+    // the configuration and the appearance preferences.
     const payload = JSON.stringify({
       services: state.services,
       categories: state.categories,
@@ -63,12 +63,12 @@ export function saveConfig(immediate = false, { replaceUsage = false } = {}) {
   return configSaveChain;
 }
 
-// Mise à jour partielle (PATCH) : pour les toggles/selects légers, évite
-// d'écrire tout le config.json à chaque clic.
+// Partial update (PATCH) for light toggles and selects: avoids writing the
+// whole config.json on every click.
 export function patchConfig(patch, immediate = false) {
   clearTimeout(configPatchTimer);
-  // Plusieurs reglages modifies rapidement doivent tous survivre au debounce.
-  // Les champs de premier niveau sont remplaces, comme dans l'API PATCH.
+  // Several settings changed in quick succession must all survive the debounce.
+  // Top-level fields are replaced, as in the PATCH API.
   pendingConfigPatch = { ...pendingConfigPatch, ...patch };
   const run = () => {
     const payload = JSON.stringify(pendingConfigPatch);
@@ -100,8 +100,8 @@ export function patchConfig(patch, immediate = false) {
 }
 
 export async function fetchConfig() {
-  // Parametre anti-cache : certains reverse proxies ignorent Cache-Control et
-  // resservent l'ancienne configuration apres une suppression.
+  // Cache-busting parameter: some reverse proxies ignore Cache-Control and serve
+  // the old configuration again after a deletion.
   const response = await fetch("/api/config?_=" + Date.now(), { cache: "no-store" });
   if (!response.ok) throw new Error("HTTP " + response.status);
   return response.json();
@@ -116,8 +116,8 @@ export async function putConfig(body) {
   if (!response.ok) throw new Error("HTTP " + response.status);
 }
 
-// Compteur de clics : incrément local + persistance légère compatible
-// navigation de page (le gros PUT /api/config est interrompu au clic).
+// Click counter: local increment plus a light request that survives page
+// navigation (the big PUT /api/config would be cut off by the click).
 export function bumpUsage(key) {
   if (!key) return;
   state.usageCounts[key] = Number(state.usageCounts[key] || 0) + 1;

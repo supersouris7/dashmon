@@ -1,9 +1,9 @@
-// Regles d'etat des pastilles de supervision, sans DOM.
+// Status rules of the monitoring pills, without DOM.
 //
-// `soft` = supervision non importante : le service est surveille, mais son
-// indisponibilite n'est pas critique. L'etat reste `soft` (l'info-bulle
-// l'explique) et la pastille prend l'aspect d'un statut inconnu : un rond
-// vide. Seul un vrai `down` affiche une croix rouge.
+// `soft` means non-critical monitoring: the service is checked, but its
+// unavailability is not critical. The state stays `soft` (the tooltip explains
+// it) and the pill looks like an unknown status: an empty circle. Only a real
+// `down` shows a red cross.
 
 export function effectiveStatus(monitor, info) {
   const state = (info && info.state) || "pending";

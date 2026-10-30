@@ -1,4 +1,4 @@
-// Références DOM centralisées : seul endroit qui lit le HTML par id.
+// Central DOM references: the only place reading the HTML by id.
 export const dashboard = document.getElementById("dashboard");
 export const pageSwitchGroup = document.getElementById("pageSwitchGroup");
 export const mobilePageBtn = document.getElementById("mobilePageBtn");

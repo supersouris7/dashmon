@@ -1,18 +1,18 @@
-// Tuile « Fortune Cookie » : une phrase par jour, sans intitulé ni pastille.
+// "Fortune Cookie" tile: one quote per day, without title or pill.
 //
-// La phrase du jour est deterministe : elle sort du jour et de l'identite de la
-// tuile, jamais d'un hasard au chargement. La meme tuile affiche donc la meme
-// phrase toute la journee, et un rechargement ne la change pas.
+// The quote of the day is deterministic: it derives from the day and the tile
+// identity, never from randomness at load time. The same tile shows the same
+// quote all day, and a reload does not change it.
 //
-// L'identite est le type de la tuile speciale ("fortune"), pour qu'il y ait une
-// seule memoire par tableau de bord. Une identite sous forme d'objet reste
-// acceptee pour ne pas casser d'anciens appels.
+// The identity is the special tile type ("fortune"), so there is a single
+// memory per dashboard. An object identity is still accepted so that older
+// calls keep working.
 //
-// Un clic tire une autre phrase. Ce choix est memorise dans le navigateur, avec
-// le jour qui l'a produit : le lendemain la memoire est invalidee et la tuile
-// repart sur la phrase du jour. Comme pour les preferences d'affichage, le
-// stockage peut etre indisponible ; la tuile reste alors utilisable, seule la
-// memorisation du clic est perdue.
+// A click draws another quote. That choice is remembered in the browser along
+// with the day that produced it: the next day the memory is invalidated and
+// the tile goes back to the quote of the day. As with view preferences,
+// storage may be unavailable; the tile still works, only the remembered click
+// is lost.
 
 const STORAGE_KEY = "dashmon.fortune";
 const MESSAGES_URL = "/fortune-messages.json";
@@ -20,8 +20,8 @@ const MESSAGES_URL = "/fortune-messages.json";
 let messages = [];
 let loading = null;
 
-// Identite stable d'une tuile : le type s'il est donne tel quel, sinon la
-// concatenation nom/hote/categorie (anciens appels).
+// Stable identity of a tile: the type when given as is, otherwise the
+// name / host / category concatenation (older calls).
 function asKey(identity) {
   if (typeof identity === "string") return identity;
   return [
@@ -40,8 +40,8 @@ function storage() {
   }
 }
 
-// Jour local, au format AAAA-MM-JJ. Volontairement pas d'ISO/UTC : la phrase
-// doit changer au minuit du lecteur, pas a celui d'un fuseau distant.
+// Local day, as YYYY-MM-DD. Deliberately not ISO / UTC: the quote must change
+// at the reader's midnight, not at that of a distant time zone.
 export function dayStamp(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -49,8 +49,8 @@ export function dayStamp(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
-// FNV-1a 32 bits : rapide, sans dependance, et suffisamment reparti pour
-// choisir un index de phrase.
+// 32-bit FNV-1a: fast, dependency-free and spread enough to pick a quote
+// index.
 export function hashString(text) {
   let hash = 2166136261;
   for (let i = 0; i < text.length; i++) {
@@ -64,8 +64,8 @@ export function fortuneKey(identity) {
   return asKey(identity);
 }
 
-// Phrases validees au chargement : le fichier est livre avec le depot, mais un
-// tri defaillant ne doit pas rendre une tuile vide ni casser le rendu.
+// Quotes validated on load: the file ships with the repository, but a broken
+// file must neither leave an empty tile nor break the rendering.
 function normalizeMessages(raw) {
   if (!Array.isArray(raw)) return [];
   return raw
@@ -104,7 +104,7 @@ export function fortuneCount() {
   return messages.length;
 }
 
-// Les tests et le rendu ont besoin de la liste sans passer par le reseau.
+// Tests and the renderer need the list without going through the network.
 export function setFortunes(list) {
   messages = normalizeMessages(list);
   loading = messages.length ? Promise.resolve(messages) : null;
@@ -116,9 +116,9 @@ function phraseOf(message, language) {
   return message.fr || message.en;
 }
 
-// Memoire des clics, par tuile et par jour. Une entree d'un autre jour est
-// ignoree a la lecture, puis effacee a l'ecriture : la map ne grossit donc pas
-// d'un jour sur l'autre.
+// Click memory, per tile and per day. An entry from another day is ignored on
+// read, then dropped on write: the map does not grow from one day to the
+// next.
 function readOverrides() {
   const store = storage();
   if (!store) return {};
@@ -143,12 +143,12 @@ function writeOverride(key, index, day) {
   try {
     store.setItem(STORAGE_KEY, JSON.stringify(overrides));
   } catch (_error) {
-    // Quota plein ou stockage desactive : le choix reste valable pour la session.
+    // Quota full or storage disabled: the choice stays valid for the session.
   }
 }
 
-// Index de la phrase affichee : memorise s'il existe et s'il date du jour
-// courant, sinon derive du jour et de la tuile.
+// Index of the quote shown: the remembered one if it exists and dates from
+// today, otherwise derived from the day and the tile.
 export function currentFortuneIndex(key, day = dayStamp()) {
   if (!messages.length) return -1;
   const overrides = readOverrides();
@@ -171,8 +171,8 @@ export function fortuneText(identity, language, day = dayStamp()) {
   return phraseOf(messages[index], language);
 }
 
-// Tirage d'une autre phrase. Le tour complet revient sur la phrase memorisee,
-// pour ne jamais boucler indefiniment quand il ne reste qu'un message.
+// Draws another quote. A full round comes back to the remembered quote, so it
+// never loops forever when only one message remains.
 export function pickFortune(identity, language, day = dayStamp()) {
   if (messages.length < 1) return "";
   const key = asKey(identity);

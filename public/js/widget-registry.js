@@ -1,20 +1,21 @@
-// Registre des widgets cote navigateur.
+// Widget registry, browser side.
 //
-// Le navigateur ne connait aucun widget nomme : il recupere la liste publiee
-// par le serveur (GET /api/widgets), puis charge dynamiquement le renderer de
-// chaque widget (GET /widget-client/<id>.js). Ajouter un widget sur Dashmon
-// n'oblige donc a modifier ni render.js, ni editor.js, ni state.js.
+// The browser knows no widget by name: it fetches the list published by the
+// server (GET /api/widgets), then dynamically loads each widget's renderer
+// (GET /widget-client/<id>.js). Adding a widget to Dashmon never requires
+// changing render.js, editor.js or state.js.
 //
-// Trois garanties :
-//   1. resilience — un widget absent ou en erreur ne casse jamais le dashboard ;
-//   2. securite — le module client n'a pas acces a la config serveur ni aux
-//      secrets : il ne recoit que le statut calcule par le server.js du widget ;
-//   3. schema declaratif — la forme de la config vient du manifest publie par
-//      le serveur ; ce module ne fait qu'interpretuer ces metadonnees.
+// Three guarantees:
+//   1. resilience: a missing or failing widget never breaks the dashboard;
+//   2. security: the client module has no access to the server config or to
+//      secrets; it only receives the status computed by the widget's server.js;
+//   3. declarative schema: the config shape comes from the manifest published
+//      by the server; this module only interprets that metadata.
 
 import { formatters } from "./format.js";
 
-// Prefixe des secrets deja chiffres par le serveur (jamais re-chiffres ici).
+// Prefix of the secrets stored by the server, encrypted or masked (never
+// re-encrypted here).
 const SECRET_PREFIX = "aes1.";
 
 const metas = new Map();
@@ -32,11 +33,11 @@ function str(value, max) {
     .slice(0, limit);
 }
 
-// --- Chargement -----------------------------------------------------------
+// --- Loading ---------------------------------------------------------------
 
-// Charge le registre et les renderers. Ne leve jamais : en cas d'echec on
-// continue avec un registre vide (les widgets existant s'affichent alors en
-// mode "indisponible" plutot que de casser le dashboard entier).
+// Loads the registry and the renderers. Never throws: on failure it goes on
+// with an empty registry (existing widgets then show as "unavailable" rather
+// than breaking the whole dashboard).
 export async function loadWidgetRegistry() {
   loaded = true;
   let list = [];
@@ -63,17 +64,17 @@ export async function loadWidgetRegistry() {
           encodeURIComponent(meta.version || "")
       )
         .then(module => {
-          // La version du manifeste entre dans l'URL : sans elle, l'URL reste la
-          // meme apres une mise a jour de widget et le navigateur peut resservir
-          // l'ancien code pendant toute la duree de son cache. Un widget corrige
-          // doit etre visible immediatement, donc la version change -> URL change.
+          // The manifest version is part of the URL: without it the URL stays the same
+          // after a widget update and the browser may serve the old code for as long as
+          // it is cached. A fixed widget must show at once, so a new version means a new
+          // URL.
           if (typeof module.render === "function" || typeof module.element === "function") {
             renderers.set(meta.id, module);
           }
         })
         .catch(error => {
-          // Widget sans renderer ou module en erreur : la config reste editable,
-          // seule l'affichage de la tuile reste neutre.
+          // Widget without renderer, or failing module: the config stays editable, only
+          // the tile display stays neutral.
           console.warn("Renderer de widget indisponible : " + meta.id, error);
         });
     })
@@ -94,8 +95,8 @@ function injectStyles(entries) {
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.dataset.widgetStyle = id;
-    // Meme rupture de cache que pour le module : la version du manifeste dans
-    // l'URL, sinon une feuille de style corrigee peut rester en cache.
+    // Same cache busting as for the module: the manifest version in the URL,
+    // otherwise a fixed stylesheet may stay cached.
     link.href =
       "/widget-client/" +
       encodeURIComponent(id) +
@@ -105,15 +106,15 @@ function injectStyles(entries) {
   }
 }
 
-// --- Metadonnees ----------------------------------------------------------
+// --- Metadata --------------------------------------------------------------
 
 export function isRegistryLoaded() {
   return loaded;
 }
 
 export function listWidgetMetas() {
-  // Un plugin interne (hidden) fait partie du moteur, pas du choix de
-  // l'utilisateur : il n'apparait dans aucun menu.
+  // An internal (hidden) plugin is part of the engine, not a user choice: it
+  // appears in no menu.
   return [...metas.values()].filter(meta => !meta.hidden);
 }
 
@@ -125,8 +126,8 @@ export function hasWidget(id) {
   return metas.has(String(id || ""));
 }
 
-// Retrouve un widget a partir du titre saisi dans l'editeur. Les espaces,
-// accents et la casse ne comptent pas : "Me Tube" propose donc "MeTube".
+// Finds a widget from the title typed in the editor. Spaces, accents and case
+// do not count: "Me Tube" suggests "MeTube".
 function normalizedWidgetName(value) {
   return String(value == null ? "" : value)
     .normalize("NFD")
@@ -145,16 +146,16 @@ export function suggestedWidgetId(title) {
   return match ? match.id : "";
 }
 
-// Libelle affiche du widget (menu de l'editeur, tuile).
+// Display label of the widget (editor menu, tile).
 export function widgetLabel(meta, lang) {
   if (!meta) return "";
   const label = meta.label || {};
   return label[lang] || label.fr || label.en || meta.id;
 }
 
-// Libelle traduit declare dans manifest.json -> strings.<lang>.<key>.
-// Si la cle n'existe pas, la valeur est utilisee telle quelle : un tiers peut
-// donc ecrire "label": "Mon champ" sans pack de traduction.
+// Translated label declared in manifest.json -> strings.<lang>.<key>. When
+// the key does not exist the value is used as is, so a third party can write
+// "label": "My field" without a translation pack.
 export function widgetString(meta, key, lang) {
   const pack = (meta && meta.strings) || {};
   const table = pack[lang] || pack.fr || pack.en || {};
@@ -169,14 +170,14 @@ export function fieldPlaceholder(meta, field, lang) {
   return field.placeholder ? widgetString(meta, field.placeholder, lang) : "";
 }
 
-// Infobulle longue d'un champ, si le manifest en declare une.
+// Long tooltip of a field, if the manifest declares one.
 export function fieldTitle(meta, field, lang) {
   const title = field.title;
   if (!title) return "";
   return typeof title === "string" ? title : title[lang] || title.fr || title.en || "";
 }
 
-// Champs visibles pour une config donnee (regle "when" du manifest).
+// Fields visible for a given config ("when" rule of the manifest).
 export function visibleFields(meta, config) {
   if (!meta || !Array.isArray(meta.config)) return [];
   const values = config || {};
@@ -186,7 +187,7 @@ export function visibleFields(meta, config) {
   });
 }
 
-// --- Configuration --------------------------------------------------------
+// --- Configuration ---------------------------------------------------------
 
 function isEncryptedSecret(value) {
   return typeof value === "string" && value.startsWith(SECRET_PREFIX);
@@ -194,9 +195,9 @@ function isEncryptedSecret(value) {
 
 export { isEncryptedSecret };
 
-// Genere l'interpreteur de schema local. Le serveur reste l'autorite (GET
-// /api/config renvoie une config deja normalisee) : ces fonctions servent a
-// l'editeur et a la normalisation de l'etat, pas a la validation de securite.
+// Local schema interpreter. The server remains the authority (GET /api/config
+// returns an already normalised config): these functions serve the editor and
+// the state normalisation, not security validation.
 function normalizeWith(meta, widget) {
   const out = { type: meta.id };
   for (const field of meta.config || []) {
@@ -212,30 +213,30 @@ function normalizeWith(meta, widget) {
       const known = (field.options || []).some(option => option.value === wanted);
       out[field.key] = known ? wanted : str(field.default, 100);
     } else {
-      // Un secret deja chiffre est conserve tel quel : le client ne possede
-      // pas la cle maitresse et ne doit jamais la retransmettre en clair.
+      // A secret stored by the server (encrypted or masked) is kept as is: the
+      // browser holds no key and never sends a stored secret back in clear.
       out[field.key] = isEncryptedSecret(raw) ? raw : str(raw, field.maxLength);
     }
   }
-  // "key" n'est pas un champ de configuration : c'est la cle de statut publiee
-  // par le serveur dans GET /api/config. Elle doit survivre a la normalisation,
-  // sinon la tuile ne retrouve plus son entree de cache -- et c'est invisible
-  // pour les widgets a cle par service (leur cle vaut leur URL) alors que les
-  // widgets a cle par configuration (Docker) restent vides.
+  // "key" is not a configuration field: it is the status key published by the
+  // server in GET /api/config. It must survive normalisation, otherwise the tile
+  // no longer finds its cache entry. That goes unnoticed for widgets keyed per
+  // service (their key is their URL) while widgets keyed by config (Docker) stay
+  // empty.
   const publishedKey = str(widget.key, 200);
   if (publishedKey) out.key = publishedKey;
   return out;
 }
 
-// Config neuve d'un widget (valeurs par defaut du manifest).
+// New config of a widget (manifest defaults).
 export function defaultWidgetConfig(id) {
   const meta = getWidgetMeta(id);
   if (!meta) return { type: String(id || "") };
   return normalizeWith(meta, {});
 }
 
-// Changement de type dans l'editeur : on repart des defauts et on ne
-// conserve que les cles communes, donc jamais un secret d'un autre widget.
+// Type change in the editor: start again from the defaults and keep only the
+// shared keys, so never another widget's secret.
 export function inheritWidgetConfig(id, previous) {
   const meta = getWidgetMeta(id);
   if (!meta) return { type: String(id || "") };
@@ -248,10 +249,9 @@ export function inheritWidgetConfig(id, previous) {
   return next;
 }
 
-// Normalisation d'une config recue du serveur.
-// Regle de securite : un widget inconnu n'est JAMAIS amputé. Si le registre
-// n'est pas (ou plus) disponible, on conserve la config telle quelle plutot que
-// de perdre les reglages de l'utilisateur a la prochaine sauvegarde.
+// Normalisation of a config received from the server. Safety rule: an unknown
+// widget is NEVER trimmed. When the registry is unavailable, the config is kept
+// as is rather than losing the user's settings on the next save.
 export function normalizeWidgetConfig(widget) {
   if (!isPlainObject(widget) || !widget.type) return null;
   const meta = getWidgetMeta(widget.type);
@@ -259,18 +259,18 @@ export function normalizeWidgetConfig(widget) {
   return normalizeWith(meta, widget);
 }
 
-// --- Statut ---------------------------------------------------------------
+// --- Status ----------------------------------------------------------------
 
-// Cle de statut : publiee par le serveur (GET /api/config -> widget.key) pour
-// que le client ne recompose jamais la cle et que les deux cotes ne puissent
-// pas diverger. Aucun cas particulier par type ici.
+// Status key: published by the server (GET /api/config -> widget.key) so the
+// browser never rebuilds it and both sides cannot diverge. No special case per
+// type here.
 export function widgetStatusKey(service) {
   if (service && service.widget && service.widget.key) return service.widget.key;
   return (service && service.url) || "";
 }
 
-// Rendu d'une tuile, delegue au renderer du widget. Ne leve jamais : une
-// exception dans un renderer tiers degrade la tuile, jamais le dashboard.
+// Renders a tile, delegated to the widget renderer. Never throws: an exception
+// in a third-party renderer degrades the tile, never the dashboard.
 export function renderWidget(service, info, lang) {
   const activeLang = lang === "en" ? "en" : "fr";
   const meta = getWidgetMeta(service && service.widget && service.widget.type);
@@ -300,7 +300,7 @@ export function renderWidget(service, info, lang) {
   };
 
   try {
-    // Rendu totalement sur mesure : le widget renvoie lui-meme son noeud DOM.
+    // Fully custom rendering: the widget returns its own DOM node.
     if (typeof module.element === "function") {
       const node = module.element(ctx);
       if (node) return { element: node, title: node.title || "" };

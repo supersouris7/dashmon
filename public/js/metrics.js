@@ -1,4 +1,4 @@
-// Statut des services (boucle de rafraîchissement).
+// Service statuses (refresh loop).
 import { state } from "./state.js";
 import { updateStatusIndicators } from "./render.js";
 import { t } from "./i18n.js";
@@ -24,9 +24,9 @@ async function refreshStatus() {
   }
 }
 
-// Duree minimale pendant laquelle le retour d'activite reste affiche. Sans elle,
-// un hote local repond si vite que le repere clignote et passe inaperçu, ce qui
-// est pire que ne rien afficher du tout.
+// Minimum time the activity feedback stays visible. Without it, a local host
+// answers so fast that the cue flickers unnoticed, which is worse than showing
+// nothing.
 const MIN_REFRESH_FEEDBACK = 700;
 let statusRefreshPending = false;
 
@@ -41,8 +41,8 @@ function setRefreshPending(pending) {
 }
 
 export async function manualRefresh() {
-  // Un second clic pendant une sonde en cours empilerait un POST /api/refresh
-  // sur le meme travail et ne renverrait aucun gain.
+  // A second click while a check is running would stack a POST /api/refresh on
+  // the same work, for no gain.
   if (statusRefreshPending) return false;
 
   const startedAt = Date.now();

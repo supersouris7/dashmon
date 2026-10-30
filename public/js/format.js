@@ -1,13 +1,13 @@
-// Formatage d'affichage partage entre le dashboard et les widgets.
+// Display formatting shared by the dashboard and the widgets.
 //
-// Ce module ne depend d'aucun autre : il recoit la langue en parametre au lieu
-// de lire `state`. Deux raisons :
-//   1. le registre des widgets reste utilisable sans le state (tests, worker) ;
-//   2. aucun cycle d'import entre state.js, render.js et widget-registry.js.
+// This module depends on nothing: it receives the language as a parameter
+// instead of reading `state`. Two reasons:
+//   1. the widget registry stays usable without the state (tests, workers);
+//   2. no import cycle between state.js, render.js and widget-registry.js.
 //
-// Le core passe ces fonctions au renderer d'un widget via le contexte `ctx`
-// (cf. widgets/*/client.js), donc un widget tiers affiche ses nombres et ses
-// dates exactement comme le reste du dashboard.
+// The core passes these functions to a widget renderer through its `ctx`
+// context (see widgets/*/client.mjs), so a third-party widget shows numbers
+// and dates exactly like the rest of the dashboard.
 
 function localeOf(lang) {
   return lang === "en" ? "en-GB" : "fr-FR";
@@ -48,9 +48,9 @@ export function formatCompactNumber(n, lang) {
   }
 }
 
-// Compteur compact, independant de la langue : k pour les milliers, M pour les
-// millions, sans espace ("3k", "10.2k", "64.6M"). C'est le format des compteurs
-// du bandeau de liens ; Intl produirait "3 k" en francais et "3K" en anglais.
+// Compact, language-independent counter: k for thousands, M for millions, no
+// space ("3k", "10.2k", "64.6M"). This is the format of the web link counters;
+// Intl would produce "3 k" in French and "3K" in English.
 export function formatCompactCount(n) {
   const value = Math.round(Number(n));
   if (!Number.isFinite(value)) return "";
@@ -65,7 +65,8 @@ export function formatCompactCount(n) {
     unit = "k";
   }
   let shown = Math.round((value / div) * 10) / 10;
-  // 999 950+ arrondirait a "1000k" : on monte au million pour rester lisible.
+  // 999,950 and above would round to "1000k": switch to millions to stay
+  // readable.
   if (unit === "k" && Math.abs(shown) >= 1000) {
     shown = Math.round((value / 1e6) * 10) / 10;
     unit = "M";
@@ -73,7 +74,7 @@ export function formatCompactCount(n) {
   return shown + unit;
 }
 
-// Utilitaires passes au contexte des renderers de widgets.
+// Helpers passed to the widget renderers' context.
 export function formatters(lang) {
   return {
     formatDateTime: ms => formatDateTime(ms, lang),
