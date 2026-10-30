@@ -478,6 +478,24 @@ async function main() {
     "registre client : widget inconnu = repli",
     registry.renderWidget({ widget: { type: "nope" } }, null, "fr").badgeClass === "pending"
   );
+  // A failed check looks the same on every widget: yellow "!" and one word.
+  const unreachable = registry.renderWidget(
+    { widget: { type: "docker" } },
+    { ok: false, error: "connect ECONNREFUSED 192.0.2.1:2375" },
+    "fr"
+  );
+  check(
+    "widget en echec : injoignable",
+    [unreachable.badge, unreachable.badgeClass, unreachable.icon],
+    ["Injoignable", "error", "fa-solid fa-circle-exclamation"]
+  );
+  ok("widget en echec : cause en infobulle", /ECONNREFUSED/.test(unreachable.title));
+  check(
+    "widget en echec : autre erreur",
+    registry.renderWidget({ widget: { type: "nope" } }, { ok: false, error: "HTTP 401" }, "en")
+      .badge,
+    "Error"
+  );
 
   // Les helpers de formatage sont utilises par les renderers de widgets.
   const format = await import(pathToFileURL(path.join(JS_DIR, "format.js")).href);

@@ -12,6 +12,8 @@
 //   3. declarative schema: the config shape comes from the manifest published
 //      by the server; this module only interprets that metadata.
 
+import fr from "./i18n/fr.json" with { type: "json" };
+import en from "./i18n/en.json" with { type: "json" };
 import { formatters } from "./format.js";
 
 // Prefix of the secrets stored by the server, encrypted or masked (never
@@ -271,10 +273,29 @@ export function widgetStatusKey(service) {
 
 // Renders a tile, delegated to the widget renderer. Never throws: an exception
 // in a third-party renderer degrades the tile, never the dashboard.
+// Network failures: the target did not answer at all.
+const UNREACHABLE =
+  /ECONNREFUSED|ENOTFOUND|EHOSTUNREACH|ENETUNREACH|ETIMEDOUT|ECONNRESET|EAI_AGAIN|timeout|socket hang up|link-local/i;
+
 export function renderWidget(service, info, lang) {
   const activeLang = lang === "en" ? "en" : "fr";
   const meta = getWidgetMeta(service && service.widget && service.widget.type);
   const label = widgetLabel(meta, activeLang);
+
+  // A failed check looks the same on every tile, whatever the widget: a yellow
+  // "!" and one word ("unreachable" or "error"), the cause in the tooltip.
+  const failure = info && typeof info.error === "string" ? info.error.trim() : "";
+  if (failure) {
+    const texts = activeLang === "en" ? en : fr;
+    return {
+      badge: UNREACHABLE.test(failure) ? texts.widgetUnreachable : texts.widgetError,
+      badgeClass: "error",
+      icon: "fa-solid fa-circle-exclamation",
+      time: "",
+      timeClass: "",
+      title: `${label || "?"} : ${failure.slice(0, 200)}`
+    };
+  }
   const fmt = formatters(activeLang);
   const fallback = title => ({
     badge: info ? (label || "?") + " -" : "-",

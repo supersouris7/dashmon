@@ -293,5 +293,7 @@
   "hostTypeLocal": "Local",
   "hostDiskPath": "Disk path",
   "hostLocalHint": "Path mounted inside the container to read the host disk (root by default).",
-  "phDiskPath": "/"
+  "phDiskPath": "/",
+  "widgetUnreachable": "Unreachable",
+  "widgetError": "Error"
 }

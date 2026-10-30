@@ -293,5 +293,7 @@
   "hostTypeLocal": "Local",
   "hostDiskPath": "Chemin du disque",
   "hostLocalHint": "Chemin monté dans le conteneur pour lire le disque de l’hôte (la racine par défaut).",
-  "phDiskPath": "/"
+  "phDiskPath": "/",
+  "widgetUnreachable": "Injoignable",
+  "widgetError": "Erreur"
 }

@@ -36,6 +36,12 @@ export function applyWidgetStatus(wrap, service, info) {
   if (!badge || !time) return;
   badge.className = "widget-badge" + (view.badgeClass ? " " + view.badgeClass : "");
   badge.textContent = view.badge || "—";
+  if (view.icon) {
+    const icon = document.createElement("i");
+    icon.className = view.icon;
+    icon.setAttribute("aria-hidden", "true");
+    badge.prepend(icon);
+  }
   time.className = "widget-time" + (view.timeClass ? " " + view.timeClass : "");
   time.textContent = view.time || "";
   wrap.title = view.title || "";

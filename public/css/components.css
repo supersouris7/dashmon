@@ -607,6 +607,15 @@ body.is-refreshing .widget-status {
   opacity: 0.6;
 }
 
+/* Failed check (unreachable, refused, error): the same yellow "!" on every
+   tile. light-dark() follows the colour scheme set by themes.js, so the yellow
+   stays readable on light themes too. */
+.widget-badge.error {
+  gap: 5px;
+  color: light-dark(#8a5a00, #f5c518);
+  letter-spacing: 0;
+}
+
 .widget-time {
   font-size: 12px;
   line-height: 1.1;
