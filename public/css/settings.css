@@ -113,10 +113,6 @@
   color: var(--text);
 }
 
-.settings-page .edit-tab.active {
-  box-shadow: inset 3px 0 var(--accent);
-}
-
 .settings-page .edit-panel {
   grid-column: 2;
   grid-row: 2;
