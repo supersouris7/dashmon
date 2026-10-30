@@ -6,6 +6,7 @@ import { renderCategoryEditor } from "./categories.js";
 import { createDashboardIconPicker } from "./icon-picker.js";
 import { confirmDelete } from "../editor.js";
 import { makeDraggable } from "./drag.js";
+import { setIconLabel } from "./labelled-button.js";
 
 // Dashboards editor: name and icon, in tab order. Deleting a dashboard
 // deletes no category: its categories join the first remaining dashboard, so
@@ -38,7 +39,7 @@ export function renderDashboardEditor() {
     remove.className = "small-icon-btn delete-btn";
     remove.type = "button";
     remove.title = t("deleteLabel");
-    remove.innerHTML = '<i class="fa-solid fa-trash"></i>';
+    setIconLabel(remove, "fa-solid fa-trash", t("deleteLabel"));
     remove.addEventListener("click", async () => {
       if (state.editDashboards.length <= 1) return;
       if (!(await confirmDelete(t("deleteDashboardConfirm")))) return;

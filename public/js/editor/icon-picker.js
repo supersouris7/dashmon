@@ -3,6 +3,7 @@ import { state } from "../state.js";
 import { sanitizeIconClass } from "../config/sanitize.js";
 import { ICON_OPTIONS } from "../config/icon-options.js";
 import { t } from "../i18n.js";
+import { setIconLabel } from "./labelled-button.js";
 
 function positionPicker(current, menu) {
   requestAnimationFrame(() => {
@@ -28,7 +29,7 @@ function buildPicker(currentIcon, onSelect) {
   current.className = "icon-picker-current";
   current.type = "button";
   current.title = t("chooseIcon");
-  current.innerHTML = `<i class="${sanitizeIconClass(currentIcon)}"></i>`;
+  setIconLabel(current, sanitizeIconClass(currentIcon), t("iconLabel"));
 
   const menu = document.createElement("div");
   menu.className = "icon-picker-menu";
@@ -42,7 +43,7 @@ function buildPicker(currentIcon, onSelect) {
     choice.addEventListener("click", e => {
       e.stopPropagation();
       onSelect(iconClass);
-      current.innerHTML = `<i class="${iconClass}"></i>`;
+      setIconLabel(current, iconClass, t("iconLabel"));
       picker.classList.remove("open");
     });
     menu.appendChild(choice);

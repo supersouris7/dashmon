@@ -193,7 +193,7 @@ body.modal-open {
      ajoutent. Sans colonnes explicites, un element deborderait dans une
      colonne implicite et la ligne sortirait de sa largeur (width:max-content),
      ce qui fausse toute la mise en page des reglages. */
-  grid-template-columns: 30px minmax(150px, 190px) minmax(120px, 1fr) 44px 22px 38px;
+  grid-template-columns: 30px minmax(150px, 220px) minmax(120px, 1fr) auto auto auto;
   gap: 8px;
   align-items: center;
   width: max-content;
@@ -202,7 +202,7 @@ body.modal-open {
 
 .dashboard-row {
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) 44px 38px;
+  grid-template-columns: 30px minmax(0, 1fr) auto auto;
   grid-template-areas: "drag name picker remove";
   gap: 8px;
   align-items: center;
@@ -800,4 +800,32 @@ body.modal-open {
 .color-chip.current {
   outline: 2px solid var(--text);
   outline-offset: 1px;
+}
+
+/* Buttons with an icon and a word (editor/labelled-button.js). The selector
+   outweighs the fixed squares of .small-icon-btn, .icon-picker-current and
+   .color-swatch-btn, including the per-list rules (.web-link-row ...). */
+.edit-panel .labelled-btn.labelled-btn {
+  width: auto;
+  min-width: 0;
+  height: 34px;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.color-swatch-btn.labelled-btn {
+  background: var(--surface-2);
+}
+
+.swatch-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--swatch, transparent);
+  box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.45);
 }

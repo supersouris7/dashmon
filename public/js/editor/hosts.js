@@ -9,6 +9,7 @@ import { createHostIconPicker } from "./icon-picker.js";
 import { confirmDelete } from "../editor.js";
 import { createColorPicker } from "./color-picker.js";
 import { makeDraggable } from "./drag.js";
+import { setIconLabel } from "./labelled-button.js";
 
 export function refreshColorEditors() {
   renderCategoryEditor();
@@ -71,7 +72,7 @@ export function renderHostEditor() {
     remove.className = "small-icon-btn delete-btn";
     remove.type = "button";
     remove.title = t("deleteLabel");
-    remove.innerHTML = '<i class="fa-solid fa-trash"></i>';
+    setIconLabel(remove, "fa-solid fa-trash", t("deleteLabel"));
     remove.addEventListener("click", async () => {
       if (!(await confirmDelete(t("confirmDeleteHost")))) return;
       const removedName = state.editHosts[index].name;

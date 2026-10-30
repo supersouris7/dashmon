@@ -2,6 +2,7 @@
 // palette of config/sanitize.js.
 import { TILE_COLORS, sanitizeTileColor } from "../config/sanitize.js";
 import { t } from "../i18n.js";
+import { setIconLabel } from "./labelled-button.js";
 
 function closeColorPalette() {
   for (const palette of document.querySelectorAll(".color-palette:not([hidden])"))
@@ -26,6 +27,9 @@ export function createColorPicker(item, onChange) {
   button.title = t("colorSwatch");
   button.setAttribute("aria-label", t("colorSwatch"));
   button.style.setProperty("--swatch", item.color || "transparent");
+  const dot = document.createElement("span");
+  dot.className = "swatch-dot";
+  setIconLabel(button, dot, t("colorSwatch"));
   const palette = document.createElement("div");
   palette.className = "color-palette";
   palette.hidden = true;

@@ -70,6 +70,32 @@ export function refreshEditorHostFilter() {
     : "";
 }
 
+// A field with its label above it. A single input or select goes inside a
+// <label>, so the label names it for screen readers too.
+function serviceField(text, control, area) {
+  const single = control.matches("input, select");
+  const field = document.createElement(single ? "label" : "div");
+  field.className = "service-field service-field-" + area;
+  const caption = document.createElement("span");
+  caption.className = "service-field-label";
+  caption.textContent = text;
+  field.append(caption, control);
+  return field;
+}
+
+function iconElement(className) {
+  const icon = document.createElement("i");
+  icon.className = className;
+  icon.setAttribute("aria-hidden", "true");
+  return icon;
+}
+
+function labelText(text) {
+  const span = document.createElement("span");
+  span.textContent = text;
+  return span;
+}
+
 export function renderServiceEditor() {
   serviceEditor.innerHTML = "";
   refreshEditorCategoryFilter();
@@ -165,25 +191,21 @@ export function renderServiceEditor() {
     url.value = service.url || "";
     url.addEventListener("input", () => (state.editServices[index].url = url.value));
 
-    const iconField = document.createElement("div");
-    iconField.className = "image-field icon-only-field";
-
     const chooseIcon = document.createElement("button");
     chooseIcon.className = "image-library-btn";
     chooseIcon.type = "button";
     chooseIcon.title = t("choosePng");
 
+    chooseIcon.classList.add("service-action");
     if (service.icon) {
       const preview = document.createElement("img");
       preview.src = service.icon;
       preview.alt = "";
       preview.className = "editor-icon-preview";
-      preview.onerror = () => {
-        chooseIcon.innerHTML = '<i class="fa-solid fa-image"></i>';
-      };
-      chooseIcon.appendChild(preview);
+      preview.onerror = () => preview.replaceWith(iconElement("fa-solid fa-image"));
+      chooseIcon.append(preview, labelText(t("imageButton")));
     } else {
-      chooseIcon.innerHTML = '<i class="fa-solid fa-image"></i>';
+      chooseIcon.append(iconElement("fa-solid fa-image"), labelText(t("imageButton")));
     }
 
     chooseIcon.addEventListener("click", () =>
@@ -193,10 +215,8 @@ export function renderServiceEditor() {
       })
     );
 
-    iconField.append(chooseIcon);
-
     const monitor = document.createElement("button");
-    monitor.className = `monitor-toggle ${service.monitor !== false ? "active" : ""} ${service.monitor === "soft" ? "soft" : ""}`;
+    monitor.className = `monitor-toggle service-action ${service.monitor !== false ? "active" : ""} ${service.monitor === "soft" ? "soft" : ""}`;
     monitor.type = "button";
     monitor.title =
       service.monitor === false
@@ -204,10 +224,16 @@ export function renderServiceEditor() {
         : service.monitor === "soft"
           ? t("monitorSoft")
           : t("monitorEnabled");
-    monitor.innerHTML =
-      service.monitor === "soft"
-        ? '<i class="fa-solid fa-eye"></i>'
-        : '<i class="fa-solid fa-heart-pulse"></i>';
+    monitor.append(
+      iconElement(service.monitor === "soft" ? "fa-solid fa-eye" : "fa-solid fa-heart-pulse"),
+      labelText(
+        service.monitor === false
+          ? t("monitorShortOff")
+          : service.monitor === "soft"
+            ? t("monitorShortSoft")
+            : t("monitorShortOn")
+      )
+    );
     monitor.addEventListener("click", () => {
       const current = state.editServices[index].monitor;
       state.editServices[index].monitor =
@@ -216,10 +242,10 @@ export function renderServiceEditor() {
     });
 
     const remove = document.createElement("button");
-    remove.className = "small-icon-btn delete-btn";
+    remove.className = "small-icon-btn delete-btn service-action";
     remove.type = "button";
     remove.title = t("deleteLabel");
-    remove.innerHTML = '<i class="fa-solid fa-trash"></i>';
+    remove.append(iconElement("fa-solid fa-trash"), labelText(t("deleteLabel")));
     remove.addEventListener("click", async () => {
       if (!(await confirmDelete(t("confirmDeleteService")))) return;
       state.editServices.splice(index, 1);
@@ -228,7 +254,7 @@ export function renderServiceEditor() {
 
     const actions = document.createElement("div");
     actions.className = "service-actions";
-    actions.append(iconField, monitor, remove);
+    actions.append(chooseIcon, monitor, remove);
 
     const widgetWrap = document.createElement("div");
     widgetWrap.className = "service-widget";
@@ -264,8 +290,9 @@ export function renderServiceEditor() {
     widgetConfigBtn.type = "button";
     widgetConfigBtn.className =
       "small-icon-btn widget-config-btn" + (service.widget ? "" : " disabled");
-    widgetConfigBtn.title = service.widget ? t("widgetConfigTitle") : "";
-    widgetConfigBtn.innerHTML = '<i class="fa-solid fa-ellipsis"></i>';
+    widgetConfigBtn.title = service.widget ? t("widgetConfigTitle") : t("widgetConfigNone");
+    widgetConfigBtn.setAttribute("aria-label", widgetConfigBtn.title);
+    widgetConfigBtn.append(iconElement("fa-solid fa-sliders"), labelText(t("configureLabel")));
     widgetConfigBtn.addEventListener("click", () => {
       if (service.widget) {
         openWidgetConfig(index);
@@ -273,7 +300,15 @@ export function renderServiceEditor() {
     });
     widgetWrap.appendChild(widgetConfigBtn);
 
-    row.append(name, host, category, url, actions, widgetWrap);
+    widgetType.setAttribute("aria-label", t("widgetLabel"));
+    row.append(
+      serviceField(t("nameLabel"), name, "name"),
+      serviceField(t("urlLabel"), url, "url"),
+      serviceField(t("categoryLabel"), category, "category"),
+      serviceField(t("hostLabel"), host, "host"),
+      serviceField(t("widgetLabel"), widgetWrap, "widget"),
+      actions
+    );
     serviceEditor.appendChild(row);
   });
 }

@@ -300,5 +300,11 @@
   "categoryColumnsLabel": "Colonnes de catégories",
   "tileColumnsLabel": "Applications par ligne",
   "supervisionColumnsLabel": "Cartes de supervision par ligne",
-  "gridAuto": "Automatique"
+  "gridAuto": "Automatique",
+  "imageButton": "Image",
+  "monitorShortOn": "Surveillé",
+  "monitorShortSoft": "Non critique",
+  "monitorShortOff": "Non surveillé",
+  "configureLabel": "Configurer",
+  "widgetConfigNone": "Aucun widget à configurer"
 }
