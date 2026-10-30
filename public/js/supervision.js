@@ -41,8 +41,16 @@ function instanceLabel(instance) {
   }
 }
 
+// The machine running Dashmon carries the same name everywhere: the name of
+// its local host in the settings, also shown on its cards.
+function localMachineName() {
+  const hosts = Array.isArray(state.hosts) ? state.hosts : [];
+  const local = hosts.find(host => host?.monitoring?.type === "local" && host.monitoring.enabled);
+  return (local && String(local.name || "").trim()) || "Dashmon";
+}
+
 export function supervisionInstances() {
-  const local = state.replication?.instanceName || "Dashmon";
+  const local = localMachineName();
   const configured = state.replication?.secondaries || [];
   const names = state.replication?.agentNames || {};
   return [

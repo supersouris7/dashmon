@@ -57,16 +57,7 @@ export function renderPairingEditor({
     };
   if (!state.replication.agentHosts || typeof state.replication.agentHosts !== "object")
     state.replication.agentHosts = {};
-  const name = document.createElement("input");
-  name.className = "edit-input";
-  name.placeholder = t("agentInstanceName");
-  name.setAttribute("aria-label", t("agentInstanceName"));
-  name.value = state.replication.instanceName || "";
-  name.addEventListener("input", () => {
-    state.replication.instanceName = name.value;
-  });
-  container.appendChild(monitoringField(t("agentInstanceName"), name));
-  for (const key of ["agentInstanceNameHint", "agentUrlHint"]) {
+  for (const key of ["agentUrlHint"]) {
     const paragraph = document.createElement("p");
     paragraph.className = "host-monitor-hint";
     paragraph.textContent = t(key);

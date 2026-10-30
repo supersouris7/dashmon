@@ -38,8 +38,6 @@
   "agentHostRequiredTitle": "Host required",
   "agentHostRequiredMessage": "Select a host in Pairing, or create one under Dashboard → Host appearance to reuse its color and icon. You can also save without a host: the tile keeps its default appearance.",
   "agentHostSaveAnyway": "Save anyway",
-  "agentInstanceName": "Name of this instance",
-  "agentInstanceNameHint": "Name shown for this instance in the page selector.",
   "agentUrlLabel": "Agent address",
   "agentUrlHint": "Full address, for example https://agent.example.lan:8080. http:// is used when no scheme is given. Each pair has its own tab name.",
   "agentAddPair": "Add pair",

@@ -38,8 +38,6 @@
   "agentHostRequiredTitle": "Hôte requis",
   "agentHostRequiredMessage": "Sélectionnez un hôte dans Pairage, ou créez-en un dans Tableau de bord → Apparence des hôtes pour reprendre sa couleur et son icône. Vous pouvez aussi enregistrer sans hôte : la tuile gardera son apparence par défaut.",
   "agentHostSaveAnyway": "Enregistrer quand même",
-  "agentInstanceName": "Nom de cette instance",
-  "agentInstanceNameHint": "Nom affiché pour cette instance dans le sélecteur de pages.",
   "agentUrlLabel": "Adresse de l’agent",
   "agentUrlHint": "Adresse complète, par exemple https://agent.exemple.lan:8080. Sans préfixe, http:// est utilisé. Chaque pair possède son propre nom d’onglet.",
   "agentAddPair": "Ajouter un pair",
