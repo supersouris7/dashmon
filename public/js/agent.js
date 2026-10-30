@@ -2,13 +2,18 @@
 const form = document.getElementById("agent-form");
 const message = document.getElementById("message");
 const metrics = document.getElementById("metrics");
+// Revision of the settings shown in the form: a save made meanwhile from
+// another tab is refused (412) instead of being silently overwritten.
+let revision = "";
 async function request(url, options) {
   const response = await fetch(url, options);
   if (response.status === 401) {
     location.href = "/login";
     throw new Error("Session expirée");
   }
+  if (response.status === 412) throw new Error("modifiée ailleurs, rechargez la page");
   if (!response.ok) throw new Error("HTTP " + response.status);
+  if (response.headers.get("ETag")) revision = response.headers.get("ETag");
   return response.json();
 }
 async function refresh() {
@@ -55,7 +60,10 @@ form.addEventListener("submit", async event => {
   try {
     await request("/api/agent/config", {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(revision ? { "If-Match": revision } : {})
+      },
       body: JSON.stringify({ name: form.elements.name.value, monitoring })
     });
     message.textContent = "Configuration enregistrée.";
