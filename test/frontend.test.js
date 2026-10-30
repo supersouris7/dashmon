@@ -35,6 +35,15 @@ function squash(text) {
 function readSource(...parts) {
   return squash(fs.readFileSync(path.join(ROOT, ...parts), "utf8"));
 }
+// The application state and the config schema live in several browser
+// modules (state.js, config/, util.js); the checks below use them together.
+async function importStateModules() {
+  const load = file => import(pathToFileURL(path.join(JS_DIR, ...file.split("/"))).href);
+  const modules = await Promise.all(
+    ["state.js", "util.js", "config/normalize.js", "config/sanitize.js"].map(load)
+  );
+  return Object.assign({}, ...modules);
+}
 function contains(source, needle) {
   return source.includes(squash(needle));
 }
@@ -502,7 +511,7 @@ async function main() {
   };
   try {
     const prefs = await import(pathToFileURL(path.join(JS_DIR, "view-prefs.js")).href);
-    const stateModule = await import(pathToFileURL(path.join(JS_DIR, "state.js")).href);
+    const stateModule = await importStateModules();
 
     check("prefs : la liste des cles est stable", stateModule.VIEW_PREF_KEYS.slice(), [
       "viewMode",
@@ -816,7 +825,7 @@ async function main() {
   // Une categorie ou un hote sans couleur se confondait avec une section non
   // configuree. L'affectation se fait a la normalisation, donc elle doit
   // fonctionner meme sans jamais ouvrir l'editeur.
-  const stateModule = await import(pathToFileURL(path.join(JS_DIR, "state.js")).href);
+  const stateModule = await importStateModules();
   const namedAgent = stateModule.normalizeConfig({
     replication: {
       secondaries: ["https://exemple.lan"],
@@ -1006,7 +1015,7 @@ async function main() {
   // --- 6. La tuile speciale traverse les listes blanches -------------------
   // Une tuile speciale est unique et vit hors des services. Le type est verifie
   // contre une liste blanche, et la categorie est obligatoire (defaut sinon).
-  const specialState = await import(pathToFileURL(path.join(JS_DIR, "state.js")).href);
+  const specialState = await importStateModules();
 
   ok(
     "tuile speciale : normalisee par state.js",

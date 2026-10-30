@@ -1,4 +1,5 @@
-import { sanitizeTileColor, normalizeSpecialTile, normalizeLinkCounter } from "./state.js";
+import { sanitizeTileColor } from "./config/sanitize.js";
+import { normalizeSpecialTile, normalizeLinkCounter } from "./config/normalize.js";
 import { normalizeWidgetConfig } from "./widget-registry.js";
 import { serializeHostMonitoring } from "./host-monitoring-draft.js";
 

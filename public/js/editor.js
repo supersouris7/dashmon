@@ -1,12 +1,7 @@
 // Éditeur de configuration : services, catégories, hôtes, liens web, import/export config.
-import {
-  state,
-  clone,
-  normalize,
-  normalizeConfig,
-  compareNames,
-  LINK_COUNTER_TYPES
-} from "./state.js";
+import { state } from "./state.js";
+import { normalizeConfig, LINK_COUNTER_TYPES } from "./config/normalize.js";
+import { clone, normalize, compareNames } from "./util.js";
 import { t, applyLanguage } from "./i18n.js";
 import { saveConfig, fetchConfig, configConflict } from "./api.js";
 import { saveViewPrefs } from "./view-prefs.js";

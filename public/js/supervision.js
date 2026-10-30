@@ -2,7 +2,8 @@
 // Le rendu est pur (il lit state.hostMetrics) ; la lecture reseau vit dans
 // refreshHostMetrics, declenchee a l'ouverture de la page et par un minuteur.
 import { t } from "./i18n.js";
-import { state, sanitizeTileColor } from "./state.js";
+import { state } from "./state.js";
+import { sanitizeTileColor } from "./config/sanitize.js";
 import { saveViewPrefs } from "./view-prefs.js";
 import { supervisionList, supervisionPage, collapseAllBtn } from "./dom.js";
 

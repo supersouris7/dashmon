@@ -1,4 +1,4 @@
-import { TILE_COLORS, sanitizeTileColor } from "./state.js";
+import { TILE_COLORS, sanitizeTileColor } from "./config/sanitize.js";
 import { t } from "./i18n.js";
 
 function closeColorPalette() {

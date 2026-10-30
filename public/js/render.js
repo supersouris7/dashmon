@@ -1,20 +1,14 @@
 // Rendu de Dashmon (cartes, groupes, mode d'affichage) et état des boutons du menu.
+import { state, getCategory, compareServices, serviceUsageKey, FALLBACK_HOST } from "./state.js";
 import {
-  state,
-  getCategory,
-  compareServices,
-  serviceUsageKey,
-  normalize,
-  sanitizeUrl,
-  sanitizeIconClass,
-  sanitizeTileColor,
-  FALLBACK_HOST,
   linkCounterValue,
   compactCount,
   webLinksColors,
   WEB_LINK_COLORS,
   normalizeWebLinksColor
-} from "./state.js";
+} from "./config/normalize.js";
+import { sanitizeUrl, sanitizeIconClass, sanitizeTileColor } from "./config/sanitize.js";
+import { normalize } from "./util.js";
 import { t } from "./i18n.js";
 import { bumpUsage, patchConfig } from "./api.js";
 import { saveViewPrefs } from "./view-prefs.js";

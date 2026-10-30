@@ -1,4 +1,4 @@
-import { sanitizeUrl } from "./state.js";
+import { sanitizeUrl } from "./config/sanitize.js";
 
 // Les lignes conservent les champs incomplets pendant l'edition ; seuls les
 // pairages valides sont serialises dans la configuration.

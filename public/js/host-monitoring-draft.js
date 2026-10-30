@@ -1,4 +1,4 @@
-import { HOST_MONITORING_TYPES } from "./state.js";
+import { HOST_MONITORING_TYPES } from "./config/normalize.js";
 
 // Valeurs de travail : aucune supervision n'est activee sans action explicite.
 export function blankMonitoring() {
