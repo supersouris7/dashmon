@@ -21,6 +21,7 @@ process.env.UV_THREADPOOL_SIZE = process.env.UV_THREADPOOL_SIZE || "4";
 
 const express = require("express");
 const os = require("os");
+const path = require("path");
 
 const { readSettings } = require("./lib/config/settings");
 const { ConfigStore } = require("./lib/config/store");
@@ -33,6 +34,8 @@ const agentProtocol = require("./lib/agent/protocol");
 const { createReplicationConfig } = require("./lib/agent/replication-config");
 const httpClient = require("./lib/http/client");
 const { createAuth } = require("./lib/http/auth");
+const { createAuthFailures } = require("./lib/http/auth-failures");
+const { SessionStore } = require("./lib/http/session-store");
 const { createSyncTokenCheck } = require("./lib/http/sync-token");
 const { securityHeaders } = require("./lib/http/security-headers");
 const { verifyRequestOrigin } = require("./lib/http/request-origin");
@@ -114,7 +117,12 @@ function createApp() {
 
   const statusMonitor = createStatusMonitor({ widgetCore, statusCache, readConfig, log });
   const hostMetrics = createHostMetrics({ settings, readConfig, agentId, log });
-  const auth = createAuth({ password: settings.password });
+  const auth = createAuth({
+    password: settings.password,
+    sessions: new SessionStore(path.join(settings.dataDir, "sessions.json"))
+  });
+  const failures = createAuthFailures();
+  setInterval(() => failures.cleanup(), 300000).unref();
   const limits = createRequestLimits();
 
   // --- Express pipeline (order matters) ------------------------------------
@@ -132,7 +140,12 @@ function createApp() {
   app.use("/api/host-metrics", limits.reads);
 
   // Login and logout, then authentication of every /api route.
-  registerSessionRoutes(app, { password: settings.password, auth, rateLimit: limits.writes });
+  registerSessionRoutes(app, {
+    password: settings.password,
+    auth,
+    failures,
+    rateLimit: limits.writes
+  });
   if (agentMode) app.use("/api", agentApiFilter);
   app.use(requestLog(log));
 
