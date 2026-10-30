@@ -7,7 +7,7 @@ const net = require("net");
 const http = require("http");
 const crypto = require("crypto");
 const { spawn } = require("child_process");
-const protocol = require("../lib/agent-protocol");
+const protocol = require("../lib/agent/protocol");
 
 const root = path.join(__dirname, "..");
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-agent-test-"));

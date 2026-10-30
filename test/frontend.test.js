@@ -19,7 +19,7 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 const { pathToFileURL } = require("url");
 
-const { WidgetCore } = require("../lib/widget-core");
+const { WidgetCore } = require("../lib/widgets/core");
 
 const ROOT = path.join(__dirname, "..");
 const JS_DIR = path.join(ROOT, "public", "js");
@@ -1041,7 +1041,7 @@ async function main() {
 
   const editorSrcForSpecial =
     readSource("public", "js", "editor.js") + readSource("public", "js", "editor-draft.js");
-  const serverSrcForSpecial = readSource("server.js") + readSource("lib", "config-normalize.js");
+  const serverSrcForSpecial = readSource("server.js") + readSource("lib", "config", "normalize.js");
 
   ok(
     "tuile speciale : conservee a l'enregistrement (editeur)",
@@ -1054,7 +1054,7 @@ async function main() {
 
   ok(
     "config : ecriture atomique",
-    /fs\.renameSync\(temporary,this\.file\)/.test(readSource("lib", "config-store.js"))
+    /fs\.renameSync\(temporary,this\.file\)/.test(readSource("lib", "config", "store.js"))
   );
 
   // Le genre par service n'existe plus : la tuile fortune est une tuile

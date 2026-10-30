@@ -13,8 +13,8 @@ const os = require("os");
 const path = require("path");
 const { pathToFileURL } = require("url");
 
-const { Registry, validateManifest } = require("../lib/registry");
-const { WidgetCore } = require("../lib/widget-core");
+const { Registry, validateManifest } = require("../lib/widgets/registry");
+const { WidgetCore } = require("../lib/widgets/core");
 
 const ROOT = path.join(__dirname, "..");
 const WIDGETS = path.join(ROOT, "widgets");
@@ -268,7 +268,7 @@ async function main() {
   // reponse mesure par la sonde au lieu d'ecraser ce chiffre.
   const logLines = [];
   const msCache = {};
-  const httpLib = require("../lib/http");
+  const httpLib = require("../lib/http/client");
   check("http : link-local IPv4 refusee", httpLib.isBlockedAddress("169.254.169.254"), true);
   check("http : link-local IPv6 refusee", httpLib.isBlockedAddress("fe80::1"), true);
   check("http : LAN IPv4 admise", httpLib.isBlockedAddress("192.168.1.1"), false);
@@ -668,7 +668,7 @@ async function main() {
   // --- Persistance : le stockage ouvert aux widgets ----------------------
   // Un widget qui a un historique (note ELO, compteur) doit pouvoir ecrire
   // dans le dossier de donnees sans jamais en sortir.
-  const { Storage } = require("../lib/storage");
+  const { Storage } = require("../lib/widgets/storage");
   const storageDir = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-stock-"));
   try {
     const storage = new Storage({ dir: storageDir, log: silentLogger });

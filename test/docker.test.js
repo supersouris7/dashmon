@@ -10,7 +10,7 @@ const {
   dockerSocketError,
   dockerTcpTarget,
   registryTarget
-} = require("../docker");
+} = require("../widgets/docker/docker");
 
 let failures = 0;
 function check(name, actual, expected) {
@@ -244,7 +244,7 @@ check(
 // Bout en bout : la requete TCP doit atteindre l'endpoint versionne, et non la
 // racine du demon.
 const http = require("http");
-const { dockerRequest } = require("../docker");
+const { dockerRequest } = require("../widgets/docker/docker");
 const pending = new Promise(resolve => {
   const server = http
     .createServer((req, res) => {

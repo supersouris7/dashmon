@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("assert");
-const { readAptUpdatesReport } = require("../lib/apt-report");
+const { readAptUpdatesReport } = require("../lib/host/apt-report");
 
 function read(raw, size = 100) {
   const filesystem = {

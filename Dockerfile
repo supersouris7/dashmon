@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-COPY server.js agent-server.js docker.js config.json ./
+COPY server.js agent-server.js config.json ./
 COPY lib ./lib
 COPY widgets ./widgets
 COPY test ./test

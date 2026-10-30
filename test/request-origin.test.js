@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("assert");
-const { verifyRequestOrigin } = require("../lib/request-origin");
+const { verifyRequestOrigin } = require("../lib/http/request-origin");
 
 function check(method, origin, host, secure = false) {
   let result = "allowed";

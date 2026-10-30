@@ -6,7 +6,7 @@
 // l'artefact os/arch). Ce fichier ne fait que piloter le transport et mettre
 // en forme le resume pour la tuile.
 
-const dockerApi = require("../../docker");
+const dockerApi = require("./docker");
 
 async function check(ctx) {
   const mode = ctx.config.mode === "tcp" ? "tcp" : "local";

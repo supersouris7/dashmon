@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("assert");
-const { createRateLimiter } = require("../lib/rate-limit");
+const { createRateLimiter } = require("../lib/http/rate-limit");
 
 let now = 1000;
 const limiter = createRateLimiter({

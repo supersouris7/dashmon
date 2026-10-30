@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("assert");
-const { createConfigNormalizer } = require("../lib/config-normalize");
+const { createConfigNormalizer } = require("../lib/config/normalize");
 const normalize = createConfigNormalizer({
   serializeWidget: value => value || null,
   sanitizeReplication: value => value || {}

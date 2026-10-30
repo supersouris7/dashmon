@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("assert");
-const { createReplicationConfig } = require("../lib/replication-config");
+const { createReplicationConfig } = require("../lib/agent/replication-config");
 const sanitizeText = (value, max) =>
   String(value == null ? "" : value)
     .trim()

@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("assert");
-const { readWireguardDump, normalizeWireguard } = require("../lib/wireguard-report");
+const { readWireguardDump, normalizeWireguard } = require("../lib/host/wireguard-report");
 const filesystem = {
   statSync: () => ({ isFile: () => true, size: 0, mtimeMs: 100000 }),
   readFileSync: () => "wg0\t\t\t\t\n"

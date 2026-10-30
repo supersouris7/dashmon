@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("assert");
-const { readSmartDump, normalizeSmartDisk } = require("../lib/smart-report");
+const { readSmartDump, normalizeSmartDisk } = require("../lib/host/smart-report");
 const disk = normalizeSmartDisk({
   device: { name: "/dev/test" },
   smart_status: { passed: true },

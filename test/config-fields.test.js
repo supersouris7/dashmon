@@ -4,7 +4,7 @@ const {
   sanitizeLinkCounter,
   sanitizeSpecialTile,
   sanitizeHostMonitoring
-} = require("../lib/config-fields");
+} = require("../lib/config/fields");
 assert.equal(sanitizeLinkCounter({ type: "unknown", target: "repo" }), null);
 assert.deepEqual(sanitizeLinkCounter({ type: "github", target: " repo " }), {
   type: "github",

@@ -22,13 +22,13 @@ const http = require("http");
 const https = require("https");
 const crypto = require("crypto");
 const net = require("net");
-const { isBlockedAddress, safeLookup } = require("./lib/http");
+const { isBlockedAddress, safeLookup } = require("../../lib/http/client");
 
 const DOCKER_API_VERSION = process.env.DOCKER_API_VERSION || "v1.41";
 const DOCKER_SOCKET = process.env.DOCKER_SOCKET || "/var/run/docker.sock";
 const DOCKER_TIMEOUT = 4000;
 const REGISTRY_TIMEOUT = 8000;
-// Même interrupteur que les autres sorties HTTP du tableau de bord (lib/http.js,
+// Même interrupteur que les autres sorties HTTP du tableau de bord (lib/http/client.js,
 // server.js) : il vaut aussi pour une API Docker joignable en TCP, dont le
 // certificat est souvent auto-signé.
 const INSECURE_TLS = process.env.DASHBOARD_INSECURE_TLS === "1";

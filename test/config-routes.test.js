@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("assert");
-const { registerConfigRoutes } = require("../lib/config-routes");
+const { registerConfigRoutes } = require("../lib/routes/config");
 
 async function main() {
   const routes = {};

@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("assert");
-const { securityHeaders } = require("../lib/security-headers");
+const { securityHeaders } = require("../lib/http/security-headers");
 
 function headers({ secure = false, forwarded = "" } = {}) {
   const result = {};

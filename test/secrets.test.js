@@ -1,7 +1,7 @@
 "use strict";
 const assert = require("assert");
 const crypto = require("crypto");
-const { createSecretCodec } = require("../lib/secrets");
+const { createSecretCodec } = require("../lib/config/secrets");
 const codec = createSecretCodec(crypto.randomBytes(32).toString("hex"));
 const value = crypto.randomBytes(16).toString("hex");
 const encrypted = codec.encryptSecret(value);

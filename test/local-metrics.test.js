@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("assert");
-const { createLocalMetrics, clampPercent } = require("../lib/local-metrics");
+const { createLocalMetrics, clampPercent } = require("../lib/host/local-metrics");
 let times = { user: 40, idle: 60 };
 const system = {
   cpus: () => [{ model: "CPU", times }],

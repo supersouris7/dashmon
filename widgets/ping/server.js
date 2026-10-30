@@ -24,7 +24,7 @@
 
 const dns = require("dns");
 const net = require("net");
-const { isBlockedAddress } = require("../../lib/http");
+const { isBlockedAddress } = require("../../lib/http/client");
 
 // 3 s : au-dela, un hote qui ne repond pas est considere injoignable, et la
 // tuile ne doit pas rester bloquee plus longtemps que ses voisines.
