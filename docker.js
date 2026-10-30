@@ -49,14 +49,23 @@ function dockerHostMode(host){
   return docker && docker.mode === "tcp" ? "tcp" : "local";
 }
 
-function dockerTcpTarget(value) {
-  const target = new URL(String(value || ""));
+// tcp:// est la notation de DOCKER_HOST et celle proposee par l'editeur : c'est
+// du HTTP en clair. L'endpoint est ajoute au chemin de base de l'URL saisie,
+// precede de la version d'API, comme pour le socket local ; sans lui, toutes
+// les requetes partaient vers la racine du demon, qui repond 404.
+function dockerTcpTarget(value, endpoint) {
+  const target = new URL(String(value || "").trim().replace(/^tcp:\/\//i, "http://"));
   if (target.protocol !== "http:" && target.protocol !== "https:") {
     throw new Error("Connexion Docker TCP invalide");
   }
   const address = target.hostname.replace(/^\[|\]$/g, "");
   if (net.isIP(address) && isBlockedAddress(address)) {
     throw new Error("Adresse Docker link-local refusee");
+  }
+  if (endpoint) {
+    const relative = new URL(endpoint, "http://docker.invalid");
+    target.pathname = target.pathname.replace(/\/+$/, "") + "/" + DOCKER_API_VERSION + relative.pathname;
+    target.search = relative.search;
   }
   return target;
 }
@@ -103,7 +112,7 @@ function dockerRequest(host, endpoint, timeout){
 
     try {
       if (tcp) {
-        const target = dockerTcpTarget(host && host.monitoring && host.monitoring.docker && host.monitoring.docker.url);
+        const target = dockerTcpTarget(host && host.monitoring && host.monitoring.docker && host.monitoring.docker.url, endpoint);
         req = (target.protocol === "https:" ? https : http).request(target, {
           method: "GET",
           timeout: timeoutMs,

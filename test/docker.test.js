@@ -145,13 +145,43 @@ check("Docker TCP : link-local refusee", (() => {
 check("Docker TCP : link-local IPv6 refusee", (() => {
   try { dockerTcpTarget("http://[fe80::1]:2375"); return false; } catch (error) { return /link-local/.test(error.message); }
 })(), true);
+check("Docker TCP : notation tcp:// admise",
+  dockerTcpTarget("tcp://192.0.2.10:2375").href, "http://192.0.2.10:2375/");
+check("Docker TCP : endpoint versionne ajoute",
+  dockerTcpTarget("http://192.0.2.10:2375", "/containers/json?all=1").href,
+  "http://192.0.2.10:2375/v1.41/containers/json?all=1");
+check("Docker TCP : chemin de base conserve (proxy)",
+  dockerTcpTarget("https://docker.exemple.lan/api/", "/images/json").href,
+  "https://docker.exemple.lan/api/v1.41/images/json");
+
+// Bout en bout : la requete TCP doit atteindre l'endpoint versionne, et non la
+// racine du demon.
+const http = require("http");
+const { dockerRequest } = require("../docker");
+const pending = new Promise(resolve => {
+  const server = http.createServer((req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify({ path: req.url }));
+  }).listen(0, "127.0.0.1", async () => {
+    const url = "tcp://127.0.0.1:" + server.address().port;
+    try {
+      const body = await dockerRequest({ monitoring: { docker: { mode: "tcp", url } } }, "/containers/json?all=1");
+      check("Docker TCP : requete sur l'endpoint versionne", body.path, "/v1.41/containers/json?all=1");
+    } catch (error) {
+      check("Docker TCP : requete sur l'endpoint versionne", error.message, "");
+    }
+    server.close(resolve);
+  });
+});
 check("registre Docker : hote public admis", registryTarget("https:", "registry.example.test:5000").target.port, "5000");
 check("registre Docker : link-local refusee", (() => {
   try { registryTarget("http:", "169.254.169.254:5000"); return false; } catch (error) { return /link-local/.test(error.message); }
 })(), true);
 
-if (failures) {
-  console.error(failures + " échec(s)");
-  process.exit(1);
-}
-console.log("Tous les tests passent");
+pending.then(() => {
+  if (failures) {
+    console.error(failures + " échec(s)");
+    process.exit(1);
+  }
+  console.log("Tous les tests passent");
+});
