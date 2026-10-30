@@ -1,23 +1,23 @@
 "use strict";
-// Accès en lecture seule à l'API Docker Engine pour le widget Docker.
-// Les requêtes passent uniquement par le backend : le frontend ne reçoit
-// jamais le socket Docker ni de jetons d'accès au registre.
+// Read-only access to the Docker Engine API for the Docker widget. Requests
+// only go through the server: the browser never gets the Docker socket nor any
+// registry token.
 //
-// Mode de connexion déterminé par les paramètres du widget (agent.backend
-// construit un hôte virtuel {monitoring:{docker}} à partir du widget) :
-//   - "local" (défaut) : socket Unix local (DOCKER_SOCKET ou /var/run/docker.sock).
-//   - "tcp"            : URL HTTP(S) d'une API Docker distante (saisie à la main,
-//                        aucun lien avec la liste des hôtes de monitoring).
+// Connection mode, from the widget settings (widgets/docker/server.js builds a
+// virtual host {monitoring:{docker}} from the widget):
+//   - "local" (default): local Unix socket (DOCKER_SOCKET or /var/run/docker.sock).
+//   - "tcp": HTTP(S) URL of a remote Docker API, typed by hand (unrelated to
+//     the monitored hosts list).
 //
-// Détection des mises à jour d'images (fiable, lecture seule, aucun pull) :
-//   - signal local : si le len tag local a été re-pullé vers une nouvelle image
-//     (ex. watchtower), le conteneur n'est pas à jour (ImageID différent).
-//   - signal distant : la digest du manifest du registre (Docker Hub ou
-//     registre custom) pour le tag est comparée à la digest de l'image exécutée.
-//     Digest égale -> à jour. Digest différente -> mise à jour disponible.
-//   - non vérifiable (registre injoignable, 401/404, image locale uniquement) :
-//     compté optimistiquement "à jour" mais tracé dans updated.unknown pour le
-//     tooltip (jamais de faux "mise à jour disponible").
+// Image update detection (reliable, read-only, never pulls):
+//   - local signal: if the local tag was re-pulled to a new image (e.g. by
+//     watchtower), the container is not up to date (different ImageID).
+//   - remote signal: the registry manifest digest (Docker Hub or a custom
+//     registry) of the tag is compared with the digest of the running image.
+//     Same digest: up to date. Different digest: update available.
+//   - not verifiable (registry unreachable, 401/404, local-only image): counted
+//     as up to date but listed in updated.unknown for the tooltip (never a false
+//     "update available").
 const http = require("http");
 const https = require("https");
 const crypto = require("crypto");
@@ -28,13 +28,13 @@ const DOCKER_API_VERSION = process.env.DOCKER_API_VERSION || "v1.41";
 const DOCKER_SOCKET = process.env.DOCKER_SOCKET || "/var/run/docker.sock";
 const DOCKER_TIMEOUT = 4000;
 const REGISTRY_TIMEOUT = 8000;
-// Même interrupteur que les autres sorties HTTP du tableau de bord (lib/http/client.js,
-// server.js) : il vaut aussi pour une API Docker joignable en TCP, dont le
-// certificat est souvent auto-signé.
+// Same switch as every other outgoing request (lib/http/client.js): it also
+// applies to a Docker API reached over TCP, whose certificate is often
+// self-signed.
 const INSECURE_TLS = process.env.DASHBOARD_INSECURE_TLS === "1";
-// Cache mmoire des digests de manifest par référence (repo@tag). Les succès
-// sont conservés REGISTRY_CACHE_MS ; les échecs seulement 30 min pour ne pas
-// rater un tag venant d'être publié.
+// In-memory cache of manifest digests per reference (repo@tag). Successes are
+// kept REGISTRY_CACHE_MS; failures only 30 minutes, so a newly published tag
+// is not missed.
 const REGISTRY_CACHE_MS = Number(process.env.DASHMON_REGISTRY_CACHE_MS) || 6 * 60 * 60 * 1000;
 const REGISTRY_NULL_CACHE_MS = 30 * 60 * 1000;
 const MANIFEST_ACCEPT = [
@@ -49,10 +49,10 @@ function dockerHostMode(host) {
   return docker && docker.mode === "tcp" ? "tcp" : "local";
 }
 
-// tcp:// est la notation de DOCKER_HOST et celle proposee par l'editeur : c'est
-// du HTTP en clair. L'endpoint est ajoute au chemin de base de l'URL saisie,
-// precede de la version d'API, comme pour le socket local ; sans lui, toutes
-// les requetes partaient vers la racine du demon, qui repond 404.
+// tcp:// is the DOCKER_HOST notation and the one suggested by the editor: it
+// means plain HTTP. The endpoint is appended to the base path of the URL,
+// after the API version, as for the local socket; without it every request
+// went to the daemon root, which answers 404.
 function dockerTcpTarget(value, endpoint) {
   const target = new URL(
     String(value || "")
@@ -75,9 +75,9 @@ function dockerTcpTarget(value, endpoint) {
   return target;
 }
 
-// L'image tourne sous l'utilisateur non-root node : sans groupe supplémentaire,
-// le socket Docker (root:docker en 660) refuse la connexion. EACCES/EPERM ne dit
-// rien d'exploitable, on le traduit en cause et en remède.
+// The image runs as the non-root user "node": without an extra group, the
+// Docker socket (root:docker, mode 660) refuses the connection. EACCES/EPERM
+// says nothing useful, so it is turned into a cause and a remedy.
 function dockerSocketError(error) {
   if (!error || (error.code !== "EACCES" && error.code !== "EPERM")) return error;
   const hint =
@@ -168,7 +168,7 @@ function dockerErrorBody(body, status) {
   return "Docker HTTP " + status;
 }
 
-// --- Parse d'une référence d'image (pur) ---
+// --- Parsing an image reference (pure) ---
 // "nginx:latest" -> {registry:"", repo:"nginx", tag:"latest"}
 // "ghcr.io/owner/app:1.0" -> {registry:"ghcr.io", repo:"owner/app", tag:"1.0"}
 // "192.0.2.10:5000/app" -> {registry:"192.0.2.10:5000", repo:"app", tag:"latest"}
@@ -215,7 +215,7 @@ function isDockerHub(registry) {
   );
 }
 
-// Hôte réel pour les requêtes manifest (Docker Hub -> registry-1.docker.io).
+// Real host for manifest requests (Docker Hub -> registry-1.docker.io).
 function registryEndpoint(parsed, protocol) {
   if (isDockerHub(parsed.registry)) {
     return { hub: true, protocol: "https:", host: "registry-1.docker.io" };
@@ -223,12 +223,12 @@ function registryEndpoint(parsed, protocol) {
   return { hub: false, protocol, host: parsed.registry };
 }
 
-// --- Classification locale (pure) ---
-// statut par conteneur :
-//   "pinned"        : référence par digest (immuable) -> à jour.
-//   "update"        : le tag local pointe vers une autre image (watchtower) -> mise à jour.
-//   "local-current" : le conteneur exécute l'image actuelle du tag local -> verdict registre.
-//   "unresolved"    : tag absent des images locales -> verdict registre.
+// --- Local classification (pure) ---
+// Status per container:
+//   "pinned":        referenced by digest (immutable) -> up to date.
+//   "update":        the local tag points to another image (watchtower) -> update.
+//   "local-current": the container runs the current image of the local tag -> ask the registry.
+//   "unresolved":    tag missing from the local images -> ask the registry.
 function classifyDockerContainers(containers, images) {
   const tagById = new Map();
   const imageByImageId = new Map();
@@ -272,8 +272,8 @@ function classifyDockerContainers(containers, images) {
   return out;
 }
 
-// Résumé local "sans registre" (retombée / tests). Les conteneurs non vérifiés
-// sont comptés optimistiquement "à jour" et tracés dans unknown.
+// Local summary "without registry" (fallback, tests). Unverified containers
+// are counted as up to date and listed in unknown.
 function computeDockerSummary(containers, images) {
   const list = Array.isArray(containers) ? containers : [];
   const total = list.length;
@@ -293,7 +293,7 @@ function computeDockerSummary(containers, images) {
   return { total, active, updated, unknown };
 }
 
-// --- Accès au registre (lecture seule) ---
+// --- Registry access (read-only) ---
 function registryTarget(protocol, host) {
   const target = new URL(String(protocol || "") + "//" + String(host || ""));
   if (target.protocol !== "http:" && target.protocol !== "https:") {
@@ -433,7 +433,7 @@ async function registryManifestDigest(ref, host, platform) {
       try {
         const json = JSON.parse(main.response.body.toString("utf8"));
         if (Array.isArray(json && json.manifests)) {
-          // Index multi-arch : sélectionner l'artefact du bon couple os/arch.
+          // Multi-arch index: pick the artefact matching the os/arch pair.
           const target =
             platform && platform.os && platform.architecture
               ? { os: platform.os, architecture: platform.architecture }
@@ -515,7 +515,7 @@ async function resolveRegistryDigests(host, refs, images) {
   return map;
 }
 
-// Résumé complet : signaux locaux + verdict du registre distant.
+// Full summary: local signals plus the remote registry verdict.
 async function computeLiveDockerSummary(host, containers, images) {
   const list = Array.isArray(containers) ? containers : [];
   const total = list.length;
@@ -543,7 +543,7 @@ async function computeLiveDockerSummary(host, containers, images) {
     }
     if (item.status === "update") continue;
     const remote = item.ref ? resolved.get(item.ref) : null;
-    // Sans digest distant exploitable : pas de preuve -> compté à jour + trace.
+    // No usable remote digest: no proof -> counted up to date, and traced.
     if (!remote || !remote.digest) {
       updated++;
       unknown++;
@@ -556,8 +556,8 @@ async function computeLiveDockerSummary(host, containers, images) {
       updated += hasRemoteDigest ? 1 : 0;
       continue;
     }
-    // Image sans RepoDigest : comparer le digest de config du manifest
-    // (équivaut à l'image ID local) pour trancher réellement.
+    // Image without RepoDigest: compare the manifest config digest (which
+    // equals the local image ID) to decide for real.
     if (remote.configDigest) {
       updated += item.imageId === remote.configDigest ? 1 : 0;
       continue;

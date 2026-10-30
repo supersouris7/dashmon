@@ -1,10 +1,10 @@
 "use strict";
-// Point d'entree explicite ; l'image existante supporte toujours DASHMON_MODE.
+// Explicit agent entry point; the image still supports DASHMON_MODE=agent.
 process.env.DASHMON_MODE = "agent";
 require("./server")
   .createApp()
   .start()
   .catch(error => {
-    console.error("Demarrage agent impossible :", error);
+    console.error("Agent start-up failed:", error);
     process.exit(1);
   });
