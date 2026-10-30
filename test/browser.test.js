@@ -178,11 +178,44 @@ async function main() {
     `(()=>{const b=document.querySelector('#hostsPanel .color-swatch-btn');if(!b)return false;b.click();const p=document.querySelector('#hostsPanel .color-palette:not([hidden])');if(!p)return false;p.querySelector('.color-chip').click();return true;})()`
   );
   assert.equal(picked, true);
-  for (const panel of ["wireguardPanel", "smartPanel", "aptUpdatesPanel"]) {
+  await evaluate(
+    "import('/js/state.js').then(({state})=>{const host=state.editHosts.find(h=>h.monitoring?.enabled&&h.monitoring.type==='local');state.hostMetrics=[{id:host.id,smart:[{device:'/dev/sda'},{device:'/dev/sdb'}]}]})"
+  );
+  await evaluate("document.querySelector('[data-panel=localHostPanel]').click()");
+  assert.equal(
+    await evaluate("document.querySelectorAll('#localHostEditor .smart-disk-choice').length"),
+    2
+  );
+  await evaluate("document.querySelector('#localHostEditor .smart-disk-choice').click()");
+  assert.equal(
+    await evaluate("document.querySelector('#localHostEditor [name=smartDisks]').value"),
+    "/dev/sdb"
+  );
+  await evaluate(
+    "(()=>{const input=document.querySelector('#localHostEditor [name=agentHostName]');input.value='Hote principal';input.dispatchEvent(new Event('input',{bubbles:true}));})()"
+  );
+  const localFields = await evaluate(
+    "[...document.querySelectorAll('#localHostEditor input')].map(input=>input.name)"
+  );
+  assert.equal(
+    await evaluate(
+      "getComputedStyle(document.querySelector('.settings-branch summary'),'::before').content"
+    ),
+    "none"
+  );
+  assert.equal(
+    await evaluate("!!document.querySelector('#settingsSupervision, #settingsAgentsBranch')"),
+    false
+  );
+  assert.equal(
+    await evaluate("document.querySelector('[data-panel=localHostPanel]').textContent.trim()"),
+    "Local"
+  );
+  for (const name of ["wireguard", "smart", "aptUpdates"]) {
     const changed = await evaluate(
-      `(()=>{document.querySelector('[data-panel=${panel}]').click();const root=document.querySelector('#${panel}');const button=root.querySelector('.monitor-toggle');if(!button)return false;const before=button.getAttribute('aria-pressed');button.click();return root.querySelector('.monitor-toggle').getAttribute('aria-pressed')!==before;})()`
+      `(()=>{const input=document.querySelector('#localHostEditor [name=${name}]');const before=input.checked;input.click();return input.checked!==before;})()`
     );
-    assert.equal(changed, true, panel);
+    assert.equal(changed, true, name);
   }
   await evaluate("document.querySelector('[data-panel=replicationPanel]').click()");
   await evaluate(
@@ -199,6 +232,17 @@ async function main() {
   assert.deepEqual(
     await evaluate("fetch('/api/config').then(r=>r.json()).then(c=>c.replication.secondaries)"),
     ["http://exemple.lan/"]
+  );
+  assert.deepEqual(
+    await evaluate(
+      "fetch('/api/config').then(r=>r.json()).then(c=>{const host=c.hosts.find(h=>h.monitoring?.enabled&&h.monitoring.type==='local');return {name:host.name,wireguard:host.monitoring.wireguard.enabled,smart:host.monitoring.smart,apt:host.monitoring.aptUpdates.enabled}})"
+    ),
+    {
+      name: "Hote principal",
+      wireguard: false,
+      smart: { enabled: false, disks: ["/dev/sdb"] },
+      apt: false
+    }
   );
   await evaluate(
     `(()=>{const i=document.querySelector('.agent-editor-item input');i.value='http://[';i.dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('[data-panel=hostsPanel]').click();document.querySelector('[data-panel=replicationPanel]').click();})()`
@@ -228,7 +272,7 @@ async function main() {
     `(()=>{const i=document.querySelector('.agent-editor-item input');i.value=${JSON.stringify(agentBase)};i.dispatchEvent(new Event('input',{bubbles:true}));})()`
   );
   assert.equal(
-    await evaluate("document.querySelectorAll('#settingsAgentTree > details').length"),
+    await evaluate("document.querySelectorAll('#settingsAgentTree > button').length"),
     1
   );
   assert.equal(
@@ -245,6 +289,24 @@ async function main() {
   await wait(700);
   assert.equal(
     await evaluate("!!document.querySelector('#remoteAgentEditor [name=agentHostName]')"),
+    true
+  );
+  assert.deepEqual(
+    await evaluate(
+      "[...document.querySelectorAll('#remoteAgentEditor input')].map(input=>input.name)"
+    ),
+    localFields
+  );
+  assert.equal(await evaluate("document.querySelectorAll('.agent-configure').length"), 0);
+  assert.equal(
+    await evaluate("document.querySelector('#remoteAgentEditor [name=wireguard]').checked"),
+    true
+  );
+  await evaluate("document.querySelector('#remoteAgentEditor [name=wireguard]').click()");
+  assert.equal(
+    await evaluate(
+      "document.querySelector('#settingsAgentTree button').parentElement.parentElement.querySelector('[data-panel=localHostPanel]') !== null"
+    ),
     true
   );
   await evaluate(
@@ -272,6 +334,12 @@ async function main() {
       `fetch('/api/agents/config?url='+encodeURIComponent(${JSON.stringify(agentBase)})).then(r=>r.json()).then(r=>r.config.name)`
     ),
     "Agent navigateur"
+  );
+  assert.equal(
+    await evaluate(
+      `fetch('/api/agents/config?url='+encodeURIComponent(${JSON.stringify(agentBase)})).then(r=>r.json()).then(r=>r.config.monitoring.wireguard.enabled)`
+    ),
+    false
   );
   await evaluate(
     "document.querySelector('[data-panel=servicesPanel]').click(); document.querySelector('#addServiceBtn').click(); document.querySelector('[data-panel=appearancePanel]').click(); document.querySelector('#closeBtn').click()"
@@ -318,6 +386,17 @@ async function main() {
       "document.querySelector('#remoteAgentPanel').scrollWidth <= document.querySelector('#remoteAgentPanel').clientWidth"
     ),
     true
+  );
+  await evaluate(
+    "document.querySelector('[data-panel=localHostPanel]').click(); document.querySelector('#closeBtn').click()"
+  );
+  assert.equal(
+    await evaluate("document.querySelector('#modalBackdrop').classList.contains('show')"),
+    false
+  );
+  assert.equal(
+    await evaluate("document.querySelector('#confirmBackdrop').classList.contains('show')"),
+    false
   );
   ws.close();
   console.log(

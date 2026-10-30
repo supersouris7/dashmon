@@ -47,18 +47,6 @@
   color: var(--muted);
 }
 
-.settings-branch summary::before {
-  content: "\f07b";
-  margin-right: 7px;
-  color: var(--accent);
-  font-family: "Font Awesome 6 Free";
-  font-weight: 900;
-}
-
-.settings-branch[open] > summary::before {
-  content: "\f07c";
-}
-
 .settings-children {
   margin-left: 9px;
   padding-left: 9px;
@@ -69,7 +57,7 @@
   display: none;
 }
 
-.settings-page .settings-children > .edit-tab {
+.settings-page .settings-children .edit-tab {
   display: block;
   width: 100%;
 }
@@ -79,10 +67,36 @@
   cursor: default;
 }
 
-.remote-agent-fields {
+.host-settings {
   display: grid;
   gap: 16px;
   max-width: 760px;
+}
+
+.host-settings-section {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.host-settings-section legend {
+  padding: 0 6px;
+  font-weight: 600;
+}
+
+.host-settings-help summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.host-settings-section input[type="checkbox"] {
+  justify-self: start;
+  accent-color: var(--accent);
 }
 
 .settings-page .edit-tab {

@@ -205,9 +205,9 @@ async function main() {
   );
   const agentEditorSource = editorSource();
   ok(
-    "agents : test et configuration depuis le principal",
+    "agents : test depuis le principal sans bouton parametrer redondant",
     contains(agentEditorSource, 'fetch("/api/agents/test"') &&
-      contains(agentEditorSource, "configureAgent(agentUrl(entry.url))")
+      !contains(agentEditorSource, "agent-configure")
   );
   ok(
     "agents : hote associe a chaque pairage",

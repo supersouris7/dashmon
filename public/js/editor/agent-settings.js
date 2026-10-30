@@ -1,8 +1,10 @@
 // Remote drafts stay in the primary browser; the token stays on its server.
 import { t } from "../i18n.js";
 import { clone } from "../util.js";
+import { renderHostSettings } from "./host-settings.js";
+import { agentHostMetrics } from "../supervision.js";
 
-export function createAgentSettings({ field }) {
+export function createAgentSettings() {
   const drafts = new Map();
   const loading = new Map();
   let generation = 0;
@@ -21,56 +23,7 @@ export function createAgentSettings({ field }) {
   }
 
   function renderForm(draft) {
-    editor.replaceChildren();
-    const fields = document.createElement("div");
-    fields.className = "remote-agent-fields";
-    const config = draft.config;
-    const m = config.monitoring;
-    function text(key, value, change, multiline = false) {
-      const input = document.createElement(multiline ? "textarea" : "input");
-      input.className = "edit-input";
-      input.name = key;
-      input.value = value || "";
-      input.maxLength = multiline ? 4000 : key === "agentHostName" ? 100 : 200;
-      input.addEventListener("input", () => change(input.value));
-      fields.appendChild(field(t(key), input));
-    }
-    function toggle(key, value) {
-      const input = document.createElement("input");
-      input.type = "checkbox";
-      input.checked = m[key]?.enabled !== false;
-      input.addEventListener("change", () => {
-        m[key] = { ...m[key], enabled: input.checked };
-      });
-      fields.appendChild(field(t(value), input));
-    }
-    text("agentHostName", config.name, value => {
-      config.name = value;
-    });
-    text("hostDiskPath", m.path, value => {
-      m.path = value;
-    });
-    toggle("wireguard", "tabWireguard");
-    text("wireguardInterface", m.wireguard?.interface, value => {
-      m.wireguard = { ...m.wireguard, interface: value };
-    });
-    toggle("smart", "tabSmart");
-    text(
-      "smartDisks",
-      (m.smart?.disks || []).join("\n"),
-      value => {
-        m.smart = {
-          ...m.smart,
-          disks: value
-            .split(/[\n,]/)
-            .map(item => item.trim())
-            .filter(Boolean)
-        };
-      },
-      true
-    );
-    toggle("aptUpdates", "tabAptUpdates");
-    editor.appendChild(fields);
+    renderHostSettings(editor, { config: draft.config, metrics: agentHostMetrics(activeUrl) });
   }
 
   return {
@@ -90,26 +43,15 @@ export function createAgentSettings({ field }) {
         .map(([url, draft]) => [url, draft.config]);
     },
     renderTree(entries, savedUrls) {
-      const expanded = new Map(
-        [...tree.querySelectorAll("details")].map(node => [node.dataset.url, node.open])
-      );
       tree.replaceChildren();
       for (const entry of entries) {
         if (!entry.url) continue;
-        const branch = document.createElement("details");
-        branch.className = "settings-branch";
-        branch.dataset.url = entry.url;
-        branch.open = expanded.get(entry.url) ?? true;
-        const summary = document.createElement("summary");
-        summary.textContent = entry.name || new URL(entry.url).hostname;
-        const children = document.createElement("div");
-        children.className = "settings-children";
         const button = document.createElement("button");
         button.type = "button";
         button.className = "edit-tab";
         button.dataset.panel = "remoteAgentPanel";
         button.dataset.agentUrl = entry.url;
-        button.textContent = t("agentConfiguration");
+        button.textContent = entry.name || new URL(entry.url).hostname;
         button.disabled = !savedUrls.includes(entry.url);
         if (button.disabled) button.title = t("agentSavePairFirst");
         if (
@@ -119,9 +61,7 @@ export function createAgentSettings({ field }) {
           button.classList.add("active");
           button.setAttribute("aria-current", "page");
         }
-        children.appendChild(button);
-        branch.append(summary, children);
-        tree.appendChild(branch);
+        tree.appendChild(button);
       }
     },
     async open(url, name) {
@@ -146,7 +86,7 @@ export function createAgentSettings({ field }) {
         }
         if (activeUrl !== url) return;
         renderForm(drafts.get(url));
-        status.textContent = t("agentConfigSaveHint");
+        status.textContent = "";
       } catch (error) {
         if (openedGeneration === generation) {
           loading.delete(url);

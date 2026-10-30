@@ -308,15 +308,6 @@ body.modal-open {
   align-items: center;
   gap: 8px;
 }
-.agent-configure {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-}
-.agent-configure:not([href]) {
-  opacity: 0.45;
-  pointer-events: none;
-}
 .agent-test-status {
   display: inline-flex;
   align-items: center;

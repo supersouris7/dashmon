@@ -27,6 +27,10 @@ function metricsInterval() {
 const HOST_METRICS_INTERVAL = metricsInterval();
 let remoteInstances = [];
 
+export function agentHostMetrics(url) {
+  return remoteInstances.find(instance => instance.url === url)?.hosts?.[0];
+}
+
 function instanceLabel(instance) {
   if (instance.name) return instance.name;
   if (instance.id === "local") return "Dashmon";

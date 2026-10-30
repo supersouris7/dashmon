@@ -24,9 +24,7 @@ export function createPairingList({
   syncPairs,
   confirmDelete,
   monitoringField,
-  setAddDisabled,
-  configureAgent,
-  savedUrls
+  setAddDisabled
 }) {
   function render() {
     list.replaceChildren();
@@ -95,17 +93,6 @@ export function createPairingList({
       test.type = "button";
       test.className = "action-btn";
       test.textContent = t("agentTest");
-      const configure = document.createElement("button");
-      configure.type = "button";
-      configure.className = "action-btn agent-configure";
-      configure.textContent = t("agentConfigure");
-      const updateConfigure = () => {
-        const target = agentUrl(entry.url);
-        configure.disabled = !target || !savedUrls.includes(target);
-        configure.title = configure.disabled ? t("agentSavePairFirst") : "";
-      };
-      configure.addEventListener("click", () => configureAgent(agentUrl(entry.url)));
-      updateConfigure();
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "action-btn danger";
@@ -120,7 +107,6 @@ export function createPairingList({
       urlInput.addEventListener("input", () => {
         entry.url = urlInput.value;
         syncPairs();
-        updateConfigure();
         validate();
         status.className = "agent-test-status";
         status.replaceChildren();
@@ -130,7 +116,6 @@ export function createPairingList({
         if (normalized) entry.url = normalized;
         urlInput.value = entry.url || "";
         syncPairs();
-        updateConfigure();
         validate();
       });
       test.addEventListener("click", async () => {
@@ -168,7 +153,7 @@ export function createPairingList({
       });
       const actions = document.createElement("div");
       actions.className = "agent-editor-actions";
-      actions.append(test, configure, remove, status);
+      actions.append(test, remove, status);
       item.append(
         monitoringField(t("agentUrlLabel"), urlInput),
         invalid,

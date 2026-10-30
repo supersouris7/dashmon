@@ -145,14 +145,15 @@ The named volume keeps the agent settings. To use a host folder instead, replace
 `:/app/data`, then remove the final `volumes` section. The folder must be
 writable by the container UID `1000`.
 
-1. On the primary: **Settings → Supervision → Pairing**. Add the agent full address,
+1. On the primary: **Settings → Agents → Pairing**. Add the agent full address,
    for example `http://exemple.lan:8081`, then name the tab if you want.
-   Next, link the host created in the **Hosts** tab: its color and icon are used
+   Next, link a host from **Dashboard → Host appearance**: its color and icon are used
    when hovering its tile in Supervision. Without a host, the pairing still
    works but the tile keeps its default appearance.
-2. Click **Test connection**, then **Save**. A branch for this agent appears under
-   **Supervision → Remote agents**. Its **Configuration** page and the
-   **Configure** button both stay inside the primary.
+2. Click **Test connection**, then **Save**. This agent appears by name under
+   **Agents → Hosts**, next to **Local** (the primary). Select its name to configure
+   it without leaving the primary. Both use the same form: general settings,
+   WireGuard, SMART and APT, with setup help available in each section.
 3. Set the host name and the options you need, then **Save**. To measure the host
    disk, uncomment the `/host:ro` mount, redeploy and enter `/host` in the disk
    path field. Otherwise the measurement covers the container.

@@ -216,9 +216,9 @@ RAM reflect what the container can observe; the default disk is the container
 filesystem. To monitor a host filesystem, mount it read-only and set its
 container path in the agent configuration on the primary.
 
-On the main instance, open **Settings → Supervision → Pairing**, enter each agent's
+On the main instance, open **Settings → Agents → Pairing**, enter each agent's
 base URL on its own line, optionally enter a tab name for each agent, and save.
-Then link the host created in the **Hosts** tab: its color and icon are reused
+Then link a host from **Dashboard → Host appearance**: its color and icon are reused
 when hovering the host tile in Supervision. Without a host, the pairing still
 works but the tile keeps its default appearance. Without a name, the tab uses
 the address's hostname. The Supervision page can then select each agent. The
@@ -226,9 +226,10 @@ main instance fetches metrics on demand; it never sends dashboard
 configuration to an agent. Configure HTTPS or a trusted private network: the
 shared token travels in an HTTP header. Restrict access to the published port.
 For each address, **Test connection** checks access and the sync token from the
-main server, even before saving. Once saved, the agent gets a branch under
-**Supervision → Remote agents**. **Configure** opens that branch's configuration
-inside the primary. The primary forwards reads and writes to this saved address;
+main server, even before saving. Once saved, the agent appears by name under
+**Agents → Hosts**, alongside **Local** (the primary). Select a host to open the
+same general, WireGuard, SMART and APT settings form inside the primary.
+The primary forwards agent reads and writes to this saved address;
 the token never reaches the browser. Concurrent changes are rejected rather
 than overwritten. Test only addresses you trust: the sync token is sent to the address.
 

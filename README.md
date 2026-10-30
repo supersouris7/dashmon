@@ -22,7 +22,7 @@ you stop guessing whether *that* thing is working.
 - **Real status monitoring** — an up/down pill per URL, refreshed automatically.
 - **Host supervision** — a dedicated page with CPU, memory, disk and temperature
   from Dashmon itself or its supervision agents. WireGuard peers can be read from
-  a local `wg show all dump` file; the **Settings → Supervision** section
+  a local `wg show all dump` file; the **Settings → Agents → Hosts** section
   configures hosts and peer display.
 - **Supervision agents** — deploy a lightweight agent on another host and view
   its local metrics from the main dashboard, without copying its configuration.

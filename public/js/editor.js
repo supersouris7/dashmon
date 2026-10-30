@@ -24,8 +24,7 @@ import { agentUrl, replicationEntries } from "./editor/replication-draft.js";
 import { renderPairingEditor } from "./editor/pairing.js";
 import { createAgentSettings } from "./editor/agent-settings.js";
 import { prepareEditorDraft } from "./editor/draft.js";
-import { renderAptUpdatesEditor } from "./editor/apt.js";
-import { renderWireguardEditor, renderSmartEditor } from "./editor/monitoring.js";
+import { renderHostSettings } from "./editor/host-settings.js";
 import {
   editorSearch,
   editorCategoryFilter,
@@ -63,11 +62,12 @@ let editorBaseline = "";
 let replicationAtOpen = null;
 let pairingDraft = null;
 let editorSaving = false;
-const agentSettings = createAgentSettings({ field: monitoringField });
+const agentSettings = createAgentSettings();
 setSettingsUpdater(() => {
   if (!modalBackdrop.classList.contains("show")) return;
   renderReplicationEditor();
   agentSettings.refreshLabels();
+  renderLocalSettings();
 });
 
 function editorSnapshot() {
@@ -198,11 +198,28 @@ function renderReplicationEditor() {
     activateEditorPanel,
     confirmDelete,
     monitoringField,
-    onPairsChanged: renderAgentTree,
-    configureAgent: url => activateEditorPanel("remoteAgentPanel", url),
-    savedUrls: replicationAtOpen?.secondaries || []
+    onPairsChanged: renderAgentTree
   });
   renderAgentTree();
+}
+
+function renderLocalSettings() {
+  const host = state.editHosts.find(
+    item => item.monitoring?.enabled && item.monitoring.type === "local"
+  );
+  if (!host) return;
+  const linkedServices = state.editServices.filter(
+    service => host.name && service.host === host.name
+  );
+  renderHostSettings(document.getElementById("localHostEditor"), {
+    config: host,
+    metrics: state.hostMetrics?.find(item => item.id === host.id),
+    onRename(next) {
+      for (const service of linkedServices) service.host = next;
+      renderServiceEditor();
+      renderHostEditor();
+    }
+  });
 }
 
 function renderAgentTree() {
@@ -232,9 +249,7 @@ function refreshEditorDrafts() {
   renderCategoryEditor();
   renderDashboardEditor();
   renderHostEditor();
-  renderWireguardEditor();
-  renderSmartEditor();
-  renderAptUpdatesEditor();
+  renderLocalSettings();
   renderWebLinksEditor();
   renderWidgetsEditor();
   renderReplicationEditor();
@@ -322,6 +337,7 @@ function activateEditorPanel(panelId, agentUrl = "") {
   document.getElementById(panelId)?.classList.add("active");
   if (panelId === "imagesPanel") renderImageManager();
   if (panelId === "replicationPanel") renderReplicationEditor();
+  if (panelId === "localHostPanel") renderLocalSettings();
   if (panelId === "remoteAgentPanel")
     agentSettings.open(agentUrl, state.replication.agentNames?.[agentUrl]);
 }

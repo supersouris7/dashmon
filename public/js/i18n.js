@@ -44,9 +44,10 @@ export function applyLanguage() {
 
   menuSettingsBtn.querySelector("span").textContent = t("settings");
   for (const [id, key] of [
-    ["settingsSupervision", "supervision"],
     ["settingsDashboard", "settingsDashboard"],
     ["settingsLocalHost", "settingsLocalHost"],
+    ["localHostTitle", "settingsLocalHost"],
+    ["settingsHosts", "tabHosts"],
     ["settingsAgents", "settingsAgents"],
     ["settingsAdministration", "settingsAdministration"],
     ["settingsAppearance", "settingsAppearance"],
@@ -103,11 +104,8 @@ export function applyLanguage() {
     ["editorTabApplications", "tabApplications"],
     ["editorTabCategories", "tabCategories"],
     ["editorTabDashboards", "tabDashboards"],
-    ["editorTabHosts", "tabHosts"],
+    ["editorTabHosts", "hostAppearance"],
     ["editorTabPairing", "tabPairing"],
-    ["editorTabWireguard", "tabWireguard"],
-    ["editorTabSmart", "tabSmart"],
-    ["editorTabAptUpdates", "tabAptUpdates"],
     ["editorTabWebLinks", "tabWebLinks"],
     ["editorTabWidgets", "tabWidgets"],
     ["editorTabImages", "tabImages"],

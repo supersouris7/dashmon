@@ -12,9 +12,7 @@ export function renderPairingEditor({
   activateEditorPanel,
   confirmDelete,
   monitoringField,
-  onPairsChanged,
-  configureAgent,
-  savedUrls
+  onPairsChanged
 }) {
   container.replaceChildren();
   for (const key of ["agentIntro", "agentHint"]) {
@@ -108,8 +106,6 @@ export function renderPairingEditor({
     syncPairs,
     confirmDelete,
     monitoringField,
-    configureAgent,
-    savedUrls,
     setAddDisabled: value => {
       add.disabled = value;
     }

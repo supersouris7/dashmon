@@ -1,4 +1,4 @@
-// Hosts panel: name, icon, colour and monitoring options of each host.
+// Dashboard host inventory: names, icons and colours; monitoring has its own form.
 import { renderCategoryEditor } from "./categories.js";
 import { t } from "../i18n.js";
 import { state } from "../state.js";
@@ -9,8 +9,6 @@ import { createHostIconPicker } from "./icon-picker.js";
 import { confirmDelete } from "../editor.js";
 import { createColorPicker } from "./color-picker.js";
 import { makeDraggable } from "./drag.js";
-import { renderWireguardEditor, renderSmartEditor } from "./monitoring.js";
-import { renderAptUpdatesEditor } from "./apt.js";
 
 export function refreshColorEditors() {
   renderCategoryEditor();
@@ -24,38 +22,6 @@ export function monitoringField(labelText, control) {
   span.textContent = labelText;
   field.append(span, control);
   return field;
-}
-
-export function monitoringInput(placeholderKey, value, onInput) {
-  const input = document.createElement("input");
-  input.className = "edit-input";
-  input.value = value || "";
-  input.placeholder = t(placeholderKey);
-  input.addEventListener("input", () => onInput(input.value));
-  return input;
-}
-
-// Local host panel: only the disk path is configurable here.
-export function renderMonitoringPanel(host, index) {
-  const m = host.monitoring;
-  const panel = document.createElement("div");
-  panel.className = "host-monitor-panel";
-
-  if (m.type === "local") {
-    panel.appendChild(
-      monitoringField(
-        t("hostDiskPath"),
-        monitoringInput("phDiskPath", m.path, v => (state.editHosts[index].monitoring.path = v))
-      )
-    );
-    const hint = document.createElement("p");
-    hint.className = "host-monitor-hint";
-    hint.textContent = t("hostLocalHint");
-    panel.appendChild(hint);
-    return panel;
-  }
-
-  return panel;
 }
 
 export function renderHostEditor() {
@@ -124,7 +90,6 @@ export function renderHostEditor() {
     }
     row.append(drag, name, picker, createColorPicker(host, refreshColorEditors), remove);
     item.appendChild(row);
-    if (host.monitoring.enabled) item.appendChild(renderMonitoringPanel(host, index));
 
     makeDraggable(row, state.editHosts, index, () => {
       renderHostEditor();
@@ -132,9 +97,6 @@ export function renderHostEditor() {
     });
     hostEditor.appendChild(item);
   });
-  renderWireguardEditor();
-  renderSmartEditor();
-  renderAptUpdatesEditor();
 }
 
 // Creates a host draft, renders it and puts the cursor on its name. Used by

@@ -58,13 +58,13 @@ For an agent, replace that line with:
 ```
 
 If your container has another name, find it with `docker ps` and replace
-`dashmon-agent`. In **Settings → Supervision → Remote agents → your agent → Configuration**,
+`dashmon-agent`. In **Settings → Agents → Hosts → your agent**,
 enable **SMART** and leave the disk
 list empty to show them all.
 
 ## Dashmon configuration
 
-The local host is always monitored. Open **Settings → Supervision → Primary machine → SMART**.
+The local host is always monitored. Open **Settings → Agents → Hosts → Local**, then **SMART**.
 The disk list is optional: empty, it shows every disk in the dump; enter for
 example `/dev/sda, /dev/sdb` to filter. Click **Save**.
 

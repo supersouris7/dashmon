@@ -79,11 +79,12 @@ public/js/
   supervision.js       supervision page, instances and metrics refresh
   supervision/         one file per card (host, WireGuard, SMART, APT), shared
                        card behaviour (cards.js) and texts (format.js)
-  editor.js            settings dialog: tabs, save, import / export
+  editor.js            settings page: navigation tree, save, import / export
   editor/              one file per panel (services, widgets, categories,
                        dashboards, hosts, web links, pairing...), the widget
                        settings dialog and the editor helpers (drafts, drag,
-                       colour and icon pickers, confirmation dialog)
+                        colour and icon pickers, confirmation dialog); shared
+                        local/agent monitoring form in host-settings.js
   config/              config schema (normalize.js), value checks (sanitize.js),
                        icon list
   i18n.js, i18n/       interface texts, one JSON file per language
