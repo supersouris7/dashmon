@@ -39,8 +39,7 @@ imported from the UI and persisted in `/app/data/themes/`.
 ### Rules
 
 - **`id`**: lowercase letters, digits, `-` and `_` (anything else is converted
-  to `-`). It must not clash with the native ids (`dark`, `light`, `black`,
-  `matrix`, `rainbow-dark`, `rainbow-light`).
+  to `-`). It must not clash with the native ids (`dark`, `light`, `matrix`).
 - **`variables`**: the 10 keys below are all **required** — the import is
   rejected if any is missing. They map to `--bg`, `--surface`, `--surface-2`,
   `--surface-3`, `--border`, `--text`, `--muted`, `--accent`, `--danger` and

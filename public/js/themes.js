@@ -8,10 +8,7 @@ import { themeSelect } from "./dom.js";
 const NATIVE_LABEL_KEY = {
   dark: "dark",
   light: "light",
-  black: "black",
-  matrix: "matrix",
-  "rainbow-dark": "rainbow",
-  "rainbow-light": "rainbowLight"
+  matrix: "matrix"
 };
 
 function themeLabel(theme) {

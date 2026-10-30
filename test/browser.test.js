@@ -141,6 +141,18 @@ async function main() {
   assert.equal(login, 200);
   await call("Page.navigate", { url: base + "/" });
   await wait(1800);
+  assert.deepEqual(
+    await evaluate("[...document.querySelector('#themeSelect').options].map(option=>option.value)"),
+    ["dark", "light", "matrix"]
+  );
+  for (const removed of ["black", "rainbow-dark", "rainbow-light"]) {
+    assert.equal(
+      await evaluate(
+        `Promise.all([import('/js/state.js'),import('/js/themes.js')]).then(async([{state},{loadThemes}])=>{state.theme=${JSON.stringify(removed)};await loadThemes();return document.documentElement.dataset.theme})`
+      ),
+      "dark"
+    );
+  }
   assert.equal(await evaluate("!!document.querySelector('#menuSettingsBtn')"), true);
   assert.equal(
     await evaluate(

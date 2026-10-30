@@ -1,6 +1,17 @@
 "use strict";
 const assert = require("assert");
-const { normalizeTheme, sanitizeThemeId, REQUIRED_VARIABLES } = require("../lib/themes");
+const path = require("path");
+const {
+  normalizeTheme,
+  sanitizeThemeId,
+  readThemes,
+  REQUIRED_VARIABLES
+} = require("../lib/themes");
+
+assert.deepEqual(
+  readThemes(path.join(__dirname, "../public/themes")).map(theme => theme.id),
+  ["dark", "light", "matrix"]
+);
 
 const variables = Object.fromEntries(REQUIRED_VARIABLES.map(key => [key, "#123456"]));
 
