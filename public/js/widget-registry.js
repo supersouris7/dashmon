@@ -75,7 +75,7 @@ export async function loadWidgetRegistry() {
         .catch(error => {
           // Widget without renderer, or failing module: the config stays editable, only
           // the tile display stays neutral.
-          console.warn("Renderer de widget indisponible : " + meta.id, error);
+          console.warn("Widget renderer unavailable:", meta.id, error);
         });
     })
     .filter(Boolean);
@@ -315,7 +315,7 @@ export function renderWidget(service, info, lang) {
       title: view.title ? String(view.title) : label
     };
   } catch (error) {
-    console.error("Rendu du widget " + meta.id, error);
+    console.error("Widget rendering failed:", meta.id, error);
     return fallback("Erreur de rendu");
   }
 }
