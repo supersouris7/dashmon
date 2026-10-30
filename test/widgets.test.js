@@ -271,7 +271,7 @@ async function main() {
   const httpLib = require("../lib/http/client");
   check("http : link-local IPv4 refusee", httpLib.isBlockedAddress("169.254.169.254"), true);
   check("http : link-local IPv6 refusee", httpLib.isBlockedAddress("fe80::1"), true);
-  check("http : LAN IPv4 admise", httpLib.isBlockedAddress("192.168.1.1"), false);
+  check("http : LAN IPv4 admise", httpLib.isBlockedAddress("10.0.0.1"), false);
   check("http : loopback admise", httpLib.isBlockedAddress("127.0.0.1"), false);
   const blockedMetadata = await httpLib
     .apiRequest("http://169.254.169.254", "")

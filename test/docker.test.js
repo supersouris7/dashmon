@@ -196,11 +196,7 @@ check("une erreur sans code reste intacte", dockerSocketError(new Error("boom"))
 check("pas d'erreur = pas d'exception", dockerSocketError(undefined), undefined);
 
 // --- Docker TCP ---
-check(
-  "Docker TCP : LAN admis",
-  dockerTcpTarget("http://192.168.1.10:2375").hostname,
-  "192.168.1.10"
-);
+check("Docker TCP : LAN admis", dockerTcpTarget("http://10.0.0.10:2375").hostname, "10.0.0.10");
 check(
   "Docker TCP : link-local refusee",
   (() => {
