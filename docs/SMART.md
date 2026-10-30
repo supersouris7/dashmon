@@ -63,8 +63,8 @@ list empty to show them all.
 
 ## Dashmon configuration
 
-The local host is always monitored. Open the **SMART** tab in the supervision
-configuration. The disk list is optional: empty, it shows every disk in the
+The local host is always monitored. In **Edit supervision**, open the
+**SMART** tab. The disk list is optional: empty, it shows every disk in the
 dump; enter for example `/dev/sda, /dev/sdb` to filter. Click **Save**, then
 **Apply**.
 

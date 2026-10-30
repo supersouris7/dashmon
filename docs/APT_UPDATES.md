@@ -1,7 +1,7 @@
 # APT updates
 
-The **APT updates** card on the Supervision page shows the last update report
-for a Debian or Ubuntu host. Dashmon never runs `apt` itself: a local cron job
+The **Updates** card (badge **APT**) on the Supervision page shows the last update
+report for a Debian or Ubuntu host. Dashmon never runs `apt` itself: a local cron job
 runs the script, which writes an atomic JSON report into the container data,
 next to the WireGuard and SMART dumps.
 

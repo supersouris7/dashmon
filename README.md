@@ -21,8 +21,9 @@ you stop guessing whether *that* thing is working.
   subscribers right in the web-links banner, e.g. *GitHub (109)*.
 - **Real status monitoring** — an up/down pill per URL, refreshed automatically.
 - **Host supervision** — a dedicated page with CPU, memory, disk and temperature
-  from Dashmon itself or its supervision agents. WireGuard peers can be read from a local `wg show all dump` file; a
-   dedicated *Edit supervision* screen configures hosts and peer display.
+  from Dashmon itself or its supervision agents. WireGuard peers can be read from
+  a local `wg show all dump` file; a dedicated *Edit supervision* screen
+  configures hosts and peer display.
 - **Supervision agents** — deploy a lightweight agent on another host and view
   its local metrics from the main dashboard, without copying its configuration.
 - **Themes** — dark and light built in, plus your own custom themes and CSS.
