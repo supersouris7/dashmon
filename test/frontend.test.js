@@ -109,11 +109,14 @@ async function main() {
   );
 
   // La carte APT partage la commande globale et conserve son etat au refresh.
-  const supervisionSource = readSource("public", "js", "supervision.js");
-  const aptSource = supervisionSource.slice(
-    supervisionSource.indexOf(squash("function aptUpdatesCard(")),
-    supervisionSource.indexOf(squash("export function renderSupervision("))
-  );
+  // The supervision page (supervision.js) and its cards (supervision/).
+  const supervisionSource = [
+    "supervision.js",
+    ...fs.readdirSync(path.join(JS_DIR, "supervision")).map(f => "supervision/" + f)
+  ]
+    .map(file => readSource("public", "js", ...file.split("/")))
+    .join("");
+  const aptSource = readSource("public", "js", "supervision", "apt-card.js");
   ok(
     "APT : carte incluse dans le depliage global",
     contains(supervisionSource, ".supervision-card-apt.has-details")

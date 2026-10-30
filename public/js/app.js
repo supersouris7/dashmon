@@ -35,7 +35,8 @@ import {
   applyThemeLabels
 } from "./themes.js";
 import { startStatusLoop, setupVisibilityPause, manualRefresh } from "./metrics.js";
-import { renderSupervision, toggleAllSmartDetails } from "./supervision.js";
+import { renderSupervision } from "./supervision.js";
+import { toggleAllSmartDetails } from "./supervision/cards.js";
 import { renderPageSwitch, setPage } from "./pages.js";
 import {
   openEditor,
