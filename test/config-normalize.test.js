@@ -12,8 +12,13 @@ const config = normalize({
   specialTile: { type: "fortune", category: "Divers" },
   webLinks: [{ name: "Lien", url: "https://exemple.lan" }],
   usageCounts: { item: 3.9 },
-  language: "fr"
+  language: "fr",
+  collapsed: { open: false, closed: true, nested: { deep: true }, text: "yes" },
+  theme: "x".repeat(500)
 });
+// Only boolean collapsed flags are kept; the theme name is bounded.
+assert.deepEqual(config.collapsed, { open: false, closed: true });
+assert.equal(config.theme.length, 64);
 assert.equal(config.categories[0].dashboardId, "first");
 assert.equal(config.categories[0].color, "#aabbcc");
 assert.equal(config.hosts[0].monitoring.enabled, true);
