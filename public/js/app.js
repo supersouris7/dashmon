@@ -1,11 +1,5 @@
 // Point d'entrée : initialisation, menu principal, modals (éditeur/apparence), événements globaux.
-import {
-  state,
-  normalizeConfig,
-  normalizeViewPrefs,
-  isTypingTarget,
-  sanitizeUrl
-} from "./state.js";
+import { state, normalizeConfig, normalizeViewPrefs, isTypingTarget } from "./state.js";
 import { patchConfig, setConfigRevision } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
 import {
