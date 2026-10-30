@@ -51,7 +51,6 @@ async function main() {
         ICONS_DIR: path.join(dataDir, "icons"),
         THEMES_CUSTOM_DIR: path.join(dataDir, "themes"),
         THEMES_NATIVE_DIR: path.join(root, "public", "themes"),
-        DASHMON_MASTER_KEY: "",
         DASHBOARD_INSECURE_TLS: "0",
         DASHMON_WIDGET_DIR: "",
         DASHMON_PLUGINS_DIR: "",
