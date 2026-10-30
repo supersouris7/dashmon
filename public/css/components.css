@@ -616,6 +616,14 @@ body.is-refreshing .widget-status {
   letter-spacing: 0;
 }
 
+/* Narrow tile (many tiles per row): only the "!" stays, the word moves to the
+   tooltip, and the application name keeps its room. */
+@container (max-width: 300px) {
+  .widget-badge.error .widget-badge-text {
+    display: none;
+  }
+}
+
 .widget-time {
   font-size: 12px;
   line-height: 1.1;

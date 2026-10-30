@@ -26,6 +26,10 @@ export const state = {
   supervisionHostExpanded: [],
   supervisionAptExpanded: [],
   viewMode: "columns",
+  // Grid density (view preferences): "auto" or 2 to 5 columns.
+  categoryColumns: "auto",
+  tileColumns: "auto",
+  supervisionColumns: "auto",
   page: "dashboard",
   dashboardId: "main",
   supervisionInstanceId: "local",

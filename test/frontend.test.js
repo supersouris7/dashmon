@@ -98,6 +98,20 @@ async function main() {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 
+  // Grid density: "auto" or 2 to 5 columns, anything else falls back to auto.
+  {
+    const { normalizeViewPrefs } = await importStateModules();
+    const prefs = normalizeViewPrefs({
+      categoryColumns: 4,
+      tileColumns: "9",
+      supervisionColumns: "2"
+    });
+    check(
+      "grille : colonnes normalisees",
+      [prefs.categoryColumns, prefs.tileColumns, prefs.supervisionColumns],
+      ["4", "auto", "2"]
+    );
+  }
   // Interface texts: both languages define exactly the same keys, all of them
   // non-empty strings.
   const texts = Object.fromEntries(
@@ -574,7 +588,10 @@ async function main() {
       "supervisionInstanceId",
       "supervisionSmartExpanded",
       "supervisionHostExpanded",
-      "supervisionAptExpanded"
+      "supervisionAptExpanded",
+      "categoryColumns",
+      "tileColumns",
+      "supervisionColumns"
     ]);
 
     // Rien d'ecrit tant que l'utilisateur n'a rien change.
@@ -654,7 +671,10 @@ async function main() {
         collapsed: {},
         supervisionSmartExpanded: ['["local","hote"]'],
         supervisionHostExpanded: [],
-        supervisionAptExpanded: ['["local","hote"]']
+        supervisionAptExpanded: ['["local","hote"]'],
+        categoryColumns: "auto",
+        tileColumns: "auto",
+        supervisionColumns: "auto"
       }
     );
 

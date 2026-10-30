@@ -1,7 +1,7 @@
 // Entry point: start-up, main menu, dialogs (editor, appearance) and global
 // events.
 import { state } from "./state.js";
-import { normalizeConfig, normalizeViewPrefs } from "./config/normalize.js";
+import { normalizeConfig, normalizeViewPrefs, normalizeGridColumns } from "./config/normalize.js";
 import { isTypingTarget } from "./util.js";
 import { patchConfig, setConfigRevision } from "./api.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
@@ -115,6 +115,9 @@ async function loadConfig() {
     state.supervisionSmartExpanded = viewPrefs.supervisionSmartExpanded;
     state.supervisionHostExpanded = viewPrefs.supervisionHostExpanded;
     state.supervisionAptExpanded = viewPrefs.supervisionAptExpanded;
+    state.categoryColumns = viewPrefs.categoryColumns;
+    state.tileColumns = viewPrefs.tileColumns;
+    state.supervisionColumns = viewPrefs.supervisionColumns;
     // The active dashboard comes from the preference, bounded to the config's
     // list: a preference whose dashboard was deleted falls back to the first one.
     state.dashboardId = cfg.dashboards.some(d => d.id === viewPrefs.dashboardId)
@@ -232,6 +235,7 @@ function openSettings() {
   }
   languageSelect.value = state.language;
   openModeSelect.value = state.openMode === "new" ? "new" : "same";
+  gridSelects.forEach(select => (select.value = state[select.dataset.gridPref]));
   updateThemeManageUI();
   openEditor();
 }
@@ -348,6 +352,18 @@ iconsBtn.addEventListener("click", () => {
 });
 
 openModeSelect.addEventListener("change", () => setOpenMode(openModeSelect.value));
+
+// Grid density: a view preference of this browser, applied at once.
+const gridSelects = [...document.querySelectorAll("select[data-grid-pref]")];
+gridSelects.forEach(select =>
+  select.addEventListener("change", () => {
+    const key = select.dataset.gridPref;
+    state[key] = normalizeGridColumns(select.value);
+    saveViewPrefs({ [key]: state[key] });
+    render();
+    renderSupervision();
+  })
+);
 
 resetUsageBtn.addEventListener("click", async () => {
   const confirmed = await confirmDanger({

@@ -296,5 +296,9 @@
   "widgetError": "Error",
   "resetUsageConfirmTitle": "Reset the counters?",
   "resetUsageConfirmMessage": "The usage counters of every application start again from zero, and so does the “most used” sorting. This cannot be undone.",
-  "resetUsageConfirm": "Reset"
+  "resetUsageConfirm": "Reset",
+  "categoryColumnsLabel": "Category columns",
+  "tileColumnsLabel": "Applications per row",
+  "supervisionColumnsLabel": "Supervision cards per row",
+  "gridAuto": "Automatic"
 }

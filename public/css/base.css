@@ -440,7 +440,78 @@ main {
   grid-template-columns: 1fr;
 }
 
+/* Grid density chosen in Settings > Appearance (data attributes set by
+   render.js and supervision.js). Without a value ("auto") the rules above
+   apply. Narrow screens cap the number so tiles stay readable. */
+#dashboard[data-view="columns"][data-category-columns="2"],
+#dashboard:not([data-view="columns"])[data-tile-columns="2"] .cards,
+.supervision-grid[data-columns="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+#dashboard[data-view="columns"][data-category-columns="3"],
+#dashboard:not([data-view="columns"])[data-tile-columns="3"] .cards,
+.supervision-grid[data-columns="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#dashboard[data-view="columns"][data-category-columns="4"],
+#dashboard:not([data-view="columns"])[data-tile-columns="4"] .cards,
+.supervision-grid[data-columns="4"] {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+#dashboard[data-view="columns"][data-category-columns="5"],
+#dashboard:not([data-view="columns"])[data-tile-columns="5"] .cards,
+.supervision-grid[data-columns="5"] {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 1200px) {
+  #dashboard[data-view="columns"][data-category-columns="4"],
+  #dashboard:not([data-view="columns"])[data-tile-columns="4"] .cards,
+  .supervision-grid[data-columns="4"],
+  #dashboard[data-view="columns"][data-category-columns="5"],
+  #dashboard:not([data-view="columns"])[data-tile-columns="5"] .cards,
+  .supervision-grid[data-columns="5"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  #dashboard[data-view="columns"][data-category-columns="3"],
+  #dashboard:not([data-view="columns"])[data-tile-columns="3"] .cards,
+  .supervision-grid[data-columns="3"],
+  #dashboard[data-view="columns"][data-category-columns="4"],
+  #dashboard:not([data-view="columns"])[data-tile-columns="4"] .cards,
+  .supervision-grid[data-columns="4"],
+  #dashboard[data-view="columns"][data-category-columns="5"],
+  #dashboard:not([data-view="columns"])[data-tile-columns="5"] .cards,
+  .supervision-grid[data-columns="5"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  #dashboard[data-view="columns"][data-category-columns="2"],
+  #dashboard:not([data-view="columns"])[data-tile-columns="2"] .cards,
+  .supervision-grid[data-columns="2"],
+  #dashboard[data-view="columns"][data-category-columns="3"],
+  #dashboard:not([data-view="columns"])[data-tile-columns="3"] .cards,
+  .supervision-grid[data-columns="3"],
+  #dashboard[data-view="columns"][data-category-columns="4"],
+  #dashboard:not([data-view="columns"])[data-tile-columns="4"] .cards,
+  .supervision-grid[data-columns="4"],
+  #dashboard[data-view="columns"][data-category-columns="5"],
+  #dashboard:not([data-view="columns"])[data-tile-columns="5"] .cards,
+  .supervision-grid[data-columns="5"] {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+
 .card {
+  /* Lets the tile content adapt to the tile width (container queries). */
+  container-type: inline-size;
   min-height: 82px;
   display: flex;
   align-items: center;

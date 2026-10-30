@@ -114,6 +114,8 @@ function sortGroupNames(names) {
 export function render() {
   renderWebLinks();
   dashboard.dataset.view = state.viewMode;
+  dashboard.dataset.categoryColumns = state.categoryColumns;
+  dashboard.dataset.tileColumns = state.tileColumns;
   dashboard.classList.toggle("small-icons", state.smallIcons);
 
   const filtered = state.services.filter(serviceMatchesQuery);

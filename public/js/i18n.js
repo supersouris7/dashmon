@@ -152,7 +152,13 @@ export function applyLanguage() {
     ["openModeFieldLabel", "openModeFieldLabel"],
     ["openModeOptionSame", "sameTab"],
     ["openModeOptionNew", "newTab"],
-    ["webLinksColorLabel", "webLinksColorLabel"]
+    ["webLinksColorLabel", "webLinksColorLabel"],
+    ["categoryColumnsLabel", "categoryColumnsLabel"],
+    ["tileColumnsLabel", "tileColumnsLabel"],
+    ["supervisionColumnsLabel", "supervisionColumnsLabel"],
+    ["categoryColumnsAuto", "gridAuto"],
+    ["tileColumnsAuto", "gridAuto"],
+    ["supervisionColumnsAuto", "gridAuto"]
   ];
   appearanceLabels.forEach(([id, key]) => {
     const el = document.getElementById(id);

@@ -158,6 +158,7 @@ export function renderSupervision() {
   // card. The order stays readable: hosts, WireGuard, then SMART.
   const grid = document.createElement("div");
   grid.className = "supervision-grid";
+  grid.dataset.columns = state.supervisionColumns;
   monitored.forEach(host => grid.appendChild(hostCard(host, byId.get(host.id))));
   const wgCards = [];
   monitored.forEach(host => {

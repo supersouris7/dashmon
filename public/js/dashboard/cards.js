@@ -37,6 +37,12 @@ export function applyWidgetStatus(wrap, service, info) {
   badge.className = "widget-badge" + (view.badgeClass ? " " + view.badgeClass : "");
   badge.textContent = view.badge || "—";
   if (view.icon) {
+    // The word goes in its own span: narrow tiles hide it and keep the icon
+    // (components.css), so the application name keeps its room.
+    const text = document.createElement("span");
+    text.className = "widget-badge-text";
+    text.textContent = badge.textContent;
+    badge.replaceChildren(text);
     const icon = document.createElement("i");
     icon.className = view.icon;
     icon.setAttribute("aria-hidden", "true");

@@ -94,8 +94,17 @@ export const VIEW_PREF_KEYS = Object.freeze([
   "supervisionInstanceId",
   "supervisionSmartExpanded",
   "supervisionHostExpanded",
-  "supervisionAptExpanded"
+  "supervisionAptExpanded",
+  "categoryColumns",
+  "tileColumns",
+  "supervisionColumns"
 ]);
+
+// Grid density, set in Settings > Appearance: "auto" (as many as fit) or a
+// fixed number of columns from 2 to 5. Narrow screens cap it (base.css).
+export function normalizeGridColumns(value) {
+  return ["2", "3", "4", "5"].includes(String(value)) ? String(value) : "auto";
+}
 
 // Expanded tiles are stored as a list of keys (instance + host), never as a
 // free structure: tampered storage can neither inject HTML nor grow without
@@ -135,7 +144,10 @@ export function normalizeViewPrefs(cfg = {}) {
     collapsed: normalizeCollapsed(cfg.collapsed),
     supervisionSmartExpanded: normalizeExpandedKeys(cfg.supervisionSmartExpanded),
     supervisionHostExpanded: normalizeExpandedKeys(cfg.supervisionHostExpanded),
-    supervisionAptExpanded: normalizeExpandedKeys(cfg.supervisionAptExpanded)
+    supervisionAptExpanded: normalizeExpandedKeys(cfg.supervisionAptExpanded),
+    categoryColumns: normalizeGridColumns(cfg.categoryColumns),
+    tileColumns: normalizeGridColumns(cfg.tileColumns),
+    supervisionColumns: normalizeGridColumns(cfg.supervisionColumns)
   };
 }
 

@@ -28,7 +28,10 @@ const ALLOWED = Object.freeze([
   "supervisionInstanceId",
   "supervisionSmartExpanded",
   "supervisionHostExpanded",
-  "supervisionAptExpanded"
+  "supervisionAptExpanded",
+  "categoryColumns",
+  "tileColumns",
+  "supervisionColumns"
 ]);
 
 function storage() {
