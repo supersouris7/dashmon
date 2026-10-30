@@ -184,7 +184,27 @@ async function main() {
     ),
     true
   );
+  // Appearance applies at once: no Cancel / Save footer there.
+  assert.equal(
+    await evaluate("getComputedStyle(document.querySelector('.editor-footer')).display"),
+    "none"
+  );
+  // Resetting the usage counters asks for confirmation first.
+  await evaluate("document.querySelector('#resetUsageBtn').click()");
+  await wait(200);
+  assert.equal(
+    await evaluate("document.querySelector('#confirmBackdrop').classList.contains('show')"),
+    true
+  );
+  await evaluate(
+    "document.querySelector('#confirmBackdrop [data-action=cancel], #confirmBackdrop button')?.click()"
+  );
+  await wait(200);
   await evaluate("document.querySelector('[data-panel=hostsPanel]').click()");
+  assert.notEqual(
+    await evaluate("getComputedStyle(document.querySelector('.editor-footer')).display"),
+    "none"
+  );
   assert.equal(await evaluate("!!document.querySelector('[data-panel=replicationPanel]')"), true);
   const picked = await evaluate(
     `(()=>{const b=document.querySelector('#hostsPanel .color-swatch-btn');if(!b)return false;b.click();const p=document.querySelector('#hostsPanel .color-palette:not([hidden])');if(!p)return false;p.querySelector('.color-chip').click();return true;})()`

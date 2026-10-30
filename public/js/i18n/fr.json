@@ -293,5 +293,8 @@
   "hostLocalHint": "Chemin monté dans le conteneur pour lire le disque de l’hôte (la racine par défaut).",
   "phDiskPath": "/",
   "widgetUnreachable": "Injoignable",
-  "widgetError": "Erreur"
+  "widgetError": "Erreur",
+  "resetUsageConfirmTitle": "Réinitialiser les compteurs ?",
+  "resetUsageConfirmMessage": "Les compteurs d’utilisation de toutes les applications repartent de zéro, ainsi que le tri « les plus utilisées ». Cette action est définitive.",
+  "resetUsageConfirm": "Réinitialiser"
 }

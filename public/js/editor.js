@@ -84,6 +84,18 @@ function editorSnapshot() {
   });
 }
 
+// Confirmation of an irreversible action other than a deletion.
+export function confirmDanger({ title, message, confirmLabel }) {
+  return openConfirm({
+    title,
+    message,
+    actions: [
+      { id: "cancel", label: t("cancelBtn") },
+      { id: "confirm", label: confirmLabel, className: "action-btn danger" }
+    ]
+  }).then(result => result === "confirm");
+}
+
 export function confirmDelete(message) {
   return openConfirm({
     title: t("confirmDeleteTitle"),
@@ -335,6 +347,10 @@ function activateEditorPanel(panelId, agentUrl = "") {
   )
     branch.open = true;
   document.getElementById(panelId)?.classList.add("active");
+  // Appearance settings apply at once: Cancel / Save would mean nothing there.
+  document
+    .querySelector(".editor-footer")
+    ?.classList.toggle("editor-footer-hidden", panelId === "appearancePanel");
   if (panelId === "imagesPanel") renderImageManager();
   if (panelId === "replicationPanel") renderReplicationEditor();
   if (panelId === "localHostPanel") renderLocalSettings();

@@ -160,3 +160,8 @@
     padding-left: 4px;
   }
 }
+
+/* Appearance settings apply at once: the Cancel / Save footer is hidden. */
+.editor-footer.editor-footer-hidden {
+  display: none;
+}

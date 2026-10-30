@@ -41,7 +41,7 @@ import { startStatusLoop, setupVisibilityPause, manualRefresh } from "./metrics.
 import { renderSupervision } from "./supervision.js";
 import { toggleAllSmartDetails } from "./supervision/cards.js";
 import { renderPageSwitch, setPage } from "./pages.js";
-import { openEditor, requestCloseEditor, dismissConfirm } from "./editor.js";
+import { openEditor, requestCloseEditor, dismissConfirm, confirmDanger } from "./editor.js";
 import { renderHostEditor } from "./editor/hosts.js";
 import { renderDashboardEditor } from "./editor/dashboards.js";
 import { renderCategoryEditor } from "./editor/categories.js";
@@ -349,7 +349,13 @@ iconsBtn.addEventListener("click", () => {
 
 openModeSelect.addEventListener("change", () => setOpenMode(openModeSelect.value));
 
-resetUsageBtn.addEventListener("click", () => {
+resetUsageBtn.addEventListener("click", async () => {
+  const confirmed = await confirmDanger({
+    title: t("resetUsageConfirmTitle"),
+    message: t("resetUsageConfirmMessage"),
+    confirmLabel: t("resetUsageConfirm")
+  });
+  if (!confirmed) return;
   state.usageCounts = {};
   render();
   patchConfig({ usageCounts: {} });

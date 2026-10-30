@@ -293,5 +293,8 @@
   "hostLocalHint": "Path mounted inside the container to read the host disk (root by default).",
   "phDiskPath": "/",
   "widgetUnreachable": "Unreachable",
-  "widgetError": "Error"
+  "widgetError": "Error",
+  "resetUsageConfirmTitle": "Reset the counters?",
+  "resetUsageConfirmMessage": "The usage counters of every application start again from zero, and so does the “most used” sorting. This cannot be undone.",
+  "resetUsageConfirm": "Reset"
 }
