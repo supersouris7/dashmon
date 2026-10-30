@@ -1911,3 +1911,10 @@ button.delete-btn:hover {
   flex: 1 1 0;
   min-width: 110px;
 }
+
+/* No settings on a phone: same width as PHONE in app.js. */
+@media (max-width: 700px) {
+  #menuSettingsBtn {
+    display: none;
+  }
+}

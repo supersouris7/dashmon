@@ -217,8 +217,16 @@ toolbarObserver.observe(toolbar);
 toolbarObserver.observe(pageSwitch);
 new MutationObserver(updateToolbarLayout).observe(pageSwitch, { childList: true });
 
+// No settings on a phone: the entry is hidden (components.css, same width),
+// and settings left open close when the screen becomes that narrow.
+const PHONE = window.matchMedia("(max-width: 700px)");
+PHONE.addEventListener("change", event => {
+  if (event.matches && modalBackdrop.classList.contains("show")) requestCloseEditor();
+});
+
 function openSettings() {
   closeTopMenu();
+  if (PHONE.matches) return;
   if ([...themeSelect.options].some(option => option.value === state.theme)) {
     themeSelect.value = state.theme;
   }

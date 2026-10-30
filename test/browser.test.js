@@ -373,35 +373,38 @@ async function main() {
     deviceScaleFactor: 1,
     mobile: true
   });
+  // No settings on a phone: the menu entry is hidden and does nothing.
+  await wait(300);
+  assert.equal(
+    await evaluate("getComputedStyle(document.querySelector('#menuSettingsBtn')).display"),
+    "none"
+  );
   await evaluate("document.querySelector('#menuSettingsBtn').click()");
+  await wait(300);
   assert.equal(
-    await evaluate(
-      "document.querySelector('.edit-tabs').getBoundingClientRect().right <= document.querySelector('.edit-panel.active').getBoundingClientRect().left"
-    ),
+    await evaluate("document.querySelector('#modalBackdrop').classList.contains('show')"),
+    false
+  );
+  // Settings open on a wide screen close when the screen becomes phone-sized.
+  await call("Emulation.setDeviceMetricsOverride", {
+    width: 1280,
+    height: 900,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  await evaluate("document.querySelector('#menuSettingsBtn').click()");
+  await wait(300);
+  assert.equal(
+    await evaluate("document.querySelector('#modalBackdrop').classList.contains('show')"),
     true
   );
-  await evaluate("document.querySelector('[data-panel=appearancePanel]').click()");
-  assert.equal(
-    await evaluate(
-      "document.querySelector('#appearancePanel').scrollWidth <= document.querySelector('#appearancePanel').clientWidth"
-    ),
-    true
-  );
-  await evaluate("document.querySelector('#settingsAgentTree button').click()");
+  await call("Emulation.setDeviceMetricsOverride", {
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 1,
+    mobile: true
+  });
   await wait(400);
-  assert.equal(
-    await evaluate("document.querySelector('#remoteAgentEditor [name=agentHostName]').value"),
-    "Agent navigateur"
-  );
-  assert.equal(
-    await evaluate(
-      "document.querySelector('#remoteAgentPanel').scrollWidth <= document.querySelector('#remoteAgentPanel').clientWidth"
-    ),
-    true
-  );
-  await evaluate(
-    "document.querySelector('[data-panel=localHostPanel]').click(); document.querySelector('#closeBtn').click()"
-  );
   assert.equal(
     await evaluate("document.querySelector('#modalBackdrop').classList.contains('show')"),
     false
