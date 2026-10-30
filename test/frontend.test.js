@@ -1041,7 +1041,8 @@ async function main() {
 
   const editorSrcForSpecial =
     readSource("public", "js", "editor.js") + readSource("public", "js", "editor-draft.js");
-  const serverSrcForSpecial = readSource("server.js") + readSource("lib", "config", "normalize.js");
+  const serverSrcForSpecial =
+    readSource("lib", "status", "monitor.js") + readSource("lib", "config", "normalize.js");
 
   ok(
     "tuile speciale : conservee a l'enregistrement (editeur)",
