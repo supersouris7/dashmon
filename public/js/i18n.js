@@ -45,7 +45,10 @@ export function applyLanguage() {
   menuSettingsBtn.querySelector("span").textContent = t("settings");
   for (const [id, key] of [
     ["settingsSupervision", "supervision"],
-    ["settingsResources", "settingsResources"],
+    ["settingsDashboard", "settingsDashboard"],
+    ["settingsLocalHost", "settingsLocalHost"],
+    ["settingsAgents", "settingsAgents"],
+    ["settingsAdministration", "settingsAdministration"],
     ["settingsAppearance", "settingsAppearance"],
     ["editorTabAppearance", "settingsPreferences"],
     ["appearanceSaveHint", "appearanceSaveHint"]
@@ -179,9 +182,15 @@ export function applyLanguage() {
   if (pageSwitchUpdater) {
     pageSwitchUpdater();
   }
+  if (settingsUpdater) settingsUpdater();
 }
 
 let applyThemeLabels = null;
+let settingsUpdater = null;
+
+export function setSettingsUpdater(fn) {
+  settingsUpdater = fn;
+}
 
 export function setThemeLabelsUpdater(fn) {
   applyThemeLabels = fn;

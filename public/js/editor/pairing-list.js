@@ -24,7 +24,9 @@ export function createPairingList({
   syncPairs,
   confirmDelete,
   monitoringField,
-  setAddDisabled
+  setAddDisabled,
+  configureAgent,
+  savedUrls
 }) {
   function render() {
     list.replaceChildren();
@@ -93,16 +95,16 @@ export function createPairingList({
       test.type = "button";
       test.className = "action-btn";
       test.textContent = t("agentTest");
-      const configure = document.createElement("a");
+      const configure = document.createElement("button");
+      configure.type = "button";
       configure.className = "action-btn agent-configure";
       configure.textContent = t("agentConfigure");
-      configure.target = "_blank";
-      configure.rel = "noopener noreferrer";
       const updateConfigure = () => {
         const target = agentUrl(entry.url);
-        if (target) configure.href = target;
-        else configure.removeAttribute("href");
+        configure.disabled = !target || !savedUrls.includes(target);
+        configure.title = configure.disabled ? t("agentSavePairFirst") : "";
       };
+      configure.addEventListener("click", () => configureAgent(agentUrl(entry.url)));
       updateConfigure();
       const remove = document.createElement("button");
       remove.type = "button";

@@ -11,7 +11,10 @@ export function renderPairingEditor({
   createHostDraft,
   activateEditorPanel,
   confirmDelete,
-  monitoringField
+  monitoringField,
+  onPairsChanged,
+  configureAgent,
+  savedUrls
 }) {
   container.replaceChildren();
   for (const key of ["agentIntro", "agentHint"]) {
@@ -73,8 +76,10 @@ export function renderPairingEditor({
   }
   const hostChoices = () => state.editHosts.filter(host => String(host.name || "").trim());
   const validHostIds = new Set(state.editHosts.map(host => String(host.id || "")).filter(Boolean));
-  const syncPairs = () =>
+  const syncPairs = () => {
     Object.assign(state.replication, serializeReplicationEntries(entries, validHostIds));
+    onPairsChanged();
+  };
   if (entries.length && !hostChoices().length) {
     const empty = document.createElement("p");
     empty.className = "host-monitor-hint";
@@ -103,6 +108,8 @@ export function renderPairingEditor({
     syncPairs,
     confirmDelete,
     monitoringField,
+    configureAgent,
+    savedUrls,
     setAddDisabled: value => {
       add.disabled = value;
     }

@@ -22,12 +22,12 @@ openssl rand -base64 32
 openssl rand -base64 32
 ```
 
-Also pick a password for the primary and, for each agent, a password for its
-local page. Never publish these values.
+Also pick a password for the primary. Agents have no login page: the primary
+authenticates with their shared token. Never publish these values.
 
 | Variable | Primary | Agent |
 | --- | --- | --- |
-| `DASHMON_PASSWORD` | Dashboard password | Local page password; may differ |
+| `DASHMON_PASSWORD` | Dashboard password | Not needed |
 | `DASHMON_MASTER_KEY` | Widget secret encryption key, **required** | Not needed |
 | `DASHMON_SYNC_TOKEN` | Shared token, required for the agents | **Same value as the primary** |
 
@@ -107,8 +107,8 @@ copy-paste configuration, Let's Encrypt or local certificate, and checks.
 
 ## 3. Install an agent
 
-On the machine to monitor, create **another stack** and set its password as well
-as the **same** `DASHMON_SYNC_TOKEN` as the primary:
+On the machine to monitor, create **another stack** and set the **same**
+`DASHMON_SYNC_TOKEN` as the primary:
 
 ```yaml
 services:
@@ -125,7 +125,6 @@ services:
       - "8081:8080"
     environment:
       DASHMON_MODE: agent
-      DASHMON_PASSWORD: ${DASHMON_PASSWORD:?Set DASHMON_PASSWORD}
       DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:?Set DASHMON_SYNC_TOKEN}
     volumes:
       - dashmon-agent-data:/app/data
@@ -146,22 +145,27 @@ The named volume keeps the agent settings. To use a host folder instead, replace
 `:/app/data`, then remove the final `volumes` section. The folder must be
 writable by the container UID `1000`.
 
-1. Open the agent address on its published port, here `8081`, then sign in with
-   **its** password.
-2. Set the host name and the options you need. To measure the host disk,
-   uncomment the `/host:ro` mount, redeploy and enter `/host` in the disk path
-   field. Otherwise the measurement covers the container.
-3. On the primary: **Settings → Supervision → Pairing**. Add the agent full address,
+1. On the primary: **Settings → Supervision → Pairing**. Add the agent full address,
    for example `http://exemple.lan:8081`, then name the tab if you want.
    Next, link the host created in the **Hosts** tab: its color and icon are used
    when hovering its tile in Supervision. Without a host, the pairing still
    works but the tile keeps its default appearance.
-4. Click **Test connection**, then **Save**. The **Configure** button opens the
-   agent page. The tab appears in Supervision.
+2. Click **Test connection**, then **Save**. A branch for this agent appears under
+   **Supervision → Remote agents**. Its **Configuration** page and the
+   **Configure** button both stay inside the primary.
+3. Set the host name and the options you need, then **Save**. To measure the host
+   disk, uncomment the `/host:ro` mount, redeploy and enter `/host` in the disk
+   path field. Otherwise the measurement covers the container.
 
-The test uses the **primary** network and certificate; the Configure button uses
-the browser. Only test a trusted address: the token is sent to it. Restrict the
+Both testing and configuration use the **primary** network and certificate.
+The token never goes to the browser. Only test a trusted address: the token is sent to it. Restrict the
 agent port and protect the traffic with HTTPS or a trusted private network.
+
+Upgrade the primary and agents before using remote configuration. Older agents
+still provide metrics, but their settings require an upgrade. Existing data
+volumes are preserved; `DASHMON_PASSWORD` on an agent is no longer used. The
+container and host mounts remain read-only; only the agent data volume stores
+its settings. No host command can be launched from this interface.
 
 ## 4. Add WireGuard, SMART or APT
 

@@ -3,7 +3,7 @@
 A **widget** turns a plain service link into a live tile: instead of only a green
 or red dot, it displays the number you actually care about.
 
-Assign one in the service editor (**Settings → Dashmon → Applications** → pick a service → **Widget**).
+Assign one in the service editor (**Settings → Dashboard → Applications** → pick a service → **Widget**).
 It applies immediately, no restart.
 
 | Widget | Tile shows | Configure with |

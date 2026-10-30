@@ -1,11 +1,14 @@
 "use strict";
 const assert = require("assert");
 const path = require("path");
+const crypto = require("crypto");
 const { readSettings } = require("../lib/config/settings");
 const { releaseLabel } = require("../lib/version");
 
 const root = path.join(path.sep, "app");
-const KEY = { DASHMON_MASTER_KEY: "k".repeat(64) };
+const KEY = { DASHMON_MASTER_KEY: crypto.randomBytes(32).toString("hex") };
+const PASSWORD = crypto.randomBytes(24).toString("hex");
+const TOKEN = crypto.randomBytes(24).toString("hex");
 const read = (env, runningInDocker = false) =>
   readSettings({ ...KEY, ...env }, { root, runningInDocker });
 
@@ -19,21 +22,32 @@ assert.equal(defaults.hostMetricsInterval, 60000);
 assert.equal(defaults.agentMode, false);
 
 // A password opens the server to the network; DATA_DIR moves every data file.
-const custom = read({ DASHMON_PASSWORD: "x", DATA_DIR: "/data", HOST_METRICS_INTERVAL: "9999" });
+const custom = read({
+  DASHMON_PASSWORD: PASSWORD,
+  DATA_DIR: "/data",
+  HOST_METRICS_INTERVAL: "9999"
+});
 assert.equal(custom.bindAddress, "0.0.0.0");
 assert.equal(custom.iconsDir, path.join("/data", "icons"));
 assert.equal(custom.hostMetricsInterval, 3600 * 1000);
 assert.equal(read({ HOST_METRICS_INTERVAL: "2" }).hostMetricsInterval, 60000);
 
 // Refused combinations stop the start-up.
-assert.throws(() => read({ DASHMON_MODE: "agent", DASHMON_PASSWORD: "x" }), /DASHMON_SYNC_TOKEN/);
+assert.throws(
+  () => read({ DASHMON_MODE: "agent", DASHMON_PASSWORD: PASSWORD }),
+  /DASHMON_SYNC_TOKEN/
+);
 assert.throws(() => read({}, true), /DASHMON_PASSWORD/);
-assert.equal(read({ DASHMON_PASSWORD: "x" }, true).password, "x");
+assert.equal(read({ DASHMON_PASSWORD: PASSWORD }, true).password, PASSWORD);
+assert.equal(
+  read({ DASHMON_MODE: "agent", DASHMON_SYNC_TOKEN: TOKEN }, true).bindAddress,
+  "0.0.0.0"
+);
 // The main dashboard requires the master key; an agent does not.
 assert.throws(() => readSettings({}, { root, runningInDocker: false }), /DASHMON_MASTER_KEY/);
 assert.equal(
   readSettings(
-    { DASHMON_MODE: "agent", DASHMON_PASSWORD: "x", DASHMON_SYNC_TOKEN: "y" },
+    { DASHMON_MODE: "agent", DASHMON_PASSWORD: PASSWORD, DASHMON_SYNC_TOKEN: TOKEN },
     { root, runningInDocker: false }
   ).masterKey,
   ""

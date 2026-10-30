@@ -205,9 +205,9 @@ async function main() {
   );
   const agentEditorSource = editorSource();
   ok(
-    "agents : test depuis le principal et ouverture protegee",
+    "agents : test et configuration depuis le principal",
     contains(agentEditorSource, 'fetch("/api/agents/test"') &&
-      contains(agentEditorSource, 'configure.rel="noopener noreferrer"')
+      contains(agentEditorSource, "configureAgent(agentUrl(entry.url))")
   );
   ok(
     "agents : hote associe a chaque pairage",
@@ -230,16 +230,15 @@ async function main() {
       contains(supervisionSource, "linked?.icon") &&
       contains(supervisionSource, "sanitizeTileColor(linked?.color)")
   );
-  const agentPage = readSource("public", "agent.html");
   for (const doc of ["WIREGUARD.md", "SMART.md", "APT_UPDATES.md"]) {
     ok(
-      "agents : guide accessible depuis les deux interfaces : " + doc,
-      contains(agentEditorSource, doc) && contains(agentPage, doc)
+      "agents : guide accessible depuis les parametres : " + doc,
+      contains(agentEditorSource, doc)
     );
   }
   ok(
-    "agents : guide de deploiement accessible sur la page locale",
-    contains(agentPage, "DEMARRAGE.md#3-install-an-agent")
+    "agents : guide de deploiement accessible depuis le principal",
+    contains(agentEditorSource, "DEMARRAGE.md#3-install-an-agent")
   );
 
   // --- 2. Registre des widgets cote client ------------------------------

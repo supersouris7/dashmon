@@ -33,7 +33,7 @@ async function start(mode, port, folder) {
       DATA_DIR: folder,
       CONFIG_FILE: path.join(folder, "config.json"),
       DASHMON_MODE: mode,
-      DASHMON_PASSWORD: password,
+      DASHMON_PASSWORD: mode === "agent" ? "" : password,
       DASHMON_SYNC_TOKEN: token,
       DASHMON_MASTER_KEY: crypto.randomBytes(32).toString("hex")
     },
@@ -93,15 +93,90 @@ async function main() {
   assert.equal(data.hosts[0].aptUpdates.exitCode, 100);
   response = await fetch(agent + "/api/config", { headers: { Authorization: auth } });
   assert.equal(response.status, 404);
+  for (const page of ["/", "/login", "/login.html", "/agent.html", "/js/agent.js"]) {
+    assert.equal((await fetch(agent + page)).status, 404, page);
+  }
+  assert.equal(
+    (await fetch(agent + "/api/agent/config", { headers: { Authorization: auth } })).status,
+    401
+  );
+  assert.equal(
+    (await fetch(agent + "/api/agent/config", { headers: { "X-Dashmon-Sync-Token": token + "x" } }))
+      .status,
+    401
+  );
+  response = await fetch(agent + "/api/agent/config", {
+    headers: { "X-Dashmon-Sync-Token": token }
+  });
+  const agentRevision = response.headers.get("etag");
+  assert.ok(agentRevision);
+  assert.equal(
+    (
+      await fetch(agent + "/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}"
+      })
+    ).status,
+    404
+  );
+  assert.equal(
+    (
+      await fetch(agent + "/api/agent/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Refuse", monitoring: {} })
+      })
+    ).status,
+    401
+  );
+  assert.equal(
+    (
+      await fetch(agent + "/api/agent/config", {
+        method: "PUT",
+        headers: { "X-Dashmon-Sync-Token": token, "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Refuse", monitoring: {} })
+      })
+    ).status,
+    428
+  );
+  assert.equal(
+    (
+      await fetch(agent + "/api/agent/config", {
+        method: "PUT",
+        headers: {
+          "X-Dashmon-Sync-Token": token,
+          "Content-Type": "application/json",
+          "If-Match": agentRevision
+        },
+        body: "{}"
+      })
+    ).status,
+    400
+  );
   response = await fetch(agent + "/api/agent/config", {
     method: "PUT",
-    headers: { Authorization: auth, "Content-Type": "application/json" },
+    headers: {
+      "X-Dashmon-Sync-Token": token,
+      "Content-Type": "application/json",
+      "If-Match": agentRevision
+    },
     body: JSON.stringify({
       name: "Agent",
       monitoring: { smart: { enabled: false }, wireguard: { enabled: false } }
     })
   });
   assert.equal(response.status, 200);
+  response = await fetch(agent + "/api/agent/config", {
+    method: "PUT",
+    headers: {
+      "X-Dashmon-Sync-Token": token,
+      "Content-Type": "application/json",
+      "If-Match": agentRevision
+    },
+    body: JSON.stringify({ name: "Refuse", monitoring: {} })
+  });
+  assert.equal(response.status, 412);
   data = JSON.parse(fs.readFileSync(path.join(agentDir, "config.json"), "utf8"));
   assert.equal(data.hosts.length, 2);
   assert.equal(data.hosts.find(host => host.id === "local").name, "Agent");
@@ -239,6 +314,50 @@ async function main() {
   assert.equal(saved.usageCounts["https://service.exemple.lan/"], 1);
   assert.equal(saved.replication.agentNames[new URL(agent).href], "Supervision distante");
   assert.equal(saved.replication.agentHosts[new URL(agent).href], "local");
+  const remoteEndpoint = primary + "/api/agents/config?url=" + encodeURIComponent(agent);
+  assert.equal((await fetch(remoteEndpoint)).status, 401);
+  assert.equal(
+    (
+      await fetch(primary + "/api/agents/config?url=" + encodeURIComponent("https://exemple.lan"), {
+        headers: { Authorization: auth }
+      })
+    ).status,
+    404
+  );
+  response = await fetch(remoteEndpoint, { headers: { Authorization: auth } });
+  assert.equal(response.status, 200);
+  const remote = await response.json();
+  assert.equal(remote.config.name, "Agent");
+  assert.ok(remote.revision);
+  assert.equal(JSON.stringify(remote).includes(token), false);
+  remote.config.monitoring.path = "/";
+  const remoteWrite = {
+    method: "PUT",
+    headers: { Authorization: auth, "Content-Type": "application/json" },
+    body: JSON.stringify({ url: agent, config: remote.config, revision: remote.revision })
+  };
+  response = await fetch(primary + "/api/agents/config", remoteWrite);
+  assert.equal(response.status, 200);
+  assert.notEqual((await response.json()).revision, remote.revision);
+  assert.equal((await fetch(primary + "/api/agents/config", remoteWrite)).status, 412);
+  assert.equal(
+    (
+      await fetch(primary + "/api/agents/config", {
+        ...remoteWrite,
+        body: JSON.stringify({ url: agent, config: remote.config })
+      })
+    ).status,
+    428
+  );
+  assert.equal(
+    (
+      await fetch(primary + "/api/agents/config", {
+        ...remoteWrite,
+        headers: { ...remoteWrite.headers, Origin: "https://exemple.lan" }
+      })
+    ).status,
+    403
+  );
   response = await fetch(primary + "/api/replication/metrics", {
     headers: { Authorization: auth }
   });

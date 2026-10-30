@@ -11,6 +11,7 @@ const { spawn } = require("child_process");
 const root = path.join(__dirname, "..");
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-browser-"));
 const password = crypto.randomBytes(24).toString("hex");
+const token = crypto.randomBytes(24).toString("hex");
 const children = [];
 const loopback = [127, 0, 0, 1].join(".");
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -46,7 +47,7 @@ async function main() {
         CONFIG_FILE: path.join(dataDir, "config.json"),
         DASHMON_MODE: "primary",
         DASHMON_PASSWORD: password,
-        DASHMON_SYNC_TOKEN: "",
+        DASHMON_SYNC_TOKEN: token,
         DASHMON_MASTER_KEY: crypto.randomBytes(32).toString("hex"),
         ICONS_DIR: path.join(dataDir, "icons"),
         THEMES_CUSTOM_DIR: path.join(dataDir, "themes"),
@@ -63,6 +64,26 @@ async function main() {
     })
   );
   await ready(base + "/healthz");
+  const agentPort = await freePort();
+  const agentBase = `http://${loopback}:${agentPort}`;
+  const agentData = path.join(dir, "agent");
+  children.push(
+    spawn(process.execPath, ["server.js"], {
+      cwd: root,
+      env: {
+        ...process.env,
+        PORT: String(agentPort),
+        DATA_DIR: agentData,
+        CONFIG_FILE: path.join(agentData, "config.json"),
+        DASHMON_MODE: "agent",
+        DASHMON_PASSWORD: "",
+        DASHMON_SYNC_TOKEN: token,
+        DASHMON_MASTER_KEY: ""
+      },
+      stdio: "ignore"
+    })
+  );
+  await ready(agentBase + "/healthz");
   const executable = process.env.CHROMIUM_BIN || "chromium";
   children.push(
     spawn(
@@ -138,6 +159,12 @@ async function main() {
     0
   );
   assert.equal(await evaluate("document.querySelectorAll('.settings-category').length"), 4);
+  await evaluate("document.querySelector('.settings-branch summary').click()");
+  assert.equal(
+    await evaluate("document.querySelector('[data-panel=servicesPanel]').getClientRects().length"),
+    0
+  );
+  await evaluate("document.querySelector('.settings-branch summary').click()");
   await evaluate("document.querySelector('[data-panel=appearancePanel]').click()");
   assert.equal(
     await evaluate(
@@ -196,6 +223,56 @@ async function main() {
     "fetch('/api/config').then(r=>r.json()).then(c=>({host:c.replication.agentHosts['http://exemple.lan/'],hosts:c.hosts.map(h=>h.id)}))"
   );
   assert.ok(linked.host && linked.hosts.includes(linked.host));
+  await evaluate("document.querySelector('[data-panel=replicationPanel]').click()");
+  await evaluate(
+    `(()=>{const i=document.querySelector('.agent-editor-item input');i.value=${JSON.stringify(agentBase)};i.dispatchEvent(new Event('input',{bubbles:true}));})()`
+  );
+  assert.equal(
+    await evaluate("document.querySelectorAll('#settingsAgentTree > details').length"),
+    1
+  );
+  assert.equal(
+    await evaluate("document.querySelector('#settingsAgentTree button').disabled"),
+    true
+  );
+  await evaluate("document.querySelector('#saveBtn').click()");
+  await wait(700);
+  assert.equal(
+    await evaluate("document.querySelector('#settingsAgentTree button').disabled"),
+    false
+  );
+  await evaluate("document.querySelector('#settingsAgentTree button').click()");
+  await wait(700);
+  assert.equal(
+    await evaluate("!!document.querySelector('#remoteAgentEditor [name=agentHostName]')"),
+    true
+  );
+  await evaluate(
+    "(()=>{const i=document.querySelector('#remoteAgentEditor [name=agentHostName]');i.value='Agent navigateur';i.dispatchEvent(new Event('input',{bubbles:true}));})()"
+  );
+  await evaluate(
+    "document.querySelector('[data-panel=appearancePanel]').click();document.querySelector('#settingsAgentTree button').click()"
+  );
+  await wait(100);
+  assert.equal(
+    await evaluate("document.querySelector('#remoteAgentEditor [name=agentHostName]').value"),
+    "Agent navigateur"
+  );
+  await evaluate("document.querySelector('#closeBtn').click()");
+  await wait(100);
+  assert.equal(
+    await evaluate("document.querySelector('#confirmBackdrop').classList.contains('show')"),
+    true
+  );
+  await evaluate("document.querySelector('#confirmActions button').click()");
+  await evaluate("document.querySelector('#saveBtn').click()");
+  await wait(700);
+  assert.equal(
+    await evaluate(
+      `fetch('/api/agents/config?url='+encodeURIComponent(${JSON.stringify(agentBase)})).then(r=>r.json()).then(r=>r.config.name)`
+    ),
+    "Agent navigateur"
+  );
   await evaluate(
     "document.querySelector('[data-panel=servicesPanel]').click(); document.querySelector('#addServiceBtn').click(); document.querySelector('[data-panel=appearancePanel]').click(); document.querySelector('#closeBtn').click()"
   );
@@ -230,8 +307,22 @@ async function main() {
     ),
     true
   );
+  await evaluate("document.querySelector('#settingsAgentTree button').click()");
+  await wait(400);
+  assert.equal(
+    await evaluate("document.querySelector('#remoteAgentEditor [name=agentHostName]').value"),
+    "Agent navigateur"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('#remoteAgentPanel').scrollWidth <= document.querySelector('#remoteAgentPanel').clientWidth"
+    ),
+    true
+  );
   ws.close();
-  console.log("PASS navigateur : connexion, pairage, sauvegarde et hote associe");
+  console.log(
+    "PASS navigateur : connexion, arborescence, pairage et configuration distante (bureau/mobile)"
+  );
 }
 main()
   .catch(error => {

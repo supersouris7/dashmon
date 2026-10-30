@@ -139,14 +139,23 @@ function createApp() {
   app.use("/api/sync/metrics", limits.reads);
   app.use("/api/host-metrics", limits.reads);
 
-  // Login and logout, then authentication of every /api route.
-  registerSessionRoutes(app, {
-    password: settings.password,
-    auth,
-    failures,
-    rateLimit: limits.writes
-  });
-  if (agentMode) app.use("/api", agentApiFilter);
+  // Agents expose only token-authenticated APIs, never browser sessions.
+  if (agentMode) {
+    const validToken = createSyncTokenCheck(settings.syncToken);
+    app.use("/api", agentApiFilter);
+    app.use("/api", (req, res, next) => {
+      if (!validToken(req))
+        return res.status(401).json({ error: "Authentification agent requise" });
+      next();
+    });
+  } else {
+    registerSessionRoutes(app, {
+      password: settings.password,
+      auth,
+      failures,
+      rateLimit: limits.writes
+    });
+  }
   app.use(requestLog(log));
 
   registerSystemRoutes(app, { settings, version, readConfig });

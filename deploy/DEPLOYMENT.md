@@ -81,7 +81,7 @@ See `.env.example`. The most important:
 | Variable | Default | Role |
 | --- | --- | --- |
 | `PORT` | `8080` | Internal HTTP port |
-| `DASHMON_PASSWORD` | empty outside Docker | Dashmon login; browser session lasts 30 days. Required by Compose and for a network bind |
+| `DASHMON_PASSWORD` | empty outside Docker | Primary dashboard login; browser session lasts 30 days. Required in Docker for the primary. Not used by agents |
 | `TRUST_PROXY` | `0` | `1` only if nginx terminates HTTPS in front of the container |
 | `DASHBOARD_INSECURE_TLS` | empty | `1` if your monitored hosts use self-signed certificates |
 | `DASHMON_MASTER_KEY` | **required** (main dashboard) | AES-256-GCM master key encrypting widget secrets (e.g. Duplicati password) in `config.json`. Not needed by agents |
@@ -172,9 +172,8 @@ access.
 ### Supervision agents
 
 Deploy this separate stack on each monitored host. In its Portainer environment,
-set `DASHMON_PASSWORD` for the agent's local page and `DASHMON_SYNC_TOKEN` to
-the same value as on the main dashboard. Both are required. The agent password
-can differ from the main dashboard password.
+set `DASHMON_SYNC_TOKEN` to the same value as on the main dashboard. Agents have
+no web interface and need no password; their API requires the token.
 
 ```yaml
 services:
@@ -191,12 +190,11 @@ services:
       - "8080:8080"
     environment:
       DASHMON_MODE: agent
-      DASHMON_PASSWORD: ${DASHMON_PASSWORD:?Set DASHMON_PASSWORD}
       DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:?Set DASHMON_SYNC_TOKEN}
     volumes:
       - dashmon-agent-data:/app/data
       # Optional: mount the host filesystem read-only, then select /host
-      # as the disk path in the agent page.
+      # as the disk path in the agent settings on the primary.
       # - /:/host:ro
 
 volumes:
@@ -211,14 +209,14 @@ published host port; the container port remains `8080`. Restrict access to the
 agent's port to the main dashboard and administrators. Use HTTPS or a trusted
 private network: the sync token travels in a request header.
 
-Open the agent's local page to name the host, configure the disk path and choose
+Use the primary settings to name the agent host, configure its disk path and choose
 WireGuard, SMART and APT reports. The reports must be generated on the host and
 mounted into the agent as described in their respective documentation. CPU and
 RAM reflect what the container can observe; the default disk is the container
 filesystem. To monitor a host filesystem, mount it read-only and set its
-container path in the agent page.
+container path in the agent configuration on the primary.
 
-On the main instance, open **Edit supervision → Pairing**, enter each agent's
+On the main instance, open **Settings → Supervision → Pairing**, enter each agent's
 base URL on its own line, optionally enter a tab name for each agent, and save.
 Then link the host created in the **Hosts** tab: its color and icon are reused
 when hovering the host tile in Supervision. Without a host, the pairing still
@@ -228,12 +226,21 @@ main instance fetches metrics on demand; it never sends dashboard
 configuration to an agent. Configure HTTPS or a trusted private network: the
 shared token travels in an HTTP header. Restrict access to the published port.
 For each address, **Test connection** checks access and the sync token from the
-main server, even before saving; **Configure** opens the agent's local page in
-a new tab. Test only addresses you trust: the sync token is sent to the address.
+main server, even before saving. Once saved, the agent gets a branch under
+**Supervision → Remote agents**. **Configure** opens that branch's configuration
+inside the primary. The primary forwards reads and writes to this saved address;
+the token never reaches the browser. Concurrent changes are rejected rather
+than overwritten. Test only addresses you trust: the sync token is sent to the address.
+
+Upgrade both the primary and agents for remote configuration. Older agents still
+provide metrics but cannot be configured through this interface. Agent settings
+are written only to their existing data volume; `read_only: true`, read-only host
+mounts and dropped capabilities remain unchanged. There is no remote command
+execution. A leftover `DASHMON_PASSWORD` on an agent is ignored.
 
 Existing secondary configurations are retained. To convert one, back up its
-data volume, start it with `DASHMON_MODE=agent` and the two required secrets,
-then review the local agent page. The first existing local host is reused. The
+data volume, start it with `DASHMON_MODE=agent` and `DASHMON_SYNC_TOKEN`,
+then review its configuration on the primary. The first existing local host is reused. The
 old replication endpoint no longer accepts configuration; legacy secondary
 roles no longer lock the dashboard when running in normal mode.
 

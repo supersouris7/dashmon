@@ -94,7 +94,7 @@ publishing Docker images.
 
 ## First steps
 
-1. Open **Settings → Dashmon → Applications** and add your services (name, URL, icon, category, host).
+1. Open **Settings → Dashboard → Applications** and add your services (name, URL, icon, category, host).
 2. Turn on **Status monitoring** for the services you want a pill on.
 3. Give a service a **widget** — that's where the live numbers appear.
 4. Add hosts to organize services by machine, with their own icons and colors.

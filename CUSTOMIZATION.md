@@ -105,13 +105,13 @@ A service card renders an image, not a font icon: its `icon` is a path or URL.
 
 **Importing a PNG:**
 
-1. **Settings → Resources → Images**, then *Add images* — or click the
+1. **Settings → Dashboard → Images**, then *Add images* — or click the
    image button on a service row while editing it.
 2. Pick a `.png` file (PNG only). It is uploaded to `/app/data/icons/` and
    referenced as `icons/<filename>`.
 3. The service uses it right away.
 
-**Deleting images:** **Settings → Resources → Images**, select the ones to remove,
+**Deleting images:** **Settings → Dashboard → Images**, select the ones to remove,
 then *Delete selection*.
 
 ### Example

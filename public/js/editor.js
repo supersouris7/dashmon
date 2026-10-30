@@ -4,7 +4,7 @@
 import { state } from "./state.js";
 import { normalizeConfig } from "./config/normalize.js";
 import { clone } from "./util.js";
-import { t, applyLanguage } from "./i18n.js";
+import { t, applyLanguage, setSettingsUpdater } from "./i18n.js";
 import { saveConfig, fetchConfig, configConflict } from "./api.js";
 import { saveViewPrefs } from "./view-prefs.js";
 import { render } from "./render.js";
@@ -22,6 +22,7 @@ import { renderImageManager } from "./images.js";
 import { createConfirmDialog } from "./editor/confirm-dialog.js";
 import { agentUrl, replicationEntries } from "./editor/replication-draft.js";
 import { renderPairingEditor } from "./editor/pairing.js";
+import { createAgentSettings } from "./editor/agent-settings.js";
 import { prepareEditorDraft } from "./editor/draft.js";
 import { renderAptUpdatesEditor } from "./editor/apt.js";
 import { renderWireguardEditor, renderSmartEditor } from "./editor/monitoring.js";
@@ -62,6 +63,12 @@ let editorBaseline = "";
 let replicationAtOpen = null;
 let pairingDraft = null;
 let editorSaving = false;
+const agentSettings = createAgentSettings({ field: monitoringField });
+setSettingsUpdater(() => {
+  if (!modalBackdrop.classList.contains("show")) return;
+  renderReplicationEditor();
+  agentSettings.refreshLabels();
+});
 
 function editorSnapshot() {
   return JSON.stringify({
@@ -72,7 +79,8 @@ function editorSnapshot() {
     webLinks: state.editWebLinks,
     specialTile: state.editSpecialTile,
     replication: state.replication,
-    pairingDraft
+    pairingDraft,
+    agents: agentSettings.snapshot()
   });
 }
 
@@ -100,6 +108,8 @@ function clearSaveStatus() {
 }
 
 export function openEditor() {
+  agentSettings.reset();
+  pairingDraft = null;
   state.editServices = clone(state.services);
   state.editCategories = clone(state.categories);
   state.editDashboards = clone(state.dashboards);
@@ -152,6 +162,7 @@ export function dismissConfirm() {
 }
 
 export function requestCloseEditor() {
+  if (editorSaving) return;
   if (!modalBackdrop.classList.contains("show")) return;
   if (confirmDialog.isOpen()) {
     confirmDialog.cancel();
@@ -186,8 +197,19 @@ function renderReplicationEditor() {
     createHostDraft,
     activateEditorPanel,
     confirmDelete,
-    monitoringField
+    monitoringField,
+    onPairsChanged: renderAgentTree,
+    configureAgent: url => activateEditorPanel("remoteAgentPanel", url),
+    savedUrls: replicationAtOpen?.secondaries || []
   });
+  renderAgentTree();
+}
+
+function renderAgentTree() {
+  agentSettings.renderTree(
+    replicationEntries(state.replication || {}),
+    replicationAtOpen?.secondaries || []
+  );
 }
 
 // Applies the right rendering without leaving the settings: the dashboard
@@ -278,9 +300,11 @@ exportConfigBtn.addEventListener("click", async () => {
 
 // Activates an editor tab. Pairing rereads the host list each time it opens:
 // a host created meanwhile must appear without reopening the dialog.
-function activateEditorPanel(panelId) {
+function activateEditorPanel(panelId, agentUrl = "") {
   const tabs = [...document.querySelectorAll(".edit-tab")];
-  const tab = tabs.find(elm => elm.dataset.panel === panelId);
+  const tab = tabs.find(
+    elm => elm.dataset.panel === panelId && (!agentUrl || elm.dataset.agentUrl === agentUrl)
+  );
   if (!tab) return;
   tabs.forEach(elm => {
     elm.classList.remove("active");
@@ -289,19 +313,30 @@ function activateEditorPanel(panelId) {
   document.querySelectorAll(".edit-panel").forEach(panel => panel.classList.remove("active"));
   tab.classList.add("active");
   tab.setAttribute("aria-current", "page");
+  for (
+    let branch = tab.closest("details");
+    branch;
+    branch = branch.parentElement.closest("details")
+  )
+    branch.open = true;
   document.getElementById(panelId)?.classList.add("active");
   if (panelId === "imagesPanel") renderImageManager();
   if (panelId === "replicationPanel") renderReplicationEditor();
+  if (panelId === "remoteAgentPanel")
+    agentSettings.open(agentUrl, state.replication.agentNames?.[agentUrl]);
 }
 
-document.querySelectorAll(".edit-tab").forEach(tab => {
-  tab.addEventListener("click", () => activateEditorPanel(tab.dataset.panel));
+document.querySelector(".edit-tabs").addEventListener("click", event => {
+  const tab = event.target.closest(".edit-tab");
+  if (tab && !tab.disabled) activateEditorPanel(tab.dataset.panel, tab.dataset.agentUrl);
 });
 
 modalBackdrop.addEventListener("keydown", event => {
   if (event.key !== "Tab") return;
   const controls = [
-    ...modalBackdrop.querySelectorAll("button, input, select, textarea, a[href], [tabindex='0']")
+    ...modalBackdrop.querySelectorAll(
+      "button, input, select, textarea, summary, a[href], [tabindex='0']"
+    )
   ].filter(element => !element.disabled && element.getClientRects().length);
   const first = controls[0],
     last = controls.at(-1);
@@ -327,6 +362,8 @@ modalBackdrop.addEventListener("click", e => {
 async function applyEditorChanges() {
   if (editorSaving) return false;
   editorSaving = true;
+  for (const panel of document.querySelectorAll(".edit-panel")) panel.inert = true;
+  saveBtn.disabled = closeBtn.disabled = cancelBtn.disabled = true;
   clearSaveStatus();
   try {
     const {
@@ -421,6 +458,12 @@ async function applyEditorChanges() {
       alert(t(configConflict ? "configConflict" : "saveError"));
       return false;
     }
+    try {
+      await agentSettings.save(state.replication?.secondaries || []);
+    } catch (error) {
+      alert(t("agentConfigPartialSave") + " " + error.message);
+      return false;
+    }
     // Use the canonical URLs at once, as the next page load would.
     state.replication = normalizeConfig({ replication: state.replication }).replication;
     pairingDraft = replicationEntries(state.replication);
@@ -456,6 +499,8 @@ async function applyEditorChanges() {
     return true;
   } finally {
     editorSaving = false;
+    for (const panel of document.querySelectorAll(".edit-panel")) panel.inert = false;
+    saveBtn.disabled = closeBtn.disabled = cancelBtn.disabled = false;
   }
 }
 

@@ -268,55 +268,92 @@
         </div>
 
         <nav class="edit-tabs" aria-labelledby="editorTitle">
-          <h2 class="settings-category" id="settingsDashboard">Dashmon</h2>
-          <button class="edit-tab active" type="button" data-panel="servicesPanel">
-            <i class="fa-solid fa-cubes"></i>&nbsp;
-            <span id="editorTabApplications">Applications</span>
-          </button>
-          <button class="edit-tab" type="button" data-panel="widgetsPanel">
-            <i class="fa-solid fa-puzzle-piece"></i>&nbsp;
-            <span id="editorTabWidgets">Widgets</span>
-          </button>
-          <button class="edit-tab" type="button" data-panel="categoriesPanel">
-            <i class="fa-solid fa-folder-tree"></i>&nbsp;
-            <span id="editorTabCategories">Catégories</span>
-          </button>
-          <button class="edit-tab" type="button" data-panel="dashboardsPanel">
-            <i class="fa-solid fa-grip"></i>&nbsp; <span id="editorTabDashboards">Dashboards</span>
-          </button>
-          <h2 class="settings-category" id="settingsSupervision">Supervision</h2>
-          <button class="edit-tab" type="button" data-panel="hostsPanel">
-            <i class="fa-solid fa-server"></i>&nbsp; <span id="editorTabHosts">Hôtes</span>
-          </button>
-          <button class="edit-tab" type="button" data-panel="replicationPanel">
-            <i class="fa-solid fa-circle-nodes"></i>&nbsp;
-            <span id="editorTabPairing">Pairage</span>
-          </button>
-          <button class="edit-tab" type="button" data-panel="wireguardPanel">
-            <i class="fa-solid fa-dragon"></i>&nbsp; <span id="editorTabWireguard">WireGuard</span>
-          </button>
-          <button class="edit-tab" type="button" data-panel="smartPanel">
-            <i class="fa-solid fa-database"></i>&nbsp; <span id="editorTabSmart">SMART</span>
-          </button>
-          <button class="edit-tab" type="button" data-panel="aptUpdatesPanel">
-            <i class="fa-solid fa-box"></i>&nbsp; <span id="editorTabAptUpdates">APT</span>
-          </button>
-          <h2 class="settings-category" id="settingsResources">Ressources</h2>
-          <button class="edit-tab" type="button" data-panel="webLinksPanel">
-            <i class="fa-solid fa-globe"></i>&nbsp; <span id="editorTabWebLinks">Liens web</span>
-          </button>
-          <button class="edit-tab" type="button" data-panel="imagesPanel">
-            <i class="fa-regular fa-images"></i>&nbsp; <span id="editorTabImages">Images</span>
-          </button>
-          <button class="edit-tab" type="button" data-panel="importExportPanel">
-            <i class="fa-solid fa-file-import"></i>&nbsp;
-            <span id="editorTabImportExport">Import / Export</span>
-          </button>
-          <h2 class="settings-category" id="settingsAppearance">Apparence</h2>
-          <button class="edit-tab" type="button" data-panel="appearancePanel">
-            <i class="fa-solid fa-palette"></i>&nbsp;
-            <span id="editorTabAppearance">Thème et préférences</span>
-          </button>
+          <details class="settings-branch" open>
+            <summary class="settings-category">
+              <span id="settingsDashboard">Tableau de bord</span>
+            </summary>
+            <div class="settings-children">
+              <button class="edit-tab" type="button" data-panel="dashboardsPanel">
+                <i class="fa-solid fa-grip"></i>&nbsp;
+                <span id="editorTabDashboards">Dashboards</span>
+              </button>
+              <button class="edit-tab" type="button" data-panel="categoriesPanel">
+                <i class="fa-solid fa-folder-tree"></i>&nbsp;
+                <span id="editorTabCategories">Catégories</span>
+              </button>
+              <button class="edit-tab active" type="button" data-panel="servicesPanel">
+                <i class="fa-solid fa-cubes"></i>&nbsp;
+                <span id="editorTabApplications">Applications</span>
+              </button>
+              <button class="edit-tab" type="button" data-panel="widgetsPanel">
+                <i class="fa-solid fa-puzzle-piece"></i>&nbsp;
+                <span id="editorTabWidgets">Widgets</span>
+              </button>
+              <button class="edit-tab" type="button" data-panel="webLinksPanel">
+                <i class="fa-solid fa-globe"></i>&nbsp;
+                <span id="editorTabWebLinks">Liens web</span>
+              </button>
+              <button class="edit-tab" type="button" data-panel="imagesPanel">
+                <i class="fa-regular fa-images"></i>&nbsp; <span id="editorTabImages">Images</span>
+              </button>
+            </div>
+          </details>
+          <details class="settings-branch" open>
+            <summary class="settings-category">
+              <span id="settingsAppearance">Apparence</span>
+            </summary>
+            <div class="settings-children">
+              <button class="edit-tab" type="button" data-panel="appearancePanel">
+                <i class="fa-solid fa-palette"></i>&nbsp;
+                <span id="editorTabAppearance">Thème et préférences</span>
+              </button>
+            </div>
+          </details>
+          <details class="settings-branch" open>
+            <summary class="settings-category">
+              <span id="settingsSupervision">Supervision</span>
+            </summary>
+            <div class="settings-children">
+              <button class="edit-tab" type="button" data-panel="hostsPanel">
+                <i class="fa-solid fa-server"></i>&nbsp; <span id="editorTabHosts">Hôtes</span>
+              </button>
+              <button class="edit-tab" type="button" data-panel="replicationPanel">
+                <i class="fa-solid fa-circle-nodes"></i>&nbsp;
+                <span id="editorTabPairing">Pairage</span>
+              </button>
+              <details class="settings-branch" open>
+                <summary><span id="settingsLocalHost">Machine principale</span></summary>
+                <div class="settings-children">
+                  <button class="edit-tab" type="button" data-panel="wireguardPanel">
+                    <i class="fa-solid fa-dragon"></i>&nbsp;
+                    <span id="editorTabWireguard">WireGuard</span>
+                  </button>
+                  <button class="edit-tab" type="button" data-panel="smartPanel">
+                    <i class="fa-solid fa-database"></i>&nbsp;
+                    <span id="editorTabSmart">SMART</span>
+                  </button>
+                  <button class="edit-tab" type="button" data-panel="aptUpdatesPanel">
+                    <i class="fa-solid fa-box"></i>&nbsp; <span id="editorTabAptUpdates">APT</span>
+                  </button>
+                </div>
+              </details>
+              <details class="settings-branch" id="settingsAgentsBranch" open>
+                <summary><span id="settingsAgents">Agents distants</span></summary>
+                <div class="settings-children" id="settingsAgentTree"></div>
+              </details>
+            </div>
+          </details>
+          <details class="settings-branch" open>
+            <summary class="settings-category">
+              <span id="settingsAdministration">Sauvegarde</span>
+            </summary>
+            <div class="settings-children">
+              <button class="edit-tab" type="button" data-panel="importExportPanel">
+                <i class="fa-solid fa-file-import"></i>&nbsp;
+                <span id="editorTabImportExport">Import / Export</span>
+              </button>
+            </div>
+          </details>
         </nav>
 
         <div id="servicesPanel" class="edit-panel active">
@@ -440,6 +477,12 @@
 
         <div id="replicationPanel" class="edit-panel">
           <div id="replicationEditor" class="edit-list"></div>
+        </div>
+
+        <div id="remoteAgentPanel" class="edit-panel">
+          <h2 id="remoteAgentTitle"></h2>
+          <p id="remoteAgentStatus" role="status"></p>
+          <div id="remoteAgentEditor"></div>
         </div>
 
         <div id="appearancePanel" class="edit-panel">

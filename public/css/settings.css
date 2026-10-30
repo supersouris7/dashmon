@@ -6,7 +6,7 @@
 .settings-page .modal {
   display: grid;
   height: 100dvh;
-  grid-template-columns: 230px minmax(0, 1fr);
+  grid-template-columns: 270px minmax(0, 1fr);
   grid-template-rows: 58px minmax(0, 1fr) auto;
 }
 
@@ -30,15 +30,59 @@
 }
 
 .settings-category {
-  margin: 16px 10px 4px;
-  color: var(--muted);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-weight: 600;
 }
 
-.settings-category:first-child {
-  margin-top: 0;
+.settings-branch {
+  min-width: 0;
+}
+
+.settings-branch summary {
+  padding: 9px 4px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.settings-branch summary::marker {
+  color: var(--muted);
+}
+
+.settings-branch summary::before {
+  content: "\f07b";
+  margin-right: 7px;
+  color: var(--accent);
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+}
+
+.settings-branch[open] > summary::before {
+  content: "\f07c";
+}
+
+.settings-children {
+  margin-left: 9px;
+  padding-left: 9px;
+  border-left: 1px solid var(--border);
+}
+
+.settings-branch:not([open]) > .settings-children {
+  display: none;
+}
+
+.settings-page .settings-children > .edit-tab {
+  display: block;
+  width: 100%;
+}
+
+.settings-page .edit-tab:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.remote-agent-fields {
+  display: grid;
+  gap: 16px;
+  max-width: 760px;
 }
 
 .settings-page .edit-tab {
@@ -77,7 +121,7 @@
 
 @media (max-width: 700px) {
   .settings-page .modal {
-    grid-template-columns: 140px minmax(0, 1fr);
+    grid-template-columns: 160px minmax(0, 1fr);
   }
 
   .settings-page .edit-tabs {
@@ -99,5 +143,10 @@
 
   .settings-page .appearance-field {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settings-children {
+    margin-left: 3px;
+    padding-left: 4px;
   }
 }
