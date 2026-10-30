@@ -995,9 +995,13 @@ body[data-page="supervision"] #collapseAllBtn{margin-left:auto}
   white-space:nowrap;
 }
 
-/* Le type de source reste discret : une pastille secondaire a droite du nom. */
+/* Le type de source reste discret : une pastille secondaire a droite du titre.
+   Elle accueille aussi le nom de l'hote sur sa propre tuile. */
 .supervision-type{
   margin-left:auto;
+  max-width:60%;
+  overflow:hidden;
+  text-overflow:ellipsis;
   padding:1px 7px;
   border:1px solid var(--border);
   border-radius:10px;

@@ -73,6 +73,7 @@ async function main(){
   const supervisionSource=fs.readFileSync(path.join(JS_DIR,"supervision.js"),"utf8");
   const aptSource=supervisionSource.slice(supervisionSource.indexOf("function aptUpdatesCard("),supervisionSource.indexOf("export function renderSupervision("));
   ok("APT : carte incluse dans le depliage global", supervisionSource.includes(".supervision-card-apt.has-details"));
+  ok("supervision : chaque tuile porte son propre titre", ["supervisionHostTitle","supervisionWireguardTitle","supervisionSmartTitle","supervisionAptTitle"].every(key=>supervisionSource.includes('t("'+key+'")')));
   ok("APT : chevron et clavier", aptSource.includes("supervision-smart-chevron") && aptSource.includes('event.key!=="Enter"') && aptSource.includes('event.key!==" "'));
   ok("APT : etat conserve par instance et hote", aptSource.includes('isExpanded("supervisionAptExpanded",key)') && supervisionSource.includes("selectedSupervisionInstanceId(),host.id"));
   ok("supervision : le depliage est enregistre en direct", supervisionSource.includes("setExpanded(\"supervisionSmartExpanded\",key,expanded)") && supervisionSource.includes("setExpanded(\"supervisionHostExpanded\",key,expanded)") && supervisionSource.includes("setExpanded(\"supervisionAptExpanded\",key,open)") && supervisionSource.includes("saveViewPrefs({[field]:state[field]})"));

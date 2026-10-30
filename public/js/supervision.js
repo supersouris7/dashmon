@@ -15,7 +15,6 @@ function metricsInterval(){
   return Number.isFinite(value) && value>=5000 ? Math.min(value,3600000) : 60000;
 }
 const HOST_METRICS_INTERVAL=metricsInterval();
-const TYPE_LABEL={local:"hostTypeLocal"};
 const EXPANDABLE_CARDS=".supervision-card-smart,.supervision-card-host.has-details,.supervision-card-apt.has-details";
 let remoteInstances=[];
 
@@ -116,10 +115,6 @@ export function toggleAllSmartDetails(){
   const expanded=cards.filter(card=>card.classList.contains("expanded")).length;
   setAllSmartDetails(cards.length-expanded>expanded);
   updateSmartCollapseButton();
-}
-
-function typeLabel(type){
-  return t(TYPE_LABEL[type] || "hostTypeLocal");
 }
 
 function applyHostColor(card,host){
@@ -331,10 +326,12 @@ function hostCard(host,metrics){
   icon.setAttribute("aria-hidden","true");
   const name=document.createElement("span");
   name.className="supervision-name";
-  name.textContent=host.name||t("hostName");
+  // Le titre nomme la tuile ; le nom de l'hote reste visible en pastille pour
+  // distinguer plusieurs hotes dans la grille.
+  name.textContent=t("supervisionHostTitle");
   const badge=document.createElement("span");
   badge.className="supervision-type";
-  badge.textContent=typeLabel(host.monitoring && host.monitoring.type);
+  badge.textContent=host.name||t("hostName");
   const details=metrics && metrics.ok && [metrics.os,metrics.cpuModel,metrics.cpuCores,metrics.ramTotal].some(value=>!isMissing(value));
   let chevron=null;
   if(details){
@@ -454,7 +451,7 @@ function wireguardCard(host,metrics,interfaces){
   icon.setAttribute("aria-hidden","true");
   const name=document.createElement("span");
   name.className="supervision-name";
-  name.textContent=host.name||t("hostName");
+  name.textContent=t("supervisionWireguardTitle");
   const badge=document.createElement("span");
   badge.className="supervision-type";
   badge.textContent=t("supervisionWireguard");
@@ -581,7 +578,7 @@ function smartCard(host,metrics,disks){
   icon.setAttribute("aria-hidden","true");
   const name=document.createElement("span");
   name.className="supervision-name";
-  name.textContent=host.name||t("hostName");
+  name.textContent=t("supervisionSmartTitle");
   const badge=document.createElement("span");
   badge.className="supervision-type";
   badge.textContent=t("supervisionSmart");
@@ -712,7 +709,7 @@ function aptUpdatesCard(host,metrics){
   icon.className="fa-solid fa-box";
   const name=document.createElement("span");
   name.className="supervision-name";
-  name.textContent=host.name||t("hostName");
+  name.textContent=t("supervisionAptTitle");
   const badge=document.createElement("span");
   badge.className="supervision-type";
   badge.textContent=t("supervisionAptUpdates");
