@@ -19,7 +19,9 @@ async function check(ctx) {
   if (!baseUrl) return { ok: false, error: "URL Gotify invalide" };
   if (!token) return { ok: false, error: "Jeton client Gotify manquant" };
   try {
-    const payload = await ctx.api(baseUrl, "/message?limit=1", { headers: { "X-Gotify-Key": token } });
+    const payload = await ctx.api(baseUrl, "/message?limit=1", {
+      headers: { "X-Gotify-Key": token }
+    });
     return { ok: true, latest: latestMessage(payload, ctx.sanitizeText) };
   } catch (error) {
     return { ok: false, error: String((error && error.message) || "Erreur Gotify").slice(0, 200) };

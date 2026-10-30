@@ -34,9 +34,9 @@ export function render(ctx) {
   }
   return {
     badge: `${t("badge")} ${info.value ?? "—"}`,
-    badgeClass: "ok",              // "ok" | "nok" | "warn" | "pending" | ""
-    time: info.detail || "",       // 2e ligne (masquee en mode icones)
-    timeClass: "",                 // "warn" | "delta-up" | "delta-down" | ""
+    badgeClass: "ok", // "ok" | "nok" | "warn" | "pending" | ""
+    time: info.detail || "", // 2e ligne (masquee en mode icones)
+    timeClass: "", // "warn" | "delta-up" | "delta-down" | ""
     title: t("name")
   };
 }

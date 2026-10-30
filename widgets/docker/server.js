@@ -15,7 +15,11 @@ async function check(ctx) {
     return { ok: false, error: ctx.t("missingUrl"), containers: null, updated: null };
   }
   // Hote virtuel : le widget ne depend d'aucun hote de monitoring.
-  const host = { id: "", name: "", monitoring: { docker: mode === "tcp" ? { mode: "tcp", url } : undefined } };
+  const host = {
+    id: "",
+    name: "",
+    monitoring: { docker: mode === "tcp" ? { mode: "tcp", url } : undefined }
+  };
 
   try {
     const [containers, images] = await Promise.all([

@@ -15,15 +15,21 @@ export function render(ctx) {
   const hasValue = info.value != null && Number.isFinite(Number(info.value));
   // Compteur non lu alors que le depot repond (API GitHub throttle) : neutre.
   const missing = !info.ok && info.state === "up";
-  const badgeClass = info.ok ? "ok" : (missing ? "warn" : "nok");
+  const badgeClass = info.ok ? "ok" : missing ? "warn" : "nok";
 
   const label = t(shortKey(metric));
-  const title = [hasValue
-    ? `${t("name")} · ${ctx.formatNumber(info.value)} ${label}`
-    : `${t("name")} · ${t("unknownCount")}`];
+  const title = [
+    hasValue
+      ? `${t("name")} · ${ctx.formatNumber(info.value)} ${label}`
+      : `${t("name")} · ${t("unknownCount")}`
+  ];
   // Les autres compteurs utiles du meme appel API, pour ne pas repartir en
   // requete quand l'utilisateur passe la souris sur la tuile.
-  const others = [[shortKey("stars"), info.stars], [shortKey("forks"), info.forks], [shortKey("issues"), info.openIssues]];
+  const others = [
+    [shortKey("stars"), info.stars],
+    [shortKey("forks"), info.forks],
+    [shortKey("issues"), info.openIssues]
+  ];
   for (const [key, count] of others) {
     if (key !== shortKey(metric) && Number.isFinite(Number(count))) {
       title.push(`${ctx.formatNumber(count)} ${t(key)}`);

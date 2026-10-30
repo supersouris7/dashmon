@@ -1,38 +1,66 @@
 <!doctype html>
 <html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashmon Agent</title>
-  <link rel="stylesheet" href="/css/agent.css">
-  <script src="/js/agent.js" defer></script>
-</head>
-<body>
-  <main>
-    <h1>Dashmon Agent</h1>
-    <p>Supervision locale. Le tableau de bord principal interroge cet agent ; aucune configuration de tableau de bord n'est reçue.</p>
-    <nav class="agent-docs" aria-label="Documentation et guides d’intégration">
-      <a href="https://github.com/supersouris7/dashmon/blob/main/docs/DEMARRAGE.md#3-installer-un-agent" target="_blank" rel="noopener noreferrer">Documentation des agents</a>
-      <span>Guides d’intégration :</span>
-      <a href="https://github.com/supersouris7/dashmon/blob/main/docs/WIREGUARD.md" target="_blank" rel="noopener noreferrer">WireGuard</a>
-      <a href="https://github.com/supersouris7/dashmon/blob/main/docs/SMART.md" target="_blank" rel="noopener noreferrer">SMART</a>
-      <a href="https://github.com/supersouris7/dashmon/blob/main/docs/APT_UPDATES.md" target="_blank" rel="noopener noreferrer">APT</a>
-    </nav>
-    <form id="agent-form">
-      <label>Nom de l'hôte <input name="name" maxlength="100" required></label>
-      <label>Chemin du disque dans le conteneur <input name="path" maxlength="200" placeholder="/ (racine du conteneur)"></label>
-      <label class="check"><input type="checkbox" name="wireguard"> WireGuard</label>
-      <label>Interface WireGuard (vide : toutes) <input name="interface" maxlength="50"></label>
-      <label class="check"><input type="checkbox" name="smart"> SMART</label>
-      <label>Disques SMART (un nom par ligne, vide : tous) <textarea name="disks" rows="3"></textarea></label>
-      <label class="check"><input type="checkbox" name="apt"> Mises à jour APT</label>
-      <button type="submit">Enregistrer</button>
-    </form>
-    <p id="message" role="status"></p>
-    <h2>Dernière collecte</h2>
-    <pre id="metrics">Chargement…</pre>
-    <button id="refresh" type="button">Actualiser</button>
-    <button id="logout" type="button">Déconnexion</button>
-  </main>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashmon Agent</title>
+    <link rel="stylesheet" href="/css/agent.css" />
+    <script src="/js/agent.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <h1>Dashmon Agent</h1>
+      <p>
+        Supervision locale. Le tableau de bord principal interroge cet agent ; aucune configuration
+        de tableau de bord n'est reçue.
+      </p>
+      <nav class="agent-docs" aria-label="Documentation et guides d’intégration">
+        <a
+          href="https://github.com/supersouris7/dashmon/blob/main/docs/DEMARRAGE.md#3-installer-un-agent"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Documentation des agents</a
+        >
+        <span>Guides d’intégration :</span>
+        <a
+          href="https://github.com/supersouris7/dashmon/blob/main/docs/WIREGUARD.md"
+          target="_blank"
+          rel="noopener noreferrer"
+          >WireGuard</a
+        >
+        <a
+          href="https://github.com/supersouris7/dashmon/blob/main/docs/SMART.md"
+          target="_blank"
+          rel="noopener noreferrer"
+          >SMART</a
+        >
+        <a
+          href="https://github.com/supersouris7/dashmon/blob/main/docs/APT_UPDATES.md"
+          target="_blank"
+          rel="noopener noreferrer"
+          >APT</a
+        >
+      </nav>
+      <form id="agent-form">
+        <label>Nom de l'hôte <input name="name" maxlength="100" required /></label>
+        <label
+          >Chemin du disque dans le conteneur
+          <input name="path" maxlength="200" placeholder="/ (racine du conteneur)"
+        /></label>
+        <label class="check"><input type="checkbox" name="wireguard" /> WireGuard</label>
+        <label>Interface WireGuard (vide : toutes) <input name="interface" maxlength="50" /></label>
+        <label class="check"><input type="checkbox" name="smart" /> SMART</label>
+        <label
+          >Disques SMART (un nom par ligne, vide : tous) <textarea name="disks" rows="3"></textarea>
+        </label>
+        <label class="check"><input type="checkbox" name="apt" /> Mises à jour APT</label>
+        <button type="submit">Enregistrer</button>
+      </form>
+      <p id="message" role="status"></p>
+      <h2>Dernière collecte</h2>
+      <pre id="metrics">Chargement…</pre>
+      <button id="refresh" type="button">Actualiser</button>
+      <button id="logout" type="button">Déconnexion</button>
+    </main>
+  </body>
 </html>

@@ -4,10 +4,16 @@
 // (tag local re-pullé vers une autre image). Sinon il est compté à jour et
 // tracé dans `unknown` (à raffiner au registre distant par le backend).
 const assert = require("assert");
-const { computeDockerSummary, parseImageRef, dockerSocketError, dockerTcpTarget, registryTarget } = require("../docker");
+const {
+  computeDockerSummary,
+  parseImageRef,
+  dockerSocketError,
+  dockerTcpTarget,
+  registryTarget
+} = require("../docker");
 
 let failures = 0;
-function check(name, actual, expected){
+function check(name, actual, expected) {
   try {
     assert.deepStrictEqual(actual, expected);
     console.log("PASS " + name);
@@ -17,11 +23,11 @@ function check(name, actual, expected){
   }
 }
 
-function container(image, imageId, state){
+function container(image, imageId, state) {
   return { Image: image, ImageID: imageId, State: state || "running" };
 }
 
-function image(id, tags, digests){
+function image(id, tags, digests) {
   return { Id: id, RepoTags: tags, RepoDigests: digests || [] };
 }
 
@@ -31,152 +37,255 @@ const img2 = "sha256:image2";
 // --- computeDockerSummary ---
 // 1. Tout vert : 9 conteneurs actifs, images locales à jour (vérification
 //    registre non incluse ici -> unknown = 9).
-check("9 actifs / 9 à jour (local)",
+check(
+  "9 actifs / 9 à jour (local)",
   computeDockerSummary(
-    [1,2,3,4,5,6,7,8,9].map(i => container("app:" + i, "sha256:app" + i)),
-    [1,2,3,4,5,6,7,8,9].map(i => image("sha256:app" + i, ["app:" + i], ["app:" + i + "@sha256:xyz" + i]))
+    [1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => container("app:" + i, "sha256:app" + i)),
+    [1, 2, 3, 4, 5, 6, 7, 8, 9].map(i =>
+      image("sha256:app" + i, ["app:" + i], ["app:" + i + "@sha256:xyz" + i])
+    )
   ),
-  { total: 9, active: 9, updated: 9, unknown: 9 });
+  { total: 9, active: 9, updated: 9, unknown: 9 }
+);
 
 // 2. Un conteneur arrêté : actifs 8/9, toujours compté dans le total.
-check("8 actifs (1 arrêté)",
+check(
+  "8 actifs (1 arrêté)",
   computeDockerSummary(
-    [1,2,3,4,5,6,7,8].map(i => container("app:" + i, "sha256:app" + i))
+    [1, 2, 3, 4, 5, 6, 7, 8]
+      .map(i => container("app:" + i, "sha256:app" + i))
       .concat(container("app:9", "sha256:app9", "exited")),
-    [1,2,3,4,5,6,7,8,9].map(i => image("sha256:app" + i, ["app:" + i]))
+    [1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => image("sha256:app" + i, ["app:" + i]))
   ),
-  { total: 9, active: 8, updated: 9, unknown: 9 });
+  { total: 9, active: 8, updated: 9, unknown: 9 }
+);
 
 // 3. Image re-pullée (watchtower) : le tag pointe vers une nouvelle image ->
 //    mise à jour disponible, prouvée localement. Ne compte ni updated ni unknown.
-check("tag re-pullé -> mise à jour (preuve locale)",
+check(
+  "tag re-pullé -> mise à jour (preuve locale)",
   computeDockerSummary(
     [container("app:1", "sha256:old1")],
     [image("sha256:new1", ["app:1", "app:latest"])]
   ),
-  { total: 1, active: 1, updated: 0, unknown: 0 });
+  { total: 1, active: 1, updated: 0, unknown: 0 }
+);
 
 // 4. Tag introuvable localement : pas de preuve de mise à jour -> compté à jour,
 //    mais tracé unknown (le backend vérifiera le registre distant).
-check("tag introuvable -> à jour (opt) + unknown",
-  computeDockerSummary(
-    [container("app:1", "sha256:old1")],
-    []
-  ),
-  { total: 1, active: 1, updated: 1, unknown: 1 });
+check(
+  "tag introuvable -> à jour (opt) + unknown",
+  computeDockerSummary([container("app:1", "sha256:old1")], []),
+  { total: 1, active: 1, updated: 1, unknown: 1 }
+);
 
 // 5. Image à jour, conteneur arrêté volontairement.
-check("arrêté volontaire compté, image à jour",
-  computeDockerSummary(
-    [container("mail:latest", img1, "exited")],
-    [image(img1, ["mail:latest"])]
-  ),
-  { total: 1, active: 0, updated: 1, unknown: 1 });
+check(
+  "arrêté volontaire compté, image à jour",
+  computeDockerSummary([container("mail:latest", img1, "exited")], [image(img1, ["mail:latest"])]),
+  { total: 1, active: 0, updated: 1, unknown: 1 }
+);
 
 // 6. Référence par digest : immuable, toujours à jour, jamais inconnue.
-check("référence par digest -> à jour",
+check(
+  "référence par digest -> à jour",
   computeDockerSummary(
     [container("nginx@sha256:abc", "sha256:abc")],
     [image("sha256:abc", ["nginx@sha256:abc"], ["nginx@sha256:abc"])]
   ),
-  { total: 1, active: 1, updated: 1, unknown: 0 });
+  { total: 1, active: 1, updated: 1, unknown: 0 }
+);
 
 // 7. Zéro conteneur.
-check("conteneur vide",
-  computeDockerSummary([], []),
-  { total: 0, active: 0, updated: 0, unknown: 0 });
+check("conteneur vide", computeDockerSummary([], []), {
+  total: 0,
+  active: 0,
+  updated: 0,
+  unknown: 0
+});
 
 // 8. Entrées malformées -> zéros sûrs, pas de crash.
-check("réponses invalides",
-  computeDockerSummary(null, "nope"),
-  { total: 0, active: 0, updated: 0, unknown: 0 });
+check("réponses invalides", computeDockerSummary(null, "nope"), {
+  total: 0,
+  active: 0,
+  updated: 0,
+  unknown: 0
+});
 
 // 9. Doublon de tag : la dernière image pullée gagne (sémantique Docker).
-check("dernier tag pullé gagne",
+check(
+  "dernier tag pullé gagne",
   computeDockerSummary(
     [container("web:latest", "sha256:B")],
     [image("sha256:A", ["web:latest"]), image("sha256:B", ["web:latest"])]
   ),
-  { total: 1, active: 1, updated: 1, unknown: 1 });
+  { total: 1, active: 1, updated: 1, unknown: 1 }
+);
 
 // 10. Tags <none> ignorés (image sans tag -> unresolved).
-check("tags <none> ignorés",
+check(
+  "tags <none> ignorés",
   computeDockerSummary(
     [container("app:1", "sha256:app1")],
     [image("sha256:app1", ["<none>:<none>"])]
   ),
-  { total: 1, active: 1, updated: 1, unknown: 1 });
+  { total: 1, active: 1, updated: 1, unknown: 1 }
+);
 
 // --- parseImageRef ---
-function ref(name, expected){
+function ref(name, expected) {
   const { registry, repo, tag, pinned, digest } = parseImageRef(name);
-  check("parse " + name,
-    { registry, repo, tag, pinned, digest },
-    expected);
+  check("parse " + name, { registry, repo, tag, pinned, digest }, expected);
 }
-ref("nginx:latest", { registry:"", repo:"nginx", tag:"latest", pinned:false, digest:"" });
-ref("library/nginx", { registry:"", repo:"library/nginx", tag:"latest", pinned:false, digest:"" });
-ref("ghcr.io/owner/app:1.0", { registry:"ghcr.io", repo:"owner/app", tag:"1.0", pinned:false, digest:"" });
-ref("192.0.2.10:5000/app:1.0", { registry:"192.0.2.10:5000", repo:"app", tag:"1.0", pinned:false, digest:"" });
-ref("docker.io/library/nginx:latest", { registry:"docker.io", repo:"library/nginx", tag:"latest", pinned:false, digest:"" });
-ref("nginx@sha256:abc", { registry:"", repo:"nginx", tag:"latest", pinned:true, digest:"sha256:abc" });
+ref("nginx:latest", { registry: "", repo: "nginx", tag: "latest", pinned: false, digest: "" });
+ref("library/nginx", {
+  registry: "",
+  repo: "library/nginx",
+  tag: "latest",
+  pinned: false,
+  digest: ""
+});
+ref("ghcr.io/owner/app:1.0", {
+  registry: "ghcr.io",
+  repo: "owner/app",
+  tag: "1.0",
+  pinned: false,
+  digest: ""
+});
+ref("192.0.2.10:5000/app:1.0", {
+  registry: "192.0.2.10:5000",
+  repo: "app",
+  tag: "1.0",
+  pinned: false,
+  digest: ""
+});
+ref("docker.io/library/nginx:latest", {
+  registry: "docker.io",
+  repo: "library/nginx",
+  tag: "latest",
+  pinned: false,
+  digest: ""
+});
+ref("nginx@sha256:abc", {
+  registry: "",
+  repo: "nginx",
+  tag: "latest",
+  pinned: true,
+  digest: "sha256:abc"
+});
 
 // --- dockerSocketError ---
 // Le conteneur tourne en non-root : sans group_add, le socket (root:docker en
 // 660) refuse la connexion. EACCES doit donc nommer la cause et le remède.
-function eacces(code){
+function eacces(code) {
   return dockerSocketError(Object.assign(new Error("connect " + code), { code }));
 }
-check("EACCES traduit en cause et remede",
-  /group_add/.test(eacces("EACCES").message) && /docker\.sock/.test(eacces("EACCES").message), true);
+check(
+  "EACCES traduit en cause et remede",
+  /group_add/.test(eacces("EACCES").message) && /docker\.sock/.test(eacces("EACCES").message),
+  true
+);
 check("EPERM traduit aussi", /group_add/.test(eacces("EPERM").message), true);
 check("le code d'erreur est conserve", eacces("EACCES").code, "EACCES");
-check("une erreur de timeout reste intacte",
-  dockerSocketError(Object.assign(new Error("timeout"), { code:"ETIMEDOUT" })).message, "timeout");
-check("une erreur sans code reste intacte",
-  dockerSocketError(new Error("boom")).message, "boom");
+check(
+  "une erreur de timeout reste intacte",
+  dockerSocketError(Object.assign(new Error("timeout"), { code: "ETIMEDOUT" })).message,
+  "timeout"
+);
+check("une erreur sans code reste intacte", dockerSocketError(new Error("boom")).message, "boom");
 check("pas d'erreur = pas d'exception", dockerSocketError(undefined), undefined);
 
 // --- Docker TCP ---
-check("Docker TCP : LAN admis", dockerTcpTarget("http://192.168.1.10:2375").hostname, "192.168.1.10");
-check("Docker TCP : link-local refusee", (() => {
-  try { dockerTcpTarget("http://169.254.169.254:2375"); return false; } catch (error) { return /link-local/.test(error.message); }
-})(), true);
-check("Docker TCP : link-local IPv6 refusee", (() => {
-  try { dockerTcpTarget("http://[fe80::1]:2375"); return false; } catch (error) { return /link-local/.test(error.message); }
-})(), true);
-check("Docker TCP : notation tcp:// admise",
-  dockerTcpTarget("tcp://192.0.2.10:2375").href, "http://192.0.2.10:2375/");
-check("Docker TCP : endpoint versionne ajoute",
+check(
+  "Docker TCP : LAN admis",
+  dockerTcpTarget("http://192.168.1.10:2375").hostname,
+  "192.168.1.10"
+);
+check(
+  "Docker TCP : link-local refusee",
+  (() => {
+    try {
+      dockerTcpTarget("http://169.254.169.254:2375");
+      return false;
+    } catch (error) {
+      return /link-local/.test(error.message);
+    }
+  })(),
+  true
+);
+check(
+  "Docker TCP : link-local IPv6 refusee",
+  (() => {
+    try {
+      dockerTcpTarget("http://[fe80::1]:2375");
+      return false;
+    } catch (error) {
+      return /link-local/.test(error.message);
+    }
+  })(),
+  true
+);
+check(
+  "Docker TCP : notation tcp:// admise",
+  dockerTcpTarget("tcp://192.0.2.10:2375").href,
+  "http://192.0.2.10:2375/"
+);
+check(
+  "Docker TCP : endpoint versionne ajoute",
   dockerTcpTarget("http://192.0.2.10:2375", "/containers/json?all=1").href,
-  "http://192.0.2.10:2375/v1.41/containers/json?all=1");
-check("Docker TCP : chemin de base conserve (proxy)",
+  "http://192.0.2.10:2375/v1.41/containers/json?all=1"
+);
+check(
+  "Docker TCP : chemin de base conserve (proxy)",
   dockerTcpTarget("https://docker.exemple.lan/api/", "/images/json").href,
-  "https://docker.exemple.lan/api/v1.41/images/json");
+  "https://docker.exemple.lan/api/v1.41/images/json"
+);
 
 // Bout en bout : la requete TCP doit atteindre l'endpoint versionne, et non la
 // racine du demon.
 const http = require("http");
 const { dockerRequest } = require("../docker");
 const pending = new Promise(resolve => {
-  const server = http.createServer((req, res) => {
-    res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ path: req.url }));
-  }).listen(0, "127.0.0.1", async () => {
-    const url = "tcp://127.0.0.1:" + server.address().port;
-    try {
-      const body = await dockerRequest({ monitoring: { docker: { mode: "tcp", url } } }, "/containers/json?all=1");
-      check("Docker TCP : requete sur l'endpoint versionne", body.path, "/v1.41/containers/json?all=1");
-    } catch (error) {
-      check("Docker TCP : requete sur l'endpoint versionne", error.message, "");
-    }
-    server.close(resolve);
-  });
+  const server = http
+    .createServer((req, res) => {
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify({ path: req.url }));
+    })
+    .listen(0, "127.0.0.1", async () => {
+      const url = "tcp://127.0.0.1:" + server.address().port;
+      try {
+        const body = await dockerRequest(
+          { monitoring: { docker: { mode: "tcp", url } } },
+          "/containers/json?all=1"
+        );
+        check(
+          "Docker TCP : requete sur l'endpoint versionne",
+          body.path,
+          "/v1.41/containers/json?all=1"
+        );
+      } catch (error) {
+        check("Docker TCP : requete sur l'endpoint versionne", error.message, "");
+      }
+      server.close(resolve);
+    });
 });
-check("registre Docker : hote public admis", registryTarget("https:", "registry.example.test:5000").target.port, "5000");
-check("registre Docker : link-local refusee", (() => {
-  try { registryTarget("http:", "169.254.169.254:5000"); return false; } catch (error) { return /link-local/.test(error.message); }
-})(), true);
+check(
+  "registre Docker : hote public admis",
+  registryTarget("https:", "registry.example.test:5000").target.port,
+  "5000"
+);
+check(
+  "registre Docker : link-local refusee",
+  (() => {
+    try {
+      registryTarget("http:", "169.254.169.254:5000");
+      return false;
+    } catch (error) {
+      return /link-local/.test(error.message);
+    }
+  })(),
+  true
+);
 
 pending.then(() => {
   if (failures) {

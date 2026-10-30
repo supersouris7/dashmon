@@ -27,7 +27,9 @@ function isPlainObject(value) {
 
 function str(value, max) {
   const limit = Number(max) > 0 ? Number(max) : 200;
-  return String(value == null ? "" : value).trim().slice(0, limit);
+  return String(value == null ? "" : value)
+    .trim()
+    .slice(0, limit);
 }
 
 // --- Chargement -----------------------------------------------------------
@@ -49,27 +51,33 @@ export async function loadWidgetRegistry() {
   if (!Array.isArray(list)) return [];
 
   const styles = [];
-  const loads = list.map(meta => {
-    if (!meta || !meta.id) return null;
-    metas.set(meta.id, meta);
-    if (meta.hasCss) styles.push({ id: meta.id, version: meta.version || "" });
-    return import("/widget-client/" + encodeURIComponent(meta.id)
-      + ".js?v=" + encodeURIComponent(meta.version || ""))
-      .then(module => {
-      // La version du manifeste entre dans l'URL : sans elle, l'URL reste la
-      // meme apres une mise a jour de widget et le navigateur peut resservir
-      // l'ancien code pendant toute la duree de son cache. Un widget corrige
-      // doit etre visible immediatement, donc la version change -> URL change.
-      if (typeof module.render === "function" || typeof module.element === "function") {
-        renderers.set(meta.id, module);
-      }
-      })
-      .catch(error => {
-      // Widget sans renderer ou module en erreur : la config reste editable,
-      // seule l'affichage de la tuile reste neutre.
-      console.warn("Renderer de widget indisponible : " + meta.id, error);
-      });
-  }).filter(Boolean);
+  const loads = list
+    .map(meta => {
+      if (!meta || !meta.id) return null;
+      metas.set(meta.id, meta);
+      if (meta.hasCss) styles.push({ id: meta.id, version: meta.version || "" });
+      return import(
+        "/widget-client/" +
+          encodeURIComponent(meta.id) +
+          ".js?v=" +
+          encodeURIComponent(meta.version || "")
+      )
+        .then(module => {
+          // La version du manifeste entre dans l'URL : sans elle, l'URL reste la
+          // meme apres une mise a jour de widget et le navigateur peut resservir
+          // l'ancien code pendant toute la duree de son cache. Un widget corrige
+          // doit etre visible immediatement, donc la version change -> URL change.
+          if (typeof module.render === "function" || typeof module.element === "function") {
+            renderers.set(meta.id, module);
+          }
+        })
+        .catch(error => {
+          // Widget sans renderer ou module en erreur : la config reste editable,
+          // seule l'affichage de la tuile reste neutre.
+          console.warn("Renderer de widget indisponible : " + meta.id, error);
+        });
+    })
+    .filter(Boolean);
   await Promise.all(loads);
   injectStyles(styles);
   return [...metas.keys()];
@@ -88,7 +96,11 @@ function injectStyles(entries) {
     link.dataset.widgetStyle = id;
     // Meme rupture de cache que pour le module : la version du manifeste dans
     // l'URL, sinon une feuille de style corrigee peut rester en cache.
-    link.href = "/widget-client/" + encodeURIComponent(id) + ".css?v=" + encodeURIComponent(entry.version || "");
+    link.href =
+      "/widget-client/" +
+      encodeURIComponent(id) +
+      ".css?v=" +
+      encodeURIComponent(entry.version || "");
     document.head.appendChild(link);
   }
 }
@@ -117,8 +129,10 @@ export function hasWidget(id) {
 // accents et la casse ne comptent pas : "Me Tube" propose donc "MeTube".
 function normalizedWidgetName(value) {
   return String(value == null ? "" : value)
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase().replace(/[^a-z0-9]/g, "");
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
 }
 
 export function suggestedWidgetId(title) {
@@ -159,7 +173,7 @@ export function fieldPlaceholder(meta, field, lang) {
 export function fieldTitle(meta, field, lang) {
   const title = field.title;
   if (!title) return "";
-  return typeof title === "string" ? title : (title[lang] || title.fr || title.en || "");
+  return typeof title === "string" ? title : title[lang] || title.fr || title.en || "";
 }
 
 // Champs visibles pour une config donnee (regle "when" du manifest).

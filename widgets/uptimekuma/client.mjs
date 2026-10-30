@@ -80,7 +80,7 @@ export function element(ctx) {
   }
 
   box.title = pages
-    .map(page => page.name + " · " + (page.error || (page.up + "/" + page.total + " " + UP)))
+    .map(page => page.name + " · " + (page.error || page.up + "/" + page.total + " " + UP))
     .join(" · ");
   return box;
 }

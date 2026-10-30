@@ -1,49 +1,62 @@
 <!doctype html>
 <html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="dark light">
-  <title>Dashmon - Connexion</title>
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <script>
-  (function(){
-    try{
-      var root=document.documentElement;
-      var theme=localStorage.getItem("dashmon.theme");
-      var vars=localStorage.getItem("dashmon.themeVars");
-      if(theme) root.dataset.theme=theme;
-      if(vars){
-        var style=document.createElement("style");
-        style.textContent=":root{"+vars+"}";
-        document.head.appendChild(style);
-        var bg=(vars.match(/--bg:\s*(#[0-9a-f]{3,6})/i)||[])[1];
-        if(bg){
-          var hex=bg.slice(1);
-          if(hex.length===3) hex=hex.replace(/./g,function(c){return c+c});
-          if(/^[0-9a-f]{6}$/i.test(hex)){
-            var luminance=.299*parseInt(hex.slice(0,2),16)+.587*parseInt(hex.slice(2,4),16)+.114*parseInt(hex.slice(4,6),16);
-            root.style.colorScheme=luminance<128?"dark":"light";
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Dashmon - Connexion</title>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <script>
+      (function () {
+        try {
+          var root = document.documentElement;
+          var theme = localStorage.getItem("dashmon.theme");
+          var vars = localStorage.getItem("dashmon.themeVars");
+          if (theme) root.dataset.theme = theme;
+          if (vars) {
+            var style = document.createElement("style");
+            style.textContent = ":root{" + vars + "}";
+            document.head.appendChild(style);
+            var bg = (vars.match(/--bg:\s*(#[0-9a-f]{3,6})/i) || [])[1];
+            if (bg) {
+              var hex = bg.slice(1);
+              if (hex.length === 3)
+                hex = hex.replace(/./g, function (c) {
+                  return c + c;
+                });
+              if (/^[0-9a-f]{6}$/i.test(hex)) {
+                var luminance =
+                  0.299 * parseInt(hex.slice(0, 2), 16) +
+                  0.587 * parseInt(hex.slice(2, 4), 16) +
+                  0.114 * parseInt(hex.slice(4, 6), 16);
+                root.style.colorScheme = luminance < 128 ? "dark" : "light";
+              }
+            }
           }
-        }
-      }
-    }catch(_error){}
-  })();
-  </script>
-  <link rel="stylesheet" href="/css/login.css">
-</head>
-<body class="login-page">
-  <main class="login-panel">
-    <img class="login-mark" src="/images/login-monster.png" alt="">
-    <h1>Connexion</h1>
-    <p class="login-copy">Votre session reste active pendant 30 jours sur cet appareil.</p>
-    <form id="loginForm" class="login-form">
-      <label for="password">Mot de passe</label>
-      <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
-      <p id="loginError" class="login-error" role="alert" hidden></p>
-      <button type="submit">Ouvrir Dashmon &gt;</button>
-    </form>
-  </main>
-  <script src="/js/login.js"></script>
-</body>
+        } catch (_error) {}
+      })();
+    </script>
+    <link rel="stylesheet" href="/css/login.css" />
+  </head>
+  <body class="login-page">
+    <main class="login-panel">
+      <img class="login-mark" src="/images/login-monster.png" alt="" />
+      <h1>Connexion</h1>
+      <p class="login-copy">Votre session reste active pendant 30 jours sur cet appareil.</p>
+      <form id="loginForm" class="login-form">
+        <label for="password">Mot de passe</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+          autofocus
+        />
+        <p id="loginError" class="login-error" role="alert" hidden></p>
+        <button type="submit">Ouvrir Dashmon &gt;</button>
+      </form>
+    </main>
+    <script src="/js/login.js"></script>
+  </body>
 </html>

@@ -2,129 +2,138 @@
 import { state } from "./state.js";
 
 let configSaveTimer;
-let configSaveChain=Promise.resolve();
+let configSaveChain = Promise.resolve();
 let configPatchTimer;
-let pendingConfigPatch={};
-let configRevision="";
-export function setConfigRevision(value){configRevision=String(value||"");}
-export let configConflict=false;
+let pendingConfigPatch = {};
+let configRevision = "";
+export function setConfigRevision(value) {
+  configRevision = String(value || "");
+}
+export let configConflict = false;
 
-export function saveConfig(immediate=false,{replaceUsage=false}={}){
+export function saveConfig(immediate = false, { replaceUsage = false } = {}) {
   clearTimeout(configSaveTimer);
 
-  const run=()=>{
+  const run = () => {
     // Volontairement pas de collapsed/viewMode/sortMode/groupMode/openMode/
     // smallIcons/webLinksHidden : la disposition de l'écran
     // vit dans le navigateur (view-prefs.js), elle n'est ni lue ni écrite par
     // le serveur. Le PUT sert la configuration et les préférences d'apparence.
-    const payload=JSON.stringify({
-      services:state.services,
-      categories:state.categories,
-      dashboards:state.dashboards,
-      hosts:state.hosts,
-      replication:state.replication,
-      specialTile:state.specialTile,
-      theme:state.theme,
-      language:state.language,
-      usageCounts:state.usageCounts,
-      webLinks:state.webLinks,
-      webLinksColor:state.webLinksColor,
-      webLinksSeedVersion:state.webLinksSeedVersion
+    const payload = JSON.stringify({
+      services: state.services,
+      categories: state.categories,
+      dashboards: state.dashboards,
+      hosts: state.hosts,
+      replication: state.replication,
+      specialTile: state.specialTile,
+      theme: state.theme,
+      language: state.language,
+      usageCounts: state.usageCounts,
+      webLinks: state.webLinks,
+      webLinksColor: state.webLinksColor,
+      webLinksSeedVersion: state.webLinksSeedVersion
     });
-    configSaveChain=configSaveChain
-      .catch(()=>{})
-      .then(async()=>{
-        configConflict=false;
-        const response=await fetch("/api/config",{
-          method:"PUT",
-          headers:{"Content-Type":"application/json",...(configRevision ? {"If-Match":configRevision} : {}),...(replaceUsage ? {"X-Dashmon-Replace-Usage":"1"} : {})},
-          body:payload
+    configSaveChain = configSaveChain
+      .catch(() => {})
+      .then(async () => {
+        configConflict = false;
+        const response = await fetch("/api/config", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...(configRevision ? { "If-Match": configRevision } : {}),
+            ...(replaceUsage ? { "X-Dashmon-Replace-Usage": "1" } : {})
+          },
+          body: payload
         });
-        if(response.status===412) configConflict=true;
-        if(!response.ok) throw new Error("HTTP "+response.status);
+        if (response.status === 412) configConflict = true;
+        if (!response.ok) throw new Error("HTTP " + response.status);
         setConfigRevision(response.headers.get("ETag"));
         return true;
       })
-      .catch(error=>{
-        console.error("Enregistrement de config.json impossible",error);
+      .catch(error => {
+        console.error("Enregistrement de config.json impossible", error);
         return false;
       });
     return configSaveChain;
   };
 
-  if(immediate) return run();
-  configSaveTimer=setTimeout(run,120);
+  if (immediate) return run();
+  configSaveTimer = setTimeout(run, 120);
   return configSaveChain;
 }
 
 // Mise à jour partielle (PATCH) : pour les toggles/selects légers, évite
 // d'écrire tout le config.json à chaque clic.
-export function patchConfig(patch,immediate=false){
+export function patchConfig(patch, immediate = false) {
   clearTimeout(configPatchTimer);
   // Plusieurs reglages modifies rapidement doivent tous survivre au debounce.
   // Les champs de premier niveau sont remplaces, comme dans l'API PATCH.
-  pendingConfigPatch={...pendingConfigPatch,...patch};
-  const run=()=>{
-    const payload=JSON.stringify(pendingConfigPatch);
-    pendingConfigPatch={};
-    configSaveChain=configSaveChain
-      .catch(()=>{})
-      .then(async()=>{
-        const response=await fetch("/api/config",{
-          method:"PATCH",
-          headers:{"Content-Type":"application/json",...(configRevision ? {"If-Match":configRevision} : {})},
-          body:payload
+  pendingConfigPatch = { ...pendingConfigPatch, ...patch };
+  const run = () => {
+    const payload = JSON.stringify(pendingConfigPatch);
+    pendingConfigPatch = {};
+    configSaveChain = configSaveChain
+      .catch(() => {})
+      .then(async () => {
+        const response = await fetch("/api/config", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            ...(configRevision ? { "If-Match": configRevision } : {})
+          },
+          body: payload
         });
-        if(response.status===412){
+        if (response.status === 412) {
           window.dispatchEvent(new Event("dashmon:config-conflict"));
           throw new Error("HTTP 412");
         }
-        if(!response.ok) throw new Error("HTTP "+response.status);
+        if (!response.ok) throw new Error("HTTP " + response.status);
         setConfigRevision(response.headers.get("ETag"));
       })
-      .catch(error=>console.error("Mise à jour de config.json impossible",error));
+      .catch(error => console.error("Mise à jour de config.json impossible", error));
     return configSaveChain;
   };
-  if(immediate) return run();
-  configPatchTimer=setTimeout(run,150);
+  if (immediate) return run();
+  configPatchTimer = setTimeout(run, 150);
   return configSaveChain;
 }
 
-export async function fetchConfig(){
+export async function fetchConfig() {
   // Parametre anti-cache : certains reverse proxies ignorent Cache-Control et
   // resservent l'ancienne configuration apres une suppression.
-  const response=await fetch("/api/config?_="+Date.now(),{cache:"no-store"});
-  if(!response.ok) throw new Error("HTTP "+response.status);
+  const response = await fetch("/api/config?_=" + Date.now(), { cache: "no-store" });
+  if (!response.ok) throw new Error("HTTP " + response.status);
   return response.json();
 }
 
-export async function putConfig(body){
-  const response=await fetch("/api/config",{
-    method:"PUT",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(body)
+export async function putConfig(body) {
+  const response = await fetch("/api/config", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
   });
-  if(!response.ok) throw new Error("HTTP "+response.status);
+  if (!response.ok) throw new Error("HTTP " + response.status);
 }
 
 // Compteur de clics : incrément local + persistance légère compatible
 // navigation de page (le gros PUT /api/config est interrompu au clic).
-export function bumpUsage(key){
-  if(!key) return;
-  state.usageCounts[key]=Number(state.usageCounts[key]||0)+1;
-  const payload=JSON.stringify({key});
-  try{
-    if(typeof navigator!=="undefined" && navigator.sendBeacon){
-      navigator.sendBeacon("/api/usage",new Blob([payload],{type:"application/json"}));
-    }else{
-      fetch("/api/usage",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:payload,
-        keepalive:true
-      }).catch(()=>{});
+export function bumpUsage(key) {
+  if (!key) return;
+  state.usageCounts[key] = Number(state.usageCounts[key] || 0) + 1;
+  const payload = JSON.stringify({ key });
+  try {
+    if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+      navigator.sendBeacon("/api/usage", new Blob([payload], { type: "application/json" }));
+    } else {
+      fetch("/api/usage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+        keepalive: true
+      }).catch(() => {});
     }
-  }catch(_error){
+  } catch (_error) {
     saveConfig(true);
   }
 }

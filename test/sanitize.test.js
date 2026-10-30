@@ -1,14 +1,20 @@
 "use strict";
-const assert=require("assert");
-const {sanitizeText,sanitizeColor,sanitizeUrl,sanitizeIconClass,sanitizeImagePath}=require("../lib/sanitize");
-assert.equal(sanitizeText(" <test>\u0000 "),"test");
-assert.equal(sanitizeText("abcdef",3),"abc");
-assert.equal(sanitizeColor(" #AABBCC "),"#aabbcc");
-assert.equal(sanitizeColor("url(x)"),"");
-assert.equal(sanitizeUrl("javascript:alert(1)"),"");
-assert.equal(sanitizeUrl("https://exemple.lan"),"https://exemple.lan/");
-assert.equal(sanitizeIconClass("fa-solid fa-server"),"fa-solid fa-server");
-assert.equal(sanitizeIconClass("<script>"),"fa-solid fa-folder");
-assert.equal(sanitizeImagePath("icons/host.png"),"icons/host.png");
-assert.equal(sanitizeImagePath("icons/../host.png"),"");
+const assert = require("assert");
+const {
+  sanitizeText,
+  sanitizeColor,
+  sanitizeUrl,
+  sanitizeIconClass,
+  sanitizeImagePath
+} = require("../lib/sanitize");
+assert.equal(sanitizeText(" <test>\u0000 "), "test");
+assert.equal(sanitizeText("abcdef", 3), "abc");
+assert.equal(sanitizeColor(" #AABBCC "), "#aabbcc");
+assert.equal(sanitizeColor("url(x)"), "");
+assert.equal(sanitizeUrl("javascript:alert(1)"), "");
+assert.equal(sanitizeUrl("https://exemple.lan"), "https://exemple.lan/");
+assert.equal(sanitizeIconClass("fa-solid fa-server"), "fa-solid fa-server");
+assert.equal(sanitizeIconClass("<script>"), "fa-solid fa-folder");
+assert.equal(sanitizeImagePath("icons/host.png"), "icons/host.png");
+assert.equal(sanitizeImagePath("icons/../host.png"), "");
 console.log("PASS configuration : validation des champs serveur");

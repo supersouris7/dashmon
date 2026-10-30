@@ -23,19 +23,20 @@ let failures = 0;
 
 // Affiche une valeur courte et lisible (les Buffers et les valeurs cycliques
 // ne doivent jamais masquer la vraie cause d'un echec).
-function show(value){
+function show(value) {
   if (value === undefined) return "undefined";
-  if (value instanceof Uint8Array) return "<Buffer " + value.length + " octets> " + value.toString("utf8").slice(0, 60);
+  if (value instanceof Uint8Array)
+    return "<Buffer " + value.length + " octets> " + value.toString("utf8").slice(0, 60);
   if (typeof value === "string") return JSON.stringify(value);
   try {
     const text = JSON.stringify(value);
-    return text === undefined ? String(value) : (text.length > 300 ? text.slice(0, 300) + "…" : text);
+    return text === undefined ? String(value) : text.length > 300 ? text.slice(0, 300) + "…" : text;
   } catch (_) {
     return String(value);
   }
 }
 
-function check(name, actual, expected){
+function check(name, actual, expected) {
   try {
     assert.deepStrictEqual(actual, expected);
     console.log("PASS " + name);
@@ -46,7 +47,7 @@ function check(name, actual, expected){
     console.error("     obtenu  : " + show(actual));
   }
 }
-function ok(name, condition, detail){
+function ok(name, condition, detail) {
   if (condition) {
     console.log("PASS " + name);
   } else {
@@ -59,15 +60,28 @@ const silentLogger = () => {};
 
 // --- Decouverte du registre ------------------------------------------------
 
-async function main(){
+async function main() {
   const registry = new Registry({ kind: "widget", roots: [WIDGETS], logger: silentLogger });
   await registry.load();
 
   const ids = registry.ids().slice().sort();
   // `_template` n'est pas un plugin : son identifiant ne respecte pas le motif
   // du registre, il sert de modele a copier.
-  check("registre : widgets natifs charges, _template ignore",
-    ids, ["adguard", "docker", "dockerhub", "duplicati", "github", "gotify", "lichess", "metube", "ping", "qbittorrent", "uptimekuma", "web", "youtube"]);
+  check("registre : widgets natifs charges, _template ignore", ids, [
+    "adguard",
+    "docker",
+    "dockerhub",
+    "duplicati",
+    "github",
+    "gotify",
+    "lichess",
+    "metube",
+    "ping",
+    "qbittorrent",
+    "uptimekuma",
+    "web",
+    "youtube"
+  ]);
   check("registre : aucun echec de chargement", registry.failures, []);
 
   for (const id of ids) {
@@ -78,42 +92,86 @@ async function main(){
     // s'afficher dans le menu des widgets de l'editeur.
     if (!item.hidden) ok("registre : " + id + " a un renderer", typeof item.client === "string");
     ok("registre : " + id + " declare une periode", Number(item.interval) > 0);
-    ok("registre : " + id + " a des libelles fr+en",
-      !!(item.label.fr && item.label.en));
+    ok("registre : " + id + " a des libelles fr+en", !!(item.label.fr && item.label.en));
   }
 
-  check("registre : les plugins internes du moteur",
-    registry.publicList().filter(w => w.hidden).map(w => w.id),
-    ["dockerhub", "github", "web", "youtube"]);
-  check("registre : un lien nu est pris en charge par le plugin \"link\"",
-    registry.bySlot("link") && registry.bySlot("link").id, "web");
+  check(
+    "registre : les plugins internes du moteur",
+    registry
+      .publicList()
+      .filter(w => w.hidden)
+      .map(w => w.id),
+    ["dockerhub", "github", "web", "youtube"]
+  );
+  check(
+    'registre : un lien nu est pris en charge par le plugin "link"',
+    registry.bySlot("link") && registry.bySlot("link").id,
+    "web"
+  );
   // GitHub, Docker Hub et YouTube ne sont pas des widgets de tuile : ce sont les
   // sources des compteurs du bandeau "Liens web", donc internes au moteur.
-  check("registre : les compteurs de liens ne sont pas des widgets de tuile",
-    registry.publicList().filter(w => !w.hidden).map(w => w.id),
-    ["adguard", "docker", "duplicati", "gotify", "lichess", "metube", "ping", "qbittorrent", "uptimekuma"]);
+  check(
+    "registre : les compteurs de liens ne sont pas des widgets de tuile",
+    registry
+      .publicList()
+      .filter(w => !w.hidden)
+      .map(w => w.id),
+    [
+      "adguard",
+      "docker",
+      "duplicati",
+      "gotify",
+      "lichess",
+      "metube",
+      "ping",
+      "qbittorrent",
+      "uptimekuma"
+    ]
+  );
 
   // Le template est bien un modele exploitable, mais volontairement hors registre.
-  ok("template : present sur disque mais non charge",
-    fs.existsSync(path.join(WIDGETS, "_template", "manifest.json")) && !registry.has("_template"));
+  ok(
+    "template : present sur disque mais non charge",
+    fs.existsSync(path.join(WIDGETS, "_template", "manifest.json")) && !registry.has("_template")
+  );
 
   // --- Schema : validation d'un manifest -------------------------------
   // Le modele est volontairement hors registre : son id ne peut pas suivre le
   // dossier "_template" (un identifiant commence par une lettre minuscule).
   const templateErrors = [];
-  const templateManifest = JSON.parse(fs.readFileSync(path.join(WIDGETS, "_template", "manifest.json"), "utf8"));
-  check("schema : le template n'est pas chargeable tel quel",
-    validateManifest("_template", templateManifest, templateErrors), null);
-  ok("schema : le template est signale comme invalide", templateErrors.length >= 1, templateErrors.join(" ; "));
+  const templateManifest = JSON.parse(
+    fs.readFileSync(path.join(WIDGETS, "_template", "manifest.json"), "utf8")
+  );
+  check(
+    "schema : le template n'est pas chargeable tel quel",
+    validateManifest("_template", templateManifest, templateErrors),
+    null
+  );
+  ok(
+    "schema : le template est signale comme invalide",
+    templateErrors.length >= 1,
+    templateErrors.join(" ; ")
+  );
 
   // Un manifest complet et coherent est en revanche accepte tel quel.
   const errors = [];
-  const manifest = validateManifest("demo", {
-    id: "demo", label: { fr: "Demo", en: "Demo" }, server: "server.js", client: "client.mjs",
-    config: [{ key: "jeton", type: "secret", maxLength: 200 }]
-  }, errors);
+  const manifest = validateManifest(
+    "demo",
+    {
+      id: "demo",
+      label: { fr: "Demo", en: "Demo" },
+      server: "server.js",
+      client: "client.mjs",
+      config: [{ key: "jeton", type: "secret", maxLength: 200 }]
+    },
+    errors
+  );
   ok("schema : un manifest complet est valide", !!manifest && !errors.length, errors.join(" ; "));
-  check("schema : config copiee telle quelle", manifest.config.map(f => f.key), ["jeton"]);
+  check(
+    "schema : config copiee telle quelle",
+    manifest.config.map(f => f.key),
+    ["jeton"]
+  );
 
   // Un id qui ne correspond pas au dossier est rejete : rien n'est renvoye.
   const mismatch = [];
@@ -122,13 +180,18 @@ async function main(){
 
   const badType = [];
   const bad = validateManifest("demo", { config: [{ key: "x", type: "fichier" }] }, badType);
-  ok("schema : type de champ inconnu rejete",
-    !bad.config.some(f => f.type === "fichier") && badType.length === 1);
+  ok(
+    "schema : type de champ inconnu rejete",
+    !bad.config.some(f => f.type === "fichier") && badType.length === 1
+  );
 
   const dup = [];
-  const dupManifest = validateManifest("demo",
-    { config: [{ key: "a" }, { key: "a" }] }, dup);
-  check("schema : cle dupliquee eliminee", dupManifest.config.map(f => f.key), ["a"]);
+  const dupManifest = validateManifest("demo", { config: [{ key: "a" }, { key: "a" }] }, dup);
+  check(
+    "schema : cle dupliquee eliminee",
+    dupManifest.config.map(f => f.key),
+    ["a"]
+  );
   ok("schema : cle dupliquee signalee", dup.length === 1);
 
   // --- Core : config, secrets, cle de cache -----------------------------
@@ -136,43 +199,69 @@ async function main(){
     root: ROOT,
     dataDir: os.tmpdir(),
     log: silentLogger,
-    decryptSecret: value => value,                       // simulation : pas de cle
-    encryptSecret: value => value ? "aes1." + Buffer.from(String(value)).toString("base64") : "",
+    decryptSecret: value => value, // simulation : pas de cle
+    encryptSecret: value => (value ? "aes1." + Buffer.from(String(value)).toString("base64") : ""),
     sanitizeText: value => String(value == null ? "" : value).slice(0, 100),
     sanitizeUrl: value => String(value == null ? "" : value).trim(),
     statusCache: {}
   });
   await core.load();
 
-  check("core : intervalle lu depuis le manifest",
-    core.interval({ widget: { type: "lichess" } }), 86400000);
-  check("core : intervalle par defaut pour un widget inconnu",
-    core.interval({ widget: { type: "inconnu" } }), 300000);
+  check(
+    "core : intervalle lu depuis le manifest",
+    core.interval({ widget: { type: "lichess" } }),
+    86400000
+  );
+  check(
+    "core : intervalle par defaut pour un widget inconnu",
+    core.interval({ widget: { type: "inconnu" } }),
+    300000
+  );
 
   // Un service sans widget est un lien : c'est le plugin du slot "link" qui le
   // prend en charge, et c'est son manifeste qui donne la periode.
   const plainLink = { url: "https://exemple.lan/", monitor: true };
-  check("core : un lien nu est couvert par le plugin \"link\"",
-    core.pluginFor(plainLink).id, "web");
+  check('core : un lien nu est couvert par le plugin "link"', core.pluginFor(plainLink).id, "web");
   ok("core : le plugin de lien est signale", core.linkPlugin().id === "web");
   ok("core : un lien nu est surveillable", core.handles(plainLink));
-  check("core : la periode d'un lien nu vient du plugin de lien",
-    core.interval(plainLink), 300000);
-  check("core : la cle d'un lien nu reste son URL", core.cacheKey(plainLink), "https://exemple.lan/");
+  check("core : la periode d'un lien nu vient du plugin de lien", core.interval(plainLink), 300000);
+  check(
+    "core : la cle d'un lien nu reste son URL",
+    core.cacheKey(plainLink),
+    "https://exemple.lan/"
+  );
   // Le widget Ping teste un hote choisi, pas l'URL de la carte : deux cartes
   // sans URL ne doivent donc pas se marcher dessus dans le cache de statut.
-  const pingKeyA = core.cacheKey({ name: "a", url: "", widget: { type: "ping", host: "192.0.2.10" } });
-  const pingKeyB = core.cacheKey({ name: "b", url: "", widget: { type: "ping", host: "192.0.2.11" } });
-  ok("core : deux tuiles ping sans URL ont des cles distinctes",
+  const pingKeyA = core.cacheKey({
+    name: "a",
+    url: "",
+    widget: { type: "ping", host: "192.0.2.10" }
+  });
+  const pingKeyB = core.cacheKey({
+    name: "b",
+    url: "",
+    widget: { type: "ping", host: "192.0.2.11" }
+  });
+  ok(
+    "core : deux tuiles ping sans URL ont des cles distinctes",
     pingKeyA !== pingKeyB && pingKeyA.startsWith("ping:") && pingKeyB.startsWith("ping:"),
-    pingKeyA + " / " + pingKeyB);
-  check("core : un widget explicite l'emporte sur le plugin de lien",
-    core.pluginFor({ url: "https://exemple.lan/", widget: { type: "github", repo: "a/b" } }).id, "github");
-  ok("core : un widget installe est surveillable",
-    core.handles({ url: "https://exemple.lan/", widget: { type: "github", repo: "a/b" } }));
+    pingKeyA + " / " + pingKeyB
+  );
+  check(
+    "core : un widget explicite l'emporte sur le plugin de lien",
+    core.pluginFor({ url: "https://exemple.lan/", widget: { type: "github", repo: "a/b" } }).id,
+    "github"
+  );
+  ok(
+    "core : un widget installe est surveillable",
+    core.handles({ url: "https://exemple.lan/", widget: { type: "github", repo: "a/b" } })
+  );
   // Un widget inconnu n'est pas rebascule sur la sonde de lien : le core ne
   // connait pas son schema, il ne peut donc pas collecter a sa place.
-  ok("core : widget inconnu = non surveillable", !core.handles({ url: "https://x.lan/", widget: { type: "inconnu" } }));
+  ok(
+    "core : widget inconnu = non surveillable",
+    !core.handles({ url: "https://x.lan/", widget: { type: "inconnu" } })
+  );
 
   // Le core est le seul a savoir depuis quand un service a ete verifie : le
   // plugin n'ecrit pas la cle lui-meme. Il doit aussi garder le temps de
@@ -184,14 +273,24 @@ async function main(){
   check("http : link-local IPv6 refusee", httpLib.isBlockedAddress("fe80::1"), true);
   check("http : LAN IPv4 admise", httpLib.isBlockedAddress("192.168.1.1"), false);
   check("http : loopback admise", httpLib.isBlockedAddress("127.0.0.1"), false);
-  const blockedMetadata = await httpLib.apiRequest("http://169.254.169.254", "").catch(error => error);
+  const blockedMetadata = await httpLib
+    .apiRequest("http://169.254.169.254", "")
+    .catch(error => error);
   check("http : requete metadata refusee avant connexion", blockedMetadata.code, "EHOSTUNREACH");
   const blockedMetadataV6 = await httpLib.apiRequest("http://[fe80::1]", "").catch(error => error);
-  check("http : requete metadata IPv6 refusee avant connexion", blockedMetadataV6.code, "EHOSTUNREACH");
+  check(
+    "http : requete metadata IPv6 refusee avant connexion",
+    blockedMetadataV6.code,
+    "EHOSTUNREACH"
+  );
   const msCore = new WidgetCore({
-    root: ROOT, dataDir: os.tmpdir(), log: m => logLines.push(String(m)),
-    decryptSecret: v => v, encryptSecret: v => v,
-    sanitizeText: v => String(v == null ? "" : v), sanitizeUrl: v => String(v == null ? "" : v).trim(),
+    root: ROOT,
+    dataDir: os.tmpdir(),
+    log: m => logLines.push(String(m)),
+    decryptSecret: v => v,
+    encryptSecret: v => v,
+    sanitizeText: v => String(v == null ? "" : v),
+    sanitizeUrl: v => String(v == null ? "" : v).trim(),
     statusCache: msCache
   });
   await msCore.load();
@@ -222,95 +321,180 @@ async function main(){
   }
   check("core : lien tombe = etat down", msCache["https://exemple.test/"].state, "down");
   check("core : panne signalee une seule fois", downLines().length, 1);
-  ok("core : la panne nomme le service",
-    logLines.some(m => m.includes("https://exemple.test/")), show(logLines));
+  ok(
+    "core : la panne nomme le service",
+    logLines.some(m => m.includes("https://exemple.test/")),
+    show(logLines)
+  );
 
   // Widget a cle par service (une entree de cache par URL de service).
-  const adguardService = { url: "https://portainer.exemple.lan/", widget: { type: "adguard", protocol: "https", url: "", username: "", password: "aes1.c2VjcmV0" } };
-  const adguardService2 = { url: "https://autre.lan/", widget: { type: "adguard", protocol: "https", url: "", username: "", password: "aes1.c2VjcmV0" } };
-  check("core : cle par service = URL du service", core.cacheKey(adguardService), "https://portainer.exemple.lan/");
-  ok("core : deux services du meme widget = deux entrees",
-    core.cacheKey(adguardService) !== core.cacheKey(adguardService2));
+  const adguardService = {
+    url: "https://portainer.exemple.lan/",
+    widget: { type: "adguard", protocol: "https", url: "", username: "", password: "aes1.c2VjcmV0" }
+  };
+  const adguardService2 = {
+    url: "https://autre.lan/",
+    widget: { type: "adguard", protocol: "https", url: "", username: "", password: "aes1.c2VjcmV0" }
+  };
+  check(
+    "core : cle par service = URL du service",
+    core.cacheKey(adguardService),
+    "https://portainer.exemple.lan/"
+  );
+  ok(
+    "core : deux services du meme widget = deux entrees",
+    core.cacheKey(adguardService) !== core.cacheKey(adguardService2)
+  );
 
   // Widget a cle par configuration (une entree partagee : le socket Docker
   // n'appartient a aucun service, deux tuiles Docker partagent le cache).
   const dockerLocal = { url: "", widget: { type: "docker", mode: "local", url: "" } };
   const dockerLocal2 = { url: "autre-chose", widget: { type: "docker", mode: "local", url: "" } };
   const dockerTcp = { url: "", widget: { type: "docker", mode: "tcp", url: "tcp://hote:2375" } };
-  check("core : cle Docker locale partagee entre services",
-    core.cacheKey(dockerLocal), core.cacheKey(dockerLocal2));
-  ok("core : cle Docker TCP differente du socket local",
-    core.cacheKey(dockerLocal) !== core.cacheKey(dockerTcp));
+  check(
+    "core : cle Docker locale partagee entre services",
+    core.cacheKey(dockerLocal),
+    core.cacheKey(dockerLocal2)
+  );
+  ok(
+    "core : cle Docker TCP differente du socket local",
+    core.cacheKey(dockerLocal) !== core.cacheKey(dockerTcp)
+  );
   check("core : cle Docker TCP deterministe", core.cacheKey(dockerTcp), core.cacheKey(dockerTcp));
 
   // Serialisation : le serveur est l'autorite, il ne renvoie que les champs
   // declares par le manifest.
-  check("core : config Docker complete",
+  check(
+    "core : config Docker complete",
     core.sanitizeWidget({ type: "docker", mode: "tcp", url: " tcp://hote:2375 ", hostId: "x" }),
-    { type: "docker", mode: "tcp", url: "tcp://hote:2375" });
-  check("core : config Docker locale par defaut",
+    { type: "docker", mode: "tcp", url: "tcp://hote:2375" }
+  );
+  check(
+    "core : config Docker locale par defaut",
     core.sanitizeWidget({ type: "docker", mode: "n'importe quoi", url: 42 }),
-    { type: "docker", mode: "local", url: "42" });
-  check("core : config AdGuard complete",
-    core.sanitizeWidget({ type: "adguard", protocol: "http", url: "portainer.exemple.lan:3000", username: "u", password: "aes1.YQ==" }),
-    { type: "adguard", protocol: "http", url: "portainer.exemple.lan:3000", username: "u", password: "aes1.YQ==" });
-  check("core : select hors options retombe sur le defaut",
+    { type: "docker", mode: "local", url: "42" }
+  );
+  check(
+    "core : config AdGuard complete",
+    core.sanitizeWidget({
+      type: "adguard",
+      protocol: "http",
+      url: "portainer.exemple.lan:3000",
+      username: "u",
+      password: "aes1.YQ=="
+    }),
+    {
+      type: "adguard",
+      protocol: "http",
+      url: "portainer.exemple.lan:3000",
+      username: "u",
+      password: "aes1.YQ=="
+    }
+  );
+  check(
+    "core : select hors options retombe sur le defaut",
     core.sanitizeWidget({ type: "lichess", username: "exemple", variant: "torpedo" }),
-    { type: "lichess", username: "exemple", variant: "" });
-  check("core : widget inconnu -> null (aucune config fantome)",
-    core.sanitizeWidget({ type: "inconnu", foo: "bar" }), null);
-  check("core : champ declare absent -> valeur vide",
-    core.sanitizeWidget({ type: "duplicati" }), { type: "duplicati", password: "" });
-  check("core : config GitHub complete (statistique par defaut = etoiles)",
-    core.sanitizeWidget({ type: "github", repo: " exemple-org/exemple-repo ", metric: "forks", n: 1 }),
-    { type: "github", repo: "exemple-org/exemple-repo", metric: "forks" });
-  check("core : statistique GitHub hors options -> etoiles",
+    { type: "lichess", username: "exemple", variant: "" }
+  );
+  check(
+    "core : widget inconnu -> null (aucune config fantome)",
+    core.sanitizeWidget({ type: "inconnu", foo: "bar" }),
+    null
+  );
+  check("core : champ declare absent -> valeur vide", core.sanitizeWidget({ type: "duplicati" }), {
+    type: "duplicati",
+    password: ""
+  });
+  check(
+    "core : config GitHub complete (statistique par defaut = etoiles)",
+    core.sanitizeWidget({
+      type: "github",
+      repo: " exemple-org/exemple-repo ",
+      metric: "forks",
+      n: 1
+    }),
+    { type: "github", repo: "exemple-org/exemple-repo", metric: "forks" }
+  );
+  check(
+    "core : statistique GitHub hors options -> etoiles",
     core.sanitizeWidget({ type: "github", repo: "a/b", metric: "commits" }),
-    { type: "github", repo: "a/b", metric: "stars" });
-  check("core : config Docker Hub", core.sanitizeWidget({ type: "dockerhub", repo: "library/nginx" }),
-    { type: "dockerhub", repo: "library/nginx" });
-  check("core : config YouTube", core.sanitizeWidget({ type: "youtube", username: "@exemple" }),
-    { type: "youtube", username: "@exemple" });
+    { type: "github", repo: "a/b", metric: "stars" }
+  );
+  check(
+    "core : config Docker Hub",
+    core.sanitizeWidget({ type: "dockerhub", repo: "library/nginx" }),
+    { type: "dockerhub", repo: "library/nginx" }
+  );
+  check("core : config YouTube", core.sanitizeWidget({ type: "youtube", username: "@exemple" }), {
+    type: "youtube",
+    username: "@exemple"
+  });
   // Le plugin de lien n'a aucun champ : une config le concernant est vide, et
   // le client n'a rien a afficher dans l'editeur.
-  check("core : le plugin de lien n'a pas de champ", core.sanitizeWidget({ type: "web" }), { type: "web" });
+  check("core : le plugin de lien n'a pas de champ", core.sanitizeWidget({ type: "web" }), {
+    type: "web"
+  });
 
   // Un widget dont le type n'est pas installe n'est pas efface : le core ne
   // connait pas son schema, donc il ne peut pas le reecrire. La config survit a
   // un plugin temporairement absent (dossier supprime, manifeste invalide).
-  check("core : widget inconnu conserve ses champs",
+  check(
+    "core : widget inconnu conserve ses champs",
     core.preserveWidget({ type: "inconnu", jeton: "abc", actif: true, n: 3 }),
-    { type: "inconnu", jeton: "abc", actif: true, n: 3 });
-  check("core : widget inconnu : types exotiques et cles proto ecartees",
-    core.preserveWidget({ type: "inconnu", objet: { a: 1 }, liste: [1], vide: null, "__proto__": "x" }),
-    { type: "inconnu" });
-  check("core : widget inconnu : type invalide -> null",
-    core.preserveWidget({ type: "../../etc/passwd", a: "b" }), null);
+    { type: "inconnu", jeton: "abc", actif: true, n: 3 }
+  );
+  check(
+    "core : widget inconnu : types exotiques et cles proto ecartees",
+    core.preserveWidget({
+      type: "inconnu",
+      objet: { a: 1 },
+      liste: [1],
+      vide: null,
+      __proto__: "x"
+    }),
+    { type: "inconnu" }
+  );
+  check(
+    "core : widget inconnu : type invalide -> null",
+    core.preserveWidget({ type: "../../etc/passwd", a: "b" }),
+    null
+  );
   check("core : sans widget -> null", core.preserveWidget(null), null);
-  ok("core : la cle de statut d'un widget inconnu reste son URL de service",
-    core.cacheKey({ url: "https://inconnu.lan/", widget: { type: "inconnu", jeton: "x" } })
-      === "https://inconnu.lan/");
+  ok(
+    "core : la cle de statut d'un widget inconnu reste son URL de service",
+    core.cacheKey({ url: "https://inconnu.lan/", widget: { type: "inconnu", jeton: "x" } }) ===
+      "https://inconnu.lan/"
+  );
 
   // Un secret en clair est chiffre a l'ecriture, un secret deja chiffre est
   // conserve tel quel (le re-chiffrement a chaque sauvegarde tournerait la cle
   // de cache et ferait relancer tous les checks).
   const encrypted = core.sanitizeWidget({ type: "duplicati", password: "motdepasse" });
-  ok("core : secret en clair chiffre a l'ecriture",
-    String(encrypted.password).startsWith("aes1.") && encrypted.password !== "motdepasse");
-  check("core : secret deja chiffre non re-chiffre",
-    core.sanitizeWidget({ type: "duplicati", password: "aes1.YWJj" }).password, "aes1.YWJj");
+  ok(
+    "core : secret en clair chiffre a l'ecriture",
+    String(encrypted.password).startsWith("aes1.") && encrypted.password !== "motdepasse"
+  );
+  check(
+    "core : secret deja chiffre non re-chiffre",
+    core.sanitizeWidget({ type: "duplicati", password: "aes1.YWJj" }).password,
+    "aes1.YWJj"
+  );
 
   // Purge : une entree de cache orpheline disparait, une entree de service
   // supprimee aussi, et la memoire du widget (jetons Duplicati) suit.
   const cache = {
     "https://portainer.exemple.lan/": { state: "adguard" },
     "https://supprime.lan/": { state: "adguard" },
-    "orphelin": { state: "docker" }
+    orphelin: { state: "docker" }
   };
   const purgeCore = new WidgetCore({
-    root: ROOT, dataDir: os.tmpdir(), log: silentLogger,
-    decryptSecret: v => v, encryptSecret: v => v,
-    sanitizeText: v => String(v == null ? "" : v), sanitizeUrl: v => String(v == null ? "" : v).trim(),
+    root: ROOT,
+    dataDir: os.tmpdir(),
+    log: silentLogger,
+    decryptSecret: v => v,
+    encryptSecret: v => v,
+    sanitizeText: v => String(v == null ? "" : v),
+    sanitizeUrl: v => String(v == null ? "" : v).trim(),
     statusCache: cache
   });
   await purgeCore.load();
@@ -321,18 +505,44 @@ async function main(){
   // supprime est oublie. Attention : le hook purge() d'un widget ne recoit que
   // les services de SON type (c'est lui qui decide de ce qu'il oublie).
   purgeCore.purge([{ url: "https://portainer.exemple.lan/", widget: { type: "adguard" } }]);
-  check("core : purge des entrees orphelines", Object.keys(cache).sort(), ["https://portainer.exemple.lan/"]);
-  check("core : purge d'un widget sans service actif oublie tout",
-    [...duplicatiState.tokens.keys()], []);
+  check("core : purge des entrees orphelines", Object.keys(cache).sort(), [
+    "https://portainer.exemple.lan/"
+  ]);
+  check(
+    "core : purge d'un widget sans service actif oublie tout",
+    [...duplicatiState.tokens.keys()],
+    []
+  );
 
   // --- Exposition HTTP : liste publique et garde-fous de fichiers ---------
   const publicList = core.publicList();
-  check("core : liste publique = ids installes", publicList.map(w => w.id),
-    ["adguard", "docker", "dockerhub", "duplicati", "github", "gotify", "lichess", "metube", "ping", "qbittorrent", "uptimekuma", "web", "youtube"]);
-  ok("core : aucune fonctionCheck exposee",
-    publicList.every(w => typeof w.check === "undefined" && typeof w.createState === "undefined"));
-  ok("core : la liste publique porte le schema de config",
-    publicList.find(w => w.id === "docker").config.length === 2);
+  check(
+    "core : liste publique = ids installes",
+    publicList.map(w => w.id),
+    [
+      "adguard",
+      "docker",
+      "dockerhub",
+      "duplicati",
+      "github",
+      "gotify",
+      "lichess",
+      "metube",
+      "ping",
+      "qbittorrent",
+      "uptimekuma",
+      "web",
+      "youtube"
+    ]
+  );
+  ok(
+    "core : aucune fonctionCheck exposee",
+    publicList.every(w => typeof w.check === "undefined" && typeof w.createState === "undefined")
+  );
+  ok(
+    "core : la liste publique porte le schema de config",
+    publicList.find(w => w.id === "docker").config.length === 2
+  );
 
   const asset = core.clientAsset("docker", "js");
   ok("core : renderer client servi", !!asset && asset.type === "text/javascript");
@@ -340,8 +550,10 @@ async function main(){
   check("core : widget inexistant -> pas d'asset", core.clientAsset("inconnu", "js"), null);
   check("core : widget sans CSS declare -> pas d'asset", core.clientAsset("adguard", "css"), null);
   check("core : CSS declare -> asset servi", core.clientAsset("docker", "css").type, "text/css");
-  ok("core : le CSS du widget est bien son fichier",
-    String(core.clientAsset("docker", "css").body).includes(".widget-status.widget-docker"));
+  ok(
+    "core : le CSS du widget est bien son fichier",
+    String(core.clientAsset("docker", "css").body).includes(".widget-status.widget-docker")
+  );
   check("core : widget sans client -> pas d'asset", core.clientAsset("inconnu", "css"), null);
 
   // Un manifest qui designe un fichier hors de son dossier est rejete : c'est
@@ -351,9 +563,14 @@ async function main(){
   const evilDir = path.join(evilRoot, "evil");
   try {
     fs.mkdirSync(evilDir);
-    fs.writeFileSync(path.join(evilDir, "manifest.json"), JSON.stringify({
-      id: "evil", client: "../serveur.js", server: "server.js"
-    }));
+    fs.writeFileSync(
+      path.join(evilDir, "manifest.json"),
+      JSON.stringify({
+        id: "evil",
+        client: "../serveur.js",
+        server: "server.js"
+      })
+    );
     fs.writeFileSync(path.join(evilDir, "server.js"), "module.exports={check(){}};");
     const evil = new Registry({ kind: "widget", roots: [evilRoot], logger: silentLogger });
     await evil.load();
@@ -363,32 +580,43 @@ async function main(){
     // Un dossier de plugin dont le nom est invalide (majuscule) doit etre
     // signale, pas ignore en silence.
     fs.mkdirSync(path.join(evilRoot, "MyPlugin"));
-    fs.writeFileSync(path.join(evilRoot, "MyPlugin", "manifest.json"), JSON.stringify({ id: "MyPlugin" }));
+    fs.writeFileSync(
+      path.join(evilRoot, "MyPlugin", "manifest.json"),
+      JSON.stringify({ id: "MyPlugin" })
+    );
     const sloppy = new Registry({ kind: "widget", roots: [evilRoot], logger: silentLogger });
     await sloppy.load();
-    check("registre : nom de dossier invalide signale",
-      sloppy.failures.map(f => f.id).sort(), ["MyPlugin", "evil"]);
+    check("registre : nom de dossier invalide signale", sloppy.failures.map(f => f.id).sort(), [
+      "MyPlugin",
+      "evil"
+    ]);
     // Deux plugins ne peuvent pas revendiquer le meme slot : le second est
     // refuse plutot que de voler la place du premier dans l'ordre de tri.
     for (const id of ["lien-a", "lien-b"]) {
       fs.mkdirSync(path.join(evilRoot, id));
-      fs.writeFileSync(path.join(evilRoot, id, "manifest.json"),
-        JSON.stringify({ id, defaultFor: "link", server: "server.js" }));
+      fs.writeFileSync(
+        path.join(evilRoot, id, "manifest.json"),
+        JSON.stringify({ id, defaultFor: "link", server: "server.js" })
+      );
       fs.writeFileSync(path.join(evilRoot, id, "server.js"), "module.exports={check(){}};");
     }
     const greedy = new Registry({ kind: "widget", roots: [evilRoot], logger: silentLogger });
     await greedy.load();
-    check("registre : un seul plugin garde le slot \"link\"", greedy.bySlot("link").id, "lien-a");
+    check('registre : un seul plugin garde le slot "link"', greedy.bySlot("link").id, "lien-a");
     check("registre : le second plugin du slot est refuse", greedy.get("lien-b"), null);
-    ok("registre : conflit de slot signale",
+    ok(
+      "registre : conflit de slot signale",
       greedy.failures.some(f => f.id === "lien-b" && /slot|link/i.test(String(f.reason))),
-      show(greedy.failures));
+      show(greedy.failures)
+    );
 
     // Un plugin interne (hidden) n'a pas besoin de renderer : c'est le client
     // generique qui dessine son resultat.
     fs.mkdirSync(path.join(evilRoot, "sansvue"));
-    fs.writeFileSync(path.join(evilRoot, "sansvue", "manifest.json"),
-      JSON.stringify({ id: "sansvue", hidden: true, server: "server.js" }));
+    fs.writeFileSync(
+      path.join(evilRoot, "sansvue", "manifest.json"),
+      JSON.stringify({ id: "sansvue", hidden: true, server: "server.js" })
+    );
     fs.writeFileSync(path.join(evilRoot, "sansvue", "server.js"), "module.exports={check(){}};");
     const internal = new Registry({ kind: "widget", roots: [evilRoot], logger: silentLogger });
     await internal.load();
@@ -397,14 +625,22 @@ async function main(){
     // Un slot qui n'existe pas dans le core est une erreur de developpement :
     // le plugin n'est pas charge plutot que de devenir un widget injoignable.
     fs.mkdirSync(path.join(evilRoot, "mauvaisslot"));
-    fs.writeFileSync(path.join(evilRoot, "mauvaisslot", "manifest.json"),
-      JSON.stringify({ id: "mauvaisslot", defaultFor: "bidule", server: "server.js" }));
-    fs.writeFileSync(path.join(evilRoot, "mauvaisslot", "server.js"), "module.exports={check(){}};");
+    fs.writeFileSync(
+      path.join(evilRoot, "mauvaisslot", "manifest.json"),
+      JSON.stringify({ id: "mauvaisslot", defaultFor: "bidule", server: "server.js" })
+    );
+    fs.writeFileSync(
+      path.join(evilRoot, "mauvaisslot", "server.js"),
+      "module.exports={check(){}};"
+    );
     const wrong = new Registry({ kind: "widget", roots: [evilRoot], logger: silentLogger });
     await wrong.load();
     check("registre : slot inconnu refuse", wrong.get("mauvaisslot"), null);
-    ok("registre : slot inconnu signale",
-      wrong.failures.some(f => f.id === "mauvaisslot" && /defaultFor/i.test(String(f.reason))), show(wrong.failures));
+    ok(
+      "registre : slot inconnu signale",
+      wrong.failures.some(f => f.id === "mauvaisslot" && /defaultFor/i.test(String(f.reason))),
+      show(wrong.failures)
+    );
   } finally {
     fs.rmSync(evilRoot, { recursive: true, force: true });
   }
@@ -416,8 +652,10 @@ async function main(){
     fs.mkdirSync(path.join(mixedDir, "casse"));
     fs.writeFileSync(path.join(mixedDir, "casse", "manifest.json"), "{ pas du json");
     fs.mkdirSync(path.join(mixedDir, "sansbackend"));
-    fs.writeFileSync(path.join(mixedDir, "sansbackend", "manifest.json"),
-      JSON.stringify({ id: "sansbackend", server: "server.js" }));
+    fs.writeFileSync(
+      path.join(mixedDir, "sansbackend", "manifest.json"),
+      JSON.stringify({ id: "sansbackend", server: "server.js" })
+    );
     fs.writeFileSync(path.join(mixedDir, "sansbackend", "server.js"), "module.exports={};");
     const mixed = new Registry({ kind: "widget", roots: [mixedDir], logger: silentLogger });
     await mixed.load();
@@ -434,17 +672,27 @@ async function main(){
   const storageDir = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-stock-"));
   try {
     const storage = new Storage({ dir: storageDir, log: silentLogger });
-    check("storage : defaut quand le fichier n'existe pas", storage.read("absent", { a: 1 }), { a: 1 });
+    check("storage : defaut quand le fichier n'existe pas", storage.read("absent", { a: 1 }), {
+      a: 1
+    });
     ok("storage : ecriture acceptee", storage.write("note", { elo: 1500 }));
     check("storage : relecture fidele", storage.read("note"), { elo: 1500 });
     check("storage : nom invalide -> aucun chemin", storage.file("../evasion"), null);
     check("storage : traversee ecrasee", storage.file("a/b"), null);
-    ok("storage : ecriture refusee hors espace nomme", storage.write("../evasion", { x: 1 }) === false);
-    ok("storage : rien ecrit a cote", !fs.existsSync(path.join(path.dirname(storageDir), "evasion.json")));
+    ok(
+      "storage : ecriture refusee hors espace nomme",
+      storage.write("../evasion", { x: 1 }) === false
+    );
+    ok(
+      "storage : rien ecrit a cote",
+      !fs.existsSync(path.join(path.dirname(storageDir), "evasion.json"))
+    );
     fs.writeFileSync(path.join(storageDir, "widgets", "casse.json"), "{ pas du json");
     check("storage : JSON illisible -> defaut", storage.read("casse", "defaut"), "defaut");
-    ok("storage : valeur trop volumineuse refusee",
-      storage.write("gros", { s: "x".repeat(1024 * 1024 + 16) }) === false);
+    ok(
+      "storage : valeur trop volumineuse refusee",
+      storage.write("gros", { s: "x".repeat(1024 * 1024 + 16) }) === false
+    );
   } finally {
     fs.rmSync(storageDir, { recursive: true, force: true });
   }
@@ -457,44 +705,71 @@ async function main(){
   const files = new Map();
   const memoryStorage = {
     read: (name, fallback) => (files.has(name) ? files.get(name) : fallback),
-    write: (name, value) => { files.set(name, value); return true; }
+    write: (name, value) => {
+      files.set(name, value);
+      return true;
+    }
   };
-  const lichessCtx = (over) => Object.assign({
-    config: { username: "exemple", variant: "" },
-    service: { url: "https://lichess.org/" },
-    state: lichessServer.createState(),
-    storage: memoryStorage,
-    sanitizeUrl: v => String(v == null ? "" : v).trim(),
-    t: k => k,
-    api: async () => ({ perfs: { blitz: { rating: 1500 } } })
-  }, over || {});
+  const lichessCtx = over =>
+    Object.assign(
+      {
+        config: { username: "exemple", variant: "" },
+        service: { url: "https://lichess.org/" },
+        state: lichessServer.createState(),
+        storage: memoryStorage,
+        sanitizeUrl: v => String(v == null ? "" : v).trim(),
+        t: k => k,
+        api: async () => ({ perfs: { blitz: { rating: 1500 } } })
+      },
+      over || {}
+    );
   const throttled = () => {
     const error = new Error("HTTP 429 Too many requests");
     error.status = 429;
-    return async () => { throw error; };
+    return async () => {
+      throw error;
+    };
   };
 
   const first = await lichessServer.check(lichessCtx());
-  check("lichess : premiere mesure enregistree",
-    [first.ok, first.elo, first.variant], [true, 1500, "blitz"]);
+  check(
+    "lichess : premiere mesure enregistree",
+    [first.ok, first.elo, first.variant],
+    [true, 1500, "blitz"]
+  );
   check("lichess : premier jour, pas encore d'evolution", first.monthDelta, null);
-  ok("lichess : l'historique est ecrit sur disque",
-    files.has("lichess-history") && !!files.get("lichess-history").entries["exemple|*"].history);
+  ok(
+    "lichess : l'historique est ecrit sur disque",
+    files.has("lichess-history") && !!files.get("lichess-history").entries["exemple|*"].history
+  );
 
   // 30 jours plus tot : la note de reference existe deja.
   const day30 = lichessServer.dayKey(Date.now() - 30 * DAY_MS);
   files.set("lichess-history", {
     version: 1,
-    entries: { "exemple|*": { elo: 1450, variant: "blitz", at: Date.now() - 30 * DAY_MS, history: { [day30]: 1450 } } }
+    entries: {
+      "exemple|*": {
+        elo: 1450,
+        variant: "blitz",
+        at: Date.now() - 30 * DAY_MS,
+        history: { [day30]: 1450 }
+      }
+    }
   });
   const monthly = await lichessServer.check(lichessCtx());
-  check("lichess : evolution sur un mois = 30 jours",
-    [monthly.monthDelta, monthly.monthDays], [50, 30]);
+  check(
+    "lichess : evolution sur un mois = 30 jours",
+    [monthly.monthDelta, monthly.monthDays],
+    [50, 30]
+  );
 
   // Le rate limit frappe : la tuile garde la derniere note et son evolution.
   const limited = await lichessServer.check(lichessCtx({ api: throttled() }));
-  check("lichess : 429 conserve le dernier ELO",
-    [limited.ok, limited.elo, limited.variant, limited.stale], [false, 1500, "blitz", true]);
+  check(
+    "lichess : 429 conserve le dernier ELO",
+    [limited.ok, limited.elo, limited.variant, limited.stale],
+    [false, 1500, "blitz", true]
+  );
   check("lichess : 429 conserve l'evolution mensuelle", limited.monthDelta, 50);
   ok("lichess : l'erreur reste signalee", String(limited.error).includes("429"), limited.error);
 
@@ -503,7 +778,10 @@ async function main(){
   for (let i = 0; i < 200; i++) {
     ancien[lichessServer.dayKey(Date.now() - i * DAY_MS)] = 1400 + i;
   }
-  files.set("lichess-history", { version: 1, entries: { "exemple|*": { elo: 1400, variant: "blitz", at: 0, history: ancien } } });
+  files.set("lichess-history", {
+    version: 1,
+    entries: { "exemple|*": { elo: 1400, variant: "blitz", at: 0, history: ancien } }
+  });
   await lichessServer.check(lichessCtx());
   const kept = Object.keys(files.get("lichess-history").entries["exemple|*"].history);
   check("lichess : historique elague a la fenetre utile", kept.length, 76);
@@ -512,28 +790,40 @@ async function main(){
   // pas de valeur.
   files.clear();
   const noData = await lichessServer.check(lichessCtx({ api: throttled() }));
-  check("lichess : aucune note connue -> pas de valeur fantome",
-    [noData.elo, noData.stale, noData.monthDelta], [null, false, null]);
+  check(
+    "lichess : aucune note connue -> pas de valeur fantome",
+    [noData.elo, noData.stale, noData.monthDelta],
+    [null, false, null]
+  );
 
   // Le pseudo et la variante ont des historiques distincts.
   files.clear();
   await lichessServer.check(lichessCtx());
-  const rapid = await lichessServer.check(lichessCtx({
-    config: { username: "exemple", variant: "rapid" },
-    api: async () => ({ perfs: { blitz: { rating: 1500 }, rapid: { rating: 1800 } } })
-  }));
-  check("lichess : historique par joueur et par variante",
+  const rapid = await lichessServer.check(
+    lichessCtx({
+      config: { username: "exemple", variant: "rapid" },
+      api: async () => ({ perfs: { blitz: { rating: 1500 }, rapid: { rating: 1800 } } })
+    })
+  );
+  check(
+    "lichess : historique par joueur et par variante",
     [Object.keys(files.get("lichess-history").entries).sort(), rapid.elo, rapid.variant],
-    [["exemple|*", "exemple|rapid"], 1800, "rapid"]);
+    [["exemple|*", "exemple|rapid"], 1800, "rapid"]
+  );
 
   // Un compte sans note pour la variante demandee retombe sur la valeur
   // enregistree plutot que d'afficher un tiret.
-  const sansVariante = await lichessServer.check(lichessCtx({
-    config: { username: "exemple", variant: "bullet" },
-    api: async () => ({ perfs: { blitz: { rating: 1500 } } })
-  }));
-  check("lichess : variante absente de l'API = valeur conservee",
-    [sansVariante.ok, sansVariante.elo, sansVariante.stale], [false, null, false]);
+  const sansVariante = await lichessServer.check(
+    lichessCtx({
+      config: { username: "exemple", variant: "bullet" },
+      api: async () => ({ perfs: { blitz: { rating: 1500 } } })
+    })
+  );
+  check(
+    "lichess : variante absente de l'API = valeur conservee",
+    [sansVariante.ok, sansVariante.elo, sansVariante.stale],
+    [false, null, false]
+  );
 
   // --- Sonde HTTP du plugin de lien (boucle locale uniquement) ------------
   // Le plugin "web" remplace la sonde codee en dur de server.js : elle est donc
@@ -541,51 +831,89 @@ async function main(){
   const nodeHttp = require("http");
   const webServer = require(path.join(WIDGETS, "web", "server.js"));
   const listener = nodeHttp.createServer((req, res) => {
-    if (req.url === "/ok") { res.writeHead(200, { "Content-Type": "text/plain" }); res.end("bonjour"); return; }
+    if (req.url === "/ok") {
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.end("bonjour");
+      return;
+    }
     if (req.url === "/gros") {
       res.writeHead(200, { "Content-Type": "text/plain" });
       res.end("x".repeat(64 * 1024));
       return;
     }
-    if (req.url === "/boum") { res.writeHead(503); res.end("service arrete"); return; }
+    if (req.url === "/boum") {
+      res.writeHead(503);
+      res.end("service arrete");
+      return;
+    }
     res.writeHead(404);
     res.end("introuvable");
   });
   await new Promise(resolve => listener.listen(0, "127.0.0.1", resolve));
   const base = "http://127.0.0.1:" + listener.address().port;
-  const probeCtx = url => ({ service: { url, monitor: true }, t: k => k, probe: (href, timeout) => httpLib.httpProbe(href, timeout) });
+  const probeCtx = url => ({
+    service: { url, monitor: true },
+    t: k => k,
+    probe: (href, timeout) => httpLib.httpProbe(href, timeout)
+  });
   try {
     const live = await webServer.check(probeCtx(base + "/ok"));
-    check("web : lien qui repond = point vert", [live.state, live.ok, live.code], ["up", true, 200]);
+    check(
+      "web : lien qui repond = point vert",
+      [live.state, live.ok, live.code],
+      ["up", true, 200]
+    );
     ok("web : temps de reponse mesure", Number.isFinite(live.ms), show(live));
     const broken = await webServer.check(probeCtx(base + "/boum"));
     // Une erreur 5xx est un echec du service derriere : nginx repond, mais
     // l'application est tombee. Une pastille verte serait un faux positif, donc
     // 503 tombe en rouge. Le code reste visible pour le diagnostic.
-    check("web : erreur 5xx = point rouge", [broken.state, broken.ok, broken.code], ["down", false, 503]);
+    check(
+      "web : erreur 5xx = point rouge",
+      [broken.state, broken.ok, broken.code],
+      ["down", false, 503]
+    );
     check("web : l'erreur nomme le code HTTP", /503/.test(broken.error || ""), true);
     const gone = await webServer.check(probeCtx(base + "/absent"));
     // 4xx en revanche prouve que la cible est joignable : une page sous
     // authentification (401/403) reste verte, sinon tout tableau de bord protege
     // serait en alarme permanente.
-    check("web : 404 = point vert (la cible repond)", [gone.state, gone.ok, gone.code], ["up", true, 404]);
+    check(
+      "web : 404 = point vert (la cible repond)",
+      [gone.state, gone.ok, gone.code],
+      ["up", true, 404]
+    );
     // Port 1 : rien n'y ecoute, la connexion est refusee.
     const refused = await webServer.check(probeCtx("http://127.0.0.1:1/"));
     check("web : connexion refusee = point rouge", [refused.state, refused.ok], ["down", false]);
     ok("web : pas de second essai sur 127.0.0.1", refused.via == null, show(refused));
     check("web : URL vide", (await webServer.check(probeCtx(""))).state, "down");
     check("web : URL invalide", (await webServer.check(probeCtx("pas une url"))).state, "down");
-    check("web : protocole non http", (await webServer.check(probeCtx("ftp://exemple.test/"))).state, "down");
+    check(
+      "web : protocole non http",
+      (await webServer.check(probeCtx("ftp://exemple.test/"))).state,
+      "down"
+    );
 
     // --- Client HTTP : lecture de page (raw) et plafond de corps ----------
     // Le widget YouTube lit du HTML : `raw` lui renvoie le texte et le code.
     check("http : plafond de corps par defaut", httpLib.getMaxBody(), httpLib.MAX_BODY);
-    check("http : un plugin peut augmenter le plafond",
-      httpLib.getMaxBody(6 * 1024 * 1024), 6 * 1024 * 1024);
-    check("http : le plafond reste borne pour un tiers",
-      httpLib.getMaxBody(500 * 1024 * 1024), httpLib.MAX_BODY_LIMIT);
+    check(
+      "http : un plugin peut augmenter le plafond",
+      httpLib.getMaxBody(6 * 1024 * 1024),
+      6 * 1024 * 1024
+    );
+    check(
+      "http : le plafond reste borne pour un tiers",
+      httpLib.getMaxBody(500 * 1024 * 1024),
+      httpLib.MAX_BODY_LIMIT
+    );
     const rawPage = await httpLib.apiRequest(base, "/ok", { raw: true });
-    check("http : raw renvoie le texte et le code", [rawPage.status, rawPage.body], [200, "bonjour"]);
+    check(
+      "http : raw renvoie le texte et le code",
+      [rawPage.status, rawPage.body],
+      [200, "bonjour"]
+    );
     const rawMissing = await httpLib.apiRequest(base, "/absent", { raw: true }).catch(e => e);
     check("http : raw signale aussi les erreurs HTTP", rawMissing.status, 404);
     // Sans `raw`, une page HTML ne doit pas tenter d'etre du JSON.
@@ -593,11 +921,24 @@ async function main(){
     check("http : sans raw, une page HTML vaut null", asJson, null);
     // Le plafond coupe la reponse quand le plugin en demande un plus petit que
     // la page : c'est ce qui arrive si le HTML d'une chaine s'allonge.
-    const tooBig = await httpLib.apiRequest(base, "/gros", { raw: true, maxBody: 1024 }).catch(e => e);
-    check("http : corps trop gros pour le plafond demande", /volumineuse/i.test(tooBig.message), true);
+    const tooBig = await httpLib
+      .apiRequest(base, "/gros", { raw: true, maxBody: 1024 })
+      .catch(e => e);
+    check(
+      "http : corps trop gros pour le plafond demande",
+      /volumineuse/i.test(tooBig.message),
+      true
+    );
     const bigEnough = await httpLib.apiRequest(base, "/gros", { raw: true, maxBody: 128 * 1024 });
-    check("http : le meme corps passe avec un plafond plus large", bigEnough.body.length, 64 * 1024);
-    ok("http : valeur de maxBody invalide = defaut", httpLib.getMaxBody("beaucoup") === httpLib.MAX_BODY);
+    check(
+      "http : le meme corps passe avec un plafond plus large",
+      bigEnough.body.length,
+      64 * 1024
+    );
+    ok(
+      "http : valeur de maxBody invalide = defaut",
+      httpLib.getMaxBody("beaucoup") === httpLib.MAX_BODY
+    );
   } finally {
     await new Promise(resolve => listener.close(resolve));
   }
@@ -610,380 +951,872 @@ async function main(){
     error.status = status;
     return error;
   };
-  const linkCtx = (over) => Object.assign({
-    config: {},
-    service: { url: "https://exemple.test/", monitor: true },
-    state: {},
-    sanitizeUrl: v => String(v == null ? "" : v).trim(),
-    t: k => k,
-    api: async () => ({})
-  }, over || {});
+  const linkCtx = over =>
+    Object.assign(
+      {
+        config: {},
+        service: { url: "https://exemple.test/", monitor: true },
+        state: {},
+        sanitizeUrl: v => String(v == null ? "" : v).trim(),
+        t: k => k,
+        api: async () => ({})
+      },
+      over || {}
+    );
 
   // YouTube -----------------------------------------------------------------
   const youtubeServer = require(path.join(WIDGETS, "youtube", "server.js"));
   const youtubeParse = require(path.join(WIDGETS, "youtube", "parse.js"));
-  check("youtube : identifiant accepte sous ses trois formes",
+  check(
+    "youtube : identifiant accepte sous ses trois formes",
     ["exemple", "@exemple", "youtube.com/@exemple"].map(u => youtubeParse.normalizeInput(u)),
-    ["@exemple", "@exemple", "@exemple"]);
+    ["@exemple", "@exemple", "@exemple"]
+  );
   check("youtube : identifiant vide refuse", youtubeParse.normalizeInput("   "), null);
-  check("youtube : adresse d'une video refusee",
-    youtubeParse.normalizeInput("https://www.youtube.com/watch?v=abc"), null);
-  check("youtube : identifiant de chaine conserve",
-    youtubeParse.normalizeInput("UC_x5XG1OV2P6uZZ5FSM9Ttw"), "UC_x5XG1OV2P6uZZ5FSM9Ttw");
+  check(
+    "youtube : adresse d'une video refusee",
+    youtubeParse.normalizeInput("https://www.youtube.com/watch?v=abc"),
+    null
+  );
+  check(
+    "youtube : identifiant de chaine conserve",
+    youtubeParse.normalizeInput("UC_x5XG1OV2P6uZZ5FSM9Ttw"),
+    "UC_x5XG1OV2P6uZZ5FSM9Ttw"
+  );
   check("youtube : chemin de chaine construit", youtubeParse.channelPath("@exemple"), "/@exemple");
-  check("youtube : ancienne URL /c/ supportee",
-    youtubeParse.channelPath("https://www.youtube.com/c/exemple"), "/c/exemple");
-  check("youtube : chemin d'un identifiant de chaine",
-    youtubeParse.channelPath("UC_x5XG1OV2P6uZZ5FSM9Ttw"), "/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw");
+  check(
+    "youtube : ancienne URL /c/ supportee",
+    youtubeParse.channelPath("https://www.youtube.com/c/exemple"),
+    "/c/exemple"
+  );
+  check(
+    "youtube : chemin d'un identifiant de chaine",
+    youtubeParse.channelPath("UC_x5XG1OV2P6uZZ5FSM9Ttw"),
+    "/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw"
+  );
   // Les deux ecritures rencontrees dans la page : "3,45 M" (fr) et "3.45K" (en).
-  check("youtube : nombres compacts lus", ["3,45 M", "1,2 M", "3.45K", "3 450", "1 234", "12,3K", "8,62 k", "1.2B"]
-    .map(youtubeParse.parseNumber), [3450000, 1200000, 3450, 3450, 1234, 12300, 8620, 1200000000]);
+  check(
+    "youtube : nombres compacts lus",
+    ["3,45 M", "1,2 M", "3.45K", "3 450", "1 234", "12,3K", "8,62 k", "1.2B"].map(
+      youtubeParse.parseNumber
+    ),
+    [3450000, 1200000, 3450, 3450, 1234, 12300, 8620, 1200000000]
+  );
   check("youtube : texte sans nombre", youtubeParse.parseNumber("abonnés"), null);
   check("youtube : page sans la cle", youtubeParse.parseSubscribers("vanilla JS"), null);
-  check("youtube : la cle interne suffit, quelle que soit la langue",
-    youtubeParse.parseSubscribers('"subscriberCountText":{"simpleText":"3 450 abonnés"}'), 3450);
-  check("youtube : compteur en anglais lu aussi",
-    youtubeParse.parseSubscribers('"subscriberCountText":{"simpleText":"3.45M subscribers"}'), 3450000);
+  check(
+    "youtube : la cle interne suffit, quelle que soit la langue",
+    youtubeParse.parseSubscribers('"subscriberCountText":{"simpleText":"3 450 abonnés"}'),
+    3450
+  );
+  check(
+    "youtube : compteur en anglais lu aussi",
+    youtubeParse.parseSubscribers('"subscriberCountText":{"simpleText":"3.45M subscribers"}'),
+    3450000
+  );
   // Une chaine privee ou supprimee repond sans compteur : le widget le dit.
-  const privateChannel = await youtubeServer.check(linkCtx({
-    config: { username: "@prive" },
-    api: async () => ({ status: 200, body: "<html>ytInitialData</html>" })
-  }));
-  check("youtube : page sans donnees = lien vivant, compteur inconnu",
-    [privateChannel.state, privateChannel.ok, privateChannel.subscribers], ["up", false, null]);
-  const okChannel = await youtubeServer.check(linkCtx({
-    config: { username: "@exemple" },
-    api: async () => ({ status: 200, body: '"subscriberCountText":{"simpleText":"3 450 abonnés"}' })
-  }));
-  check("youtube : abonnements lus", [okChannel.state, okChannel.ok, okChannel.subscribers], ["up", true, 3450]);
+  const privateChannel = await youtubeServer.check(
+    linkCtx({
+      config: { username: "@prive" },
+      api: async () => ({ status: 200, body: "<html>ytInitialData</html>" })
+    })
+  );
+  check(
+    "youtube : page sans donnees = lien vivant, compteur inconnu",
+    [privateChannel.state, privateChannel.ok, privateChannel.subscribers],
+    ["up", false, null]
+  );
+  const okChannel = await youtubeServer.check(
+    linkCtx({
+      config: { username: "@exemple" },
+      api: async () => ({
+        status: 200,
+        body: '"subscriberCountText":{"simpleText":"3 450 abonnés"}'
+      })
+    })
+  );
+  check(
+    "youtube : abonnements lus",
+    [okChannel.state, okChannel.ok, okChannel.subscribers],
+    ["up", true, 3450]
+  );
   const noRepo = await youtubeServer.check(linkCtx({ config: {} }));
-  check("youtube : identifiant manquant = tuile rouge", [noRepo.state, noRepo.ok, noRepo.subscribers], ["down", false, null]);
+  check(
+    "youtube : identifiant manquant = tuile rouge",
+    [noRepo.state, noRepo.ok, noRepo.subscribers],
+    ["down", false, null]
+  );
   // Une adresse qui n'est pas une chaine ne doit pas partir sur /about.
-  const notAChannel = await youtubeServer.check(linkCtx({
-    config: { username: "https://www.youtube.com/watch?v=abc" },
-    api: async () => { throw new Error("la page ne devrait pas etre demandee"); }
-  }));
+  const notAChannel = await youtubeServer.check(
+    linkCtx({
+      config: { username: "https://www.youtube.com/watch?v=abc" },
+      api: async () => {
+        throw new Error("la page ne devrait pas etre demandee");
+      }
+    })
+  );
   check("youtube : adresse de video refusee avant tout appel", notAChannel.state, "down");
-  const youTubeDown = await youtubeServer.check(linkCtx({
-    config: { username: "@exemple" },
-    api: async () => { throw httpError(503); }
-  }));
-  check("youtube : lien en panne = tuile rouge", [youTubeDown.state, youTubeDown.ok], ["down", false]);
-  const youTubeBridged = await youtubeServer.check(linkCtx({
-    config: { username: "@exemple" },
-    api: async () => { throw httpError(429); }
-  }));
-  check("youtube : requete bridée = lien vivant, compteur inconnu",
-    [youTubeBridged.state, youTubeBridged.ok, youTubeBridged.throttled], ["up", false, true]);
-  const consent = await youtubeServer.check(linkCtx({
-    config: { username: "@exemple" },
-    api: async () => ({ status: 200, body: '<form action="https://consent.youtube.com/s"><input id="consentButton"></form>' })
-  }));
-  check("youtube : page de consentement = lien vivant, compteur inconnu",
-    [consent.state, consent.ok, consent.throttled], ["up", false, true]);
-  const tooBig = await youtubeServer.check(linkCtx({
-    config: { username: "@exemple" },
-    api: async () => { throw new Error("Réponse trop volumineuse"); }
-  }));
-  check("youtube : page trop grosse = lien vivant, compteur inconnu",
-    [tooBig.state, tooBig.ok, tooBig.error], ["up", false, "tooBig"]);
+  const youTubeDown = await youtubeServer.check(
+    linkCtx({
+      config: { username: "@exemple" },
+      api: async () => {
+        throw httpError(503);
+      }
+    })
+  );
+  check(
+    "youtube : lien en panne = tuile rouge",
+    [youTubeDown.state, youTubeDown.ok],
+    ["down", false]
+  );
+  const youTubeBridged = await youtubeServer.check(
+    linkCtx({
+      config: { username: "@exemple" },
+      api: async () => {
+        throw httpError(429);
+      }
+    })
+  );
+  check(
+    "youtube : requete bridée = lien vivant, compteur inconnu",
+    [youTubeBridged.state, youTubeBridged.ok, youTubeBridged.throttled],
+    ["up", false, true]
+  );
+  const consent = await youtubeServer.check(
+    linkCtx({
+      config: { username: "@exemple" },
+      api: async () => ({
+        status: 200,
+        body: '<form action="https://consent.youtube.com/s"><input id="consentButton"></form>'
+      })
+    })
+  );
+  check(
+    "youtube : page de consentement = lien vivant, compteur inconnu",
+    [consent.state, consent.ok, consent.throttled],
+    ["up", false, true]
+  );
+  const tooBig = await youtubeServer.check(
+    linkCtx({
+      config: { username: "@exemple" },
+      api: async () => {
+        throw new Error("Réponse trop volumineuse");
+      }
+    })
+  );
+  check(
+    "youtube : page trop grosse = lien vivant, compteur inconnu",
+    [tooBig.state, tooBig.ok, tooBig.error],
+    ["up", false, "tooBig"]
+  );
 
   // Docker Hub --------------------------------------------------------------
   const dockerHubServer = require(path.join(WIDGETS, "dockerhub", "server.js"));
   check("dockerhub : depot officiel complete", dockerHubServer.repoPath("nginx"), "library/nginx");
-  check("dockerhub : depot de l'utilisateur tel quel", dockerHubServer.repoPath("exemple-org/exemple-repo"), "exemple-org/exemple-repo");
+  check(
+    "dockerhub : depot de l'utilisateur tel quel",
+    dockerHubServer.repoPath("exemple-org/exemple-repo"),
+    "exemple-org/exemple-repo"
+  );
   check("dockerhub : depot vide", dockerHubServer.repoPath("  "), "");
-  const pulls = await dockerHubServer.check(linkCtx({
-    config: { repo: "library/nginx" },
-    api: async (base, path) => {
-      check("dockerhub : URL d'API construite", base + path, "https://hub.docker.com/v2/repositories/library/nginx/");
-      return { pull_count: 12000000000, star_count: 20000, last_updated: "2026-09-01T10:00:00Z" };
-    }
-  }));
-  check("dockerhub : pulls lus", [pulls.state, pulls.ok, pulls.pulls, pulls.stars],
-    ["up", true, 12000000000, 20000]);
+  const pulls = await dockerHubServer.check(
+    linkCtx({
+      config: { repo: "library/nginx" },
+      api: async (base, path) => {
+        check(
+          "dockerhub : URL d'API construite",
+          base + path,
+          "https://hub.docker.com/v2/repositories/library/nginx/"
+        );
+        return { pull_count: 12000000000, star_count: 20000, last_updated: "2026-09-01T10:00:00Z" };
+      }
+    })
+  );
+  check(
+    "dockerhub : pulls lus",
+    [pulls.state, pulls.ok, pulls.pulls, pulls.stars],
+    ["up", true, 12000000000, 20000]
+  );
   const hubMissing = await dockerHubServer.check(linkCtx({ config: {} }));
-  check("dockerhub : depot manquant = tuile rouge", [hubMissing.state, hubMissing.ok], ["down", false]);
-  check("dockerhub : nom de depot refuse",
-    dockerHubServer.isValidRepo("pas un depot"), false);
-  const hubThrottled = await dockerHubServer.check(linkCtx({
-    config: { repo: "nginx" },
-    api: async () => { throw httpError(429); }
-  }));
-  check("dockerhub : API throttle = lien vivant, compteur inconnu",
-    [hubThrottled.state, hubThrottled.ok, hubThrottled.throttled], ["up", false, true]);
-  const hubGone = await dockerHubServer.check(linkCtx({
-    config: { repo: "nginx" },
-    api: async () => { throw httpError(404); }
-  }));
-  check("dockerhub : depot introuvable = tuile rouge", [hubGone.state, hubGone.ok], ["down", false]);
+  check(
+    "dockerhub : depot manquant = tuile rouge",
+    [hubMissing.state, hubMissing.ok],
+    ["down", false]
+  );
+  check("dockerhub : nom de depot refuse", dockerHubServer.isValidRepo("pas un depot"), false);
+  const hubThrottled = await dockerHubServer.check(
+    linkCtx({
+      config: { repo: "nginx" },
+      api: async () => {
+        throw httpError(429);
+      }
+    })
+  );
+  check(
+    "dockerhub : API throttle = lien vivant, compteur inconnu",
+    [hubThrottled.state, hubThrottled.ok, hubThrottled.throttled],
+    ["up", false, true]
+  );
+  const hubGone = await dockerHubServer.check(
+    linkCtx({
+      config: { repo: "nginx" },
+      api: async () => {
+        throw httpError(404);
+      }
+    })
+  );
+  check(
+    "dockerhub : depot introuvable = tuile rouge",
+    [hubGone.state, hubGone.ok],
+    ["down", false]
+  );
 
   // qBittorrent -------------------------------------------------------------
   const qBittorrentServer = require(path.join(WIDGETS, "qbittorrent", "server.js"));
-  check("qbittorrent : cookie de session lu", qBittorrentServer.cookieOf({ headers: { "set-cookie": ["SID=abc; HttpOnly"] } }), "SID=abc");
+  check(
+    "qbittorrent : cookie de session lu",
+    qBittorrentServer.cookieOf({ headers: { "set-cookie": ["SID=abc; HttpOnly"] } }),
+    "SID=abc"
+  );
   check("qbittorrent : valeur negative ramenee a zero", qBittorrentServer.numberOf(-1), 0);
   const qBittorrentCalls = [];
-  const qBittorrent = await qBittorrentServer.check(linkCtx({
-    config: { username: "admin", password: "motdepasse" },
-    state: qBittorrentServer.createState(),
-    api: async (base, requestPath, options) => {
-      qBittorrentCalls.push([base + requestPath, options && options.headers && options.headers.Cookie]);
-      if (requestPath === "/api/v2/auth/login") return { headers: { "set-cookie": ["SID=abc; HttpOnly"] } };
-      return { connection_status: "connected", dl_info_speed: 1234567, up_info_speed: 4567, dl_info_data: 9876543, up_info_data: 7654321 };
-    }
-  }));
-  check("qbittorrent : authentification puis vitesses lues",
+  const qBittorrent = await qBittorrentServer.check(
+    linkCtx({
+      config: { username: "admin", password: "motdepasse" },
+      state: qBittorrentServer.createState(),
+      api: async (base, requestPath, options) => {
+        qBittorrentCalls.push([
+          base + requestPath,
+          options && options.headers && options.headers.Cookie
+        ]);
+        if (requestPath === "/api/v2/auth/login")
+          return { headers: { "set-cookie": ["SID=abc; HttpOnly"] } };
+        return {
+          connection_status: "connected",
+          dl_info_speed: 1234567,
+          up_info_speed: 4567,
+          dl_info_data: 9876543,
+          up_info_data: 7654321
+        };
+      }
+    })
+  );
+  check(
+    "qbittorrent : authentification puis vitesses lues",
     [qBittorrent.ok, qBittorrent.downloadSpeed, qBittorrent.uploadSpeed, qBittorrentCalls],
-    [true, 1234567, 4567, [["https://exemple.test/api/v2/auth/login", undefined], ["https://exemple.test/api/v2/transfer/info", "SID=abc"]]]);
-  const qBittorrentMissing = await qBittorrentServer.check(linkCtx({
-    config: {}, state: qBittorrentServer.createState()
-  }));
-  check("qbittorrent : identifiants manquants", [qBittorrentMissing.ok, qBittorrentMissing.error], [false, "Identifiants qBittorrent manquants"]);
+    [
+      true,
+      1234567,
+      4567,
+      [
+        ["https://exemple.test/api/v2/auth/login", undefined],
+        ["https://exemple.test/api/v2/transfer/info", "SID=abc"]
+      ]
+    ]
+  );
+  const qBittorrentMissing = await qBittorrentServer.check(
+    linkCtx({
+      config: {},
+      state: qBittorrentServer.createState()
+    })
+  );
+  check(
+    "qbittorrent : identifiants manquants",
+    [qBittorrentMissing.ok, qBittorrentMissing.error],
+    [false, "Identifiants qBittorrent manquants"]
+  );
 
   // MeTube ------------------------------------------------------------------
   const metubeServer = require(path.join(WIDGETS, "metube", "server.js"));
-  check("metube : file resumee", metubeServer.summarize({ queue: [{}, {}], pending: [{}], done: [{}, {}, {}] }),
-    { active: 2, queued: 1, completed: 3 });
-  const metube = await metubeServer.check(linkCtx({
-    api: async (base, requestPath) => {
-      check("metube : URL d'historique", base + requestPath, "https://exemple.test/history");
-      return { queue: [{}], pending: [{}, {}], done: [] };
-    }
-  }));
-  check("metube : activite lue", [metube.ok, metube.active, metube.queued, metube.completed], [true, 1, 2, 0]);
+  check(
+    "metube : file resumee",
+    metubeServer.summarize({ queue: [{}, {}], pending: [{}], done: [{}, {}, {}] }),
+    { active: 2, queued: 1, completed: 3 }
+  );
+  const metube = await metubeServer.check(
+    linkCtx({
+      api: async (base, requestPath) => {
+        check("metube : URL d'historique", base + requestPath, "https://exemple.test/history");
+        return { queue: [{}], pending: [{}, {}], done: [] };
+      }
+    })
+  );
+  check(
+    "metube : activite lue",
+    [metube.ok, metube.active, metube.queued, metube.completed],
+    [true, 1, 2, 0]
+  );
 
   // Gotify ------------------------------------------------------------------
   const gotifyServer = require(path.join(WIDGETS, "gotify", "server.js"));
-  check("gotify : dernier message normalise", gotifyServer.latestMessage({
-    messages: [{ title: "Sauvegarde", message: "Terminée", priority: 5, date: "2026-10-25T12:00:00Z" }]
-  }, value => String(value).slice(0, 200)), { title: "Sauvegarde", message: "Terminée", priority: 5, receivedAt: 1792929600000 });
-  const gotify = await gotifyServer.check(linkCtx({
-    config: { token: "jeton" },
-    api: async (base, requestPath, options) => {
-      check("gotify : dernier message demande", [base + requestPath, options.headers["X-Gotify-Key"]], ["https://exemple.test/message?limit=1", "jeton"]);
-      return { messages: [] };
-    }
-  }));
+  check(
+    "gotify : dernier message normalise",
+    gotifyServer.latestMessage(
+      {
+        messages: [
+          { title: "Sauvegarde", message: "Terminée", priority: 5, date: "2026-10-25T12:00:00Z" }
+        ]
+      },
+      value => String(value).slice(0, 200)
+    ),
+    { title: "Sauvegarde", message: "Terminée", priority: 5, receivedAt: 1792929600000 }
+  );
+  const gotify = await gotifyServer.check(
+    linkCtx({
+      config: { token: "jeton" },
+      api: async (base, requestPath, options) => {
+        check(
+          "gotify : dernier message demande",
+          [base + requestPath, options.headers["X-Gotify-Key"]],
+          ["https://exemple.test/message?limit=1", "jeton"]
+        );
+        return { messages: [] };
+      }
+    })
+  );
   check("gotify : aucune notification toleree", [gotify.ok, gotify.latest], [true, null]);
 
   // GitHub ------------------------------------------------------------------
   const githubServer = require(path.join(WIDGETS, "github", "server.js"));
-  check("github : depot valide", [githubServer.isValidRepo("exemple-org/exemple-repo"), githubServer.isValidRepo("a/")], [true, false]);
-  const ghStars = await githubServer.check(linkCtx({
-    config: { repo: "exemple-org/exemple-repo", metric: "stars" },
-    api: async (base, path, options) => {
-      check("github : URL d'API construite", base + path, "https://api.github.com/repos/exemple-org/exemple-repo");
-      ok("github : entete Accept v3", options.headers.Accept === "application/vnd.github+json");
-      return { stargazers_count: 302, forks_count: 21, open_issues_count: 4, subscribers_count: 17, license: { spdx_id: "MIT" }, pushed_at: "2026-09-20T08:00:00Z" };
-    }
-  }));
-  check("github : etoiles par defaut", [ghStars.state, ghStars.ok, ghStars.metric, ghStars.value], ["up", true, "stars", 302]);
+  check(
+    "github : depot valide",
+    [githubServer.isValidRepo("exemple-org/exemple-repo"), githubServer.isValidRepo("a/")],
+    [true, false]
+  );
+  const ghStars = await githubServer.check(
+    linkCtx({
+      config: { repo: "exemple-org/exemple-repo", metric: "stars" },
+      api: async (base, path, options) => {
+        check(
+          "github : URL d'API construite",
+          base + path,
+          "https://api.github.com/repos/exemple-org/exemple-repo"
+        );
+        ok("github : entete Accept v3", options.headers.Accept === "application/vnd.github+json");
+        return {
+          stargazers_count: 302,
+          forks_count: 21,
+          open_issues_count: 4,
+          subscribers_count: 17,
+          license: { spdx_id: "MIT" },
+          pushed_at: "2026-09-20T08:00:00Z"
+        };
+      }
+    })
+  );
+  check(
+    "github : etoiles par defaut",
+    [ghStars.state, ghStars.ok, ghStars.metric, ghStars.value],
+    ["up", true, "stars", 302]
+  );
   check("github : autres compteurs mis en cache", [ghStars.forks, ghStars.openIssues], [21, 4]);
-  const ghForks = await githubServer.check(linkCtx({
-    config: { repo: "exemple-org/exemple-repo", metric: "forks" },
-    api: async () => ({ stargazers_count: 302, forks_count: 21 })
-  }));
+  const ghForks = await githubServer.check(
+    linkCtx({
+      config: { repo: "exemple-org/exemple-repo", metric: "forks" },
+      api: async () => ({ stargazers_count: 302, forks_count: 21 })
+    })
+  );
   check("github : forks demandes", [ghForks.metric, ghForks.value], ["forks", 21]);
-  const ghUnknownMetric = await githubServer.check(linkCtx({
-    config: { repo: "exemple-org/exemple-repo", metric: "commits" },
-    api: async () => ({ stargazers_count: 302 })
-  }));
-  check("github : statistique hors options -> etoiles",
-    [ghUnknownMetric.metric, ghUnknownMetric.value], ["stars", 302]);
-  const ghThrottled = await githubServer.check(linkCtx({
-    config: { repo: "a/b" },
-    api: async () => { throw httpError(403); }
-  }));
-  check("github : API throttle = lien vivant, compteur inconnu",
-    [ghThrottled.state, ghThrottled.ok, ghThrottled.throttled], ["up", false, true]);
+  const ghUnknownMetric = await githubServer.check(
+    linkCtx({
+      config: { repo: "exemple-org/exemple-repo", metric: "commits" },
+      api: async () => ({ stargazers_count: 302 })
+    })
+  );
+  check(
+    "github : statistique hors options -> etoiles",
+    [ghUnknownMetric.metric, ghUnknownMetric.value],
+    ["stars", 302]
+  );
+  const ghThrottled = await githubServer.check(
+    linkCtx({
+      config: { repo: "a/b" },
+      api: async () => {
+        throw httpError(403);
+      }
+    })
+  );
+  check(
+    "github : API throttle = lien vivant, compteur inconnu",
+    [ghThrottled.state, ghThrottled.ok, ghThrottled.throttled],
+    ["up", false, true]
+  );
   const ghNoRepo = await githubServer.check(linkCtx({ config: { repo: "" } }));
   check("github : depot manquant = tuile rouge", [ghNoRepo.state, ghNoRepo.ok], ["down", false]);
 
   // --- Renderers client (ESM, aucune dependance au DOM) ------------------
   const dockerModule = await import(pathToFileURL(path.join(WIDGETS, "docker", "client.mjs")).href);
-  const duplicatiModule = await import(pathToFileURL(path.join(WIDGETS, "duplicati", "client.mjs")).href);
-  const adguardModule = await import(pathToFileURL(path.join(WIDGETS, "adguard", "client.mjs")).href);
-  const qBittorrentModule = await import(pathToFileURL(path.join(WIDGETS, "qbittorrent", "client.mjs")).href);
+  const duplicatiModule = await import(
+    pathToFileURL(path.join(WIDGETS, "duplicati", "client.mjs")).href
+  );
+  const adguardModule = await import(
+    pathToFileURL(path.join(WIDGETS, "adguard", "client.mjs")).href
+  );
+  const qBittorrentModule = await import(
+    pathToFileURL(path.join(WIDGETS, "qbittorrent", "client.mjs")).href
+  );
   const metubeModule = await import(pathToFileURL(path.join(WIDGETS, "metube", "client.mjs")).href);
   const gotifyModule = await import(pathToFileURL(path.join(WIDGETS, "gotify", "client.mjs")).href);
-  const lichessModule = await import(pathToFileURL(path.join(WIDGETS, "lichess", "client.mjs")).href);
-  const youtubeModule = await import(pathToFileURL(path.join(WIDGETS, "youtube", "client.mjs")).href);
-  const dockerHubModule = await import(pathToFileURL(path.join(WIDGETS, "dockerhub", "client.mjs")).href);
+  const lichessModule = await import(
+    pathToFileURL(path.join(WIDGETS, "lichess", "client.mjs")).href
+  );
+  const youtubeModule = await import(
+    pathToFileURL(path.join(WIDGETS, "youtube", "client.mjs")).href
+  );
+  const dockerHubModule = await import(
+    pathToFileURL(path.join(WIDGETS, "dockerhub", "client.mjs")).href
+  );
   const githubModule = await import(pathToFileURL(path.join(WIDGETS, "github", "client.mjs")).href);
 
-  const fmt = { formatDateTime: () => "01/01/2026", formatNumber: n => String(n), formatCompactNumber: n => String(n), formatCompactCount: n => String(n) };
-  const ctx = (info, extra) => Object.assign({ info, config: {}, lang: "fr", t: k => k }, fmt, extra || {});
+  const fmt = {
+    formatDateTime: () => "01/01/2026",
+    formatNumber: n => String(n),
+    formatCompactNumber: n => String(n),
+    formatCompactCount: n => String(n)
+  };
+  const ctx = (info, extra) =>
+    Object.assign({ info, config: {}, lang: "fr", t: k => k }, fmt, extra || {});
 
-  check("renderer Docker : conteneurs et MAJ",
-    pick(dockerModule.render(ctx({ ok: true, containers: { active: 8, total: 9 }, updated: { count: 8, total: 9, unknown: 1 } }))),
-    { badge: "up 8", badgeClass: "nok", time: "updated 8", timeClass: "warn" });
-  check("renderer Docker : tout vert",
-    pick(dockerModule.render(ctx({ ok: true, containers: { active: 9, total: 9 }, updated: { count: 9, total: 9, unknown: 0 } }))),
-    { badge: "up 9", badgeClass: "ok", time: "updated 9", timeClass: "delta-up" });
+  check(
+    "renderer Docker : conteneurs et MAJ",
+    pick(
+      dockerModule.render(
+        ctx({
+          ok: true,
+          containers: { active: 8, total: 9 },
+          updated: { count: 8, total: 9, unknown: 1 }
+        })
+      )
+    ),
+    { badge: "up 8", badgeClass: "nok", time: "updated 8", timeClass: "warn" }
+  );
+  check(
+    "renderer Docker : tout vert",
+    pick(
+      dockerModule.render(
+        ctx({
+          ok: true,
+          containers: { active: 9, total: 9 },
+          updated: { count: 9, total: 9, unknown: 0 }
+        })
+      )
+    ),
+    { badge: "up 9", badgeClass: "ok", time: "updated 9", timeClass: "delta-up" }
+  );
   // Les totaux quittent la tuile mais restent dans l'info-bulle : sans eux,
   // "8" ne dit pas si la cible compte 8 services ou 80.
-  ok("renderer Docker : le total reste dans l'info-bulle",
-    /8 \/ 9/.test(dockerModule.render(ctx({ ok: true, containers: { active: 8, total: 9 }, updated: { count: 8, total: 9, unknown: 1 } })).title),
-    dockerModule.render(ctx({ ok: true, containers: { active: 8, total: 9 }, updated: { count: 8, total: 9, unknown: 1 } })).title);
-  check("renderer Docker : erreur = tuile neutre",
-    dockerModule.render(ctx({ error: "ECONNREFUSED" })).badgeClass, "pending");
-  check("renderer Docker : jamais verifie = tirets",
-    dockerModule.render(ctx(null)).badge, "—");
+  ok(
+    "renderer Docker : le total reste dans l'info-bulle",
+    /8 \/ 9/.test(
+      dockerModule.render(
+        ctx({
+          ok: true,
+          containers: { active: 8, total: 9 },
+          updated: { count: 8, total: 9, unknown: 1 }
+        })
+      ).title
+    ),
+    dockerModule.render(
+      ctx({
+        ok: true,
+        containers: { active: 8, total: 9 },
+        updated: { count: 8, total: 9, unknown: 1 }
+      })
+    ).title
+  );
+  check(
+    "renderer Docker : erreur = tuile neutre",
+    dockerModule.render(ctx({ error: "ECONNREFUSED" })).badgeClass,
+    "pending"
+  );
+  check("renderer Docker : jamais verifie = tirets", dockerModule.render(ctx(null)).badge, "—");
   // Les deux libelles de la tuile Docker doivent suivre la langue de
   // l'interface : le renderer ne doit contenir aucun mot en dur.
-  const dockerStrings = JSON.parse(fs.readFileSync(path.join(WIDGETS, "docker", "manifest.json"), "utf8")).strings;
+  const dockerStrings = JSON.parse(
+    fs.readFileSync(path.join(WIDGETS, "docker", "manifest.json"), "utf8")
+  ).strings;
   const localized = lang => info => ctx(info, { t: k => (dockerStrings[lang] || {})[k] || k });
-  const allGreen = { ok: true, containers: { active: 9, total: 9 }, updated: { count: 9, total: 9, unknown: 0 } };
-  check("renderer Docker : libelles anglais",
+  const allGreen = {
+    ok: true,
+    containers: { active: 9, total: 9 },
+    updated: { count: 9, total: 9, unknown: 0 }
+  };
+  check(
+    "renderer Docker : libelles anglais",
     pick(dockerModule.render(localized("en")(allGreen))),
-    { badge: "up 9", badgeClass: "ok", time: "updated 9", timeClass: "delta-up" });
-  check("renderer Docker : libelles francais",
+    { badge: "up 9", badgeClass: "ok", time: "updated 9", timeClass: "delta-up" }
+  );
+  check(
+    "renderer Docker : libelles francais",
     pick(dockerModule.render(localized("fr")(allGreen))),
-    { badge: "en ligne 9", badgeClass: "ok", time: "à jour 9", timeClass: "delta-up" });
-  check("renderer Docker : EACCES affiche le remede",
-    pick(dockerModule.render(localized("fr")({ error: "Socket Docker inaccessible (EACCES) : ajoutez group_add" }))),
-    { badge: "Docker —", badgeClass: "pending", time: "EACCES : ajoutez group_add", timeClass: "warn" });
-  check("renderer Docker : le tooltip reprend les deux libelles",
-    dockerModule.render(localized("fr")(allGreen)).title, "Docker · en ligne 9 / 9 · à jour 9 / 9");
-  ok("renderer Docker : images non verifiees au singulier",
-    dockerModule.render(localized("fr")({ ok: true, containers: { active: 9, total: 9 }, updated: { count: 9, total: 9, unknown: 1 } })).title.endsWith(" · 1 non vérifié"));
-  ok("renderer Docker : images non verifiees au pluriel",
-    dockerModule.render(localized("fr")({ ok: true, containers: { active: 9, total: 9 }, updated: { count: 9, total: 9, unknown: 3 } })).title.endsWith(" · 3 non vérifiés"));
+    { badge: "en ligne 9", badgeClass: "ok", time: "à jour 9", timeClass: "delta-up" }
+  );
+  check(
+    "renderer Docker : EACCES affiche le remede",
+    pick(
+      dockerModule.render(
+        localized("fr")({ error: "Socket Docker inaccessible (EACCES) : ajoutez group_add" })
+      )
+    ),
+    {
+      badge: "Docker —",
+      badgeClass: "pending",
+      time: "EACCES : ajoutez group_add",
+      timeClass: "warn"
+    }
+  );
+  check(
+    "renderer Docker : le tooltip reprend les deux libelles",
+    dockerModule.render(localized("fr")(allGreen)).title,
+    "Docker · en ligne 9 / 9 · à jour 9 / 9"
+  );
+  ok(
+    "renderer Docker : images non verifiees au singulier",
+    dockerModule
+      .render(
+        localized("fr")({
+          ok: true,
+          containers: { active: 9, total: 9 },
+          updated: { count: 9, total: 9, unknown: 1 }
+        })
+      )
+      .title.endsWith(" · 1 non vérifié")
+  );
+  ok(
+    "renderer Docker : images non verifiees au pluriel",
+    dockerModule
+      .render(
+        localized("fr")({
+          ok: true,
+          containers: { active: 9, total: 9 },
+          updated: { count: 9, total: 9, unknown: 3 }
+        })
+      )
+      .title.endsWith(" · 3 non vérifiés")
+  );
 
-  check("renderer Duplicati : sauvegarde OK",
+  check(
+    "renderer Duplicati : sauvegarde OK",
     pick(duplicatiModule.render(ctx({ ok: true, lastAttemptAt: 1 }))),
-    { badge: "badgeOk", badgeClass: "ok", time: "01/01/2026", timeClass: "" });
-  check("renderer Duplicati : echec = NOK",
-    pick(duplicatiModule.render(ctx({ ok: false, lastAttemptAt: 1 }))).badgeClass, "nok");
-  check("renderer Duplicati : aucune sauvegarde",
-    duplicatiModule.render(ctx({ ok: null, lastAttemptAt: null })).badge, "—");
+    { badge: "badgeOk", badgeClass: "ok", time: "01/01/2026", timeClass: "" }
+  );
+  check(
+    "renderer Duplicati : echec = NOK",
+    pick(duplicatiModule.render(ctx({ ok: false, lastAttemptAt: 1 }))).badgeClass,
+    "nok"
+  );
+  check(
+    "renderer Duplicati : aucune sauvegarde",
+    duplicatiModule.render(ctx({ ok: null, lastAttemptAt: null })).badge,
+    "—"
+  );
 
-  check("renderer AdGuard : pourcentage",
+  check(
+    "renderer AdGuard : pourcentage",
     pick(adguardModule.render(ctx({ ok: true, queries: 12345, ratio: 12.3, avgMs: 2 }))),
-    { badge: "blocked 12 %", badgeClass: "ok", time: "queries 12345", timeClass: "" });
+    { badge: "blocked 12 %", badgeClass: "ok", time: "queries 12345", timeClass: "" }
+  );
 
-  check("renderer qBittorrent : debits affiches",
-    pick(qBittorrentModule.render(ctx({ ok: true, connected: true, downloadSpeed: 1048576, uploadSpeed: 1024, downloaded: 0, uploaded: 0 }))),
-    { badge: "↓ 1 MiB/s", badgeClass: "ok", time: "↑ 1 KiB/s", timeClass: "" });
-  check("renderer qBittorrent : deconnecte avertit",
-    qBittorrentModule.render(ctx({ ok: true, connected: false, downloadSpeed: 0, uploadSpeed: 0 })).badgeClass, "warn");
-  check("renderer MeTube : activite et file affichees",
+  check(
+    "renderer qBittorrent : debits affiches",
+    pick(
+      qBittorrentModule.render(
+        ctx({
+          ok: true,
+          connected: true,
+          downloadSpeed: 1048576,
+          uploadSpeed: 1024,
+          downloaded: 0,
+          uploaded: 0
+        })
+      )
+    ),
+    { badge: "↓ 1 MiB/s", badgeClass: "ok", time: "↑ 1 KiB/s", timeClass: "" }
+  );
+  check(
+    "renderer qBittorrent : deconnecte avertit",
+    qBittorrentModule.render(ctx({ ok: true, connected: false, downloadSpeed: 0, uploadSpeed: 0 }))
+      .badgeClass,
+    "warn"
+  );
+  check(
+    "renderer MeTube : activite et file affichees",
     pick(metubeModule.render(ctx({ ok: true, active: 2, queued: 1, completed: 3 }))),
-    { badge: "3 completedMany", badgeClass: "ok", time: "2 activeMany", timeClass: "" });
-  check("renderer Gotify : derniere notification affichee",
-    pick(gotifyModule.render(ctx({ ok: true, latest: { title: "Sauvegarde", message: "Terminée", priority: 5, receivedAt: 1 } }))),
-    { badge: "Sauvegarde", badgeClass: "warn", time: "priority 5", timeClass: "" });
+    { badge: "3 completedMany", badgeClass: "ok", time: "2 activeMany", timeClass: "" }
+  );
+  check(
+    "renderer Gotify : derniere notification affichee",
+    pick(
+      gotifyModule.render(
+        ctx({
+          ok: true,
+          latest: { title: "Sauvegarde", message: "Terminée", priority: 5, receivedAt: 1 }
+        })
+      )
+    ),
+    { badge: "Sauvegarde", badgeClass: "warn", time: "priority 5", timeClass: "" }
+  );
 
-  check("renderer Lichess : ELO en vert, evolution mensuelle en dessous",
-    pick(lichessModule.render(ctx({ ok: true, elo: 1500, delta: 12, monthDelta: 42, monthDays: 30, variant: "blitz", updatedAt: 1 }))),
-    { badge: "ELO 1500", badgeClass: "ok", time: "+42 over 30 days", timeClass: "delta-up" });
-  const loss = pick(lichessModule.render(ctx({ ok: true, elo: 1500, monthDelta: -8, monthDays: 30, variant: "blitz" })));
+  check(
+    "renderer Lichess : ELO en vert, evolution mensuelle en dessous",
+    pick(
+      lichessModule.render(
+        ctx({
+          ok: true,
+          elo: 1500,
+          delta: 12,
+          monthDelta: 42,
+          monthDays: 30,
+          variant: "blitz",
+          updatedAt: 1
+        })
+      )
+    ),
+    { badge: "ELO 1500", badgeClass: "ok", time: "+42 over 30 days", timeClass: "delta-up" }
+  );
+  const loss = pick(
+    lichessModule.render(
+      ctx({ ok: true, elo: 1500, monthDelta: -8, monthDays: 30, variant: "blitz" })
+    )
+  );
   check("renderer Lichess : perte mensuelle en gris, pas en rouge", loss.timeClass, "");
   check("renderer Lichess : perte mensuelle toujours chiffree", loss.time, "-8 over 30 days");
-  check("renderer Lichess : historique plus court que le mois = duree reelle",
-    pick(lichessModule.render(ctx({ ok: true, elo: 1500, monthDelta: 5, monthDays: 4, variant: "blitz" }))).time,
-    "+5 over 4 days");
-  check("renderer Lichess : premiere visite (pas d'historique)",
-    lichessModule.render(ctx({ ok: true, elo: 1500, delta: null, monthDelta: null, variant: "blitz" })).time, "—");
-  check("renderer Lichess : note constante",
-    pick(lichessModule.render(ctx({ ok: true, elo: 1500, monthDelta: 0, monthDays: 30, variant: "blitz" }))).timeClass, "");
-  const staleView = lichessModule.render(ctx({ ok: false, elo: 1500, monthDelta: 42, monthDays: 30, variant: "blitz", updatedAt: 1, stale: true, error: "HTTP 429" }));
-  check("renderer Lichess : 429 = derniere valeur connue, toujours verte",
-    [staleView.badge, staleView.badgeClass], ["ELO 1500", "ok"]);
-  ok("renderer Lichess : l'info-bulle signale la valeur conservee et l'erreur",
-    staleView.title.includes("stale") && staleView.title.includes("HTTP 429") && staleView.title.includes("01/01/2026"), staleView.title);
-  check("renderer Lichess : aucun ELO connu = tirets",
-    lichessModule.render(ctx({ error: "HTTP 429" })).badge, "ELO —");
+  check(
+    "renderer Lichess : historique plus court que le mois = duree reelle",
+    pick(
+      lichessModule.render(
+        ctx({ ok: true, elo: 1500, monthDelta: 5, monthDays: 4, variant: "blitz" })
+      )
+    ).time,
+    "+5 over 4 days"
+  );
+  check(
+    "renderer Lichess : premiere visite (pas d'historique)",
+    lichessModule.render(
+      ctx({ ok: true, elo: 1500, delta: null, monthDelta: null, variant: "blitz" })
+    ).time,
+    "—"
+  );
+  check(
+    "renderer Lichess : note constante",
+    pick(
+      lichessModule.render(
+        ctx({ ok: true, elo: 1500, monthDelta: 0, monthDays: 30, variant: "blitz" })
+      )
+    ).timeClass,
+    ""
+  );
+  const staleView = lichessModule.render(
+    ctx({
+      ok: false,
+      elo: 1500,
+      monthDelta: 42,
+      monthDays: 30,
+      variant: "blitz",
+      updatedAt: 1,
+      stale: true,
+      error: "HTTP 429"
+    })
+  );
+  check(
+    "renderer Lichess : 429 = derniere valeur connue, toujours verte",
+    [staleView.badge, staleView.badgeClass],
+    ["ELO 1500", "ok"]
+  );
+  ok(
+    "renderer Lichess : l'info-bulle signale la valeur conservee et l'erreur",
+    staleView.title.includes("stale") &&
+      staleView.title.includes("HTTP 429") &&
+      staleView.title.includes("01/01/2026"),
+    staleView.title
+  );
+  check(
+    "renderer Lichess : aucun ELO connu = tirets",
+    lichessModule.render(ctx({ error: "HTTP 429" })).badge,
+    "ELO —"
+  );
 
   // Les renderers de liens : meme contrat, meme langue, compteurs compacts.
   // Ils utilisent les vrais utilitaires d'affichage (le dashboard ne redefinit
   // pas de format dans un widget) : on normalise seulement les espaces
   // insecables, que Intl rend differemment selon la version d'ICU.
-  const formatModule = await import(pathToFileURL(path.join(ROOT, "public", "js", "format.js")).href);
+  const formatModule = await import(
+    pathToFileURL(path.join(ROOT, "public", "js", "format.js")).href
+  );
   const norm = value => String(value).replace(/[\u202f\u00a0]/g, " ");
   const linkStrings = id => {
-    const raw = JSON.parse(fs.readFileSync(path.join(WIDGETS, id, "manifest.json"), "utf8")).strings;
+    const raw = JSON.parse(
+      fs.readFileSync(path.join(WIDGETS, id, "manifest.json"), "utf8")
+    ).strings;
     return lang => k => (raw[lang] || {})[k] || k;
   };
-  const renderCtx = (id, lang, info) => Object.assign(
-    { info, config: {}, lang, t: linkStrings(id)(lang) },
-    formatModule.formatters(lang));
+  const renderCtx = (id, lang, info) =>
+    Object.assign(
+      { info, config: {}, lang, t: linkStrings(id)(lang) },
+      formatModule.formatters(lang)
+    );
   const ytStrings = linkStrings("youtube");
   const hubStrings = linkStrings("dockerhub");
   const ghStrings = linkStrings("github");
 
   // AdGuard affiche le volume de requetes en k/M (meme format que les
   // compteurs du bandeau), pour eviter une longue suite de chiffres.
-  check("renderer AdGuard : requetes compactes en k",
-    adguardModule.render(renderCtx("adguard", "fr", { ok: true, queries: 12345, ratio: 12.3, avgMs: 2 })).time,
-    "requêtes 12.3k");
-  check("renderer AdGuard : requetes compactes en M",
-    adguardModule.render(renderCtx("adguard", "fr", { ok: true, queries: 3450000, ratio: 12.3 })).time,
-    "requêtes 3.5M");
-  check("renderer AdGuard : petit volume inchange",
+  check(
+    "renderer AdGuard : requetes compactes en k",
+    adguardModule.render(
+      renderCtx("adguard", "fr", { ok: true, queries: 12345, ratio: 12.3, avgMs: 2 })
+    ).time,
+    "requêtes 12.3k"
+  );
+  check(
+    "renderer AdGuard : requetes compactes en M",
+    adguardModule.render(renderCtx("adguard", "fr", { ok: true, queries: 3450000, ratio: 12.3 }))
+      .time,
+    "requêtes 3.5M"
+  );
+  check(
+    "renderer AdGuard : petit volume inchange",
     adguardModule.render(renderCtx("adguard", "fr", { ok: true, queries: 842, ratio: 12.3 })).time,
-    "requêtes 842");
+    "requêtes 842"
+  );
 
-  const ytView = youtubeModule.render(renderCtx("youtube", "fr", { ok: true, subscribers: 3450, ms: 180 }));
-  check("renderer YouTube : abonnements",
+  const ytView = youtubeModule.render(
+    renderCtx("youtube", "fr", { ok: true, subscribers: 3450, ms: 180 })
+  );
+  check(
+    "renderer YouTube : abonnements",
     { ...pick(ytView), badge: norm(ytView.badge) },
-    { badge: "YouTube (3 450)", badgeClass: "ok", time: "180 ms", timeClass: "" });
-  ok("renderer YouTube : le tooltip reprend le compte",
-    norm(ytView.title).startsWith("YouTube · 3 450"), ytView.title);
-  check("renderer YouTube : grand compte compacte",
-    norm(youtubeModule.render(renderCtx("youtube", "fr", { ok: true, subscribers: 3450000 })).badge),
-    "YouTube (3,5 M)");
-  check("renderer YouTube : anglais",
-    youtubeModule.render(renderCtx("youtube", "en", { ok: true, subscribers: 3450 })).badge, "YouTube (3,450)");
+    { badge: "YouTube (3 450)", badgeClass: "ok", time: "180 ms", timeClass: "" }
+  );
+  ok(
+    "renderer YouTube : le tooltip reprend le compte",
+    norm(ytView.title).startsWith("YouTube · 3 450"),
+    ytView.title
+  );
+  check(
+    "renderer YouTube : grand compte compacte",
+    norm(
+      youtubeModule.render(renderCtx("youtube", "fr", { ok: true, subscribers: 3450000 })).badge
+    ),
+    "YouTube (3,5 M)"
+  );
+  check(
+    "renderer YouTube : anglais",
+    youtubeModule.render(renderCtx("youtube", "en", { ok: true, subscribers: 3450 })).badge,
+    "YouTube (3,450)"
+  );
   // La page repond mais le compteur est absent : ni vert ni rouge.
-  check("renderer YouTube : compteur illisible = tuile neutre",
-    youtubeModule.render(renderCtx("youtube", "fr", { ok: false, state: "up", error: "noCount" })).badgeClass, "warn");
-  check("renderer YouTube : lien en panne = tuile rouge",
-    youtubeModule.render(renderCtx("youtube", "fr", { ok: false, state: "down", error: "HTTP 503" })).badgeClass, "nok");
-  check("renderer YouTube : jamais verifie = tirets",
-    youtubeModule.render(renderCtx("youtube", "fr", null)).badge, "—");
+  check(
+    "renderer YouTube : compteur illisible = tuile neutre",
+    youtubeModule.render(renderCtx("youtube", "fr", { ok: false, state: "up", error: "noCount" }))
+      .badgeClass,
+    "warn"
+  );
+  check(
+    "renderer YouTube : lien en panne = tuile rouge",
+    youtubeModule.render(
+      renderCtx("youtube", "fr", { ok: false, state: "down", error: "HTTP 503" })
+    ).badgeClass,
+    "nok"
+  );
+  check(
+    "renderer YouTube : jamais verifie = tirets",
+    youtubeModule.render(renderCtx("youtube", "fr", null)).badge,
+    "—"
+  );
 
   const hubInfo = { ok: true, pulls: 12400000000, stars: 20000, lastPush: 1, ms: 90 };
   const hubView = dockerHubModule.render(renderCtx("dockerhub", "fr", hubInfo));
-  check("renderer Docker Hub : pulls compacts",
+  check(
+    "renderer Docker Hub : pulls compacts",
     { ...pick(hubView), badge: norm(hubView.badge) },
-    { badge: "Docker Hub (12,4 Md)", badgeClass: "ok", time: "90 ms", timeClass: "" });
-  ok("renderer Docker Hub : le tooltip liste pulls, etoiles et date",
-    norm(hubView.title).includes("12 400 000 000")
-    && norm(hubView.title).includes("20 000")
-    && norm(hubView.title).includes(formatModule.formatDateTime(1, "fr")),
-    hubView.title);
-  check("renderer Docker Hub : API throttle = tuile neutre",
-    dockerHubModule.render(renderCtx("dockerhub", "fr", { ok: false, state: "up", throttled: true })).badgeClass, "warn");
-  check("renderer Docker Hub : jamais verifie = tirets",
-    dockerHubModule.render(renderCtx("dockerhub", "fr", null)).badge, "—");
+    { badge: "Docker Hub (12,4 Md)", badgeClass: "ok", time: "90 ms", timeClass: "" }
+  );
+  ok(
+    "renderer Docker Hub : le tooltip liste pulls, etoiles et date",
+    norm(hubView.title).includes("12 400 000 000") &&
+      norm(hubView.title).includes("20 000") &&
+      norm(hubView.title).includes(formatModule.formatDateTime(1, "fr")),
+    hubView.title
+  );
+  check(
+    "renderer Docker Hub : API throttle = tuile neutre",
+    dockerHubModule.render(
+      renderCtx("dockerhub", "fr", { ok: false, state: "up", throttled: true })
+    ).badgeClass,
+    "warn"
+  );
+  check(
+    "renderer Docker Hub : jamais verifie = tirets",
+    dockerHubModule.render(renderCtx("dockerhub", "fr", null)).badge,
+    "—"
+  );
 
-  const ghInfo = { ok: true, metric: "forks", value: 21, stars: 302, forks: 21, openIssues: 4, ms: 42 };
+  const ghInfo = {
+    ok: true,
+    metric: "forks",
+    value: 21,
+    stars: 302,
+    forks: 21,
+    openIssues: 4,
+    ms: 42
+  };
   const ghView = githubModule.render(renderCtx("github", "fr", ghInfo));
-  check("renderer GitHub : statistique demandee",
+  check(
+    "renderer GitHub : statistique demandee",
     { ...pick(ghView), badge: norm(ghView.badge) },
-    { badge: "GitHub (21)", badgeClass: "ok", time: "42 ms", timeClass: "" });
-  ok("renderer GitHub : le tooltip reprend la statistique et les autres compteurs",
-    norm(ghView.title).includes("21 forks")
-    && norm(ghView.title).includes("302 étoiles")
-    && norm(ghView.title).includes("4 issues"),
-    ghView.title);
-  ok("renderer GitHub : la statistique choisie n'est pas repetee deux fois",
-    (norm(ghView.title).match(/21 forks/g) || []).length === 1, ghView.title);
-  check("renderer GitHub : etoiles par defaut",
-    norm(githubModule.render(renderCtx("github", "fr",
-      { ok: true, metric: "stars", value: 302, stars: 302 })).badge), "GitHub (302)");
-  check("renderer GitHub : API throttle = tuile neutre",
-    githubModule.render(renderCtx("github", "fr", { ok: false, state: "up", throttled: true })).badgeClass, "warn");
-  check("renderer GitHub : jamais verifie = tirets",
-    githubModule.render(renderCtx("github", "fr", null)).badge, "—");
+    { badge: "GitHub (21)", badgeClass: "ok", time: "42 ms", timeClass: "" }
+  );
+  ok(
+    "renderer GitHub : le tooltip reprend la statistique et les autres compteurs",
+    norm(ghView.title).includes("21 forks") &&
+      norm(ghView.title).includes("302 étoiles") &&
+      norm(ghView.title).includes("4 issues"),
+    ghView.title
+  );
+  ok(
+    "renderer GitHub : la statistique choisie n'est pas repetee deux fois",
+    (norm(ghView.title).match(/21 forks/g) || []).length === 1,
+    ghView.title
+  );
+  check(
+    "renderer GitHub : etoiles par defaut",
+    norm(
+      githubModule.render(
+        renderCtx("github", "fr", { ok: true, metric: "stars", value: 302, stars: 302 })
+      ).badge
+    ),
+    "GitHub (302)"
+  );
+  check(
+    "renderer GitHub : API throttle = tuile neutre",
+    githubModule.render(renderCtx("github", "fr", { ok: false, state: "up", throttled: true }))
+      .badgeClass,
+    "warn"
+  );
+  check(
+    "renderer GitHub : jamais verifie = tirets",
+    githubModule.render(renderCtx("github", "fr", null)).badge,
+    "—"
+  );
 
   // Un renderer qui leve ne doit pas faire tomber le appelant : c'est le core
   // navigateur (widget-registry.js) qui rattrape, on verifie donc que le
   // descripteur de secours reste affichable.
-  ok("renderer : contrat { badge, badgeClass, time, timeClass, title }",
+  ok(
+    "renderer : contrat { badge, badgeClass, time, timeClass, title }",
     ["badge", "badgeClass", "time", "timeClass", "title"].every(
-      k => k in dockerModule.render(ctx({ ok: true, containers: { active: 1, total: 1 }, updated: { count: 1, total: 1, unknown: 0 } }))));
+      k =>
+        k in
+        dockerModule.render(
+          ctx({
+            ok: true,
+            containers: { active: 1, total: 1 },
+            updated: { count: 1, total: 1, unknown: 0 }
+          })
+        )
+    )
+  );
 
   // --- Widget Ping : lecture de l'URL et etat de la tuile -----------------
   // Aucun acces reseau : parseTarget est une fonction pure, et check() n'est
@@ -992,30 +1825,53 @@ async function main(){
   const ping = require("../widgets/ping/server.js");
   const pingModule = await import(pathToFileURL(path.join(WIDGETS, "ping", "client.mjs")).href);
 
-  check("ping : URL avec scheme, port par defaut du scheme",
-    ping.parseTarget("https://routeur.exemple.lan"), { host: "routeur.exemple.lan", port: 443 });
-  check("ping : port explicite conserve",
-    ping.parseTarget("http://nas.exemple.lan:8080"), { host: "nas.exemple.lan", port: 8080 });
-  check("ping : adresse IP nue, port 80 par defaut",
-    ping.parseTarget("192.0.2.10"), { host: "192.0.2.10", port: 80 });
-  check("ping : chemin et query ignores",
-    ping.parseTarget("http://exemple.lan:8443/soute?a=1#b"), { host: "exemple.lan", port: 8443 });
-  check("ping : IPv6 entre crochets",
-    ping.parseTarget("http://[2001:db8::1]:9000"), { host: "2001:db8::1", port: 9000 });
-  check("ping : IPv6 sans port, 80 par defaut",
-    ping.parseTarget("[2001:db8::1]"), { host: "2001:db8::1", port: 80 });
+  check(
+    "ping : URL avec scheme, port par defaut du scheme",
+    ping.parseTarget("https://routeur.exemple.lan"),
+    { host: "routeur.exemple.lan", port: 443 }
+  );
+  check("ping : port explicite conserve", ping.parseTarget("http://nas.exemple.lan:8080"), {
+    host: "nas.exemple.lan",
+    port: 8080
+  });
+  check("ping : adresse IP nue, port 80 par defaut", ping.parseTarget("192.0.2.10"), {
+    host: "192.0.2.10",
+    port: 80
+  });
+  check("ping : chemin et query ignores", ping.parseTarget("http://exemple.lan:8443/soute?a=1#b"), {
+    host: "exemple.lan",
+    port: 8443
+  });
+  check("ping : IPv6 entre crochets", ping.parseTarget("http://[2001:db8::1]:9000"), {
+    host: "2001:db8::1",
+    port: 9000
+  });
+  check("ping : IPv6 sans port, 80 par defaut", ping.parseTarget("[2001:db8::1]"), {
+    host: "2001:db8::1",
+    port: 80
+  });
   check("ping : adresse invalide refusee", ping.parseTarget("http://"), null);
   check("ping : cible vide refusee", ping.parseTarget("   "), null);
 
   // Le champ "port" de l'editeur prime sur le port ecrit dans l'hote.
-  check("ping : le champ port prime sur l'hote",
-    ping.parseTarget("nas.exemple.lan:8080", 443), { host: "nas.exemple.lan", port: 443 });
-  check("ping : champ port seul, port par defaut conserve",
-    ping.parseTarget("nas.exemple.lan", 8443), { host: "nas.exemple.lan", port: 8443 });
-  check("ping : champ port a zero = defaut du scheme",
-    ping.parseTarget("https://routeur.exemple.lan", 0), { host: "routeur.exemple.lan", port: 443 });
-  check("ping : champ port hors bornes ignore",
-    ping.parseTarget("nas.exemple.lan", 70000), { host: "nas.exemple.lan", port: 80 });
+  check("ping : le champ port prime sur l'hote", ping.parseTarget("nas.exemple.lan:8080", 443), {
+    host: "nas.exemple.lan",
+    port: 443
+  });
+  check(
+    "ping : champ port seul, port par defaut conserve",
+    ping.parseTarget("nas.exemple.lan", 8443),
+    { host: "nas.exemple.lan", port: 8443 }
+  );
+  check(
+    "ping : champ port a zero = defaut du scheme",
+    ping.parseTarget("https://routeur.exemple.lan", 0),
+    { host: "routeur.exemple.lan", port: 443 }
+  );
+  check("ping : champ port hors bornes ignore", ping.parseTarget("nas.exemple.lan", 70000), {
+    host: "nas.exemple.lan",
+    port: 80
+  });
 
   const pingCtx = (host, url, port) => ({
     config: { type: "ping", host, port: port == null ? 0 : port },
@@ -1026,31 +1882,51 @@ async function main(){
 
   // Le champ "host" prime sur l'URL : c'est lui que l'utilisateur choisit.
   const noHost = await ping.check(pingCtx("", ""));
-  check("ping : ni host ni URL = down", [noHost.state, noHost.ok, noHost.error],
-    ["down", false, "missingHost"]);
+  check(
+    "ping : ni host ni URL = down",
+    [noHost.state, noHost.ok, noHost.error],
+    ["down", false, "missingHost"]
+  );
 
   const noHostNoUrl = await ping.check(pingCtx("", null));
-  check("ping : carte sans URL = down", [noHostNoUrl.state, noHostNoUrl.error],
-    ["down", "missingHost"]);
+  check(
+    "ping : carte sans URL = down",
+    [noHostNoUrl.state, noHostNoUrl.error],
+    ["down", "missingHost"]
+  );
 
   // Sans champ host, l'URL du service sert de repli.
   const badName = await ping.check(pingCtx("", "http://hote-inexistant.exemple.lan"));
-  check("ping : nom introuvable = down", [badName.state, badName.ok, badName.error],
-    ["down", false, "unresolved (hote-inexistant.exemple.lan)"]);
+  check(
+    "ping : nom introuvable = down",
+    [badName.state, badName.ok, badName.error],
+    ["down", false, "unresolved (hote-inexistant.exemple.lan)"]
+  );
 
-  const badHost = await ping.check(pingCtx("hote-inexistant.exemple.lan", "http://autre.exemple.lan"));
-  check("ping : le champ host prime sur l'URL", [badHost.state, badHost.error],
-    ["down", "unresolved (hote-inexistant.exemple.lan)"]);
+  const badHost = await ping.check(
+    pingCtx("hote-inexistant.exemple.lan", "http://autre.exemple.lan")
+  );
+  check(
+    "ping : le champ host prime sur l'URL",
+    [badHost.state, badHost.error],
+    ["down", "unresolved (hote-inexistant.exemple.lan)"]
+  );
 
   const blockedPing = await ping.check(pingCtx("169.254.169.254:80", null));
-  check("ping : link-local refusee avant connexion", [blockedPing.state, blockedPing.error],
-    ["down", "blockedAddress (169.254.169.254)"]);
+  check(
+    "ping : link-local refusee avant connexion",
+    [blockedPing.state, blockedPing.error],
+    ["down", "blockedAddress (169.254.169.254)"]
+  );
 
   // Un port ferme doit nommer le port essaye : c'est le seul moyen pour
   // l'utilisateur de comprendre qu'un hote saisi sans port a ete teste en 80.
   const closedPort = await ping.check(pingCtx("127.0.0.1:1", null));
-  check("ping : port ferme nomme dans l'erreur", [closedPort.state, closedPort.error],
-    ["down", "noAnswer (127.0.0.1:1)"]);
+  check(
+    "ping : port ferme nomme dans l'erreur",
+    [closedPort.state, closedPort.error],
+    ["down", "noAnswer (127.0.0.1:1)"]
+  );
 
   // Le renderer renvoie un noeud DOM : on verifie ici son contrat et la
   // correspondance etat -> glyphe, le DOM lui-meme n'etant pas disponible dans
@@ -1060,29 +1936,52 @@ async function main(){
   check("ping : glyphe down", pingModule.statusIcon("down"), "fa-solid fa-circle-xmark");
   check("ping : glyphe pending", pingModule.statusIcon("pending"), "fa-regular fa-circle");
 
-// --- Widget Uptime Kuma : une ligne par page de statut --------------------
+  // --- Widget Uptime Kuma : une ligne par page de statut --------------------
   // Aucun acces reseau : check() est exerce sur un faux client qui repond comme
   // le ferait la page de statut d'Uptime Kuma.
   const kuma = require("../widgets/uptimekuma/server.js");
 
   // sanitizeUrl exige un schema : une adresse nue doit etre completee, sinon le
   // widget s'annonçait "adresse manquante" alors que le champ etait rempli.
-  check("kuma : adresse nue completee en https", kuma.normalizeBase("kuma.exemple.lan"), "https://kuma.exemple.lan");
-  check("kuma : sans schema, https puis http sont essayes",
-    kuma.candidateBases("kuma.exemple.lan"), ["https://kuma.exemple.lan", "http://kuma.exemple.lan"]);
-  check("kuma : schema explicite = un seul essai",
-    kuma.candidateBases("http://kuma.exemple.lan"), ["http://kuma.exemple.lan"]);
+  check(
+    "kuma : adresse nue completee en https",
+    kuma.normalizeBase("kuma.exemple.lan"),
+    "https://kuma.exemple.lan"
+  );
+  check(
+    "kuma : sans schema, https puis http sont essayes",
+    kuma.candidateBases("kuma.exemple.lan"),
+    ["https://kuma.exemple.lan", "http://kuma.exemple.lan"]
+  );
+  check("kuma : schema explicite = un seul essai", kuma.candidateBases("http://kuma.exemple.lan"), [
+    "http://kuma.exemple.lan"
+  ]);
   check("kuma : adresse vide", kuma.normalizeBase("  "), "");
 
-  check("kuma : dernier heartbeat garde",
-    kuma.latest([{ status: 1, time: "2026-01-01 10:00:00" }, { status: 0, time: "2026-01-01 12:00:00" }]).status, 0);
-  check("kuma : ordre inverse tolerated",
-    kuma.latest([{ status: 0, time: "2026-01-01 12:00:00" }, { status: 1, time: "2026-01-01 10:00:00" }]).status, 0);
+  check(
+    "kuma : dernier heartbeat garde",
+    kuma.latest([
+      { status: 1, time: "2026-01-01 10:00:00" },
+      { status: 0, time: "2026-01-01 12:00:00" }
+    ]).status,
+    0
+  );
+  check(
+    "kuma : ordre inverse tolerated",
+    kuma.latest([
+      { status: 0, time: "2026-01-01 12:00:00" },
+      { status: 1, time: "2026-01-01 10:00:00" }
+    ]).status,
+    0
+  );
   check("kuma : serie vide", kuma.latest([]), null);
 
   // Le nom affiche vient du titre de la page de statut, pas du slug.
-  check("kuma : le titre de la page est prefere au slug",
-    kuma.titleOf({ config: { title: "Mes services" } }, "services"), "Mes services");
+  check(
+    "kuma : le titre de la page est prefere au slug",
+    kuma.titleOf({ config: { title: "Mes services" } }, "services"),
+    "Mes services"
+  );
   check("kuma : sans titre, on garde le slug", kuma.titleOf({}, "services"), "services");
 
   // Deux moniteurs en ligne, un hors ligne, un en maintenance.
@@ -1097,7 +1996,10 @@ async function main(){
     config: { title: "Mes services" },
     publicGroupList: [{ monitorList: monitors }]
   });
-  const goodPage = pageOf([{ id: 10, name: "Site" }, { id: 11, name: "NAS" }]);
+  const goodPage = pageOf([
+    { id: 10, name: "Site" },
+    { id: 11, name: "NAS" }
+  ]);
 
   // Le faux client repond du slug demande : c'est ce qui permet de tester deux
   // pages differentes sur la meme instance.
@@ -1111,9 +2013,11 @@ async function main(){
 
   const responder = pages => path => {
     const isHeartbeat = path.startsWith("/api/status-page/heartbeat/");
-    const slug = decodeURIComponent(isHeartbeat
-      ? path.slice("/api/status-page/heartbeat/".length)
-      : path.slice("/api/status-page/".length));
+    const slug = decodeURIComponent(
+      isHeartbeat
+        ? path.slice("/api/status-page/heartbeat/".length)
+        : path.slice("/api/status-page/".length)
+    );
     const entry = pages[slug];
     if (!entry) {
       const notFound = new Error("Status Page Not Found");
@@ -1126,99 +2030,185 @@ async function main(){
     return isHeartbeat ? entry.beats : entry.page;
   };
 
-  const onePage = await kuma.check(kumaCtx({ slug1: "services" }, responder({
-    services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 1 }) }
-  })));
-  check("kuma : une page configuree = une ligne",
-    [onePage.ok, onePage.pages.length], [true, 1]);
-  check("kuma : tout en ligne = vert",
+  const onePage = await kuma.check(
+    kumaCtx(
+      { slug1: "services" },
+      responder({
+        services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 1 }) }
+      })
+    )
+  );
+  check("kuma : une page configuree = une ligne", [onePage.ok, onePage.pages.length], [true, 1]);
+  check(
+    "kuma : tout en ligne = vert",
     [onePage.pages[0].name, onePage.pages[0].up, onePage.pages[0].healthy],
-    ["Mes services", 2, true]);
+    ["Mes services", 2, true]
+  );
 
-  const oneDown = await kuma.check(kumaCtx({ slug1: "services" }, responder({
-    services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 0 }) }
-  })));
-  check("kuma : un seul moniteur hors ligne fait rouge la page",
+  const oneDown = await kuma.check(
+    kumaCtx(
+      { slug1: "services" },
+      responder({
+        services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 0 }) }
+      })
+    )
+  );
+  check(
+    "kuma : un seul moniteur hors ligne fait rouge la page",
     [oneDown.ok, oneDown.pages[0].up, oneDown.pages[0].down, oneDown.pages[0].healthy],
-    [false, 1, 1, false]);
-  check("kuma : le nom du moniteur hors ligne est conserve",
-    oneDown.pages[0].downNames, ["NAS"]);
+    [false, 1, 1, false]
+  );
+  check("kuma : le nom du moniteur hors ligne est conserve", oneDown.pages[0].downNames, ["NAS"]);
 
   // La maintenance n'est pas une panne : la page reste verte.
-  const maintenance = await kuma.check(kumaCtx({ slug1: "services" }, responder({
-    services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 3 }) }
-  })));
-  check("kuma : une maintenance ne fait pas rougir la page",
-    [maintenance.ok, maintenance.pages[0].up, maintenance.pages[0].healthy], [true, 1, true]);
+  const maintenance = await kuma.check(
+    kumaCtx(
+      { slug1: "services" },
+      responder({
+        services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 3 }) }
+      })
+    )
+  );
+  check(
+    "kuma : une maintenance ne fait pas rougir la page",
+    [maintenance.ok, maintenance.pages[0].up, maintenance.pages[0].healthy],
+    [true, 1, true]
+  );
 
   // Deux pages : une ligne chacune, et la tuile suit le pire etat.
-  const twoPages = await kuma.check(kumaCtx({ slug1: "services", slug2: "infra" }, responder({
-    services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 1 }) },
-    infra: { page: { config: { title: "Infrastructure" }, publicGroupList: [{ monitorList: [{ id: 20, name: "Routeur" }] }] },
-      beats: beatsOf({ 20: 0 }) }
-  })));
+  const twoPages = await kuma.check(
+    kumaCtx(
+      { slug1: "services", slug2: "infra" },
+      responder({
+        services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 1 }) },
+        infra: {
+          page: {
+            config: { title: "Infrastructure" },
+            publicGroupList: [{ monitorList: [{ id: 20, name: "Routeur" }] }]
+          },
+          beats: beatsOf({ 20: 0 })
+        }
+      })
+    )
+  );
   check("kuma : deux pages = deux lignes", twoPages.pages.length, 2);
-  check("kuma : les deux noms de page sont affiches",
-    twoPages.pages.map(page => page.name), ["Mes services", "Infrastructure"]);
-  check("kuma : la tuile entiere rouge des qu'une page l'est",
-    [twoPages.pages[0].healthy, twoPages.pages[1].healthy, twoPages.ok], [true, false, false]);
+  check(
+    "kuma : les deux noms de page sont affiches",
+    twoPages.pages.map(page => page.name),
+    ["Mes services", "Infrastructure"]
+  );
+  check(
+    "kuma : la tuile entiere rouge des qu'une page l'est",
+    [twoPages.pages[0].healthy, twoPages.pages[1].healthy, twoPages.ok],
+    [true, false, false]
+  );
 
   // Une page absente ne doit pas empecher l'autre de s'afficher.
-  const oneMissing = await kuma.check(kumaCtx({ slug1: "services", slug2: "absente" }, responder({
-    services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 1 }) }
-  })));
-  check("kuma : une page introuvable n'efface pas l'autre",
-    [oneMissing.pages.length, oneMissing.pages[0].healthy], [2, true]);
-  check("kuma : slug inconnu signale sans code superflu",
-    oneMissing.pages[1].error, "badSlug (Status Page Not Found)");
+  const oneMissing = await kuma.check(
+    kumaCtx(
+      { slug1: "services", slug2: "absente" },
+      responder({
+        services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 1 }) }
+      })
+    )
+  );
+  check(
+    "kuma : une page introuvable n'efface pas l'autre",
+    [oneMissing.pages.length, oneMissing.pages[0].healthy],
+    [2, true]
+  );
+  check(
+    "kuma : slug inconnu signale sans code superflu",
+    oneMissing.pages[1].error,
+    "badSlug (Status Page Not Found)"
+  );
 
-  const emptyPage = await kuma.check(kumaCtx({ slug1: "vide" }, responder({
-    vide: { page: { config: { title: "Vide" }, publicGroupList: [] }, beats: { heartbeatList: {} } }
-  })));
-  check("kuma : page repondante mais vide = aucun moniteur public",
-    emptyPage.pages[0].error, "noMonitors");
+  const emptyPage = await kuma.check(
+    kumaCtx(
+      { slug1: "vide" },
+      responder({
+        vide: {
+          page: { config: { title: "Vide" }, publicGroupList: [] },
+          beats: { heartbeatList: {} }
+        }
+      })
+    )
+  );
+  check(
+    "kuma : page repondante mais vide = aucun moniteur public",
+    emptyPage.pages[0].error,
+    "noMonitors"
+  );
 
-  const down = await kuma.check(kumaCtx({ slug1: "services" }, responder({
-    services: new Error("timeout")
-  })));
-  check("kuma : panne reseau, pas un mauvais slug",
-    [down.pages[0].error, down.pages[0].healthy], ["unreachable (timeout)", false]);
+  const down = await kuma.check(
+    kumaCtx(
+      { slug1: "services" },
+      responder({
+        services: new Error("timeout")
+      })
+    )
+  );
+  check(
+    "kuma : panne reseau, pas un mauvais slug",
+    [down.pages[0].error, down.pages[0].healthy],
+    ["unreachable (timeout)", false]
+  );
 
   const noConfig = await kuma.check(kumaCtx({}, responder({})));
-  check("kuma : config incomplete signalee",
-    [noConfig.ok, noConfig.pages.length, noConfig.error], [false, 0, "missingConfig"]);
+  check(
+    "kuma : config incomplete signalee",
+    [noConfig.ok, noConfig.pages.length, noConfig.error],
+    [false, 0, "missingConfig"]
+  );
 
-  const noSecond = await kuma.check(kumaCtx({ slug1: "services", slug2: "  " }, responder({
-    services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 1 }) }
-  })));
+  const noSecond = await kuma.check(
+    kumaCtx(
+      { slug1: "services", slug2: "  " },
+      responder({
+        services: { page: goodPage, beats: beatsOf({ 10: 1, 11: 1 }) }
+      })
+    )
+  );
   check("kuma : une seconde page vide est ignoree", noSecond.pages.length, 1);
 
   // Sans schema, le widget tente https puis http. Il faut remplacer "api" pour
   // voir l'adresse : kumaCtx appelle sinon son responder avec le seul chemin.
   const tried = [];
   const good = { page: goodPage, beats: beatsOf({ 10: 1, 11: 1 }) };
-  const schemeFallback = await kuma.check(Object.assign(
-    kumaCtx({ slug1: "services", url: "kuma.exemple.lan" }, path => responder({ services: good })(path)),
-    {
-      api: async (base, path) => {
-        tried.push(base);
-        if (base.startsWith("https:")) throw new Error("ECONNREFUSED");
-        return responder({ services: good })(path);
+  const schemeFallback = await kuma.check(
+    Object.assign(
+      kumaCtx({ slug1: "services", url: "kuma.exemple.lan" }, path =>
+        responder({ services: good })(path)
+      ),
+      {
+        api: async (base, path) => {
+          tried.push(base);
+          if (base.startsWith("https:")) throw new Error("ECONNREFUSED");
+          return responder({ services: good })(path);
+        }
       }
-    }
-  ));
-  check("kuma : repli https -> http si le premier echoue",
-    [schemeFallback.ok, schemeFallback.pages[0].healthy], [true, true]);
+    )
+  );
+  check(
+    "kuma : repli https -> http si le premier echoue",
+    [schemeFallback.ok, schemeFallback.pages[0].healthy],
+    [true, true]
+  );
   // Chaque adresse declenche deux appels (page + heartbeat) : on verifie les
   // adresses distinctes rencontrees, pas le nombre d'appels.
   const distinct = [...new Set(tried)];
-  check("kuma : les deux schemas ont bien ete essayes",
-    distinct.length === 2
-    && distinct.some(b => b.startsWith("https:"))
-    && distinct.some(b => b.startsWith("http:")), true);
+  check(
+    "kuma : les deux schemas ont bien ete essayes",
+    distinct.length === 2 &&
+      distinct.some(b => b.startsWith("https:")) &&
+      distinct.some(b => b.startsWith("http:")),
+    true
+  );
 
   // Le renderer : deux lignes, une couleur par page.
-  const kumaModule = await import(pathToFileURL(path.join(WIDGETS, "uptimekuma", "client.mjs")).href);
+  const kumaModule = await import(
+    pathToFileURL(path.join(WIDGETS, "uptimekuma", "client.mjs")).href
+  );
   check("kuma : le client expose un rendu sur mesure", typeof kumaModule.element, "function");
   check("kuma : page verte", kumaModule.pageColor(true), "var(--success)");
   check("kuma : page rouge", kumaModule.pageColor(false), "var(--error)");
@@ -1233,9 +2223,16 @@ async function main(){
   // "up" n'est pas traduit, dans aucune langue : le manifeste ne doit donc pas
   // declarer de chaine "up", sinon elle serait traduite en "en ligne" et la
   // tuile doublerait de largeur.
-  const kumaManifest = JSON.parse(fs.readFileSync(path.join(WIDGETS, "uptimekuma", "manifest.json"), "utf8"));
-  check("kuma : aucune chaine traduite pour le mot up",
-    ["fr", "en"].every(lang => !Object.prototype.hasOwnProperty.call(kumaManifest.strings[lang], "up")), true);
+  const kumaManifest = JSON.parse(
+    fs.readFileSync(path.join(WIDGETS, "uptimekuma", "manifest.json"), "utf8")
+  );
+  check(
+    "kuma : aucune chaine traduite pour le mot up",
+    ["fr", "en"].every(
+      lang => !Object.prototype.hasOwnProperty.call(kumaManifest.strings[lang], "up")
+    ),
+    true
+  );
   if (failures) {
     console.error(failures + " échec(s)");
     process.exit(1);
@@ -1244,8 +2241,13 @@ async function main(){
 }
 
 // Extrait les 4 champs compares par les tests de rendu.
-function pick(view){
-  return { badge: view.badge, badgeClass: view.badgeClass, time: view.time, timeClass: view.timeClass };
+function pick(view) {
+  return {
+    badge: view.badge,
+    badgeClass: view.badgeClass,
+    time: view.time,
+    timeClass: view.timeClass
+  };
 }
 
 main().catch(error => {

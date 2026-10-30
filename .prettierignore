@@ -1,0 +1,11 @@
+# Generated or third-party content
+node_modules/
+graphify-out/
+package-lock.json
+data/
+screenshots/
+
+# Prose and CI files keep their hand-written layout
+*.md
+*.yml
+*.yaml

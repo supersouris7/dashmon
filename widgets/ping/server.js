@@ -105,7 +105,8 @@ function tcpConnect(host, port, timeout) {
 
 async function resolveTarget(host) {
   if (net.isIP(host)) {
-    if (isBlockedAddress(host)) throw Object.assign(new Error("Adresse link-local refusee"), { code: "EHOSTUNREACH" });
+    if (isBlockedAddress(host))
+      throw Object.assign(new Error("Adresse link-local refusee"), { code: "EHOSTUNREACH" });
     return host;
   }
   const addresses = await dns.promises.lookup(host, { all: true, verbatim: true });
@@ -131,7 +132,11 @@ async function check(ctx) {
     address = await resolveTarget(target.host);
   } catch (error) {
     if (error && error.code === "EHOSTUNREACH") {
-      return { state: "down", ok: false, error: ctx.t("blockedAddress") + " (" + target.host + ")" };
+      return {
+        state: "down",
+        ok: false,
+        error: ctx.t("blockedAddress") + " (" + target.host + ")"
+      };
     }
     return { state: "down", ok: false, error: ctx.t("unresolved") + " (" + target.host + ")" };
   }
@@ -141,7 +146,11 @@ async function check(ctx) {
     // Le port est named explicitement : sans lui, un hote saisi sans port se
     // fait tester en 80 et l'utilisateur n'a aucun moyen de deviner que c'est
     // ce port-la qui a ete essaye.
-    return { state: "down", ok: false, error: ctx.t("noAnswer") + " (" + target.host + ":" + target.port + ")" };
+    return {
+      state: "down",
+      ok: false,
+      error: ctx.t("noAnswer") + " (" + target.host + ":" + target.port + ")"
+    };
   }
   return { state: "up", ok: true };
 }

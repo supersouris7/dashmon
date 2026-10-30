@@ -16,7 +16,8 @@ async function login(ctx, baseUrl) {
   const password = String(ctx.config.password || "");
   if (!username || !password) throw new Error("Identifiants qBittorrent manquants");
 
-  const body = "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password);
+  const body =
+    "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password);
   const response = await ctx.api(baseUrl, "/api/v2/auth/login", {
     method: "POST",
     raw: true,
@@ -62,7 +63,7 @@ async function check(ctx) {
 
     return {
       ok: true,
-      connected: String(info && info.connection_status || "").toLowerCase() === "connected",
+      connected: String((info && info.connection_status) || "").toLowerCase() === "connected",
       downloadSpeed: numberOf(info && info.dl_info_speed),
       uploadSpeed: numberOf(info && info.up_info_speed),
       downloaded: numberOf(info && info.dl_info_data),
@@ -70,7 +71,10 @@ async function check(ctx) {
     };
   } catch (error) {
     sessions.delete(baseUrl);
-    return { ok: false, error: String((error && error.message) || "Erreur qBittorrent").slice(0, 200) };
+    return {
+      ok: false,
+      error: String((error && error.message) || "Erreur qBittorrent").slice(0, 200)
+    };
   }
 }
 

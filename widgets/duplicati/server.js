@@ -34,7 +34,8 @@ async function listBackups(ctx, baseUrl, token) {
 // Formule Duplicati ("yyyyMMdd'T'HHmmssK", UTC) : 20260925T153045Z
 function parseDate(value) {
   if (!value) return null;
-  const match = String(value).trim()
+  const match = String(value)
+    .trim()
     .match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z|[+-]\d{2}:?\d{2})?$/);
   if (!match) return null;
   const zone = match[7] || "Z";
@@ -72,14 +73,23 @@ function computeStatus(backups) {
   if (total === 0) {
     return { ok: null, lastAttemptAt: null, lastErrorAt: null, total: 0, okCount: 0, errCount: 0 };
   }
-  const latestError = lastAttemptAt !== null && lastErrorAt !== null && lastErrorAt >= lastAttemptAt;
+  const latestError =
+    lastAttemptAt !== null && lastErrorAt !== null && lastErrorAt >= lastAttemptAt;
   return { ok: !latestError, lastAttemptAt, lastErrorAt, total, okCount, errCount };
 }
 
 async function check(ctx) {
   const url = ctx.sanitizeUrl(ctx.service.url);
   if (!url) {
-    return { ok: false, error: "URL Duplicati invalide", lastAttemptAt: null, total: 0, okCount: 0, errCount: 0, lastErrorAt: null };
+    return {
+      ok: false,
+      error: "URL Duplicati invalide",
+      lastAttemptAt: null,
+      total: 0,
+      okCount: 0,
+      errCount: 0,
+      lastErrorAt: null
+    };
   }
   const baseUrl = url.replace(/\/+$/, "");
   const tokens = ctx.state.tokens;
@@ -117,7 +127,10 @@ async function check(ctx) {
     };
   } catch (error) {
     tokens.delete(baseUrl);
-    return { ok: false, error: String((error && error.message) || "Erreur Duplicati").slice(0, 200) };
+    return {
+      ok: false,
+      error: String((error && error.message) || "Erreur Duplicati").slice(0, 200)
+    };
   }
 }
 

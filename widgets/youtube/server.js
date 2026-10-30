@@ -46,9 +46,11 @@ async function fetchChannel(ctx, username) {
 // compteur n'y est pas. C'est une reponse HTTP 200, donc pour le lien le
 // service est bien "up" — seule la metrique manque.
 function isChallenge(html) {
-  return /action="https:\/\/consent\./i.test(html)
-    || /consent\.youtube\.com/i.test(html)
-    || /"consentButton"/i.test(html);
+  return (
+    /action="https:\/\/consent\./i.test(html) ||
+    /consent\.youtube\.com/i.test(html) ||
+    /"consentButton"/i.test(html)
+  );
 }
 
 async function check(ctx) {
@@ -91,4 +93,11 @@ async function check(ctx) {
   return { state: "up", ok: true, subscribers: count, variant: "" };
 }
 
-module.exports = { check, isChallenge, fetchChannel, parseSubscribers, normalizeInput, channelPath };
+module.exports = {
+  check,
+  isChallenge,
+  fetchChannel,
+  parseSubscribers,
+  normalizeInput,
+  channelPath
+};

@@ -1,47 +1,54 @@
 // Bibliothèque et gestionnaire d'images PNG (import, sélection, suppression).
 import { t } from "./i18n.js";
 import {
-  imageLibrary, imageGrid, uploadPngBtn, closeImageLibraryBtn, pngUpload,
-  managePngUpload, manageUploadBtn, manageDeleteBtn, manageSelectionCount,
+  imageLibrary,
+  imageGrid,
+  uploadPngBtn,
+  closeImageLibraryBtn,
+  pngUpload,
+  managePngUpload,
+  manageUploadBtn,
+  manageDeleteBtn,
+  manageSelectionCount,
   imageManagerGrid
 } from "./dom.js";
 
-let activeIconSetter=null;
-let managedImageSelection=new Set();
+let activeIconSetter = null;
+let managedImageSelection = new Set();
 
-async function getImageLibrary(){
-  const response=await fetch("/api/icons",{cache:"no-store"});
-  if(!response.ok) throw new Error("HTTP "+response.status);
+async function getImageLibrary() {
+  const response = await fetch("/api/icons", { cache: "no-store" });
+  if (!response.ok) throw new Error("HTTP " + response.status);
   return response.json();
 }
 
-async function renderImageLibrary(){
-  imageGrid.innerHTML="";
+async function renderImageLibrary() {
+  imageGrid.innerHTML = "";
 
-  try{
-    const images=await getImageLibrary();
+  try {
+    const images = await getImageLibrary();
 
-    if(!images.length){
-      const empty=document.createElement("div");
-      empty.className="image-library-empty";
-      empty.textContent=t("noImages");
+    if (!images.length) {
+      const empty = document.createElement("div");
+      empty.className = "image-library-empty";
+      empty.textContent = t("noImages");
       imageGrid.appendChild(empty);
       return;
     }
 
-    images.forEach(file=>{
-      const button=document.createElement("button");
-      button.type="button";
-      button.className="image-choice";
-      button.title=file;
+    images.forEach(file => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "image-choice";
+      button.title = file;
 
-      const img=document.createElement("img");
-      img.src=`icons/${encodeURIComponent(file)}`;
-      img.alt="";
+      const img = document.createElement("img");
+      img.src = `icons/${encodeURIComponent(file)}`;
+      img.alt = "";
 
       button.append(img);
-      button.addEventListener("click",()=>{
-        if(activeIconSetter){
+      button.addEventListener("click", () => {
+        if (activeIconSetter) {
           activeIconSetter(`icons/${file}`);
         }
         closeImageLibrary();
@@ -49,189 +56,189 @@ async function renderImageLibrary(){
 
       imageGrid.appendChild(button);
     });
-  }catch(error){
-    console.error("Lecture des images impossible",error);
-    const empty=document.createElement("div");
-    empty.className="image-library-empty";
-    empty.textContent=t("imagesLoadError");
+  } catch (error) {
+    console.error("Lecture des images impossible", error);
+    const empty = document.createElement("div");
+    empty.className = "image-library-empty";
+    empty.textContent = t("imagesLoadError");
     imageGrid.appendChild(empty);
   }
 }
 
-export function openImageLibrary(setter){
-  activeIconSetter=setter;
+export function openImageLibrary(setter) {
+  activeIconSetter = setter;
   imageLibrary.classList.add("show");
-  imageLibrary.setAttribute("aria-hidden","false");
+  imageLibrary.setAttribute("aria-hidden", "false");
   renderImageLibrary();
 }
 
-export function closeImageLibrary(){
+export function closeImageLibrary() {
   imageLibrary.classList.remove("show");
-  imageLibrary.setAttribute("aria-hidden","true");
-  activeIconSetter=null;
+  imageLibrary.setAttribute("aria-hidden", "true");
+  activeIconSetter = null;
 }
 
-function updateImageManagerSelection(){
-  const count=managedImageSelection.size;
-  manageDeleteBtn.disabled=count===0;
-  manageSelectionCount.textContent=count
-    ? `${count} ${count>1 ? t("imagesSelected") : t("imageSelected")}`
+function updateImageManagerSelection() {
+  const count = managedImageSelection.size;
+  manageDeleteBtn.disabled = count === 0;
+  manageSelectionCount.textContent = count
+    ? `${count} ${count > 1 ? t("imagesSelected") : t("imageSelected")}`
     : "";
 }
 
-export async function renderImageManager(){
-  imageManagerGrid.innerHTML="";
+export async function renderImageManager() {
+  imageManagerGrid.innerHTML = "";
   managedImageSelection.clear();
   updateImageManagerSelection();
 
-  try{
-    const images=await getImageLibrary();
+  try {
+    const images = await getImageLibrary();
 
-    if(!images.length){
-      const empty=document.createElement("div");
-      empty.className="image-manager-empty";
-      empty.textContent=t("noImages");
+    if (!images.length) {
+      const empty = document.createElement("div");
+      empty.className = "image-manager-empty";
+      empty.textContent = t("noImages");
       imageManagerGrid.appendChild(empty);
       return;
     }
 
-    images.forEach(file=>{
-      const item=document.createElement("label");
-      item.className="image-manager-item";
-      item.title=file;
+    images.forEach(file => {
+      const item = document.createElement("label");
+      item.className = "image-manager-item";
+      item.title = file;
 
-      const checkbox=document.createElement("input");
-      checkbox.type="checkbox";
-      checkbox.value=file;
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = file;
 
-      const img=document.createElement("img");
-      img.src=`icons/${encodeURIComponent(file)}`;
-      img.alt="";
+      const img = document.createElement("img");
+      img.src = `icons/${encodeURIComponent(file)}`;
+      img.alt = "";
 
-      const syncSelection=()=>{
-        if(checkbox.checked){
+      const syncSelection = () => {
+        if (checkbox.checked) {
           managedImageSelection.add(file);
           item.classList.add("selected");
-        }else{
+        } else {
           managedImageSelection.delete(file);
           item.classList.remove("selected");
         }
         updateImageManagerSelection();
       };
 
-      checkbox.addEventListener("change",syncSelection);
-      item.append(checkbox,img);
+      checkbox.addEventListener("change", syncSelection);
+      item.append(checkbox, img);
       imageManagerGrid.appendChild(item);
     });
-  }catch(error){
-    console.error("Lecture des images impossible",error);
-    const empty=document.createElement("div");
-    empty.className="image-manager-empty";
-    empty.textContent=t("imagesLoadError");
+  } catch (error) {
+    console.error("Lecture des images impossible", error);
+    const empty = document.createElement("div");
+    empty.className = "image-manager-empty";
+    empty.textContent = t("imagesLoadError");
     imageManagerGrid.appendChild(empty);
   }
 }
 
-async function uploadManagedImages(files){
-  const pngFiles=[...files].filter(file=>
-    file.type==="image/png" || file.name.toLowerCase().endsWith(".png")
+async function uploadManagedImages(files) {
+  const pngFiles = [...files].filter(
+    file => file.type === "image/png" || file.name.toLowerCase().endsWith(".png")
   );
-  if(!pngFiles.length) return;
+  if (!pngFiles.length) return;
 
-  let failures=0;
-  for(const file of pngFiles){
-    try{
-      const response=await fetch("/api/icons",{
-        method:"POST",
-        headers:{
-          "Content-Type":"image/png",
-          "X-File-Name":encodeURIComponent(file.name)
+  let failures = 0;
+  for (const file of pngFiles) {
+    try {
+      const response = await fetch("/api/icons", {
+        method: "POST",
+        headers: {
+          "Content-Type": "image/png",
+          "X-File-Name": encodeURIComponent(file.name)
         },
-        body:file
+        body: file
       });
-      if(!response.ok) failures++;
-    }catch(_error){
+      if (!response.ok) failures++;
+    } catch (_error) {
       failures++;
     }
   }
 
   await renderImageManager();
-  if(failures){
-    alert(t("imagesUploadPartial").replace("{count}",String(failures)));
+  if (failures) {
+    alert(t("imagesUploadPartial").replace("{count}", String(failures)));
   }
 }
 
-uploadPngBtn.addEventListener("click",()=>pngUpload.click());
-closeImageLibraryBtn.addEventListener("click",closeImageLibrary);
+uploadPngBtn.addEventListener("click", () => pngUpload.click());
+closeImageLibraryBtn.addEventListener("click", closeImageLibrary);
 
-imageLibrary.addEventListener("click",e=>{
-  if(e.target===imageLibrary) closeImageLibrary();
+imageLibrary.addEventListener("click", e => {
+  if (e.target === imageLibrary) closeImageLibrary();
 });
 
-pngUpload.addEventListener("change",async()=>{
-  const file=pngUpload.files?.[0];
-  if(!file) return;
+pngUpload.addEventListener("change", async () => {
+  const file = pngUpload.files?.[0];
+  if (!file) return;
 
-  if(file.type!=="image/png" && !file.name.toLowerCase().endsWith(".png")){
+  if (file.type !== "image/png" && !file.name.toLowerCase().endsWith(".png")) {
     alert(t("imagesFormatError"));
-    pngUpload.value="";
+    pngUpload.value = "";
     return;
   }
 
-  try{
-    const response=await fetch("/api/icons",{
-      method:"POST",
-      headers:{
-        "Content-Type":"image/png",
-        "X-File-Name":encodeURIComponent(file.name)
+  try {
+    const response = await fetch("/api/icons", {
+      method: "POST",
+      headers: {
+        "Content-Type": "image/png",
+        "X-File-Name": encodeURIComponent(file.name)
       },
-      body:file
+      body: file
     });
 
-    const result=await response.json();
-    if(!response.ok) throw new Error(result.error||t("imagesUploadFailed"));
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || t("imagesUploadFailed"));
 
-    if(activeIconSetter){
+    if (activeIconSetter) {
       activeIconSetter(`icons/${result.file}`);
     }
 
     await renderImageLibrary();
-  }catch(error){
+  } catch (error) {
     console.error(error);
-    alert(error?.message||t("imagesUploadFailed"));
-  }finally{
-    pngUpload.value="";
+    alert(error?.message || t("imagesUploadFailed"));
+  } finally {
+    pngUpload.value = "";
   }
 });
 
-manageUploadBtn.addEventListener("click",()=>managePngUpload.click());
+manageUploadBtn.addEventListener("click", () => managePngUpload.click());
 
-managePngUpload.addEventListener("change",async()=>{
-  if(managePngUpload.files?.length){
+managePngUpload.addEventListener("change", async () => {
+  if (managePngUpload.files?.length) {
     await uploadManagedImages(managePngUpload.files);
   }
-  managePngUpload.value="";
+  managePngUpload.value = "";
 });
 
-manageDeleteBtn.addEventListener("click",async()=>{
-  const files=[...managedImageSelection];
-  if(!files.length) return;
+manageDeleteBtn.addEventListener("click", async () => {
+  const files = [...managedImageSelection];
+  if (!files.length) return;
 
-  const confirmed=confirm(t("confirmDeleteImages").replace("{count}",String(files.length)));
-  if(!confirmed) return;
+  const confirmed = confirm(t("confirmDeleteImages").replace("{count}", String(files.length)));
+  if (!confirmed) return;
 
-  let failures=0;
-  for(const file of files){
-    try{
-      const response=await fetch(`/api/icons/${encodeURIComponent(file)}`,{method:"DELETE"});
-      if(!response.ok) failures++;
-    }catch(_error){
+  let failures = 0;
+  for (const file of files) {
+    try {
+      const response = await fetch(`/api/icons/${encodeURIComponent(file)}`, { method: "DELETE" });
+      if (!response.ok) failures++;
+    } catch (_error) {
       failures++;
     }
   }
 
   await renderImageManager();
-  if(failures){
-    alert(t("imagesDeletePartial").replace("{count}",String(failures)));
+  if (failures) {
+    alert(t("imagesDeletePartial").replace("{count}", String(failures)));
   }
 });

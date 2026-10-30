@@ -71,7 +71,9 @@ function parseSubscribers(html) {
   const pattern = /"((?:[^"\\]|\\.)*)"/g;
   let match;
   while ((match = pattern.exec(window)) !== null) {
-    const value = match[1].replace(/\\u([0-9a-fA-F]{4})/g, (_all, hex) => String.fromCharCode(parseInt(hex, 16)));
+    const value = match[1].replace(/\\u([0-9a-fA-F]{4})/g, (_all, hex) =>
+      String.fromCharCode(parseInt(hex, 16))
+    );
     if (/\d/.test(value)) strings.push(value);
   }
   for (const value of strings) {

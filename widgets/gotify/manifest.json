@@ -33,6 +33,12 @@
     }
   },
   "config": [
-    { "key": "token", "type": "secret", "label": "token", "maxLength": 2000, "placeholder": "tokenPlaceholder" }
+    {
+      "key": "token",
+      "type": "secret",
+      "label": "token",
+      "maxLength": 2000,
+      "placeholder": "tokenPlaceholder"
+    }
   ]
 }

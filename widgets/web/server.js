@@ -56,7 +56,7 @@ async function check(ctx) {
     // 502 d'une connexion refusee, et l'info-bulle de la tuile s'appuie dessus.
     code: first.code,
     ms: first.ms,
-    error: String((first.error || "no response")).slice(0, 200)
+    error: String(first.error || "no response").slice(0, 200)
   };
 }
 

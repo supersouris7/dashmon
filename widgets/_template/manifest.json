@@ -35,7 +35,19 @@
     }
   },
   "config": [
-    { "key": "apiUrl", "type": "text", "label": "apiUrl", "maxLength": 200, "placeholder": "apiUrlPlaceholder" },
-    { "key": "apiToken", "type": "secret", "label": "apiToken", "maxLength": 2000, "placeholder": "apiTokenPlaceholder" }
+    {
+      "key": "apiUrl",
+      "type": "text",
+      "label": "apiUrl",
+      "maxLength": 200,
+      "placeholder": "apiUrlPlaceholder"
+    },
+    {
+      "key": "apiToken",
+      "type": "secret",
+      "label": "apiToken",
+      "maxLength": 2000,
+      "placeholder": "apiTokenPlaceholder"
+    }
   ]
 }

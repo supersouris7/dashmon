@@ -10,7 +10,9 @@ const API_URL = "https://hub.docker.com/v2/repositories";
 const OFFICIAL = "library/";
 
 function isValidRepo(value) {
-  return /^[a-z0-9]+(?:[._-][a-z0-9]+)*\/[a-z0-9]+(?:[._-][a-z0-9]+)*$/i.test(String(value || "").trim());
+  return /^[a-z0-9]+(?:[._-][a-z0-9]+)*\/[a-z0-9]+(?:[._-][a-z0-9]+)*$/i.test(
+    String(value || "").trim()
+  );
 }
 
 // "nginx" est un depot officiel : Docker Hub le range sous library/.

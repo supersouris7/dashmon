@@ -47,7 +47,13 @@
     }
   },
   "config": [
-    { "key": "username", "type": "text", "label": "username", "maxLength": 200, "placeholder": "usernamePlaceholder" },
+    {
+      "key": "username",
+      "type": "text",
+      "label": "username",
+      "maxLength": 200,
+      "placeholder": "usernamePlaceholder"
+    },
     {
       "key": "variant",
       "type": "select",

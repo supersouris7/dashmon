@@ -55,9 +55,8 @@ export function render(ctx) {
   // duree reellement mesuree.
   const monthDelta = info.monthDelta;
   const monthDays = Number(info.monthDays) || 0;
-  const monthText = monthDelta == null
-    ? "—"
-    : `${signed(monthDelta)} ${t("over")} ${monthDays || 30} ${t("days")}`;
+  const monthText =
+    monthDelta == null ? "—" : `${signed(monthDelta)} ${t("over")} ${monthDays || 30} ${t("days")}`;
 
   const parts = [`${t("name")} · ${variantLabel(info.variant, lang)} ${elo}`, monthText];
   if (info.delta != null && Number(info.delta) !== 0) {

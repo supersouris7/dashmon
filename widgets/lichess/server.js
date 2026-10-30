@@ -14,8 +14,8 @@
 
 const BASE_URL = "https://lichess.org";
 const STORAGE_FILE = "lichess-history";
-const MONTH_DAYS = 30;   // fenetre affichee sous l'ELO
-const KEEP_DAYS = 75;    // historique conserve (laisse de la marge)
+const MONTH_DAYS = 30; // fenetre affichee sous l'ELO
+const KEEP_DAYS = 75; // historique conserve (laisse de la marge)
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function createState() {
@@ -49,7 +49,12 @@ function recordFor(store, key) {
   const entry = store.entries[key];
   if (!entry || typeof entry !== "object") return null;
   const history = entry.history && typeof entry.history === "object" ? entry.history : {};
-  return { elo: Number.isFinite(entry.elo) ? entry.elo : null, variant: String(entry.variant || ""), at: Number(entry.at) || 0, history };
+  return {
+    elo: Number.isFinite(entry.elo) ? entry.elo : null,
+    variant: String(entry.variant || ""),
+    at: Number(entry.at) || 0,
+    history
+  };
 }
 
 function recordSnapshot(ctx, key, elo, variant) {
@@ -105,7 +110,14 @@ async function check(ctx) {
   const username = String(ctx.config.username || "").trim();
   const variant = String(ctx.config.variant || "").trim();
   if (!ctx.sanitizeUrl(ctx.service.url) || !username) {
-    return { ok: false, error: ctx.t("missingUsername"), elo: null, delta: null, variant: "", stale: false };
+    return {
+      ok: false,
+      error: ctx.t("missingUsername"),
+      elo: null,
+      delta: null,
+      variant: "",
+      stale: false
+    };
   }
 
   // L'historique appartient au joueur et a la variante, pas au service : deux

@@ -44,7 +44,7 @@ const MANIFEST_ACCEPT = [
   "application/vnd.oci.image.manifest.v1+json"
 ].join(", ");
 
-function dockerHostMode(host){
+function dockerHostMode(host) {
   const docker = host && host.monitoring && host.monitoring.docker;
   return docker && docker.mode === "tcp" ? "tcp" : "local";
 }
@@ -54,7 +54,11 @@ function dockerHostMode(host){
 // precede de la version d'API, comme pour le socket local ; sans lui, toutes
 // les requetes partaient vers la racine du demon, qui repond 404.
 function dockerTcpTarget(value, endpoint) {
-  const target = new URL(String(value || "").trim().replace(/^tcp:\/\//i, "http://"));
+  const target = new URL(
+    String(value || "")
+      .trim()
+      .replace(/^tcp:\/\//i, "http://")
+  );
   if (target.protocol !== "http:" && target.protocol !== "https:") {
     throw new Error("Connexion Docker TCP invalide");
   }
@@ -64,7 +68,8 @@ function dockerTcpTarget(value, endpoint) {
   }
   if (endpoint) {
     const relative = new URL(endpoint, "http://docker.invalid");
-    target.pathname = target.pathname.replace(/\/+$/, "") + "/" + DOCKER_API_VERSION + relative.pathname;
+    target.pathname =
+      target.pathname.replace(/\/+$/, "") + "/" + DOCKER_API_VERSION + relative.pathname;
     target.search = relative.search;
   }
   return target;
@@ -73,16 +78,19 @@ function dockerTcpTarget(value, endpoint) {
 // L'image tourne sous l'utilisateur non-root node : sans groupe supplémentaire,
 // le socket Docker (root:docker en 660) refuse la connexion. EACCES/EPERM ne dit
 // rien d'exploitable, on le traduit en cause et en remède.
-function dockerSocketError(error){
+function dockerSocketError(error) {
   if (!error || (error.code !== "EACCES" && error.code !== "EPERM")) return error;
-  const hint = "Socket Docker inaccessible (" + error.code + ") : le conteneur n'appartient pas au groupe docker. Ajoutez group_add avec le gid de /var/run/docker.sock (stat -c '%g' /var/run/docker.sock).";
+  const hint =
+    "Socket Docker inaccessible (" +
+    error.code +
+    ") : le conteneur n'appartient pas au groupe docker. Ajoutez group_add avec le gid de /var/run/docker.sock (stat -c '%g' /var/run/docker.sock).";
   return Object.assign(new Error(hint), { code: error.code });
 }
 
-function dockerRequest(host, endpoint, timeout){
+function dockerRequest(host, endpoint, timeout) {
   const tcp = dockerHostMode(host) === "tcp";
   const timeoutMs = Number.isFinite(timeout) ? timeout : DOCKER_TIMEOUT;
-  return new Promise((resolve, reject)=>{
+  return new Promise((resolve, reject) => {
     const started = Date.now();
     let req;
 
@@ -92,7 +100,9 @@ function dockerRequest(host, endpoint, timeout){
       response.on("data", chunk => {
         body += chunk;
         if (body.length > 2 * 1024 * 1024) {
-          try { req.destroy(); } catch (_error) {}
+          try {
+            req.destroy();
+          } catch (_error) {}
         }
       });
       response.on("end", () => {
@@ -112,23 +122,33 @@ function dockerRequest(host, endpoint, timeout){
 
     try {
       if (tcp) {
-        const target = dockerTcpTarget(host && host.monitoring && host.monitoring.docker && host.monitoring.docker.url, endpoint);
-        req = (target.protocol === "https:" ? https : http).request(target, {
-          method: "GET",
-          timeout: timeoutMs,
-          rejectUnauthorized: !INSECURE_TLS,
-          lookup: safeLookup,
-          family: 4,
-          headers: { "Accept": "application/json" }
-        }, onResponse);
+        const target = dockerTcpTarget(
+          host && host.monitoring && host.monitoring.docker && host.monitoring.docker.url,
+          endpoint
+        );
+        req = (target.protocol === "https:" ? https : http).request(
+          target,
+          {
+            method: "GET",
+            timeout: timeoutMs,
+            rejectUnauthorized: !INSECURE_TLS,
+            lookup: safeLookup,
+            family: 4,
+            headers: { Accept: "application/json" }
+          },
+          onResponse
+        );
       } else {
-        req = http.request({
-          method: "GET",
-          timeout: timeoutMs,
-          socketPath: DOCKER_SOCKET,
-          path: "/" + DOCKER_API_VERSION + (endpoint || ""),
-          headers: { "Accept": "application/json" }
-        }, onResponse);
+        req = http.request(
+          {
+            method: "GET",
+            timeout: timeoutMs,
+            socketPath: DOCKER_SOCKET,
+            path: "/" + DOCKER_API_VERSION + (endpoint || ""),
+            headers: { Accept: "application/json" }
+          },
+          onResponse
+        );
       }
     } catch (error) {
       return reject(error);
@@ -140,7 +160,7 @@ function dockerRequest(host, endpoint, timeout){
   });
 }
 
-function dockerErrorBody(body, status){
+function dockerErrorBody(body, status) {
   try {
     const parsed = JSON.parse(body);
     if (parsed && parsed.message) return String(parsed.message).slice(0, 200);
@@ -153,7 +173,7 @@ function dockerErrorBody(body, status){
 // "ghcr.io/owner/app:1.0" -> {registry:"ghcr.io", repo:"owner/app", tag:"1.0"}
 // "192.0.2.10:5000/app" -> {registry:"192.0.2.10:5000", repo:"app", tag:"latest"}
 // "nginx@sha256:abc" -> {pinned:true}
-function parseImageRef(ref){
+function parseImageRef(ref) {
   const raw = String(ref || "").trim();
   let name = raw;
   let pinned = false;
@@ -186,13 +206,17 @@ function parseImageRef(ref){
   return { registry, repo, tag, pinned, digest };
 }
 
-function isDockerHub(registry){
-  return registry === "" || registry === "docker.io"
-    || registry === "registry-1.docker.io" || registry === "index.docker.io";
+function isDockerHub(registry) {
+  return (
+    registry === "" ||
+    registry === "docker.io" ||
+    registry === "registry-1.docker.io" ||
+    registry === "index.docker.io"
+  );
 }
 
 // Hôte réel pour les requêtes manifest (Docker Hub -> registry-1.docker.io).
-function registryEndpoint(parsed, protocol){
+function registryEndpoint(parsed, protocol) {
   if (isDockerHub(parsed.registry)) {
     return { hub: true, protocol: "https:", host: "registry-1.docker.io" };
   }
@@ -205,7 +229,7 @@ function registryEndpoint(parsed, protocol){
 //   "update"        : le tag local pointe vers une autre image (watchtower) -> mise à jour.
 //   "local-current" : le conteneur exécute l'image actuelle du tag local -> verdict registre.
 //   "unresolved"    : tag absent des images locales -> verdict registre.
-function classifyDockerContainers(containers, images){
+function classifyDockerContainers(containers, images) {
   const tagById = new Map();
   const imageByImageId = new Map();
   (Array.isArray(images) ? images : []).forEach(image => {
@@ -250,7 +274,7 @@ function classifyDockerContainers(containers, images){
 
 // Résumé local "sans registre" (retombée / tests). Les conteneurs non vérifiés
 // sont comptés optimistiquement "à jour" et tracés dans unknown.
-function computeDockerSummary(containers, images){
+function computeDockerSummary(containers, images) {
   const list = Array.isArray(containers) ? containers : [];
   const total = list.length;
   const active = list.filter(container => container && container.State === "running").length;
@@ -258,7 +282,10 @@ function computeDockerSummary(containers, images){
   let updated = 0;
   let unknown = 0;
   for (const item of classified) {
-    if (item.status === "pinned") { updated++; continue; }
+    if (item.status === "pinned") {
+      updated++;
+      continue;
+    }
     if (item.status === "update") continue;
     updated++;
     unknown++;
@@ -267,7 +294,7 @@ function computeDockerSummary(containers, images){
 }
 
 // --- Accès au registre (lecture seule) ---
-function registryTarget(protocol, host){
+function registryTarget(protocol, host) {
   const target = new URL(String(protocol || "") + "//" + String(host || ""));
   if (target.protocol !== "http:" && target.protocol !== "https:") {
     throw new Error("Registre Docker invalide");
@@ -279,8 +306,8 @@ function registryTarget(protocol, host){
   return { target, address };
 }
 
-function registryRequest(protocol, host, path, headers, timeout){
-  return new Promise((resolve, reject)=>{
+function registryRequest(protocol, host, path, headers, timeout) {
+  return new Promise((resolve, reject) => {
     let target;
     let address;
     try {
@@ -290,41 +317,48 @@ function registryRequest(protocol, host, path, headers, timeout){
     }
     const client = target.protocol === "https:" ? https : http;
     const started = Date.now();
-    const req = client.request({
-      hostname: target.hostname,
-      port: target.port || undefined,
-      method: "GET",
-      path,
-      headers: Object.assign({ "User-Agent": "Dashmon-Registry/1.0" }, headers || {}),
-      timeout: timeout || REGISTRY_TIMEOUT,
-      family: 4,
-      rejectUnauthorized: !INSECURE_TLS,
-      lookup: safeLookup,
-      servername: target.protocol === "https:" && !net.isIP(address) ? target.hostname : undefined
-    }, response => {
-      const chunks = [];
-      let size = 0;
-      response.on("data", chunk => {
-        chunks.push(chunk);
-        size += chunk.length;
-        if (size > 8 * 1024 * 1024) {
-          try { req.destroy(); } catch (_error) {}
-        }
-      });
-      response.on("end", () => resolve({
-        status: response.statusCode || 0,
-        headers: response.headers,
-        body: Buffer.concat(chunks),
-        ms: Date.now() - started
-      }));
-    });
+    const req = client.request(
+      {
+        hostname: target.hostname,
+        port: target.port || undefined,
+        method: "GET",
+        path,
+        headers: Object.assign({ "User-Agent": "Dashmon-Registry/1.0" }, headers || {}),
+        timeout: timeout || REGISTRY_TIMEOUT,
+        family: 4,
+        rejectUnauthorized: !INSECURE_TLS,
+        lookup: safeLookup,
+        servername: target.protocol === "https:" && !net.isIP(address) ? target.hostname : undefined
+      },
+      response => {
+        const chunks = [];
+        let size = 0;
+        response.on("data", chunk => {
+          chunks.push(chunk);
+          size += chunk.length;
+          if (size > 8 * 1024 * 1024) {
+            try {
+              req.destroy();
+            } catch (_error) {}
+          }
+        });
+        response.on("end", () =>
+          resolve({
+            status: response.statusCode || 0,
+            headers: response.headers,
+            body: Buffer.concat(chunks),
+            ms: Date.now() - started
+          })
+        );
+      }
+    );
     req.on("timeout", () => req.destroy(new Error("timeout")));
     req.on("error", reject);
     req.end();
   });
 }
 
-function parseAuthChallenge(header){
+function parseAuthChallenge(header) {
   const match = /^Bearer\s+(.*)$/i.exec(header || "");
   if (!match) return null;
   const fields = {};
@@ -336,14 +370,14 @@ function parseAuthChallenge(header){
   return fields;
 }
 
-async function tokenFromChallenge(parsed, header){
+async function tokenFromChallenge(parsed, header) {
   const fields = parseAuthChallenge(header);
   if (!fields) return null;
   try {
     const url = new URL(fields.realm);
     const query = new URLSearchParams();
     if (fields.service) query.set("service", fields.service);
-    query.set("scope", fields.scope || ("repository:" + parsed.repo + ":pull"));
+    query.set("scope", fields.scope || "repository:" + parsed.repo + ":pull");
     const tokenPath = url.pathname + "?" + query.toString();
     const response = await registryRequest(url.protocol, url.host, tokenPath, {});
     if (response.status < 200 || response.status >= 300) return null;
@@ -354,20 +388,23 @@ async function tokenFromChallenge(parsed, header){
   }
 }
 
-async function registryManifestDigest(ref, host, platform){
+async function registryManifestDigest(ref, host, platform) {
   const parsed = parseImageRef(ref);
   if (parsed.pinned || !parsed.repo) throw new Error("Référence non vérifiable au registre");
   const endpoint = registryEndpoint(parsed, "https:");
   const path = "/v2/" + parsed.repo + "/manifests/" + encodeURIComponent(parsed.tag);
 
   const attempt = async (protocol, hostname, reqPath, token) => {
-    let headers = { "Accept": MANIFEST_ACCEPT };
+    let headers = { Accept: MANIFEST_ACCEPT };
     if (token) headers.Authorization = "Bearer " + token;
     let response = await registryRequest(protocol, hostname, reqPath, headers);
     if (!token && (response.status === 401 || response.status === 403)) {
       const newToken = await tokenFromChallenge(parsed, response.headers["www-authenticate"]);
       if (newToken) {
-        response = await registryRequest(protocol, hostname, reqPath, { "Accept": MANIFEST_ACCEPT, "Authorization": "Bearer " + newToken });
+        response = await registryRequest(protocol, hostname, reqPath, {
+          Accept: MANIFEST_ACCEPT,
+          Authorization: "Bearer " + newToken
+        });
         token = newToken;
       }
     }
@@ -375,10 +412,13 @@ async function registryManifestDigest(ref, host, platform){
   };
 
   const candidates = endpoint.hub
-    ? [[ "https:", "registry-1.docker.io" ]]
-    : [[ "https:", endpoint.host ], [ "http:", endpoint.host ]];
+    ? [["https:", "registry-1.docker.io"]]
+    : [
+        ["https:", endpoint.host],
+        ["http:", endpoint.host]
+      ];
   let lastError = new Error("registry unreachable");
-  for (const [ protocol, hostname ] of candidates) {
+  for (const [protocol, hostname] of candidates) {
     try {
       const main = await attempt(protocol, hostname, path, null);
       if (main.response.status < 200 || main.response.status >= 300) {
@@ -386,26 +426,40 @@ async function registryManifestDigest(ref, host, platform){
         continue;
       }
       const digestHeader = String(main.response.headers["docker-content-digest"] || "");
-      const digest = digestHeader || ("sha256:" + crypto.createHash("sha256").update(main.response.body).digest("hex"));
+      const digest =
+        digestHeader ||
+        "sha256:" + crypto.createHash("sha256").update(main.response.body).digest("hex");
       let configDigest = null;
       try {
         const json = JSON.parse(main.response.body.toString("utf8"));
         if (Array.isArray(json && json.manifests)) {
           // Index multi-arch : sélectionner l'artefact du bon couple os/arch.
-          const target = (platform && platform.os && platform.architecture)
-            ? { os: platform.os, architecture: platform.architecture }
-            : null;
+          const target =
+            platform && platform.os && platform.architecture
+              ? { os: platform.os, architecture: platform.architecture }
+              : null;
           const entry = target
-            ? json.manifests.find(value => value && value.platform
-              && value.platform.os === target.os && value.platform.architecture === target.architecture)
+            ? json.manifests.find(
+                value =>
+                  value &&
+                  value.platform &&
+                  value.platform.os === target.os &&
+                  value.platform.architecture === target.architecture
+              )
             : null;
           if (entry) {
-            const child = await attempt(protocol, hostname, "/v2/" + parsed.repo + "/manifests/" + entry.digest, main.token);
+            const child = await attempt(
+              protocol,
+              hostname,
+              "/v2/" + parsed.repo + "/manifests/" + entry.digest,
+              main.token
+            );
             if (child.response.status >= 200 && child.response.status < 300) {
               const childJson = JSON.parse(child.response.body.toString("utf8"));
-              configDigest = childJson && childJson.config && typeof childJson.config.digest === "string"
-                ? childJson.config.digest
-                : null;
+              configDigest =
+                childJson && childJson.config && typeof childJson.config.digest === "string"
+                  ? childJson.config.digest
+                  : null;
             }
           }
         } else if (json && json.config && typeof json.config.digest === "string") {
@@ -422,7 +476,7 @@ async function registryManifestDigest(ref, host, platform){
 
 const registryDigestCache = new Map();
 
-function cachedResolved(ref){
+function cachedResolved(ref) {
   const hit = registryDigestCache.get(ref);
   if (!hit) return { hit: false, resolved: null };
   const ttl = hit.digest ? REGISTRY_CACHE_MS : REGISTRY_NULL_CACHE_MS;
@@ -430,17 +484,18 @@ function cachedResolved(ref){
   return { hit: false, resolved: null };
 }
 
-function platformForRef(ref, images){
+function platformForRef(ref, images) {
   const list = Array.isArray(images) ? images : [];
-  const image = list.find(item => item && Array.isArray(item.RepoTags)
-    && item.RepoTags.some(tag => tag === ref));
+  const image = list.find(
+    item => item && Array.isArray(item.RepoTags) && item.RepoTags.some(tag => tag === ref)
+  );
   if (image && typeof image.Architecture === "string") {
     return { os: image.Os || "linux", architecture: image.Architecture };
   }
   return null;
 }
 
-async function resolveRegistryDigests(host, refs, images){
+async function resolveRegistryDigests(host, refs, images) {
   const map = new Map();
   const unique = Array.isArray(refs) ? [...new Set(refs.filter(Boolean))] : [];
   const pending = [];
@@ -461,7 +516,7 @@ async function resolveRegistryDigests(host, refs, images){
 }
 
 // Résumé complet : signaux locaux + verdict du registre distant.
-async function computeLiveDockerSummary(host, containers, images){
+async function computeLiveDockerSummary(host, containers, images) {
   const list = Array.isArray(containers) ? containers : [];
   const total = list.length;
   const active = list.filter(container => container && container.State === "running").length;
@@ -469,7 +524,11 @@ async function computeLiveDockerSummary(host, containers, images){
 
   const refs = [];
   for (const item of classified) {
-    if ((item.status === "local-current" || item.status === "unresolved") && item.ref && !item.ref.includes("@")) {
+    if (
+      (item.status === "local-current" || item.status === "unresolved") &&
+      item.ref &&
+      !item.ref.includes("@")
+    ) {
       refs.push(item.ref);
     }
   }
@@ -478,7 +537,10 @@ async function computeLiveDockerSummary(host, containers, images){
   let updated = 0;
   let unknown = 0;
   for (const item of classified) {
-    if (item.status === "pinned") { updated++; continue; }
+    if (item.status === "pinned") {
+      updated++;
+      continue;
+    }
     if (item.status === "update") continue;
     const remote = item.ref ? resolved.get(item.ref) : null;
     // Sans digest distant exploitable : pas de preuve -> compté à jour + trace.
@@ -488,7 +550,9 @@ async function computeLiveDockerSummary(host, containers, images){
       continue;
     }
     if (item.repoDigests.length) {
-      const hasRemoteDigest = item.repoDigests.some(value => value.split("@").pop() === remote.digest);
+      const hasRemoteDigest = item.repoDigests.some(
+        value => value.split("@").pop() === remote.digest
+      );
       updated += hasRemoteDigest ? 1 : 0;
       continue;
     }

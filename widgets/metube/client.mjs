@@ -6,11 +6,16 @@ function countOf(value) {
 
 export function render(ctx) {
   const { info, t } = ctx;
-  if (!info) return { badge: "—", badgeClass: "pending", time: "", timeClass: "", title: t("pending") };
-  if (info.error) return {
-    badge: t("error") + " —", badgeClass: "nok", time: "—", timeClass: "",
-    title: t("error") + " : " + String(info.error).slice(0, 120)
-  };
+  if (!info)
+    return { badge: "—", badgeClass: "pending", time: "", timeClass: "", title: t("pending") };
+  if (info.error)
+    return {
+      badge: t("error") + " —",
+      badgeClass: "nok",
+      time: "—",
+      timeClass: "",
+      title: t("error") + " : " + String(info.error).slice(0, 120)
+    };
 
   const active = countOf(info.active);
   const queued = countOf(info.queued);
@@ -21,7 +26,7 @@ export function render(ctx) {
   return {
     badge: completed ? completedText : t("empty"),
     badgeClass: "ok",
-    time: active ? activeText : (queued ? queuedText : ""),
+    time: active ? activeText : queued ? queuedText : "",
     timeClass: "",
     title: `${t("name")} · ${completedText} · ${activeText} · ${queuedText}`
   };

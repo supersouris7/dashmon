@@ -5,9 +5,14 @@
   "scripts": {
     "start": "node server.js",
     "test": "node test/run.js",
-    "test:browser": "node test/browser.test.js"
+    "test:browser": "node test/browser.test.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "express": "^5.3.0"
+  },
+  "devDependencies": {
+    "prettier": "3.9.10"
   }
 }

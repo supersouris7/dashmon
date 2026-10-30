@@ -15,11 +15,13 @@ export function render(ctx) {
   // Le widget mesure un compteur qu'il n'a pas pu lire (repo sans compteur,
   // API throttle) : le lien repond, la tuile est donc neutre et non rouge.
   const missing = !info.ok && info.state === "up";
-  const badgeClass = info.ok ? "ok" : (missing ? "warn" : "nok");
+  const badgeClass = info.ok ? "ok" : missing ? "warn" : "nok";
 
-  const title = [hasCount
-    ? `${t("name")} · ${ctx.formatNumber(info.pulls)} ${t("pulls")}`
-    : `${t("name")} · ${t("unknownCount")}`];
+  const title = [
+    hasCount
+      ? `${t("name")} · ${ctx.formatNumber(info.pulls)} ${t("pulls")}`
+      : `${t("name")} · ${t("unknownCount")}`
+  ];
   if (Number.isFinite(Number(info.stars))) {
     title.push(`${ctx.formatNumber(info.stars)} ${t("stars")}`);
   }

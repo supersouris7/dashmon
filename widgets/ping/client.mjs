@@ -22,8 +22,14 @@ export function element(ctx) {
 
   const status = document.createElement("span");
   status.className = "service-status " + state;
-  status.title = [t("name"), info && info.error ? String(info.error).slice(0, 120) : t(state === "up" ? "reachable" : "unreachable")]
-    .filter(Boolean).join(" · ");
+  status.title = [
+    t("name"),
+    info && info.error
+      ? String(info.error).slice(0, 120)
+      : t(state === "up" ? "reachable" : "unreachable")
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   const icon = document.createElement("i");
   icon.className = statusIcon(state);

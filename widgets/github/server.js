@@ -43,7 +43,9 @@ async function check(ctx) {
       value: Number(value),
       stars: Number.isFinite(Number(data.stargazers_count)) ? Number(data.stargazers_count) : null,
       forks: Number.isFinite(Number(data.forks_count)) ? Number(data.forks_count) : null,
-      openIssues: Number.isFinite(Number(data.open_issues_count)) ? Number(data.open_issues_count) : null,
+      openIssues: Number.isFinite(Number(data.open_issues_count))
+        ? Number(data.open_issues_count)
+        : null,
       license: data.license && data.license.spdx_id ? String(data.license.spdx_id) : "",
       pushedAt: data.pushed_at ? Date.parse(data.pushed_at) || null : null
     };

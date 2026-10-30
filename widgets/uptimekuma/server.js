@@ -72,9 +72,7 @@ function latest(list) {
 function candidateBases(raw) {
   const text = String(raw == null ? "" : raw).trim();
   if (!text) return [];
-  return /^[a-z][a-z0-9+.-]*:\/\//i.test(text)
-    ? [text]
-    : ["https://" + text, "http://" + text];
+  return /^[a-z][a-z0-9+.-]*:\/\//i.test(text) ? [text] : ["https://" + text, "http://" + text];
 }
 
 function normalizeBase(raw) {
@@ -82,7 +80,9 @@ function normalizeBase(raw) {
 }
 
 function reasonOf(error) {
-  return String((error && error.message) || "").trim().slice(0, 120);
+  return String((error && error.message) || "")
+    .trim()
+    .slice(0, 120);
 }
 
 // Lecture d'une page sur une adresse : les deux endpoints en parallele, aucun ne
@@ -91,9 +91,10 @@ function reasonOf(error) {
 // reponse) : sans parallelisme, ce premier appel bloquerait le second pendant
 // tout son delai.
 async function readPage(ctx, base, slug) {
-  const call = suffix => ctx.api(base, "/api/status-page/" + suffix + encodeURIComponent(slug), {
-    timeout: TIMEOUT
-  });
+  const call = suffix =>
+    ctx.api(base, "/api/status-page/" + suffix + encodeURIComponent(slug), {
+      timeout: TIMEOUT
+    });
 
   const [pageResult, beatsResult] = await Promise.allSettled([call(""), call("heartbeat/")]);
 
@@ -114,8 +115,7 @@ async function readPage(ctx, base, slug) {
   // instance injoignable.
   const pageStatus = pageFailed ? Number(pageResult.reason && pageResult.reason.status) || 0 : 0;
   const failure = reasonOf(
-    pageFailed ? pageResult.reason
-      : (beatsResult.status === "rejected" ? beatsResult.reason : null)
+    pageFailed ? pageResult.reason : beatsResult.status === "rejected" ? beatsResult.reason : null
   );
   return { monitors, list, title: titleOf(page, slug), pageFailed, pageStatus, failure };
 }
@@ -129,9 +129,12 @@ function verdictOf(slug, attempt, ctx) {
     // slug inconnu, /api/status-page/heartbeat/<slug> repond 200 avec un
     // heartbeatList vide au lieu d'une erreur. Sans cette distinction, un
     // identifiant errone s'affichait comme une page sans moniteur.
-    const message = attempt.pageStatus >= 400
-      ? ctx.t("badSlug")
-      : (attempt.pageFailed ? ctx.t("unreachable") : ctx.t("noMonitors"));
+    const message =
+      attempt.pageStatus >= 400
+        ? ctx.t("badSlug")
+        : attempt.pageFailed
+          ? ctx.t("unreachable")
+          : ctx.t("noMonitors");
     return {
       slug,
       name: slug,
@@ -179,7 +182,9 @@ async function readOnFirstWorkingBase(ctx, slug) {
     attempt = await readPage(ctx, safe, slug);
     if (attempt.monitors.length) break;
   }
-  return attempt || { monitors: [], list: {}, title: slug, pageFailed: true, pageStatus: 0, failure: "" };
+  return (
+    attempt || { monitors: [], list: {}, title: slug, pageFailed: true, pageStatus: 0, failure: "" }
+  );
 }
 
 async function check(ctx) {

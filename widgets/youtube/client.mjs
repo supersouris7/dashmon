@@ -17,14 +17,18 @@ export function render(ctx) {
   // Le lien repond (state "up") mais la metrique manque : ni vert ni rouge.
   const missing = !info.ok && info.state === "up";
 
-  const title = [hasCount
-    ? `${t("name")} · ${ctx.formatNumber(info.subscribers)} ${t("subscribers")}`
-    : `${t("name")} · ${t("unknownCount")}`];
+  const title = [
+    hasCount
+      ? `${t("name")} · ${ctx.formatNumber(info.subscribers)} ${t("subscribers")}`
+      : `${t("name")} · ${t("unknownCount")}`
+  ];
   if (info.error) title.push(String(info.error).slice(0, 120));
 
   return {
-    badge: hasCount ? `${t("name")} (${ctx.formatCompactNumber(info.subscribers)})` : `${t("name")} (—)`,
-    badgeClass: info.ok ? "ok" : (missing ? "warn" : "nok"),
+    badge: hasCount
+      ? `${t("name")} (${ctx.formatCompactNumber(info.subscribers)})`
+      : `${t("name")} (—)`,
+    badgeClass: info.ok ? "ok" : missing ? "warn" : "nok",
     time: info.ms ? `${info.ms} ms` : "",
     timeClass: "",
     title: title.join(" · ")

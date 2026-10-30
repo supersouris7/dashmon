@@ -5,9 +5,9 @@ import { normalizeWidgetConfig } from "./widget-registry.js";
 import { formatCompactCount } from "./format.js";
 
 export const DEFAULT_CATEGORIES = [
-  {name:"Infrastructure",icon:"fa-solid fa-server"},
-  {name:"Applications",icon:"fa-solid fa-cubes"},
-  {name:"Administration",icon:"fa-solid fa-gear"}
+  { name: "Infrastructure", icon: "fa-solid fa-server" },
+  { name: "Applications", icon: "fa-solid fa-cubes" },
+  { name: "Administration", icon: "fa-solid fa-gear" }
 ];
 
 // Un dashboard est un onglet nomme du tableau de bord. Chaque categorie est
@@ -15,14 +15,12 @@ export const DEFAULT_CATEGORIES = [
 // decide quelles sections apparaissent sur quel onglet. L'identifiant "main"
 // est reserve au dashboard par defaut pour que la migration des configurations
 // existantes soit stable.
-export const DEFAULT_DASHBOARDS = [
-  {id:"main", name:"Dashboard", icon:"fa-solid fa-grip"}
-];
+export const DEFAULT_DASHBOARDS = [{ id: "main", name: "Dashboard", icon: "fa-solid fa-grip" }];
 
 // Identifiant reserve : "supervision" est une page a part, jamais un dashboard.
 export const RESERVED_DASHBOARD_IDS = Object.freeze(["supervision"]);
 
-export const ICON_OPTIONS=[
+export const ICON_OPTIONS = [
   "fa-solid fa-folder",
   "fa-solid fa-folder-tree",
   "fa-solid fa-cubes",
@@ -291,38 +289,38 @@ export const ICON_OPTIONS=[
 
 // Pas d'hôte ni de service d'exemple : la configuration est celle de
 // l'utilisateur, adaptable à tout environnement (vide à la première install).
-export const DEFAULT_HOSTS=[];
+export const DEFAULT_HOSTS = [];
 export const DEFAULT_SERVICES = [];
 
-export const DEFAULT_WEB_LINKS=[
-  {"name":"YouTube","url":"https://www.youtube.com","icon":"fa-brands fa-youtube"},
-  {"name":"Outlook","url":"https://outlook.office.com","icon":"fa-solid fa-envelope"},
-  {"name":"Google Drive","url":"https://drive.google.com","icon":"fa-brands fa-google-drive"},
-  {"name":"GitHub","url":"https://github.com","icon":"fa-brands fa-github"}
+export const DEFAULT_WEB_LINKS = [
+  { name: "YouTube", url: "https://www.youtube.com", icon: "fa-brands fa-youtube" },
+  { name: "Outlook", url: "https://outlook.office.com", icon: "fa-solid fa-envelope" },
+  { name: "Google Drive", url: "https://drive.google.com", icon: "fa-brands fa-google-drive" },
+  { name: "GitHub", url: "https://github.com", icon: "fa-brands fa-github" }
 ];
 
 // Libellé stable (indépendant de la langue) pour le groupe des services sans
 // hôte : les clefs collapsed reposent dessus. Affiché via t("noHost").
-export const FALLBACK_HOST="Sans hôte";
+export const FALLBACK_HOST = "Sans hôte";
 
-export const WEB_LINK_COLORS=Object.freeze({
-  dark:"#272c33",
-  red:"#d63b3b",
-  blue:"#1868e0",
-  green:"#0b8337",
-  orange:"#b35a05",
-  purple:"#7a3fc9"
+export const WEB_LINK_COLORS = Object.freeze({
+  dark: "#272c33",
+  red: "#d63b3b",
+  blue: "#1868e0",
+  green: "#0b8337",
+  orange: "#b35a05",
+  purple: "#7a3fc9"
 });
 
-export function normalizeWebLinksColor(value){
-  if(value==="pastel-red") return "red";
-  return Object.hasOwn(WEB_LINK_COLORS,value) ? value : "dark";
+export function normalizeWebLinksColor(value) {
+  if (value === "pastel-red") return "red";
+  return Object.hasOwn(WEB_LINK_COLORS, value) ? value : "dark";
 }
 
 // Le texte du bandeau est toujours blanc : les teintes ci-dessus sont choisies
 // assez soutenues pour rester lisibles dessus.
-export function webLinksColors(value){
-  return {background:WEB_LINK_COLORS[normalizeWebLinksColor(value)],foreground:"#ffffff"};
+export function webLinksColors(value) {
+  return { background: WEB_LINK_COLORS[normalizeWebLinksColor(value)], foreground: "#ffffff" };
 }
 
 export const state = {
@@ -330,7 +328,13 @@ export const state = {
   categories: [],
   dashboards: [],
   hosts: [],
-  replication: {role:"primary",instanceName:"Dashmon",secondaries:[],agentNames:{},agentHosts:{}},
+  replication: {
+    role: "primary",
+    instanceName: "Dashmon",
+    secondaries: [],
+    agentNames: {},
+    agentHosts: {}
+  },
   collapsed: {},
   supervisionSmartExpanded: [],
   supervisionHostExpanded: [],
@@ -367,29 +371,32 @@ export const state = {
   themes: { native: [], custom: [] }
 };
 
-export function clone(value){
-  return typeof structuredClone==="function"
+export function clone(value) {
+  return typeof structuredClone === "function"
     ? structuredClone(value)
     : JSON.parse(JSON.stringify(value));
 }
 
-export function normalize(v){
-  return (v||"").toString().trim().toLowerCase();
+export function normalize(v) {
+  return (v || "").toString().trim().toLowerCase();
 }
 
-export function compareNames(a,b){
-  return (a||"").localeCompare(b||"","fr",{sensitivity:"base"});
+export function compareNames(a, b) {
+  return (a || "").localeCompare(b || "", "fr", { sensitivity: "base" });
 }
 
-export function isTypingTarget(target){
-  return target instanceof HTMLInputElement ||
+export function isTypingTarget(target) {
+  return (
+    target instanceof HTMLInputElement ||
     target instanceof HTMLTextAreaElement ||
     target instanceof HTMLSelectElement ||
-    target?.isContentEditable;
+    target?.isContentEditable
+  );
 }
 
 function sanitizeText(value, max = 100) {
-  return String(value || "").trim()
+  return String(value || "")
+    .trim()
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F<>]/g, "")
     .slice(0, max);
 }
@@ -405,7 +412,9 @@ export function sanitizeUrl(url) {
 const ICON_SAFE_RE = /^[a-z0-9][a-z0-9-]*( [a-z0-9][a-z0-9-]*)*$/;
 
 export function sanitizeIconClass(icon) {
-  const s = String(icon || "").trim().toLowerCase();
+  const s = String(icon || "")
+    .trim()
+    .toLowerCase();
   if (ICON_SAFE_RE.test(s) && s.length <= 80) return s;
   return "fa-solid fa-folder";
 }
@@ -435,7 +444,9 @@ const COLOR_RE = /^#[0-9a-f]{6}$/;
 // seules les 6 positions hexadecimales passent. On refuse "#abc" pour que la
 // palette affichee et la valeur enregistree aient toujours la meme forme.
 export function sanitizeTileColor(value) {
-  const s = String(value == null ? "" : value).trim().toLowerCase();
+  const s = String(value == null ? "" : value)
+    .trim()
+    .toLowerCase();
   return COLOR_RE.test(s) ? s : "";
 }
 
@@ -473,14 +484,14 @@ function sanitizeImagePath(p) {
   return m ? `icons/${m[1]}.png` : "";
 }
 
-function normalizeCollapsed(collapsed){
-  if(!collapsed || typeof collapsed!=="object" || Array.isArray(collapsed)) return {};
-  const out={...collapsed};
+function normalizeCollapsed(collapsed) {
+  if (!collapsed || typeof collapsed !== "object" || Array.isArray(collapsed)) return {};
+  const out = { ...collapsed };
   // Nettoyage legacy : les clefs sans préfixe (category:X, host:X tels quels)
   // sont dupliquées par les clefs préfixées qui priment ; on les retire.
-  for(const key of Object.keys(out)){
-    if(!key.startsWith("category:") && !key.startsWith("host:")){
-      if(out[`category:${key}`]!==undefined || out[`host:${key}`]!==undefined){
+  for (const key of Object.keys(out)) {
+    if (!key.startsWith("category:") && !key.startsWith("host:")) {
+      if (out[`category:${key}`] !== undefined || out[`host:${key}`] !== undefined) {
         delete out[key];
       }
     }
@@ -493,99 +504,115 @@ function normalizeCollapsed(collapsed){
 // côté navigateur (voir view-prefs.js) et normalisées ici, avec exactement les
 // mêmes règles que la config serveur, pour qu'une valeur briculée dans le
 // navigateur ne puisse pas casser le rendu.
-export const VIEW_PREF_KEYS=Object.freeze([
-  "viewMode","sortMode","groupMode","openMode",
-  "smallIcons","collapsed","webLinksHidden","page","dashboardId","supervisionInstanceId",
-  "supervisionSmartExpanded","supervisionHostExpanded","supervisionAptExpanded"
+export const VIEW_PREF_KEYS = Object.freeze([
+  "viewMode",
+  "sortMode",
+  "groupMode",
+  "openMode",
+  "smallIcons",
+  "collapsed",
+  "webLinksHidden",
+  "page",
+  "dashboardId",
+  "supervisionInstanceId",
+  "supervisionSmartExpanded",
+  "supervisionHostExpanded",
+  "supervisionAptExpanded"
 ]);
 
 // Les tuiles depliees sont stockees comme une liste de cles (instance + hote),
 // jamais comme une structure libre : un stockage bricole ne peut donc pas
 // injecter de HTML ou faire grossir le fichier sans limite.
-function normalizeExpandedKeys(value){
-  if(!Array.isArray(value)) return [];
-  const out=[];
-  for(const item of value){
-    if(typeof item!=="string") continue;
-    const key=item.trim().slice(0,200);
-    if(!key || out.includes(key)) continue;
+function normalizeExpandedKeys(value) {
+  if (!Array.isArray(value)) return [];
+  const out = [];
+  for (const item of value) {
+    if (typeof item !== "string") continue;
+    const key = item.trim().slice(0, 200);
+    if (!key || out.includes(key)) continue;
     out.push(key);
-    if(out.length>=200) break;
+    if (out.length >= 200) break;
   }
   return out;
 }
 
-export function normalizeViewPrefs(cfg={}){
+export function normalizeViewPrefs(cfg = {}) {
   return {
-    viewMode:["rows","columns","plain"].includes(cfg.viewMode) ? cfg.viewMode : "columns",
-    openMode:cfg.openMode==="new" ? "new" : "same",
-    groupMode:cfg.groupMode==="host" ? "host" : "category",
-    sortMode:cfg.sortMode==="usage" ? "usage" : "alphabetical",
-    page:cfg.page==="supervision" ? "supervision" : "dashboard",
+    viewMode: ["rows", "columns", "plain"].includes(cfg.viewMode) ? cfg.viewMode : "columns",
+    openMode: cfg.openMode === "new" ? "new" : "same",
+    groupMode: cfg.groupMode === "host" ? "host" : "category",
+    sortMode: cfg.sortMode === "usage" ? "usage" : "alphabetical",
+    page: cfg.page === "supervision" ? "supervision" : "dashboard",
     // Dashboard actif : la valeur est validee plus tard contre la liste des
     // dashboards de la config (ici on ne connait que la preference brute).
-    dashboardId:typeof cfg.dashboardId==="string" && cfg.dashboardId.trim() ? cfg.dashboardId.trim().slice(0,64) : "",
-    supervisionInstanceId:typeof cfg.supervisionInstanceId==="string" && cfg.supervisionInstanceId.trim()
-      ? cfg.supervisionInstanceId.trim().slice(0,200) : "local",
-    smallIcons:cfg.smallIcons===true,
-    webLinksHidden:cfg.webLinksHidden===true,
-    collapsed:normalizeCollapsed(cfg.collapsed),
-    supervisionSmartExpanded:normalizeExpandedKeys(cfg.supervisionSmartExpanded),
-    supervisionHostExpanded:normalizeExpandedKeys(cfg.supervisionHostExpanded),
-    supervisionAptExpanded:normalizeExpandedKeys(cfg.supervisionAptExpanded)
+    dashboardId:
+      typeof cfg.dashboardId === "string" && cfg.dashboardId.trim()
+        ? cfg.dashboardId.trim().slice(0, 64)
+        : "",
+    supervisionInstanceId:
+      typeof cfg.supervisionInstanceId === "string" && cfg.supervisionInstanceId.trim()
+        ? cfg.supervisionInstanceId.trim().slice(0, 200)
+        : "local",
+    smallIcons: cfg.smallIcons === true,
+    webLinksHidden: cfg.webLinksHidden === true,
+    collapsed: normalizeCollapsed(cfg.collapsed),
+    supervisionSmartExpanded: normalizeExpandedKeys(cfg.supervisionSmartExpanded),
+    supervisionHostExpanded: normalizeExpandedKeys(cfg.supervisionHostExpanded),
+    supervisionAptExpanded: normalizeExpandedKeys(cfg.supervisionAptExpanded)
   };
 }
 
 // Tuiles speciales du tableau de bord : une seule peut etre active a la fois,
 // d'ou un objet unique et non une liste. "fortune" est la seule pour l'instant.
-export const SPECIAL_TILE_TYPES=Object.freeze(["fortune"]);
+export const SPECIAL_TILE_TYPES = Object.freeze(["fortune"]);
 
 // La categorie est obligatoire : sans valeur, on retombe sur la premiere
 // categorie definie, ou "Autres" s'il n'y en a aucune. Une tuile speciale dont
 // le type n'est pas reconnu est ignoree plutot que rendue n'importe comment.
-export function normalizeSpecialTile(raw,categories){
-  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
-  const type=typeof raw.type==="string" ? raw.type : "";
-  if(!SPECIAL_TILE_TYPES.includes(type)) return null;
-  const names=(Array.isArray(categories) ? categories : [])
-    .map(cat=>cat && cat.name)
+export function normalizeSpecialTile(raw, categories) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const type = typeof raw.type === "string" ? raw.type : "";
+  if (!SPECIAL_TILE_TYPES.includes(type)) return null;
+  const names = (Array.isArray(categories) ? categories : [])
+    .map(cat => cat && cat.name)
     .filter(Boolean);
-  const category=sanitizeText(raw.category,100) || names[0] || "Autres";
-  return {type,category};
+  const category = sanitizeText(raw.category, 100) || names[0] || "Autres";
+  return { type, category };
 }
 
 // Compteurs du bandeau "Liens web" : un lien peut afficher un chiffre public
 // (etoiles GitHub, pulls Docker Hub, abonnes YouTube) a cote de son nom. Les
 // types autorises sont exactement les widgets capables de fournir ce chiffre.
 // Doit rester identique a server.js (WEB_LINK_COUNTER_TYPES).
-export const LINK_COUNTER_TYPES=Object.freeze(["github","dockerhub","youtube"]);
+export const LINK_COUNTER_TYPES = Object.freeze(["github", "dockerhub", "youtube"]);
 
 // La cible (depot ou chaine) est obligatoire : un compteur sans cible ne peut
 // rien mesurer, on l'ignore plutot que d'afficher un chiffre trompeur.
-export function normalizeLinkCounter(raw){
-  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
-  const type=typeof raw.type==="string" ? raw.type.trim() : "";
-  if(!LINK_COUNTER_TYPES.includes(type)) return null;
-  const target=sanitizeText(raw.target,200);
-  if(!target) return null;
-  return {type,target};
+export function normalizeLinkCounter(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const type = typeof raw.type === "string" ? raw.type.trim() : "";
+  if (!LINK_COUNTER_TYPES.includes(type)) return null;
+  const target = sanitizeText(raw.target, 200);
+  if (!target) return null;
+  return { type, target };
 }
 
 // Champ de l'entree de statut ou se trouve le chiffre a afficher, par type de
 // compteur. C'est le contrat des backends widgets correspondants : GitHub
 // publie "value" (la metrique choisie), Docker Hub "pulls", YouTube
 // "subscribers". Renvoie null quand le chiffre n'est pas disponible.
-export function linkCounterValue(counter,status){
-  if(!counter || !status || status.ok!==true) return null;
-  const field=counter.type==="dockerhub" ? "pulls" : counter.type==="youtube" ? "subscribers" : "value";
-  const value=Number(status[field]);
+export function linkCounterValue(counter, status) {
+  if (!counter || !status || status.ok !== true) return null;
+  const field =
+    counter.type === "dockerhub" ? "pulls" : counter.type === "youtube" ? "subscribers" : "value";
+  const value = Number(status[field]);
   return Number.isFinite(value) ? value : null;
 }
 
 // Le bandeau reste etroit : au-dela de 999 on compacte avec un suffixe, k pour
 // les milliers et M pour les millions, plutot qu'une longue suite de chiffres.
 // 109 reste "109", 3000 devient "3k", 64600000 devient "64.6M".
-export function compactCount(value){
+export function compactCount(value) {
   return formatCompactCount(value);
 }
 
@@ -593,172 +620,205 @@ export function compactCount(value){
 // ou reserve recoit un identifiant genere, et les doublons sont ecartes pour
 // que state.dashboardId ne designe qu'une seule entree. Le dashboard par
 // defaut "main" est recree quand aucun n'est declare.
-function normalizeDashboards(raw){  const seen=new Set();
-  const list=(Array.isArray(raw) ? raw : []).map(item=>({
-    id:sanitizeText(item && item.id,64),
-    name:sanitizeText(item && item.name,100),
-    icon:sanitizeIconClass(item && item.icon)
-  })).filter(item=>item.name).map(item=>{
-    let id=item.id;
-    if(!id || RESERVED_DASHBOARD_IDS.includes(id) || seen.has(id)) id="dashboard-"+Math.random().toString(36).slice(2,10);
-    seen.add(id);
-    return {id,name:item.name,icon:item.icon||"fa-solid fa-grip"};
-  });
-  if(!list.length) return clone(DEFAULT_DASHBOARDS);
+function normalizeDashboards(raw) {
+  const seen = new Set();
+  const list = (Array.isArray(raw) ? raw : [])
+    .map(item => ({
+      id: sanitizeText(item && item.id, 64),
+      name: sanitizeText(item && item.name, 100),
+      icon: sanitizeIconClass(item && item.icon)
+    }))
+    .filter(item => item.name)
+    .map(item => {
+      let id = item.id;
+      if (!id || RESERVED_DASHBOARD_IDS.includes(id) || seen.has(id))
+        id = "dashboard-" + Math.random().toString(36).slice(2, 10);
+      seen.add(id);
+      return { id, name: item.name, icon: item.icon || "fa-solid fa-grip" };
+    });
+  if (!list.length) return clone(DEFAULT_DASHBOARDS);
   return list;
 }
 
 // Supervision locale : les autres machines sont interrogees par leurs agents.
-export const HOST_MONITORING_TYPES=Object.freeze(["local"]);
+export const HOST_MONITORING_TYPES = Object.freeze(["local"]);
 
-export function normalizeHostMonitoring(raw){
-  if(!raw || typeof raw!=="object" || Array.isArray(raw)) return null;
-  if(raw.type==="proxmox") return null;
-  const type=HOST_MONITORING_TYPES.includes(raw.type) ? raw.type : "local";
+export function normalizeHostMonitoring(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  if (raw.type === "proxmox") return null;
+  const type = HOST_MONITORING_TYPES.includes(raw.type) ? raw.type : "local";
   return {
-    enabled:raw.enabled===true,
+    enabled: raw.enabled === true,
     type,
-    url:sanitizeUrl(raw.url),
-    node:sanitizeText(raw.node,50),
-    path:sanitizeText(raw.path,200),
-    tokenIdEnv:sanitizeText(raw.tokenIdEnv,100),
-    tokenSecretEnv:sanitizeText(raw.tokenSecretEnv,100),
-    wireguard:type === "local" ? normalizeWireguardPrefs(raw.wireguard) : {enabled:true,interface:""},
-    smart:normalizeSmartPrefs(raw.smart),
-    aptUpdates:normalizeAptUpdatesPrefs(raw.aptUpdates)
+    url: sanitizeUrl(raw.url),
+    node: sanitizeText(raw.node, 50),
+    path: sanitizeText(raw.path, 200),
+    tokenIdEnv: sanitizeText(raw.tokenIdEnv, 100),
+    tokenSecretEnv: sanitizeText(raw.tokenSecretEnv, 100),
+    wireguard:
+      type === "local" ? normalizeWireguardPrefs(raw.wireguard) : { enabled: true, interface: "" },
+    smart: normalizeSmartPrefs(raw.smart),
+    aptUpdates: normalizeAptUpdatesPrefs(raw.aptUpdates)
   };
 }
 
 // Preference d'affichage des pairs WireGuard d'un hote. Absente, la section
 // reste visible des que le dump local contient des donnees ; un filtre d'interface
 // facultatif permet de n'afficher qu'un tunnel.
-export function normalizeWireguardPrefs(raw){
-  const src=(raw && typeof raw==="object" && !Array.isArray(raw)) ? raw : {};
+export function normalizeWireguardPrefs(raw) {
+  const src = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
   return {
-    enabled:src.enabled!==false,
-    interface:sanitizeText(src.interface,50)
+    enabled: src.enabled !== false,
+    interface: sanitizeText(src.interface, 50)
   };
 }
 
 // Preference SMART : section visible par defaut, avec un filtre facultatif de
 // noms de peripheriques (`/dev/sda`, `/dev/nvme0`, ...).
-export function normalizeSmartPrefs(raw){
-  const src=(raw && typeof raw==="object" && !Array.isArray(raw)) ? raw : {};
-  const disks=Array.isArray(src.disks)
-    ? [...new Set(src.disks.map(value=>sanitizeText(value,100)).filter(Boolean))].slice(0,20)
+export function normalizeSmartPrefs(raw) {
+  const src = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  const disks = Array.isArray(src.disks)
+    ? [...new Set(src.disks.map(value => sanitizeText(value, 100)).filter(Boolean))].slice(0, 20)
     : [];
-  return {enabled:src.enabled!==false,disks};
+  return { enabled: src.enabled !== false, disks };
 }
 
-export function normalizeAptUpdatesPrefs(raw){
-  const src=(raw && typeof raw==="object" && !Array.isArray(raw)) ? raw : {};
-  return {enabled:src.enabled!==false};
+export function normalizeAptUpdatesPrefs(raw) {
+  const src = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  return { enabled: src.enabled !== false };
 }
 
-export function normalizeConfig(cfg={}){
-  const normalizedServices=Array.isArray(cfg.services)
-    ? clone(cfg.services)
-    : [];
-  const derivedHosts=[...new Set(
-    normalizedServices.map(service=>(service.host||"").trim()).filter(Boolean)
-  )].map(name=>({name,icon:"fa-solid fa-server"}));
+export function normalizeConfig(cfg = {}) {
+  const normalizedServices = Array.isArray(cfg.services) ? clone(cfg.services) : [];
+  const derivedHosts = [
+    ...new Set(normalizedServices.map(service => (service.host || "").trim()).filter(Boolean))
+  ].map(name => ({ name, icon: "fa-solid fa-server" }));
   // Dashboards : liste ordonnee qui alimente les onglets. Un identifiant vide,
   // duplique ou reserve ("supervision") est remplace par un identifiant genere.
-  const normalizedDashboards=normalizeDashboards(cfg.dashboards);
-  const dashboardIds=new Set(normalizedDashboards.map(d=>d.id));
-  const defaultDashboardId=normalizedDashboards[0].id;
-  const normalizedCategories=(Array.isArray(cfg.categories) ? clone(cfg.categories) : clone(DEFAULT_CATEGORIES))
-    .map(cat=>({
-      name:sanitizeText(cat.name,100),
-      icon:sanitizeIconClass(cat.icon),
-      color:sanitizeTileColor(cat.color),
-      dashboardId:dashboardIds.has(sanitizeText(cat.dashboardId,64)) ? sanitizeText(cat.dashboardId,64) : defaultDashboardId
-    }));
-  const normalized={
+  const normalizedDashboards = normalizeDashboards(cfg.dashboards);
+  const dashboardIds = new Set(normalizedDashboards.map(d => d.id));
+  const defaultDashboardId = normalizedDashboards[0].id;
+  const normalizedCategories = (
+    Array.isArray(cfg.categories) ? clone(cfg.categories) : clone(DEFAULT_CATEGORIES)
+  ).map(cat => ({
+    name: sanitizeText(cat.name, 100),
+    icon: sanitizeIconClass(cat.icon),
+    color: sanitizeTileColor(cat.color),
+    dashboardId: dashboardIds.has(sanitizeText(cat.dashboardId, 64))
+      ? sanitizeText(cat.dashboardId, 64)
+      : defaultDashboardId
+  }));
+  const normalized = {
     ...normalizeViewPrefs(cfg),
-    services:normalizedServices.map(svc=>({
-      name:sanitizeText(svc.name,100),
-      host:sanitizeText(svc.host,100),
-      category:sanitizeText(svc.category,100),
-      url:sanitizeUrl(svc.url),
-      icon:sanitizeImagePath(svc.icon),
-      monitor:svc.monitor===false ? false : svc.monitor==="soft" ? "soft" : true,
+    services: normalizedServices.map(svc => ({
+      name: sanitizeText(svc.name, 100),
+      host: sanitizeText(svc.host, 100),
+      category: sanitizeText(svc.category, 100),
+      url: sanitizeUrl(svc.url),
+      icon: sanitizeImagePath(svc.icon),
+      monitor: svc.monitor === false ? false : svc.monitor === "soft" ? "soft" : true,
       // Normalisation pilotee par le schema du widget (manifest). Un widget
       // inconnu est conserve tel quel : on ne perd jamais des reglages.
-      widget:normalizeWidgetConfig(svc.widget)
+      widget: normalizeWidgetConfig(svc.widget)
     })),
-    categories:normalizedCategories,
-    dashboards:normalizedDashboards,
+    categories: normalizedCategories,
+    dashboards: normalizedDashboards,
     // Tuile speciale unique du tableau de bord (phrase du jour...), placee dans
     // une categorie. Absente = aucune.
-    specialTile:normalizeSpecialTile(cfg.specialTile,normalizedCategories),
-    hosts:Array.isArray(cfg.hosts) && cfg.hosts.length
-      ? cfg.hosts.map(host=>({
-          id:sanitizeText(host.id,64),
-          name:sanitizeText(host.name,100),
-          icon:sanitizeIconClass(host.icon),
-          color:sanitizeTileColor(host.color),
-          monitoring:normalizeHostMonitoring(host.monitoring)
-        }))
-      : derivedHosts.map(host=>({
-          ...host,
-          id:host.id||"host-"+Math.random().toString(36).slice(2,10)
-       })),
-    replication:{
-      role:"primary",
-      instanceName:sanitizeText(cfg.replication?.instanceName,100)||"Dashmon",
-      secondaries:Array.isArray(cfg.replication?.secondaries)
-        ? [...new Set(cfg.replication.secondaries.map(value=>sanitizeUrl(value)).filter(Boolean))].slice(0,20) : [],
-      agentNames:cfg.replication?.agentNames && typeof cfg.replication.agentNames==="object" && !Array.isArray(cfg.replication.agentNames)
-        ? Object.fromEntries(Object.entries(cfg.replication.agentNames).map(([url,name])=>[sanitizeUrl(url),sanitizeText(name,100)]).filter(([url,name])=>url && name)) : {},
+    specialTile: normalizeSpecialTile(cfg.specialTile, normalizedCategories),
+    hosts:
+      Array.isArray(cfg.hosts) && cfg.hosts.length
+        ? cfg.hosts.map(host => ({
+            id: sanitizeText(host.id, 64),
+            name: sanitizeText(host.name, 100),
+            icon: sanitizeIconClass(host.icon),
+            color: sanitizeTileColor(host.color),
+            monitoring: normalizeHostMonitoring(host.monitoring)
+          }))
+        : derivedHosts.map(host => ({
+            ...host,
+            id: host.id || "host-" + Math.random().toString(36).slice(2, 10)
+          })),
+    replication: {
+      role: "primary",
+      instanceName: sanitizeText(cfg.replication?.instanceName, 100) || "Dashmon",
+      secondaries: Array.isArray(cfg.replication?.secondaries)
+        ? [
+            ...new Set(cfg.replication.secondaries.map(value => sanitizeUrl(value)).filter(Boolean))
+          ].slice(0, 20)
+        : [],
+      agentNames:
+        cfg.replication?.agentNames &&
+        typeof cfg.replication.agentNames === "object" &&
+        !Array.isArray(cfg.replication.agentNames)
+          ? Object.fromEntries(
+              Object.entries(cfg.replication.agentNames)
+                .map(([url, name]) => [sanitizeUrl(url), sanitizeText(name, 100)])
+                .filter(([url, name]) => url && name)
+            )
+          : {},
       // Chaque pairage designe un hote de l'editeur : sa couleur et son icone
       // habillent la tuile distante. La correspondance se fait par identifiant
       // stable, jamais par nom.
-      agentHosts:cfg.replication?.agentHosts && typeof cfg.replication.agentHosts==="object" && !Array.isArray(cfg.replication.agentHosts)
-        ? Object.fromEntries(Object.entries(cfg.replication.agentHosts).map(([url,hostId])=>[sanitizeUrl(url),sanitizeText(hostId,64)]).filter(([url,hostId])=>url && hostId)) : {}
+      agentHosts:
+        cfg.replication?.agentHosts &&
+        typeof cfg.replication.agentHosts === "object" &&
+        !Array.isArray(cfg.replication.agentHosts)
+          ? Object.fromEntries(
+              Object.entries(cfg.replication.agentHosts)
+                .map(([url, hostId]) => [sanitizeUrl(url), sanitizeText(hostId, 64)])
+                .filter(([url, hostId]) => url && hostId)
+            )
+          : {}
     },
-    theme:typeof cfg.theme==="string" && cfg.theme.trim() ? cfg.theme.trim() : "dark",
-    language:cfg.language==="en" ? "en" : "fr",
-    usageCounts:cfg.usageCounts && typeof cfg.usageCounts==="object" && !Array.isArray(cfg.usageCounts) ? cfg.usageCounts : {},
-    webLinks:(Array.isArray(cfg.webLinks) ? clone(cfg.webLinks) : clone(DEFAULT_WEB_LINKS))
-      .map(link=>({
-        name:sanitizeText(link.name,100),
-        url:sanitizeUrl(link.url),
-        icon:sanitizeIconClass(link.icon),
-        counter:normalizeLinkCounter(link.counter)
-      })),
-    webLinksSeedVersion:Number.isFinite(Number(cfg.webLinksSeedVersion)) ? Number(cfg.webLinksSeedVersion) : 0,
-    webLinksColor:normalizeWebLinksColor(cfg.webLinksColor)
+    theme: typeof cfg.theme === "string" && cfg.theme.trim() ? cfg.theme.trim() : "dark",
+    language: cfg.language === "en" ? "en" : "fr",
+    usageCounts:
+      cfg.usageCounts && typeof cfg.usageCounts === "object" && !Array.isArray(cfg.usageCounts)
+        ? cfg.usageCounts
+        : {},
+    webLinks: (Array.isArray(cfg.webLinks) ? clone(cfg.webLinks) : clone(DEFAULT_WEB_LINKS)).map(
+      link => ({
+        name: sanitizeText(link.name, 100),
+        url: sanitizeUrl(link.url),
+        icon: sanitizeIconClass(link.icon),
+        counter: normalizeLinkCounter(link.counter)
+      })
+    ),
+    webLinksSeedVersion: Number.isFinite(Number(cfg.webLinksSeedVersion))
+      ? Number(cfg.webLinksSeedVersion)
+      : 0,
+    webLinksColor: normalizeWebLinksColor(cfg.webLinksColor)
   };
   // Categories et hotes ont chacun LEUR palette : une couleur d'hote peut
   // legitimement etre la meme qu'une couleur de categorie. Les deux listes
   // sont donc traitees separement, sans ensemble partage — lier les deux
   // forcerait a changer une couleur d'un cote des que l'autre evolue.
-  assignTileColors(normalized.categories,new Set());
-  assignTileColors(normalized.hosts,new Set());
+  assignTileColors(normalized.categories, new Set());
+  assignTileColors(normalized.hosts, new Set());
   return normalized;
 }
 
-export function serviceUsageKey(service){
-  return service.url || `${service.name||""}|${service.host||""}|${service.category||""}`;
+export function serviceUsageKey(service) {
+  return service.url || `${service.name || ""}|${service.host || ""}|${service.category || ""}`;
 }
 
-export function compareServices(a,b){
-  if(state.sortMode==="usage"){
-    const usageA=Number(state.usageCounts[serviceUsageKey(a)]||0);
-    const usageB=Number(state.usageCounts[serviceUsageKey(b)]||0);
-    if(usageA!==usageB) return usageB-usageA;
+export function compareServices(a, b) {
+  if (state.sortMode === "usage") {
+    const usageA = Number(state.usageCounts[serviceUsageKey(a)] || 0);
+    const usageB = Number(state.usageCounts[serviceUsageKey(b)] || 0);
+    if (usageA !== usageB) return usageB - usageA;
   }
-  return normalize(a.name).localeCompare(normalize(b.name),"fr");
+  return normalize(a.name).localeCompare(normalize(b.name), "fr");
 }
 
-export function getCategory(name){
-  return state.categories.find(c=>c.name===name) || {name,icon:"fa-solid fa-folder"};
+export function getCategory(name) {
+  return state.categories.find(c => c.name === name) || { name, icon: "fa-solid fa-folder" };
 }
 
 // Dashboard par identifiant. Un identifiant inconnu (preference d'un autre
 // navigateur, dashboard supprime) retombe sur le premier dashboard, qui existe
 // toujours.
-export function getDashboard(id){
-  return state.dashboards.find(d=>d.id===id) || state.dashboards[0] || DEFAULT_DASHBOARDS[0];
+export function getDashboard(id) {
+  return state.dashboards.find(d => d.id === id) || state.dashboards[0] || DEFAULT_DASHBOARDS[0];
 }

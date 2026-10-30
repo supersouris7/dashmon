@@ -49,8 +49,20 @@
         { "value": "http", "label": "HTTP" }
       ]
     },
-    { "key": "url", "type": "text", "label": "url", "maxLength": 200, "placeholder": "urlPlaceholder" },
+    {
+      "key": "url",
+      "type": "text",
+      "label": "url",
+      "maxLength": 200,
+      "placeholder": "urlPlaceholder"
+    },
     { "key": "username", "type": "text", "label": "username", "maxLength": 200 },
-    { "key": "password", "type": "secret", "label": "password", "maxLength": 2000, "placeholder": "passwordPlaceholder" }
+    {
+      "key": "password",
+      "type": "secret",
+      "label": "password",
+      "maxLength": 2000,
+      "placeholder": "passwordPlaceholder"
+    }
   ]
 }

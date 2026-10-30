@@ -16,7 +16,9 @@ function localeOf(lang) {
 export function formatDateTime(ms, lang) {
   try {
     return new Intl.DateTimeFormat(localeOf(lang), {
-      day: "2-digit", month: "2-digit", year: "numeric"
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
     }).format(new Date(ms));
   } catch (_error) {
     return "";
@@ -35,7 +37,10 @@ export function formatCompactNumber(n, lang) {
   try {
     const value = Number(n) || 0;
     if (value >= 100000) {
-      return new Intl.NumberFormat(localeOf(lang), { notation: "compact", maximumFractionDigits: 1 }).format(value);
+      return new Intl.NumberFormat(localeOf(lang), {
+        notation: "compact",
+        maximumFractionDigits: 1
+      }).format(value);
     }
     return new Intl.NumberFormat(localeOf(lang)).format(value);
   } catch (_error) {
@@ -50,9 +55,15 @@ export function formatCompactCount(n) {
   const value = Math.round(Number(n));
   if (!Number.isFinite(value)) return "";
   const abs = Math.abs(value);
-  let div = 1, unit = "";
-  if (abs >= 1e6) { div = 1e6; unit = "M"; }
-  else if (abs >= 1e3) { div = 1e3; unit = "k"; }
+  let div = 1,
+    unit = "";
+  if (abs >= 1e6) {
+    div = 1e6;
+    unit = "M";
+  } else if (abs >= 1e3) {
+    div = 1e3;
+    unit = "k";
+  }
   let shown = Math.round((value / div) * 10) / 10;
   // 999 950+ arrondirait a "1000k" : on monte au million pour rester lisible.
   if (unit === "k" && Math.abs(shown) >= 1000) {

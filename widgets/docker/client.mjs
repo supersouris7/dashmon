@@ -21,7 +21,7 @@ export function render(ctx) {
   const updated = info.updated;
 
   if (info.error || !containers || !updated || !containers.total) {
-    const error = String(info && info.error || "");
+    const error = String((info && info.error) || "");
     // docker.js traduit EACCES/EPERM du socket en une aide precise. La montrer
     // aussi sur la tuile evite de devoir deviner que l'infobulle contient le
     // remede quand Dashmon tourne dans une stack Portainer.
@@ -31,9 +31,7 @@ export function render(ctx) {
       badgeClass: "pending",
       time: socketPermission ? t("socketPermission") : "—",
       timeClass: socketPermission ? "warn" : "",
-      title: error
-        ? `${t("error")} : ${error.slice(0, 200)}`
-        : t("name")
+      title: error ? `${t("error")} : ${error.slice(0, 200)}` : t("name")
     };
   }
 
@@ -50,7 +48,8 @@ export function render(ctx) {
     badgeClass: allActive ? "ok" : "nok",
     time: fresh,
     timeClass: allUpdated ? "delta-up" : "warn",
-    title: `${t("name")} · ${upFull} · ${freshFull}`
-      + (unknown > 0 ? ` · ${unknown} ${t(unknown > 1 ? "unknownMany" : "unknownOne")}` : "")
+    title:
+      `${t("name")} · ${upFull} · ${freshFull}` +
+      (unknown > 0 ? ` · ${unknown} ${t(unknown > 1 ? "unknownMany" : "unknownOne")}` : "")
   };
 }
