@@ -1,0 +1,6 @@
+# Commits that only reformat code. git blame and GitHub skip them, so the
+# line-by-line history still points at the change that mattered.
+# Local use: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# outillage : ajoute Prettier et formate tout le depot
+ccf212979b2a7bd1466410558257ae60a55f4737
