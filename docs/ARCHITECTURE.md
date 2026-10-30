@@ -64,17 +64,39 @@ A few rules guide this split:
 
 ## Browser
 
-- `public/js/state.js` holds the shared state and the configuration
-  normalization; `api.js` handles the writes and the HTTP revisions.
-- `editor.js` orchestrates the panels and the save. The drafts and their
-  preparation live in `editor-draft.js`, `host-monitoring-draft.js` and
-  `replication-draft.js`.
-- `pairing-editor.js` and `pairing-list.js` handle the agent form;
-  `monitoring-editors.js` and `apt-editor.js` handle the supervision options.
-  `confirm-dialog.js`, `color-picker.js` and `editor-drag.js` carry shared editor
-  components.
-- `render.js`, `pages.js` and `supervision.js` build the views; `view-prefs.js`
-  keeps the local presentation preferences.
+The interface is plain ES modules loaded by `public/index.html` from
+`public/js/app.js`, without any build step. Every module starts with a comment
+describing its role.
+
+```text
+public/js/
+  app.js               entry point: start-up, main menu, global events
+  state.js             shared state (config, editor drafts, view preferences)
+  api.js               reads and writes of the configuration
+  render.js            dashboard rendering: visible services, groups, collapse
+  dashboard/           tiles (cards.js), sections, web links banner, toolbar
+                       buttons (view-controls.js)
+  supervision.js       supervision page, instances and metrics refresh
+  supervision/         one file per card (host, WireGuard, SMART, APT), shared
+                       card behaviour (cards.js) and texts (format.js)
+  editor.js            settings dialog: tabs, save, import / export
+  editor/              one file per panel (services, widgets, categories,
+                       dashboards, hosts, web links, pairing...), the widget
+                       settings dialog and the editor helpers (drafts, drag,
+                       colour and icon pickers, confirmation dialog)
+  config/              config schema (normalize.js), value checks (sanitize.js),
+                       icon list
+  i18n.js, i18n/       interface texts, one JSON file per language
+  widget-registry.js   loads the widgets published by the server
+  pages.js, themes.js, view-prefs.js, images.js, fortune.js, metrics.js...
+```
+
+- View preferences (columns, sorting, collapsed sections) live in the browser
+  (`view-prefs.js`), not in `config.json`.
+- `config/normalize.js` and `config/sanitize.js` mirror the server rules: a
+  value the server refuses must not be accepted in the browser either.
+- Texts are added to both `i18n/fr.json` and `i18n/en.json`: a test checks that
+  both files have the same keys.
 
 ## Checks
 
