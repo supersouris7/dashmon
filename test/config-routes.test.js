@@ -7,7 +7,8 @@ async function main() {
   const app = {
     get: (_path, handler) => (routes.get = handler),
     put: (_path, handler) => (routes.put = handler),
-    patch: (_path, handler) => (routes.patch = handler)
+    patch: (_path, handler) => (routes.patch = handler),
+    post: (_path, handler) => (routes.post = handler)
   };
   let config = { theme: "dark", usageCounts: { service: 4 } };
   let writes = 0;

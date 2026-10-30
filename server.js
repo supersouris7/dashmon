@@ -35,7 +35,13 @@ const { loadAgentIdentity } = require("./lib/agent/identity");
 const { log } = require("./lib/log");
 const { registerIconRoutes } = require("./lib/routes/icons");
 const { registerThemeRoutes } = require("./lib/routes/themes");
-const { describeVersion, isMountedPath } = require("./lib/version");
+const { registerSessionRoutes } = require("./lib/routes/session");
+const { registerPageRoutes } = require("./lib/routes/pages");
+const { registerSystemRoutes } = require("./lib/routes/system");
+const { registerWidgetRoutes } = require("./lib/routes/widgets");
+const { requestLog } = require("./lib/http/request-log");
+const { notFound, errorHandler } = require("./lib/http/errors");
+const { describeVersion } = require("./lib/version");
 
 function createApp() {
   const app = express();
@@ -70,25 +76,15 @@ function createApp() {
     hostMetricsInterval: HOST_METRICS_INTERVAL
   } = settings;
   const configStore = new ConfigStore(CONFIG_FILE);
-  const INDEX_FILE = path.join(PUBLIC_DIR, "index.html");
-  const LOGIN_FILE = path.join(PUBLIC_DIR, "login.html");
-
   const versionInfo = describeVersion(settings);
-  const INDEX_HTML = fs
-    .readFileSync(INDEX_FILE, "utf8")
-    .replace(/\{\{VERSION\}\}/g, versionInfo.label)
-    .replace(/\{\{HOST_METRICS_INTERVAL\}\}/g, String(HOST_METRICS_INTERVAL));
 
   app.disable("x-powered-by");
   app.use(express.json({ limit: "1mb", strict: true }));
 
-  const SESSION_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
   // Upper bound for one status probe, shared by the core and the plugins.
   const STATUS_TIMEOUT = 4000;
 
-  const { validSession, validBasicAuth, setSessionCookie } = createAuth({
-    password: DASHMON_PASSWORD
-  });
+  const auth = createAuth({ password: DASHMON_PASSWORD });
 
   app.use(securityHeaders);
 
@@ -115,32 +111,7 @@ function createApp() {
   // Limite les demandes de mesures locales.
   app.use("/api/host-metrics", rateLimitGet);
 
-  if (DASHMON_PASSWORD) {
-    app.post("/login", rateLimit, (req, res) => {
-      res.set("Cache-Control", "no-store");
-      const password = typeof req.body?.password === "string" ? req.body.password : "";
-      const expected = Buffer.from(DASHMON_PASSWORD);
-      const received = Buffer.from(password);
-      const ok = received.length === expected.length && crypto.timingSafeEqual(received, expected);
-      if (!ok) return res.status(401).json({ error: "Authentification invalide" });
-      setSessionCookie(req, res, Date.now() + SESSION_MAX_AGE);
-      res.json({ ok: true });
-    });
-
-    app.post("/logout", rateLimit, (req, res) => {
-      res.set("Cache-Control", "no-store");
-      setSessionCookie(req, res, 0);
-      res.json({ ok: true });
-    });
-
-    app.use("/api", (req, res, next) => {
-      // Les deux routes de federation ont leur propre authentification par jeton
-      // afin qu'une instance n'ait pas a connaitre le mot de passe web d'une autre.
-      if (req.path.startsWith("/sync/")) return next();
-      if (validSession(req) || validBasicAuth(req)) return next();
-      res.status(401).json({ error: "Authentification requise" });
-    });
-  }
+  registerSessionRoutes(app, { password: DASHMON_PASSWORD, auth, rateLimit });
 
   // L'agent n'expose que sa configuration locale et ses mesures authentifiees.
   app.use("/api", (req, res, next) => {
@@ -154,14 +125,7 @@ function createApp() {
     res.status(404).json({ error: "Route indisponible en mode agent" });
   });
 
-  app.use((_req, res, next) => {
-    const start = Date.now();
-    res.on("finish", () => {
-      const ms = Date.now() - start;
-      console.log(`${_req.method} ${_req.originalUrl} ${res.statusCode} ${ms}ms`);
-    });
-    next();
-  });
+  app.use(requestLog(log));
 
   // Secrets de widget chiffrés au repos : clé maîtresse en DASHMON_MASTER_KEY.
   // Sans clé, repli sur le stockage en clair (warning au démarrage) pour rester
@@ -196,37 +160,7 @@ function createApp() {
   runStartupMigrations(settings, configRepository);
   const AGENT_ID = AGENT_MODE ? loadAgentIdentity(DATA_DIR) : "";
 
-  app.get("/healthz", (_req, res) => {
-    res.set("Cache-Control", "no-store");
-    res.json({ ok: true });
-  });
-
-  app.get("/api/version", (_req, res) => {
-    res.set("Cache-Control", "no-store");
-    res.json({
-      version: versionInfo.version,
-      // Le commit de l'IMAGE. A lire avec appMounted : s'il vaut true, il
-      // decrit une image qui ne fournit pas le code en cours d'execution.
-      commit: versionInfo.commit,
-      commitShort: versionInfo.commitShort,
-      // Le champ "version" du paquet n'est mis a jour qu'a la publication d'un
-      // tag : sur une image "unstable" il reste fige, ce qui est sans rapport
-      // avec l'etat reel du deploiement.
-      packageVersion: require("./package.json").version,
-      appMounted: versionInfo.codeMounted,
-      // true quand /app/data est montee separement. C'est LA question qui decide
-      // si l'on peut retirer le montage du code sans perdre la configuration :
-      // si les donnees sont a l'interieur du montage /app, les retirer les met
-      // hors du conteneur — elles restent sur le disque, mais plus rien ne les
-      // sert. Volume et donnees sont donc deux choses distinctes a verifier.
-      dataMounted: isMountedPath(DATA_DIR),
-      // Reperage de l'emplacement des donnees, utile avant une intervention sur
-      // les montages. Aucun chemin hote n'est renvoye : seulement une position
-      // dans la hierarchie du conteneur.
-      dataPath: DATA_DIR,
-      startedAt: versionInfo.startedAt
-    });
-  });
+  registerSystemRoutes(app, { settings, version: versionInfo, readConfig });
 
   // Publie la cle de statut calculee par le core, sans repasser par la
   // serialisation complete : le client ne recompose donc jamais la cle, et les
@@ -243,29 +177,7 @@ function createApp() {
     };
   }
 
-  // Registre des widgets installees : metadonnees publiques (schema de config,
-  // libelles, icone, periode). Ni code serveur, ni secret.
-  app.get("/api/widgets", (_req, res) => {
-    res.set("Cache-Control", "no-store");
-    res.json(widgetCore.publicList());
-  });
-
-  // Code client d'un widget, servi depuis le dossier du widget. Le nom de fichier
-  // vient exclusivement du manifest valide par le registre : aucune traversée de
-  // chemin possible et aucun fichier serveur exposé.
-  app.get("/widget-client/:id.js", (req, res) => {
-    const asset = widgetCore.clientAsset(req.params.id, "js");
-    if (!asset) return res.status(404).type("text/plain").send("Introuvable");
-    res.set("Cache-Control", "public, max-age=300");
-    res.type("text/javascript").send(asset.body);
-  });
-
-  app.get("/widget-client/:id.css", (req, res) => {
-    const asset = widgetCore.clientAsset(req.params.id, "css");
-    if (!asset) return res.status(404).type("text/plain").send("Introuvable");
-    res.set("Cache-Control", "public, max-age=300");
-    res.type("text/css").send(asset.body);
-  });
+  registerWidgetRoutes(app, { widgetCore });
 
   // Un widget installe est serialise depuis son manifest (chiffrement des secrets
   // compris) ; un widget inconnu est conserve tel quel, pour ne pas perdre sa
@@ -307,18 +219,6 @@ function createApp() {
     res.status(410).json({ error: "La réplication est remplacée par le mode agent" });
   });
 
-  app.get("/readyz", (_req, res) => {
-    res.set("Cache-Control", "no-store");
-    try {
-      readConfig();
-      fs.accessSync(CONFIG_FILE, fs.constants.R_OK);
-      fs.accessSync(path.dirname(CONFIG_FILE), fs.constants.W_OK);
-      res.json({ ok: true, role: AGENT_MODE ? "agent" : "primary" });
-    } catch (_error) {
-      res.status(503).json({ ok: false, role: AGENT_MODE ? "agent" : "primary" });
-    }
-  });
-
   app.get("/api/sync/metrics", (req, res) => {
     if (!validSyncToken(req))
       return res.status(401).json({ error: "Authentification de synchronisation requise" });
@@ -343,57 +243,21 @@ function createApp() {
     normalize: config => keepOneLocalHost(buildConfigOutput(config)),
     replicate: replicateConfig,
     ensureHostIds: () => ensureHostIds(configRepository),
-    withCacheKeys
-  });
-
-  // Incrément du compteur d'utilisation depuis un clic. Route légère (petit corps)
-  // compatible avec la navigation de page (sendBeacon/keepalive) ; écriture
-  // synchrone pour rester atomique face aux PUT /api/config simultanés.
-  app.post("/api/usage", (req, res) => {
-    try {
-      const key = req.body && typeof req.body.key === "string" ? req.body.key.trim() : "";
-      if (!key || key.length > 200) return res.status(400).json({ error: "Clé invalide" });
-
-      const config = readConfig();
-      config.usageCounts =
-        config.usageCounts &&
-        typeof config.usageCounts === "object" &&
-        !Array.isArray(config.usageCounts)
-          ? config.usageCounts
-          : {};
-      const n = Number(config.usageCounts[key]);
-      config.usageCounts[key] = Number.isFinite(n) && n >= 0 ? Math.floor(n) + 1 : 1;
-
-      writeConfig(config);
-      res.json({ ok: true });
-    } catch (error) {
-      console.error("Incrément usage:", error);
-      res.status(500).json({ error: "Incrément du compteur impossible" });
-    }
+    withCacheKeys,
+    logger: log
   });
 
   registerIconRoutes(app, { iconsDir: ICONS_DIR, log });
   registerThemeRoutes(app, { nativeDir: THEMES_NATIVE_DIR, customDir: THEMES_CUSTOM_DIR, log });
 
-  app.get("/login", (req, res) => {
-    if (!DASHMON_PASSWORD || validSession(req) || validBasicAuth(req)) return res.redirect("/");
-    res.set("Cache-Control", "no-store");
-    res.sendFile(LOGIN_FILE);
+  registerPageRoutes(app, {
+    publicDir: PUBLIC_DIR,
+    password: DASHMON_PASSWORD,
+    auth,
+    agentMode: AGENT_MODE,
+    versionLabel: versionInfo.label,
+    hostMetricsInterval: HOST_METRICS_INTERVAL
   });
-
-  app.get(["/", "/index.html"], (req, res) => {
-    if (DASHMON_PASSWORD && !validSession(req) && !validBasicAuth(req))
-      return res.redirect("/login");
-    // La page doit toujours etre revalidee : elle porte le libelle de version du
-    // pied de page et les references des scripts. Sans cet en-tete, un
-    // navigateur garde le HTML en cache et affiche une version perimee alors que
-    // les scripts, eux, sont bien charges a jour. Les routes API sont deja en
-    // no-store pour la meme raison.
-    res.set("Cache-Control", "no-store");
-    if (AGENT_MODE) return res.sendFile(path.join(PUBLIC_DIR, "agent.html"));
-    res.type("html").send(INDEX_HTML);
-  });
-  app.use(express.static(PUBLIC_DIR));
 
   const STATUS_INTERVAL = 60000;
 
@@ -735,20 +599,8 @@ function createApp() {
     res.json(statusCache);
   });
 
-  app.use((_req, res) => {
-    res.status(404).json({ error: "Route inconnue" });
-  });
-
-  app.use((err, _req, res, _next) => {
-    if (err?.type === "entity.parse.failed") {
-      return res.status(400).json({ error: "Corps JSON invalide" });
-    }
-    if (err?.type === "entity.too.large") {
-      return res.status(413).json({ error: "Fichier trop volumineux" });
-    }
-    console.error("Erreur serveur:", err.message);
-    res.status(500).json({ error: "Erreur interne" });
-  });
+  app.use(notFound);
+  app.use(errorHandler(log));
 
   let httpServer;
   let statusTimer;
