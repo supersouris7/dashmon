@@ -1,4 +1,9 @@
 {
+  "settings": "Paramètres",
+  "settingsResources": "Ressources",
+  "settingsAppearance": "Apparence",
+  "settingsPreferences": "Thème et préférences",
+  "appearanceSaveHint": "Ces préférences sont enregistrées immédiatement.",
   "editDashboardTitle": "Modifier Dashmon",
   "support": "Soutenir",
   "tabApplications": "Applications",
@@ -190,7 +195,7 @@
   "supervisionCpuCore": "{count} cœur",
   "supervisionCpuCores": "{count} cœurs",
   "supervisionRamTotal": "Mémoire totale",
-  "supervisionEmpty": "Aucun hôte n’est surveillé. Utilisez « Modifier la supervision » dans le menu … pour en ajouter.",
+  "supervisionEmpty": "Aucun hôte n’est surveillé. Ouvrez Paramètres → Supervision → Hôtes pour en ajouter.",
   "supervisionLoading": "Mesure des hôtes…",
   "supervisionError": "Les mesures ne sont pas disponibles pour l’instant.",
   "supervisionUnreachable": "Hôte injoignable",

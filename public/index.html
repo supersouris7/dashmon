@@ -63,6 +63,7 @@
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/editor.css" />
     <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/settings.css" />
 
     <script>
       (function () {
@@ -222,19 +223,9 @@
               </button>
 
               <div class="top-menu-separator"></div>
-              <button class="top-menu-item" id="menuEditBtn" type="button">
-                <i class="fa-solid fa-pen"></i>
-                <span>Modifier Dashmon</span>
-                <span></span>
-              </button>
-              <button class="top-menu-item" id="menuSupervisionBtn" type="button">
-                <i class="fa-solid fa-heart-pulse"></i>
-                <span>Modifier la supervision</span>
-                <span></span>
-              </button>
-              <button class="top-menu-item" id="menuAppearanceBtn" type="button">
-                <i class="fa-solid fa-palette"></i>
-                <span>Modifier le thème</span>
+              <button class="top-menu-item" id="menuSettingsBtn" type="button">
+                <i class="fa-solid fa-gear"></i>
+                <span>Paramètres</span>
                 <span></span>
               </button>
               <button class="top-menu-item" id="menuRefreshBtn" type="button">
@@ -261,16 +252,23 @@
       </section>
     </main>
 
-    <div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
+    <div id="modalBackdrop" class="modal-backdrop settings-page" aria-hidden="true">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="editorTitle"
+        tabindex="-1"
+      >
         <div class="modal-header">
-          <div id="editorTitle" class="modal-title">Modifier Dashmon</div>
+          <div id="editorTitle" class="modal-title">Paramètres</div>
           <button id="closeBtn" class="modal-close" type="button" title="Fermer">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
 
-        <div class="edit-tabs">
+        <nav class="edit-tabs" aria-labelledby="editorTitle">
+          <h2 class="settings-category" id="settingsDashboard">Dashmon</h2>
           <button class="edit-tab active" type="button" data-panel="servicesPanel">
             <i class="fa-solid fa-cubes"></i>&nbsp;
             <span id="editorTabApplications">Applications</span>
@@ -286,8 +284,13 @@
           <button class="edit-tab" type="button" data-panel="dashboardsPanel">
             <i class="fa-solid fa-grip"></i>&nbsp; <span id="editorTabDashboards">Dashboards</span>
           </button>
+          <h2 class="settings-category" id="settingsSupervision">Supervision</h2>
           <button class="edit-tab" type="button" data-panel="hostsPanel">
             <i class="fa-solid fa-server"></i>&nbsp; <span id="editorTabHosts">Hôtes</span>
+          </button>
+          <button class="edit-tab" type="button" data-panel="replicationPanel">
+            <i class="fa-solid fa-circle-nodes"></i>&nbsp;
+            <span id="editorTabPairing">Pairage</span>
           </button>
           <button class="edit-tab" type="button" data-panel="wireguardPanel">
             <i class="fa-solid fa-dragon"></i>&nbsp; <span id="editorTabWireguard">WireGuard</span>
@@ -298,6 +301,7 @@
           <button class="edit-tab" type="button" data-panel="aptUpdatesPanel">
             <i class="fa-solid fa-box"></i>&nbsp; <span id="editorTabAptUpdates">APT</span>
           </button>
+          <h2 class="settings-category" id="settingsResources">Ressources</h2>
           <button class="edit-tab" type="button" data-panel="webLinksPanel">
             <i class="fa-solid fa-globe"></i>&nbsp; <span id="editorTabWebLinks">Liens web</span>
           </button>
@@ -308,11 +312,12 @@
             <i class="fa-solid fa-file-import"></i>&nbsp;
             <span id="editorTabImportExport">Import / Export</span>
           </button>
-          <button class="edit-tab" type="button" data-panel="replicationPanel">
-            <i class="fa-solid fa-circle-nodes"></i>&nbsp;
-            <span id="editorTabPairing">Pairage</span>
+          <h2 class="settings-category" id="settingsAppearance">Apparence</h2>
+          <button class="edit-tab" type="button" data-panel="appearancePanel">
+            <i class="fa-solid fa-palette"></i>&nbsp;
+            <span id="editorTabAppearance">Thème et préférences</span>
           </button>
-        </div>
+        </nav>
 
         <div id="servicesPanel" class="edit-panel active">
           <div class="editor-filterbar">
@@ -437,6 +442,125 @@
           <div id="replicationEditor" class="edit-list"></div>
         </div>
 
+        <div id="appearancePanel" class="edit-panel">
+          <p id="appearanceSaveHint" class="upload-hint">
+            Ces préférences sont enregistrées immédiatement.
+          </p>
+          <div class="appearance-content">
+            <label class="appearance-field">
+              <span id="themeFieldLabel">Thème</span>
+              <select id="themeSelect" class="edit-select">
+                <option value="dark">Sombre</option>
+                <option value="light">Clair</option>
+                <option value="black">Noir</option>
+                <option value="matrix">Matrix</option>
+                <option value="rainbow-dark">Arc-en-ciel sombre</option>
+                <option value="rainbow-light">Arc-en-ciel clair</option>
+              </select>
+            </label>
+
+            <div class="appearance-field">
+              <span id="themeManageLabel">Gestion des thèmes</span>
+              <div class="theme-manage">
+                <button id="importThemeBtn" class="action-btn" type="button">
+                  <i class="fa-solid fa-upload"></i>&nbsp;
+                  <span id="importThemeBtnLabel">Importer</span>
+                </button>
+                <button id="exportThemeBtn" class="action-btn" type="button">
+                  <i class="fa-solid fa-download"></i>&nbsp;
+                  <span id="exportThemeBtnLabel">Exporter</span>
+                </button>
+                <button id="deleteThemeBtn" class="action-btn danger" type="button" disabled>
+                  <i class="fa-solid fa-trash"></i>&nbsp;
+                  <span id="deleteThemeBtnLabel">Supprimer</span>
+                </button>
+              </div>
+            </div>
+
+            <label class="appearance-field">
+              <span id="languageFieldLabel">Langue</span>
+              <select id="languageSelect" class="edit-select">
+                <option value="fr">Français</option>
+                <option value="en">English</option>
+              </select>
+            </label>
+
+            <div class="appearance-field">
+              <span id="webLinksColorLabel">Couleur des liens web</span>
+              <div
+                id="webLinksColorChoices"
+                class="color-choices"
+                role="radiogroup"
+                aria-labelledby="webLinksColorLabel"
+              >
+                <button
+                  type="button"
+                  class="color-choice"
+                  id="webLinksColorDark"
+                  data-color="dark"
+                  aria-label="Gris foncé"
+                  title="Gris foncé"
+                ></button>
+                <button
+                  type="button"
+                  class="color-choice"
+                  id="webLinksColorRed"
+                  data-color="red"
+                  aria-label="Rouge"
+                  title="Rouge"
+                ></button>
+                <button
+                  type="button"
+                  class="color-choice"
+                  id="webLinksColorBlue"
+                  data-color="blue"
+                  aria-label="Bleu"
+                  title="Bleu"
+                ></button>
+                <button
+                  type="button"
+                  class="color-choice"
+                  id="webLinksColorGreen"
+                  data-color="green"
+                  aria-label="Vert"
+                  title="Vert"
+                ></button>
+                <button
+                  type="button"
+                  class="color-choice"
+                  id="webLinksColorOrange"
+                  data-color="orange"
+                  aria-label="Orange"
+                  title="Orange"
+                ></button>
+                <button
+                  type="button"
+                  class="color-choice"
+                  id="webLinksColorPurple"
+                  data-color="purple"
+                  aria-label="Violet"
+                  title="Violet"
+                ></button>
+              </div>
+            </div>
+
+            <div class="appearance-field">
+              <span id="openModeFieldLabel">Ouverture des liens</span>
+              <select id="openModeSelect" class="edit-select">
+                <option value="same" id="openModeOptionSame">Même onglet</option>
+                <option value="new" id="openModeOptionNew">Nouvel onglet</option>
+              </select>
+            </div>
+
+            <div class="appearance-field">
+              <span id="usageFieldLabel">Compteurs d’utilisation</span>
+              <button id="resetUsageBtn" class="action-btn" type="button">
+                <i class="fa-solid fa-rotate-left"></i>&nbsp; <span>Réinitialiser</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="modal-header editor-footer">
           <div class="action-group">
             <span id="saveStatus" class="save-status" role="status" aria-live="polite"></span>
@@ -461,141 +585,6 @@
         </div>
         <p id="confirmMessage" class="confirm-message"></p>
         <div id="confirmActions" class="confirm-actions"></div>
-      </div>
-    </div>
-
-    <div id="appearanceBackdrop" class="modal-backdrop" aria-hidden="true">
-      <div
-        class="modal appearance-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="appearanceTitle"
-      >
-        <div class="modal-header">
-          <div id="appearanceTitle" class="modal-title">Modifier le thème</div>
-          <button id="appearanceCloseBtn" class="modal-close" type="button" title="Fermer">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-
-        <div class="appearance-content">
-          <label class="appearance-field">
-            <span id="themeFieldLabel">Thème</span>
-            <select id="themeSelect" class="edit-select">
-              <option value="dark">Sombre</option>
-              <option value="light">Clair</option>
-              <option value="black">Noir</option>
-              <option value="matrix">Matrix</option>
-              <option value="rainbow-dark">Arc-en-ciel sombre</option>
-              <option value="rainbow-light">Arc-en-ciel clair</option>
-            </select>
-          </label>
-
-          <div class="appearance-field">
-            <span id="themeManageLabel">Gestion des thèmes</span>
-            <div class="theme-manage">
-              <button id="importThemeBtn" class="action-btn" type="button">
-                <i class="fa-solid fa-upload"></i>&nbsp;
-                <span id="importThemeBtnLabel">Importer</span>
-              </button>
-              <button id="exportThemeBtn" class="action-btn" type="button">
-                <i class="fa-solid fa-download"></i>&nbsp;
-                <span id="exportThemeBtnLabel">Exporter</span>
-              </button>
-              <button id="deleteThemeBtn" class="action-btn danger" type="button" disabled>
-                <i class="fa-solid fa-trash"></i>&nbsp;
-                <span id="deleteThemeBtnLabel">Supprimer</span>
-              </button>
-            </div>
-          </div>
-
-          <label class="appearance-field">
-            <span id="languageFieldLabel">Langue</span>
-            <select id="languageSelect" class="edit-select">
-              <option value="fr">Français</option>
-              <option value="en">English</option>
-            </select>
-          </label>
-
-          <div class="appearance-field">
-            <span id="webLinksColorLabel">Couleur des liens web</span>
-            <div
-              id="webLinksColorChoices"
-              class="color-choices"
-              role="radiogroup"
-              aria-labelledby="webLinksColorLabel"
-            >
-              <button
-                type="button"
-                class="color-choice"
-                id="webLinksColorDark"
-                data-color="dark"
-                aria-label="Gris foncé"
-                title="Gris foncé"
-              ></button>
-              <button
-                type="button"
-                class="color-choice"
-                id="webLinksColorRed"
-                data-color="red"
-                aria-label="Rouge"
-                title="Rouge"
-              ></button>
-              <button
-                type="button"
-                class="color-choice"
-                id="webLinksColorBlue"
-                data-color="blue"
-                aria-label="Bleu"
-                title="Bleu"
-              ></button>
-              <button
-                type="button"
-                class="color-choice"
-                id="webLinksColorGreen"
-                data-color="green"
-                aria-label="Vert"
-                title="Vert"
-              ></button>
-              <button
-                type="button"
-                class="color-choice"
-                id="webLinksColorOrange"
-                data-color="orange"
-                aria-label="Orange"
-                title="Orange"
-              ></button>
-              <button
-                type="button"
-                class="color-choice"
-                id="webLinksColorPurple"
-                data-color="purple"
-                aria-label="Violet"
-                title="Violet"
-              ></button>
-            </div>
-          </div>
-
-          <div class="appearance-field">
-            <span id="openModeFieldLabel">Ouverture des liens</span>
-            <select id="openModeSelect" class="edit-select">
-              <option value="same" id="openModeOptionSame">Même onglet</option>
-              <option value="new" id="openModeOptionNew">Nouvel onglet</option>
-            </select>
-          </div>
-
-          <div class="appearance-field">
-            <span id="usageFieldLabel">Compteurs d’utilisation</span>
-            <button id="resetUsageBtn" class="action-btn" type="button">
-              <i class="fa-solid fa-rotate-left"></i>&nbsp; <span>Réinitialiser</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="modal-header appearance-footer">
-          <span></span>
-          <button id="appearanceDoneBtn" class="action-btn primary" type="button">Fermer</button>
-        </div>
       </div>
     </div>
 

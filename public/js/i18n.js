@@ -3,19 +3,13 @@ import { state } from "./state.js";
 import fr from "./i18n/fr.json" with { type: "json" };
 import en from "./i18n/en.json" with { type: "json" };
 import {
-  menuEditBtn,
-  menuSupervisionBtn,
-  menuAppearanceBtn,
-  appearanceTitle,
+  menuSettingsBtn,
   themeFieldLabel,
   languageFieldLabel,
   usageFieldLabel,
   resetUsageBtn,
-  appearanceDoneBtn,
-  appearanceCloseBtn,
   searchInput,
   topMenu,
-  modalBackdrop,
   groupCategoryBtn,
   groupHostBtn,
   sortMenuLabel,
@@ -48,14 +42,15 @@ export function t(key) {
 export function applyLanguage() {
   document.documentElement.lang = state.language;
 
-  const editLabel = menuEditBtn.querySelector("span:nth-child(2)");
-  if (editLabel) editLabel.textContent = t("editDashboard");
-
-  const supervisionLabel = menuSupervisionBtn.querySelector("span:nth-child(2)");
-  if (supervisionLabel) supervisionLabel.textContent = t("menuSupervision");
-
-  const appearanceLabel = menuAppearanceBtn.querySelector("span:nth-child(2)");
-  if (appearanceLabel) appearanceLabel.textContent = t("editTheme");
+  menuSettingsBtn.querySelector("span").textContent = t("settings");
+  for (const [id, key] of [
+    ["settingsSupervision", "supervision"],
+    ["settingsResources", "settingsResources"],
+    ["settingsAppearance", "settingsAppearance"],
+    ["editorTabAppearance", "settingsPreferences"],
+    ["appearanceSaveHint", "appearanceSaveHint"]
+  ])
+    document.getElementById(id).textContent = t(key);
 
   const refreshLabel = menuRefreshBtn.querySelector("span:nth-child(2)");
   if (refreshLabel) refreshLabel.textContent = t("menuRefresh");
@@ -63,13 +58,10 @@ export function applyLanguage() {
   const logoutLabel = menuLogoutBtn.querySelector("span:nth-child(2)");
   if (logoutLabel) logoutLabel.textContent = t("logout");
 
-  appearanceTitle.textContent = t("editTheme");
   themeFieldLabel.textContent = t("theme");
   languageFieldLabel.textContent = t("language");
   usageFieldLabel.textContent = t("usageLabel");
   resetUsageBtn.querySelector("span").textContent = t("resetUsage");
-  appearanceDoneBtn.textContent = t("close");
-  appearanceCloseBtn.title = t("close");
   searchInput.placeholder = t("search");
   for (const [button, key] of [
     [hideWebLinksBtn, "hideWebLinks"],
@@ -100,9 +92,7 @@ export function applyLanguage() {
     collapseButtonUpdater();
   }
 
-  editorTitle.textContent = t(
-    modalBackdrop.dataset.mode === "supervision" ? "editSupervisionTitle" : "editDashboardTitle"
-  );
+  editorTitle.textContent = t("settings");
   closeBtn.title = t("close");
   editorSearch.placeholder = t("searchEditor");
 

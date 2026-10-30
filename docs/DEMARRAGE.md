@@ -151,7 +151,7 @@ writable by the container UID `1000`.
 2. Set the host name and the options you need. To measure the host disk,
    uncomment the `/host:ro` mount, redeploy and enter `/host` in the disk path
    field. Otherwise the measurement covers the container.
-3. On the primary: **Edit supervision → Pairing**. Add the agent full address,
+3. On the primary: **Settings → Supervision → Pairing**. Add the agent full address,
    for example `http://exemple.lan:8081`, then name the tab if you want.
    Next, link the host created in the **Hosts** tab: its color and icon are used
    when hovering its tile in Supervision. Without a host, the pairing still

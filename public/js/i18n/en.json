@@ -1,4 +1,9 @@
 {
+  "settings": "Settings",
+  "settingsResources": "Resources",
+  "settingsAppearance": "Appearance",
+  "settingsPreferences": "Theme and preferences",
+  "appearanceSaveHint": "These preferences are saved immediately.",
   "editDashboardTitle": "Edit Dashmon",
   "support": "Support",
   "tabApplications": "Applications",
@@ -190,7 +195,7 @@
   "supervisionCpuCore": "{count} core",
   "supervisionCpuCores": "{count} cores",
   "supervisionRamTotal": "Total memory",
-  "supervisionEmpty": "No host is being monitored. Use “Edit supervision” in the … menu to add one.",
+  "supervisionEmpty": "No host is being monitored. Open Settings → Supervision → Hosts to add one.",
   "supervisionLoading": "Measuring hosts…",
   "supervisionError": "Measurements are not available right now.",
   "supervisionUnreachable": "Host unreachable",

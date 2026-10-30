@@ -87,8 +87,8 @@ The report is written before the reboot request, with the state
 
 ## Dashmon supervision
 
-The local host is always monitored. In **Edit supervision**, open the
-**APT updates** tab. The card shows an explicit status, **Up to date** or
+The local host is always monitored. Open **Settings → Supervision → APT updates**.
+The card shows an explicit status, **Up to date** or
 **Not up to date**, with the same health icon as the host card, then the number
 of installed updates. The chevron expands the last run, the next planned run and
 a warning when a reboot is required.

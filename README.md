@@ -22,7 +22,7 @@ you stop guessing whether *that* thing is working.
 - **Real status monitoring** — an up/down pill per URL, refreshed automatically.
 - **Host supervision** — a dedicated page with CPU, memory, disk and temperature
   from Dashmon itself or its supervision agents. WireGuard peers can be read from
-  a local `wg show all dump` file; a dedicated *Edit supervision* screen
+  a local `wg show all dump` file; the **Settings → Supervision** section
   configures hosts and peer display.
 - **Supervision agents** — deploy a lightweight agent on another host and view
   its local metrics from the main dashboard, without copying its configuration.
@@ -94,18 +94,18 @@ publishing Docker images.
 
 ## First steps
 
-1. Click **Edit Dashmon** and add your services (name, URL, icon, category, host).
+1. Open **Settings → Dashmon → Applications** and add your services (name, URL, icon, category, host).
 2. Turn on **Status monitoring** for the services you want a pill on.
 3. Give a service a **widget** — that's where the live numbers appear.
 4. Add hosts to organize services by machine, with their own icons and colors.
-5. Adjust the theme and language under **Appearance**.
+5. Adjust the theme and language under **Settings → Appearance**.
 
 Config, icons and themes live in the `dashmon-data` volume (`/app/data`) — back
 that volume up, and keep `DASHMON_MASTER_KEY` somewhere safe: widget passwords
 are encrypted with it and never sent back to the browser.
 
 Web links live above the toolbar. Their color and visibility are configured in
-**Appearance**; visibility is remembered by each browser.
+**Settings → Appearance**; visibility is remembered by each browser.
 
 ### What lives where
 

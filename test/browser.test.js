@@ -120,9 +120,32 @@ async function main() {
   assert.equal(login, 200);
   await call("Page.navigate", { url: base + "/" });
   await wait(1800);
-  assert.equal(await evaluate("!!document.querySelector('#menuSupervisionBtn')"), true);
-  await evaluate("document.querySelector('#menuSupervisionBtn').click()");
+  assert.equal(await evaluate("!!document.querySelector('#menuSettingsBtn')"), true);
+  assert.equal(
+    await evaluate(
+      "!!document.querySelector('#menuSupervisionBtn, #menuEditBtn, #menuAppearanceBtn')"
+    ),
+    false
+  );
+  await evaluate("document.querySelector('#menuSettingsBtn').click()");
   await wait(300);
+  await evaluate("document.querySelector('#saveBtn').focus()");
+  await call("Input.dispatchKeyEvent", { type: "keyDown", key: "Tab", code: "Tab" });
+  await call("Input.dispatchKeyEvent", { type: "keyUp", key: "Tab", code: "Tab" });
+  assert.equal(await evaluate("document.activeElement.id"), "closeBtn");
+  assert.equal(
+    await evaluate("document.querySelector('#modalBackdrop').getBoundingClientRect().top"),
+    0
+  );
+  assert.equal(await evaluate("document.querySelectorAll('.settings-category').length"), 4);
+  await evaluate("document.querySelector('[data-panel=appearancePanel]').click()");
+  assert.equal(
+    await evaluate(
+      "!!document.querySelector('#appearancePanel #themeSelect') && document.querySelector('#appearancePanel').getClientRects().length > 0"
+    ),
+    true
+  );
+  await evaluate("document.querySelector('[data-panel=hostsPanel]').click()");
   assert.equal(await evaluate("!!document.querySelector('[data-panel=replicationPanel]')"), true);
   const picked = await evaluate(
     `(()=>{const b=document.querySelector('#hostsPanel .color-swatch-btn');if(!b)return false;b.click();const p=document.querySelector('#hostsPanel .color-palette:not([hidden])');if(!p)return false;p.querySelector('.color-chip').click();return true;})()`
@@ -173,6 +196,40 @@ async function main() {
     "fetch('/api/config').then(r=>r.json()).then(c=>({host:c.replication.agentHosts['http://exemple.lan/'],hosts:c.hosts.map(h=>h.id)}))"
   );
   assert.ok(linked.host && linked.hosts.includes(linked.host));
+  await evaluate(
+    "document.querySelector('[data-panel=servicesPanel]').click(); document.querySelector('#addServiceBtn').click(); document.querySelector('[data-panel=appearancePanel]').click(); document.querySelector('#closeBtn').click()"
+  );
+  await wait(200);
+  assert.equal(
+    await evaluate("document.querySelector('#confirmBackdrop').classList.contains('show')"),
+    true
+  );
+  await evaluate("document.querySelectorAll('#confirmActions button')[1].click()");
+  await wait(200);
+  assert.equal(
+    await evaluate("document.querySelector('#modalBackdrop').classList.contains('show')"),
+    false
+  );
+  await call("Emulation.setDeviceMetricsOverride", {
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 1,
+    mobile: true
+  });
+  await evaluate("document.querySelector('#menuSettingsBtn').click()");
+  assert.equal(
+    await evaluate(
+      "document.querySelector('.edit-tabs').getBoundingClientRect().right <= document.querySelector('.edit-panel.active').getBoundingClientRect().left"
+    ),
+    true
+  );
+  await evaluate("document.querySelector('[data-panel=appearancePanel]').click()");
+  assert.equal(
+    await evaluate(
+      "document.querySelector('#appearancePanel').scrollWidth <= document.querySelector('#appearancePanel').clientWidth"
+    ),
+    true
+  );
   ws.close();
   console.log("PASS navigateur : connexion, pairage, sauvegarde et hote associe");
 }

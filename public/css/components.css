@@ -950,19 +950,6 @@ body.is-refreshing .widget-status {
   border-color: var(--border);
 }
 
-.appearance-modal {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  height: auto;
-  max-height: none;
-  overflow: visible;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-}
-
 .appearance-content {
   width: 100%;
   padding: 20px;

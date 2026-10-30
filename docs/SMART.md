@@ -63,10 +63,9 @@ list empty to show them all.
 
 ## Dashmon configuration
 
-The local host is always monitored. In **Edit supervision**, open the
-**SMART** tab. The disk list is optional: empty, it shows every disk in the
-dump; enter for example `/dev/sda, /dev/sdb` to filter. Click **Save**, then
-**Apply**.
+The local host is always monitored. Open **Settings → Supervision → SMART**.
+The disk list is optional: empty, it shows every disk in the dump; enter for
+example `/dev/sda, /dev/sdb` to filter. Click **Save**.
 
 The server reads `/app/data/smart.json` by default. For a bind mount, mount for
 example `/srv/dashmon-reports` on `/reports:ro`, use

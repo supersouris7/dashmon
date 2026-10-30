@@ -1,0 +1,103 @@
+.settings-page {
+  top: 0;
+  overflow: hidden;
+}
+
+.settings-page .modal {
+  display: grid;
+  height: 100dvh;
+  grid-template-columns: 230px minmax(0, 1fr);
+  grid-template-rows: 58px minmax(0, 1fr) auto;
+}
+
+.settings-page .modal > .modal-header:not(.editor-footer) {
+  grid-column: 1 / -1;
+  padding: 0 24px;
+}
+
+.settings-page .edit-tabs {
+  grid-column: 1;
+  grid-row: 2 / 4;
+  position: static;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 16px 12px;
+  overflow: auto;
+  border-bottom: 0;
+  border-right: 1px solid var(--border);
+}
+
+.settings-category {
+  margin: 16px 10px 4px;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.settings-category:first-child {
+  margin-top: 0;
+}
+
+.settings-page .edit-tab {
+  text-align: left;
+  padding: 10px;
+  border: 0;
+  border-radius: 6px;
+  white-space: normal;
+}
+
+.settings-page .edit-tab.active,
+.settings-page .edit-tab:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.settings-page .edit-tab.active {
+  box-shadow: inset 3px 0 var(--accent);
+}
+
+.settings-page .edit-panel {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+  padding: 24px;
+  overflow: auto;
+}
+
+.settings-page .editor-footer {
+  grid-column: 2;
+  grid-row: 3;
+  position: static;
+  padding: 12px 24px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 700px) {
+  .settings-page .modal {
+    grid-template-columns: 140px minmax(0, 1fr);
+  }
+
+  .settings-page .edit-tabs {
+    padding: 12px 6px;
+  }
+
+  .settings-page .edit-panel,
+  .settings-page .editor-footer {
+    padding: 12px;
+  }
+
+  .settings-page .action-group {
+    flex-wrap: wrap;
+  }
+
+  .settings-page .appearance-content {
+    padding: 0;
+  }
+
+  .settings-page .appearance-field {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

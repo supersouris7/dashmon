@@ -1,4 +1,4 @@
-// Settings dialog: opening and closing, tabs, save (with conflict and
+// Settings page: opening and closing, navigation, save (with conflict and
 // missing-host checks), configuration import / export. Each panel lives in
 // editor/.
 import { state } from "./state.js";
@@ -99,49 +99,7 @@ function clearSaveStatus() {
   saveStatus.replaceChildren();
 }
 
-const SUPERVISION_PANELS = [
-  "hostsPanel",
-  "replicationPanel",
-  "wireguardPanel",
-  "smartPanel",
-  "aptUpdatesPanel"
-];
-
-// The same dialog serves two purposes: "Edit Dashmon" (every tab) and "Edit
-// supervision" (hosts, pairing and local probes). Unused tabs are hidden
-// rather than duplicating the form and its save.
-function applyEditorMode(mode) {
-  const supervision = mode === "supervision";
-  modalBackdrop.dataset.mode = supervision ? "supervision" : "all";
-  // WireGuard and SMART only belong to the supervision editor; the "Edit
-  // Dashmon" dialog never shows them.
-  const visible = panel =>
-    supervision
-      ? SUPERVISION_PANELS.includes(panel)
-      : panel !== "replicationPanel" &&
-        panel !== "wireguardPanel" &&
-        panel !== "smartPanel" &&
-        panel !== "aptUpdatesPanel";
-  const tabs = [...document.querySelectorAll(".edit-tab")];
-  tabs.forEach(tab => {
-    tab.hidden = !visible(tab.dataset.panel);
-    tab.classList.remove("active");
-  });
-  document.querySelectorAll(".edit-panel").forEach(panel => {
-    panel.hidden = !visible(panel.id);
-    panel.classList.remove("active");
-  });
-  const target = supervision ? "hostsPanel" : "servicesPanel";
-  tabs.forEach(tab => {
-    if (tab.dataset.panel === target && !tab.hidden) tab.classList.add("active");
-  });
-  document.getElementById(target).classList.add("active");
-  editorTitle.textContent = t(supervision ? "editSupervisionTitle" : "editDashboardTitle");
-}
-
-export function openEditor(mode = "all") {
-  const rect = document.querySelector(".toolbar").getBoundingClientRect();
-  document.documentElement.style.setProperty("--toolbar-h", Math.max(0, rect.bottom) + "px");
+export function openEditor() {
   state.editServices = clone(state.services);
   state.editCategories = clone(state.categories);
   state.editDashboards = clone(state.dashboards);
@@ -160,12 +118,16 @@ export function openEditor(mode = "all") {
   renderWebLinksEditor();
   renderWidgetsEditor();
   renderReplicationEditor();
-  applyEditorMode(mode);
+  editorTitle.textContent = t("settings");
+  activateEditorPanel("servicesPanel");
   clearSaveStatus();
   editorBaseline = editorSnapshot();
   modalBackdrop.classList.add("show");
   modalBackdrop.setAttribute("aria-hidden", "false");
   document.body.classList.add("modal-open");
+  document.querySelector(".toolbar").inert = true;
+  document.querySelector("main").inert = true;
+  modalBackdrop.querySelector(".modal").focus();
 }
 
 export function closeEditor() {
@@ -173,6 +135,9 @@ export function closeEditor() {
   modalBackdrop.classList.remove("show");
   modalBackdrop.setAttribute("aria-hidden", "true");
   document.body.classList.remove("modal-open");
+  document.querySelector(".toolbar").inert = false;
+  document.querySelector("main").inert = false;
+  document.getElementById("moreBtn").focus();
   closeWidgetConfig();
   document.querySelectorAll(".icon-picker.open").forEach(p => p.classList.remove("open"));
 }
@@ -317,9 +282,13 @@ function activateEditorPanel(panelId) {
   const tabs = [...document.querySelectorAll(".edit-tab")];
   const tab = tabs.find(elm => elm.dataset.panel === panelId);
   if (!tab) return;
-  tabs.forEach(elm => elm.classList.remove("active"));
+  tabs.forEach(elm => {
+    elm.classList.remove("active");
+    elm.removeAttribute("aria-current");
+  });
   document.querySelectorAll(".edit-panel").forEach(panel => panel.classList.remove("active"));
   tab.classList.add("active");
+  tab.setAttribute("aria-current", "page");
   document.getElementById(panelId)?.classList.add("active");
   if (panelId === "imagesPanel") renderImageManager();
   if (panelId === "replicationPanel") renderReplicationEditor();
@@ -327,6 +296,26 @@ function activateEditorPanel(panelId) {
 
 document.querySelectorAll(".edit-tab").forEach(tab => {
   tab.addEventListener("click", () => activateEditorPanel(tab.dataset.panel));
+});
+
+modalBackdrop.addEventListener("keydown", event => {
+  if (event.key !== "Tab") return;
+  const controls = [
+    ...modalBackdrop.querySelectorAll("button, input, select, textarea, a[href], [tabindex='0']")
+  ].filter(element => !element.disabled && element.getClientRects().length);
+  const first = controls[0],
+    last = controls.at(-1);
+  if (
+    event.shiftKey &&
+    (document.activeElement === first ||
+      document.activeElement === modalBackdrop.querySelector(".modal"))
+  ) {
+    event.preventDefault();
+    last?.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first?.focus();
+  }
 });
 
 closeBtn.addEventListener("click", requestCloseEditor);
@@ -358,7 +347,7 @@ async function applyEditorChanges() {
       const hostId = state.replication?.agentHosts?.[url];
       return !hostId || !cleanedHostIds.has(hostId);
     });
-    if (modalBackdrop.dataset.mode === "supervision" && pairsMissingHost.length) {
+    if (pairsMissingHost.length) {
       const choice = await openConfirm({
         title: t("agentHostRequiredTitle"),
         message: t("agentHostRequiredMessage"),

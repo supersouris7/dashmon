@@ -70,11 +70,11 @@ imported from the UI and persisted in `/app/data/themes/`.
 
 ### Creating a theme
 
-1. Open **Appearance** from the top-right menu.
+1. Open **Settings** from the top-right menu, then **Appearance → Theme and preferences**.
 2. Choose a starting theme and click **Export** → a `theme-<id>.json` is
    downloaded.
 3. Edit the JSON (new `id`, `name`, colors and optional `css`) in any editor.
-4. In **Appearance → Theme management**, click **Import** and select the
+4. Under **Theme management**, click **Import** and select the
    file. The theme appears under *Custom themes* in the theme selector.
 5. Select it and close the window. It is applied immediately and survives
    container restarts (stored in `/app/data/themes/`).
@@ -105,13 +105,13 @@ A service card renders an image, not a font icon: its `icon` is a path or URL.
 
 **Importing a PNG:**
 
-1. **Edit Dashmon → Images** tab, then *Add images* — or click the
+1. **Settings → Resources → Images**, then *Add images* — or click the
    image button on a service row while editing it.
 2. Pick a `.png` file (PNG only). It is uploaded to `/app/data/icons/` and
    referenced as `icons/<filename>`.
 3. The service uses it right away.
 
-**Deleting images:** **Edit Dashmon → Images** tab, select the ones to remove,
+**Deleting images:** **Settings → Resources → Images**, select the ones to remove,
 then *Delete selection*.
 
 ### Example

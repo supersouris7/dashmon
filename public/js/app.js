@@ -63,14 +63,9 @@ import {
   groupHostBtn,
   sortAlphabeticalBtn,
   sortUsageBtn,
-  menuEditBtn,
-  menuSupervisionBtn,
-  menuAppearanceBtn,
+  menuSettingsBtn,
   menuRefreshBtn,
   menuLogoutBtn,
-  appearanceBackdrop,
-  appearanceCloseBtn,
-  appearanceDoneBtn,
   themeSelect,
   languageSelect,
   webLinksSection,
@@ -222,8 +217,7 @@ toolbarObserver.observe(toolbar);
 toolbarObserver.observe(pageSwitch);
 new MutationObserver(updateToolbarLayout).observe(pageSwitch, { childList: true });
 
-function openAppearance() {
-  setToolbarHeight();
+function openSettings() {
   closeTopMenu();
   if ([...themeSelect.options].some(option => option.value === state.theme)) {
     themeSelect.value = state.theme;
@@ -231,15 +225,7 @@ function openAppearance() {
   languageSelect.value = state.language;
   openModeSelect.value = state.openMode === "new" ? "new" : "same";
   updateThemeManageUI();
-  appearanceBackdrop.classList.add("show");
-  appearanceBackdrop.setAttribute("aria-hidden", "false");
-  document.body.classList.add("modal-open");
-}
-
-function closeAppearance() {
-  appearanceBackdrop.classList.remove("show");
-  appearanceBackdrop.setAttribute("aria-hidden", "true");
-  document.body.classList.remove("modal-open");
+  openEditor();
 }
 
 function updateThemeManageUI() {
@@ -309,17 +295,7 @@ collapseAllBtn.addEventListener("click", () => {
   saveViewPrefs({ collapsed: state.collapsed });
 });
 
-menuEditBtn.addEventListener("click", () => {
-  closeTopMenu();
-  openEditor();
-});
-
-menuSupervisionBtn.addEventListener("click", () => {
-  closeTopMenu();
-  openEditor("supervision");
-});
-
-menuAppearanceBtn.addEventListener("click", openAppearance);
+menuSettingsBtn.addEventListener("click", openSettings);
 
 menuRefreshBtn.addEventListener("click", () => {
   closeTopMenu();
@@ -333,12 +309,6 @@ menuLogoutBtn.addEventListener("click", async () => {
   } finally {
     window.location.replace("/login");
   }
-});
-appearanceCloseBtn.addEventListener("click", closeAppearance);
-appearanceDoneBtn.addEventListener("click", closeAppearance);
-
-appearanceBackdrop.addEventListener("click", event => {
-  if (event.target === appearanceBackdrop) closeAppearance();
 });
 
 themeSelect.addEventListener("change", () => {
@@ -428,10 +398,6 @@ document.addEventListener("keydown", e => {
     document.querySelectorAll(".icon-picker.open").forEach(p => p.classList.remove("open"));
     if (imageLibrary.classList.contains("show")) {
       closeImageLibrary();
-      return;
-    }
-    if (appearanceBackdrop.classList.contains("show")) {
-      closeAppearance();
       return;
     }
     if (document.getElementById("confirmBackdrop").classList.contains("show")) {
