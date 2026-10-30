@@ -8,7 +8,6 @@ RUN npm ci --omit=dev
 COPY server.js agent-server.js config.json ./
 COPY lib ./lib
 COPY widgets ./widgets
-COPY test ./test
 COPY public ./public
 RUN mkdir -p /app/data/icons /app/data/themes
 
