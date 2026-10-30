@@ -28,6 +28,7 @@ const SUITES = [
   "config-routes.test.js",
   "config-fields.test.js",
   "config-normalize.test.js",
+  "settings.test.js",
   "editor-drag.test.js",
   "editor-draft.test.js"
 ];

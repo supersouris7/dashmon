@@ -28,6 +28,8 @@ const { registerConfigRoutes } = require("./lib/routes/config");
 const { registerAgentRoutes } = require("./lib/routes/agents");
 const { HOST_MONITORING_TYPES, sanitizeHostMonitoring } = require("./lib/config/fields");
 const { createConfigNormalizer } = require("./lib/config/normalize");
+const { readSettings } = require("./lib/config/settings");
+const { describeVersion, isMountedPath } = require("./lib/version");
 
 function createApp() {
   const app = express();
@@ -39,81 +41,36 @@ function createApp() {
       .replace(/\.\d{3}Z$/, "");
   }
 
-  // Derrière un reverse proxy unique (nginx) : TRUST_PROXY=1 pour que req.ip,
-  // req.secure et le rate limiter utilisent l'adresse réelle du client.
-  const TRUST_PROXY = Number(process.env.TRUST_PROXY) || 0;
-  if (TRUST_PROXY > 0) app.set("trust proxy", TRUST_PROXY);
+  const settings = readSettings(process.env, { root: __dirname });
+  if (settings.trustProxy > 0) app.set("trust proxy", settings.trustProxy);
 
-  const PORT = Number(process.env.PORT) || 8080;
-  const ROOT = __dirname;
-  const PUBLIC_DIR = path.join(ROOT, "public");
-  const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, "data");
-  const CONFIG_FILE = process.env.CONFIG_FILE || path.join(DATA_DIR, "config.json");
+  const {
+    port: PORT,
+    bindAddress: DASHBOARD_BIND,
+    rootDir: ROOT,
+    publicDir: PUBLIC_DIR,
+    dataDir: DATA_DIR,
+    configFile: CONFIG_FILE,
+    iconsDir: ICONS_DIR,
+    themesNativeDir: THEMES_NATIVE_DIR,
+    themesCustomDir: THEMES_CUSTOM_DIR,
+    wireguardDumpFile: WIREGUARD_DUMP_FILE,
+    smartDumpFile: SMART_DUMP_FILE,
+    aptUpdatesReportFile: APT_UPDATES_REPORT_FILE,
+    password: DASHMON_PASSWORD,
+    syncToken: DASHMON_SYNC_TOKEN,
+    agentMode: AGENT_MODE,
+    insecureTls: INSECURE_TLS,
+    hostMetricsInterval: HOST_METRICS_INTERVAL
+  } = settings;
   const configStore = new ConfigStore(CONFIG_FILE);
-  // Sortie de `wg show all dump` deja ecrite sur disque pour un hote "local".
-  // Chemin fixe (surchargeable par l'administrateur) : la configuration web ne
-  // peut donc pas faire lire un fichier arbitraire au serveur.
-  const WIREGUARD_DUMP_FILE =
-    process.env.WIREGUARD_DUMP_FILE || path.join(DATA_DIR, "wireguard.dump");
-  // Sortie JSON de `smartctl -j -a`, ecrite par deploy/smart-dump.sh pour les
-  // disques de l'hote local. Comme pour WireGuard, le chemin n'est jamais choisi
-  // depuis l'interface web.
-  const SMART_DUMP_FILE = process.env.SMART_DUMP_FILE || path.join(DATA_DIR, "smart.json");
-  const APT_UPDATES_REPORT_FILE =
-    process.env.APT_UPDATES_REPORT_FILE || path.join(DATA_DIR, "apt-updates.json");
   const INDEX_FILE = path.join(PUBLIC_DIR, "index.html");
-  const ICONS_DIR = process.env.ICONS_DIR || path.join(DATA_DIR, "icons");
-  const THEMES_NATIVE_DIR = process.env.THEMES_NATIVE_DIR || path.join(PUBLIC_DIR, "themes");
-  const THEMES_CUSTOM_DIR = process.env.THEMES_CUSTOM_DIR || path.join(DATA_DIR, "themes");
   const LOGIN_FILE = path.join(PUBLIC_DIR, "login.html");
 
-  // Version de release affichee dans le pied de page. Elle suit le tag plutot que
-  // le champ "version" du paquet, qui reste fige entre deux releases : sur une
-  // image construite depuis un tag v*, la CI passe DASHMON_RELEASE et le pied de
-  // page annonce la version publiee.
-  //
-  // Un build depuis main — l'image "unstable", celle de la preprod — ne peut pas
-  // pretendre etre une release, et afficher le numero du paquet serait doublement
-  // trompeur : fige a 1.0.0 entre deux releases, il laisserait croire que
-  // l'image tourne a jour alors qu'elle avance a chaque push. On affiche donc
-  // "unstable", et c'est le commit affiche a cote qui change a chaque build.
-  const RELEASE = (process.env.DASHMON_RELEASE || "").trim();
-  const APP_VERSION = /^v?\d+(\.\d+){0,2}([-.][0-9A-Za-z.-]+)?$/.test(RELEASE)
-    ? RELEASE.startsWith("v")
-      ? RELEASE
-      : "v" + RELEASE
-    : "unstable";
-  // SHA du commit qui a produit l'image (Dockerfile : ARG DASHMON_COMMIT, alimentee
-  // par la CI). Il est affiche a cote du numero de version pour verifier d'un coup
-  // d'oeil quelle version tourne apres un "docker pull".
-  // La valeur vient de l'environnement : elle est validee avant d'atteindre le
-  // HTML, et un SHA absent ou inattendu ("unknown" par defaut) fait disparaitre
-  // le suffixe plutot que d'afficher un marqueur trompeur.
-  const APP_COMMIT = (process.env.DASHMON_COMMIT || "").trim();
-  const APP_COMMIT_SHORT = /^[0-9a-f]{7,40}$/.test(APP_COMMIT) ? APP_COMMIT.slice(0, 7) : "";
-  // Le SHA vient de l'IMAGE. Si /app est monte depuis l'hote, le code execute
-  // n'est pas celui de l'image : afficher ce SHA decrit donc un depot qui n'est
-  // pas celui-la. Dans ce cas on ne montre que la version plutot qu'une etiquette
-  // fausse — c'etait exactement ce qui se passait, avec un commit centenaire
-  // alors que le code etait a jour.
-  const APP_CODE_MOUNTED = appIsMounted();
-  const APP_LABEL =
-    APP_COMMIT_SHORT && !APP_CODE_MOUNTED ? APP_VERSION + " · " + APP_COMMIT_SHORT : APP_VERSION;
-  // Instant de demarrage : sert a distinguer "l'image est ancienne" de "le
-  // conteneur tourne depuis le dernier redemarrage sans avoir ete recree".
-  const STARTED_AT = new Date().toISOString();
-  // Intervalle de rafraichissement des mesures d'hotes, en secondes. Le client
-  // lit la valeur injectee dans le HTML ; le serveur s'en sert aussi comme duree
-  // de cache pour mutualiser les requetes. 60 s par defaut : la page supervision
-  // n'a pas besoin de plus fin, et cela menage les hotes modestes (Raspberry Pi).
-  const HOST_METRICS_INTERVAL = (() => {
-    const value = Number(process.env.HOST_METRICS_INTERVAL);
-    if (!Number.isFinite(value) || value < 5) return 60000;
-    return Math.min(value, 3600) * 1000;
-  })();
+  const versionInfo = describeVersion(settings);
   const INDEX_HTML = fs
     .readFileSync(INDEX_FILE, "utf8")
-    .replace(/\{\{VERSION\}\}/g, APP_LABEL)
+    .replace(/\{\{VERSION\}\}/g, versionInfo.label)
     .replace(/\{\{HOST_METRICS_INTERVAL\}\}/g, String(HOST_METRICS_INTERVAL));
 
   app.disable("x-powered-by");
@@ -124,25 +81,8 @@ function createApp() {
     limit: "10mb"
   });
 
-  const INSECURE_TLS = process.env.DASHBOARD_INSECURE_TLS === "1";
-  const DASHMON_PASSWORD = process.env.DASHMON_PASSWORD || "";
-  // Secret partage exclusivement entre instances couplees. Il ne transite jamais
-  // dans config.json ni dans une reponse HTTP.
-  const DASHMON_SYNC_TOKEN = String(process.env.DASHMON_SYNC_TOKEN || "");
-  const AGENT_MODE = process.env.DASHMON_MODE === "agent";
-  if (AGENT_MODE && (!DASHMON_PASSWORD || !DASHMON_SYNC_TOKEN)) {
-    throw new Error("Le mode agent exige DASHMON_PASSWORD et DASHMON_SYNC_TOKEN");
-  }
   const SESSION_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
-  // Sans mot de passe, Dashmon ne doit pas devenir une interface d'administration
-  // accessible au reseau. Dans Docker, l'ecoute doit rester disponible pour le
-  // proxy et le port publie : un mot de passe y est donc obligatoire.
-  const RUNNING_IN_DOCKER = fs.existsSync("/.dockerenv");
-  if (RUNNING_IN_DOCKER && !DASHMON_PASSWORD) {
-    throw new Error("DASHMON_PASSWORD est obligatoire dans Docker");
-  }
-  const DASHBOARD_BIND = DASHMON_PASSWORD ? "0.0.0.0" : "127.0.0.1";
-  // Delai maximal d'une sonde de statut, partage par le core et les plugins.
+  // Upper bound for one status probe, shared by the core and the plugins.
   const STATUS_TIMEOUT = 4000;
 
   const { validSession, validBasicAuth, setSessionCookie } = createAuth({
@@ -225,7 +165,7 @@ function createApp() {
   // Secrets de widget chiffrés au repos : clé maîtresse en DASHMON_MASTER_KEY.
   // Sans clé, repli sur le stockage en clair (warning au démarrage) pour rester
   // utilisable sans configuration.
-  const MASTER_KEY = String(process.env.DASHMON_MASTER_KEY || "");
+  const MASTER_KEY = settings.masterKey;
   const { isEncryptedSecret, encryptSecret, decryptSecret } = createSecretCodec(MASTER_KEY);
   if (!MASTER_KEY) {
     console.warn(
@@ -423,61 +363,19 @@ function createApp() {
     res.json({ ok: true });
   });
 
-  // Quelle version tourne, reellement. Le pied de page de l'interface est une
-  // page HTML, donc passe par le cache du navigateur et par celui d'un eventuel
-  // reverse proxy : y lire la version peut montrer une valeur perimee alors que
-  // l'image, elle, est a jour. Cette route n'est qu'un objet JSON, jamais mise en
-  // cache, et elle renvoie aussi la valeur brute du SHA d'image : c'est le seul
-  // point de controle qui ne puisse pas mentir.
-  // Le dossier /app vient-il d'un montage de l'hote plutot que de l'image ?
-  // C'est la cause la plus frequente d'un deploiement ou "le code est a jour
-  // mais la version affichee reste ancienne" : l'image fournit les variables
-  // d'environnement (dont le SHA) tandis que le code vient du bind mount, donc
-  // un git pull sur l'hote change les fichiers sans changer l'etiquette.
-  // On ne renvoie qu'un booleen : les chemins de l'hote n'ont rien a faire dans
-  // une reponse d'API. La fonction est declaree ici mais appelee plus haut, pour
-  // construire le libelle du pied de page des le demarrage.
-  // Un chemin est-il un point de montage du noyau ? C'est ce qui distingue une
-  // donnee servie par un volume de ce qui n'est qu'un fichier de l'image. La
-  // fonction est declaree ici mais appelee plus haut, pour construire le libelle
-  // du pied de page des le demarrage.
-  function isMountedPath(target) {
-    try {
-      const info = fs.readFileSync("/proc/self/mountinfo", "utf8");
-      return info.split("\n").some(line => {
-        const parts = line.split(" ");
-        return parts.length > 4 && parts[4] === target;
-      });
-    } catch (_error) {
-      return null;
-    }
-  }
-
-  function appIsMounted() {
-    try {
-      const info = fs.readFileSync("/proc/self/mountinfo", "utf8");
-      return info.split("\n").some(line => {
-        const parts = line.split(" ");
-        return parts.length > 4 && (parts[4] === "/app" || parts[4].startsWith("/app/"));
-      });
-    } catch (_error) {
-      return null;
-    }
-  }
-
   app.get("/api/version", (_req, res) => {
     res.set("Cache-Control", "no-store");
     res.json({
-      version: APP_VERSION,
+      version: versionInfo.version,
       // Le commit de l'IMAGE. A lire avec appMounted : s'il vaut true, il
       // decrit une image qui ne fournit pas le code en cours d'execution.
-      commit: APP_COMMIT || "",
-      commitShort: APP_COMMIT_SHORT,
+      commit: versionInfo.commit,
+      commitShort: versionInfo.commitShort,
       // Le champ "version" du paquet n'est mis a jour qu'a la publication d'un
       // tag : sur une image "unstable" il reste fige, ce qui est sans rapport
       // avec l'etat reel du deploiement.
       packageVersion: require("./package.json").version,
-      appMounted: APP_CODE_MOUNTED,
+      appMounted: versionInfo.codeMounted,
       // true quand /app/data est montee separement. C'est LA question qui decide
       // si l'on peut retirer le montage du code sans perdre la configuration :
       // si les donnees sont a l'interieur du montage /app, les retirer les met
@@ -488,7 +386,7 @@ function createApp() {
       // les montages. Aucun chemin hote n'est renvoye : seulement une position
       // dans la hierarchie du conteneur.
       dataPath: DATA_DIR,
-      startedAt: STARTED_AT
+      startedAt: versionInfo.startedAt
     });
   });
 
