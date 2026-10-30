@@ -4,7 +4,7 @@ const path = require("path");
 const { pathToFileURL } = require("url");
 async function main() {
   const { prepareEditorDraft } = await import(
-    pathToFileURL(path.join(__dirname, "../public/js/editor-draft.js")).href
+    pathToFileURL(path.join(__dirname, "../public/js/editor/draft.js")).href
   );
   const draft = {
     services: [{ name: "Ancien" }],

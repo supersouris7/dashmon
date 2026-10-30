@@ -1,5 +1,5 @@
-// Deplacement des elements de l'editeur. Le modele est modifie avant de
-// demander un nouveau rendu ; les limites sont controlees a la reception.
+// Moving editor items. The model is changed before asking for a new render;
+// bounds are checked on receipt.
 export function moveItem(list, fromIndex, toIndex) {
   if (fromIndex === toIndex) return;
   const [item] = list.splice(fromIndex, 1);

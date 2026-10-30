@@ -35,6 +35,13 @@ function squash(text) {
 function readSource(...parts) {
   return squash(fs.readFileSync(path.join(ROOT, ...parts), "utf8"));
 }
+// The editor: editor.js and its panels and helpers in editor/.
+function editorSource() {
+  return ["editor.js", ...fs.readdirSync(path.join(JS_DIR, "editor")).map(f => "editor/" + f)]
+    .map(file => readSource("public", "js", ...file.split("/")))
+    .join("");
+}
+
 // The application state and the config schema live in several browser
 // modules (state.js, config/, util.js); the checks below use them together.
 async function importStateModules() {
@@ -71,10 +78,14 @@ async function main() {
   // --- 1. Syntaxe de tous les modules du navigateur ---------------------
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-fe-"));
   try {
-    const files = fs.readdirSync(JS_DIR).filter(name => name.endsWith(".js"));
+    // Every module, subfolders included (editor/, supervision/, dashboard/...).
+    const files = fs
+      .readdirSync(JS_DIR, { recursive: true })
+      .filter(name => name.endsWith(".js"))
+      .map(name => name.split(path.sep).join("/"));
     ok("frontend : modules trouves", files.length >= 10, String(files.length));
     for (const name of files) {
-      const target = path.join(tmp, name.replace(/\.js$/, ".mjs"));
+      const target = path.join(tmp, name.replace(/\//g, "__").replace(/\.js$/, ".mjs"));
       fs.copyFileSync(path.join(JS_DIR, name), target);
       const result = spawnSync(process.execPath, ["--check", target], { encoding: "utf8" });
       ok(
@@ -173,9 +184,7 @@ async function main() {
       );
     })()
   );
-  const agentEditorSource = ["editor.js", "pairing-list.js", "pairing-editor.js"]
-    .map(file => readSource("public", "js", file))
-    .join("\n");
+  const agentEditorSource = editorSource();
   ok(
     "agents : test depuis le principal et ouverture protegee",
     contains(agentEditorSource, 'fetch("/api/agents/test"') &&
@@ -191,7 +200,7 @@ async function main() {
       contains(agentEditorSource, 't("agentHostSaveAnyway")') &&
       contains(agentEditorSource, "createHostDraft")
   );
-  const confirmSource = readSource("public", "js", "confirm-dialog.js");
+  const confirmSource = readSource("public", "js", "editor", "confirm-dialog.js");
   ok(
     "agents : dialogue d'avertissement signale et aligne",
     contains(agentEditorSource, "fa-triangle-exclamation") && contains(confirmSource, '" multi"')
@@ -1051,8 +1060,7 @@ async function main() {
     "Divers"
   );
 
-  const editorSrcForSpecial =
-    readSource("public", "js", "editor.js") + readSource("public", "js", "editor-draft.js");
+  const editorSrcForSpecial = editorSource();
   const serverSrcForSpecial =
     readSource("lib", "status", "monitor.js") + readSource("lib", "config", "normalize.js");
 

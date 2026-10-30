@@ -4,7 +4,7 @@ const path = require("path");
 const { pathToFileURL } = require("url");
 async function main() {
   const { moveItem, makeDraggable } = await import(
-    pathToFileURL(path.join(__dirname, "../public/js/editor-drag.js")).href
+    pathToFileURL(path.join(__dirname, "../public/js/editor/drag.js")).href
   );
   const values = ["a", "b", "c"];
   moveItem(values, 0, 2);

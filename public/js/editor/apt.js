@@ -1,8 +1,8 @@
-import { state } from "./state.js";
-import { t } from "./i18n.js";
+import { state } from "../state.js";
+import { t } from "../i18n.js";
 
-// Les options concernent uniquement l'affichage du rapport local. Le script
-// et son intervalle restent configures sur l'hote, hors de l'application.
+// APT updates panel. Options only affect how the local report is shown; the
+// script and its interval are configured on the host, outside Dashmon.
 export function renderAptUpdatesEditor() {
   const list = document.getElementById("aptUpdatesEditor");
   if (!list) return;

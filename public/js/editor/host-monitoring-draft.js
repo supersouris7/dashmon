@@ -1,6 +1,6 @@
-import { HOST_MONITORING_TYPES } from "./config/normalize.js";
+import { HOST_MONITORING_TYPES } from "../config/normalize.js";
 
-// Valeurs de travail : aucune supervision n'est activee sans action explicite.
+// Working values: no monitoring is enabled without an explicit action.
 export function blankMonitoring() {
   return {
     enabled: false,
@@ -16,7 +16,7 @@ export function blankMonitoring() {
   };
 }
 
-// Les preferences identiques aux valeurs par defaut ne sont pas persistees.
+// Preferences equal to the defaults are not stored.
 export function serializeHostMonitoring(m) {
   if (!m || typeof m !== "object") return undefined;
   const out = {

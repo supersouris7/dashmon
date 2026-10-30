@@ -1,7 +1,7 @@
-import { sanitizeUrl } from "./config/sanitize.js";
+import { sanitizeUrl } from "../config/sanitize.js";
 
-// Les lignes conservent les champs incomplets pendant l'edition ; seuls les
-// pairages valides sont serialises dans la configuration.
+// Rows keep incomplete fields while editing; only valid pairings are
+// serialised into the configuration.
 export function agentUrl(value) {
   const raw = String(value || "").trim();
   if (!raw) return "";

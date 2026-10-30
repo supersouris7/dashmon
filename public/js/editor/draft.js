@@ -1,10 +1,10 @@
-import { sanitizeTileColor } from "./config/sanitize.js";
-import { normalizeSpecialTile, normalizeLinkCounter } from "./config/normalize.js";
-import { normalizeWidgetConfig } from "./widget-registry.js";
+import { sanitizeTileColor } from "../config/sanitize.js";
+import { normalizeSpecialTile, normalizeLinkCounter } from "../config/normalize.js";
+import { normalizeWidgetConfig } from "../widget-registry.js";
 import { serializeHostMonitoring } from "./host-monitoring-draft.js";
 
-// Transforme les brouillons en valeurs enregistrables sans modifier l'etat
-// courant : l'editeur peut encore annuler apres validation ou conflit.
+// Turns the drafts into savable values without changing the current state:
+// the editor can still cancel after validation or a conflict.
 export function prepareEditorDraft(state) {
   const seen = new Set();
   const dashboards = state.editDashboards

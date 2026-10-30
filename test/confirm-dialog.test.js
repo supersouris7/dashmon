@@ -30,7 +30,7 @@ function element() {
 }
 async function main() {
   const { createConfirmDialog } = await import(
-    pathToFileURL(path.join(__dirname, "../public/js/confirm-dialog.js")).href
+    pathToFileURL(path.join(__dirname, "../public/js/editor/confirm-dialog.js")).href
   );
   const backdrop = element(),
     icon = element(),

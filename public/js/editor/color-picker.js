@@ -1,5 +1,7 @@
-import { TILE_COLORS, sanitizeTileColor } from "./config/sanitize.js";
-import { t } from "./i18n.js";
+// Colour picker of the editor (categories and hosts), built on the tile
+// palette of config/sanitize.js.
+import { TILE_COLORS, sanitizeTileColor } from "../config/sanitize.js";
+import { t } from "../i18n.js";
 
 function closeColorPalette() {
   for (const palette of document.querySelectorAll(".color-palette:not([hidden])"))
@@ -13,8 +15,8 @@ document.addEventListener("keydown", event => {
   if (event.key === "Escape") closeColorPalette();
 });
 
-// La selection modifie l'objet de brouillon ; l'appelant choisit les panneaux
-// a rafraichir. Aucune ecriture de configuration n'est declenchee ici.
+// Picking changes the draft object; the caller chooses which panels to
+// refresh. No configuration write happens here.
 export function createColorPicker(item, onChange) {
   const wrap = document.createElement("div");
   wrap.className = "color-picker";

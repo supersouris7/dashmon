@@ -1,5 +1,5 @@
-// Dialogue reutilisable : l'appelant fournit les libelles et les actions.
-// Une seule confirmation peut etre ouverte a la fois.
+// Reusable confirmation dialog: the caller provides the labels and actions.
+// Only one confirmation can be open at a time.
 export function createConfirmDialog({
   backdrop,
   icon,

@@ -1,8 +1,8 @@
-// Sélecteur d'icônes Font Awesome utilisé dans l'éditeur (cartes, hôtes, liens web).
-import { state } from "./state.js";
-import { sanitizeIconClass } from "./config/sanitize.js";
-import { ICON_OPTIONS } from "./config/icon-options.js";
-import { t } from "./i18n.js";
+// Font Awesome icon picker used in the editor (tiles, hosts, web links).
+import { state } from "../state.js";
+import { sanitizeIconClass } from "../config/sanitize.js";
+import { ICON_OPTIONS } from "../config/icon-options.js";
+import { t } from "../i18n.js";
 
 function positionPicker(current, menu) {
   requestAnimationFrame(() => {

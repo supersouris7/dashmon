@@ -40,17 +40,13 @@ import { startStatusLoop, setupVisibilityPause, manualRefresh } from "./metrics.
 import { renderSupervision } from "./supervision.js";
 import { toggleAllSmartDetails } from "./supervision/cards.js";
 import { renderPageSwitch, setPage } from "./pages.js";
-import {
-  openEditor,
-  requestCloseEditor,
-  dismissConfirm,
-  renderServiceEditor,
-  renderCategoryEditor,
-  renderDashboardEditor,
-  renderHostEditor,
-  renderWebLinksEditor,
-  renderWidgetsEditor
-} from "./editor.js";
+import { openEditor, requestCloseEditor, dismissConfirm } from "./editor.js";
+import { renderHostEditor } from "./editor/hosts.js";
+import { renderDashboardEditor } from "./editor/dashboards.js";
+import { renderCategoryEditor } from "./editor/categories.js";
+import { renderWidgetsEditor } from "./editor/widgets.js";
+import { renderWebLinksEditor } from "./editor/web-links.js";
+import { renderServiceEditor } from "./editor/services.js";
 import { closeImageLibrary } from "./images.js";
 import { loadWidgetRegistry } from "./widget-registry.js";
 import { hideToolbarSearch, menuRightOffset } from "./toolbar.js";

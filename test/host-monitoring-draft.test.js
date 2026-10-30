@@ -4,7 +4,7 @@ const path = require("path");
 const { pathToFileURL } = require("url");
 async function main() {
   const { blankMonitoring, serializeHostMonitoring } = await import(
-    pathToFileURL(path.join(__dirname, "../public/js/host-monitoring-draft.js")).href
+    pathToFileURL(path.join(__dirname, "../public/js/editor/host-monitoring-draft.js")).href
   );
   const draft = blankMonitoring();
   assert.equal(serializeHostMonitoring(draft), undefined);

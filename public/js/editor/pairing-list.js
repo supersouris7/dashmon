@@ -1,5 +1,6 @@
+// List of paired agents in the pairing panel.
 import { agentUrl } from "./replication-draft.js";
-import { t } from "./i18n.js";
+import { t } from "../i18n.js";
 
 function setStatus(status, state, text) {
   status.className = "agent-test-status" + (state ? " " + state : "");
@@ -14,8 +15,8 @@ function setStatus(status, state, text) {
   status.replaceChildren(icon, document.createTextNode(text));
 }
 
-// Affichage des lignes de pairage. Le brouillon et la sauvegarde restent la
-// responsabilite de l'editeur qui fournit les callbacks.
+// Rows of the pairing list. The draft and the save remain the responsibility
+// of the editor, which provides the callbacks.
 export function createPairingList({
   list,
   entries,

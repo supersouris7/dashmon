@@ -1,10 +1,10 @@
-import { state } from "./state.js";
-import { t } from "./i18n.js";
+import { state } from "../state.js";
+import { t } from "../i18n.js";
 import { agentUrl, serializeReplicationEntries } from "./replication-draft.js";
 import { createPairingList } from "./pairing-list.js";
 
-// Le panneau gere uniquement les connexions ; les hotes restent dans leur
-// propre inventaire et le brouillon appartient a l'editeur principal.
+// Pairing panel. It only manages the connections; hosts stay in their own
+// inventory and the draft belongs to the main editor.
 export function renderPairingEditor({
   container,
   entries,

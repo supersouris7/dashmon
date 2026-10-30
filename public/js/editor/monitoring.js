@@ -1,5 +1,7 @@
-import { state } from "./state.js";
-import { t } from "./i18n.js";
+// WireGuard and SMART panels of the supervision editor: what the local
+// reports show for each host, with links to the setup guides.
+import { state } from "../state.js";
+import { t } from "../i18n.js";
 
 const REPO = "https://github.com/supersouris7/dashmon";
 
@@ -94,7 +96,7 @@ export function renderWireguardEditor() {
     const host = state.editHosts[index],
       prefs = host.monitoring.wireguard;
     const block = hostBlock(host);
-    // Comme la tuile de supervision : le dragon remplace l'icone WireGuard.
+    // Like the supervision card: the dragon stands in for the WireGuard icon.
     const toggle = toggleButton(
       prefs.enabled,
       prefs.enabled ? t("wireguardShowPeers") : t("wireguardHidden"),
