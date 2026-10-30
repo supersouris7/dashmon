@@ -27,10 +27,11 @@ assert.equal(plain["Referrer-Policy"], "no-referrer");
 assert.match(plain["Content-Security-Policy"], /default-src 'none'/);
 assert.match(plain["Content-Security-Policy"], /frame-ancestors 'none'/);
 assert.equal(plain["Strict-Transport-Security"], undefined);
-for (const request of [{ secure: true }, { forwarded: "https" }]) {
-  assert.equal(
-    headers(request)["Strict-Transport-Security"],
-    "max-age=63072000; includeSubDomains"
-  );
-}
+assert.equal(
+  headers({ secure: true })["Strict-Transport-Security"],
+  "max-age=63072000; includeSubDomains"
+);
+// A client cannot switch HSTS on by sending X-Forwarded-Proto itself: Express
+// only trusts that header (through req.secure) when TRUST_PROXY is set.
+assert.equal(headers({ forwarded: "https" })["Strict-Transport-Security"], undefined);
 console.log("PASS sécurité : en-têtes HTTP et politique HTTPS");
