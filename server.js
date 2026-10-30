@@ -4,7 +4,6 @@
 process.env.UV_THREADPOOL_SIZE = process.env.UV_THREADPOOL_SIZE || "4";
 
 const express = require("express");
-const crypto = require("crypto");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -18,15 +17,10 @@ const { securityHeaders } = require("./lib/http/security-headers");
 const { verifyRequestOrigin } = require("./lib/http/request-origin");
 const { createRateLimiter } = require("./lib/http/rate-limit");
 const { createReplicationConfig } = require("./lib/agent/replication-config");
-const { createLocalMetrics } = require("./lib/host/local-metrics");
 const { sanitizeText, sanitizeUrl } = require("./lib/sanitize");
 const { createSecretCodec } = require("./lib/config/secrets");
-const { readAptUpdatesReport } = require("./lib/host/apt-report");
-const { readSmartDump } = require("./lib/host/smart-report");
-const { readWireguardDump } = require("./lib/host/wireguard-report");
 const { registerConfigRoutes } = require("./lib/routes/config");
 const { registerAgentRoutes } = require("./lib/routes/agents");
-const { HOST_MONITORING_TYPES, sanitizeHostMonitoring } = require("./lib/config/fields");
 const { createConfigNormalizer } = require("./lib/config/normalize");
 const { readSettings } = require("./lib/config/settings");
 const { createConfigRepository } = require("./lib/config/repository");
@@ -41,6 +35,10 @@ const { registerSystemRoutes } = require("./lib/routes/system");
 const { registerWidgetRoutes } = require("./lib/routes/widgets");
 const { requestLog } = require("./lib/http/request-log");
 const { notFound, errorHandler } = require("./lib/http/errors");
+const { createSyncTokenCheck } = require("./lib/http/sync-token");
+const { createHostMetrics } = require("./lib/host/metrics");
+const { registerHostMetricsRoutes } = require("./lib/routes/host-metrics");
+const { registerAgentConfigRoutes } = require("./lib/routes/agent-config");
 const { describeVersion } = require("./lib/version");
 
 function createApp() {
@@ -66,9 +64,6 @@ function createApp() {
     iconsDir: ICONS_DIR,
     themesNativeDir: THEMES_NATIVE_DIR,
     themesCustomDir: THEMES_CUSTOM_DIR,
-    wireguardDumpFile: WIREGUARD_DUMP_FILE,
-    smartDumpFile: SMART_DUMP_FILE,
-    aptUpdatesReportFile: APT_UPDATES_REPORT_FILE,
     password: DASHMON_PASSWORD,
     syncToken: DASHMON_SYNC_TOKEN,
     agentMode: AGENT_MODE,
@@ -203,27 +198,10 @@ function createApp() {
     return [];
   }
 
-  function validSyncToken(req) {
-    const received = Buffer.from(req.get("X-Dashmon-Sync-Token") || "");
-    const expected = Buffer.from(DASHMON_SYNC_TOKEN);
-    return (
-      expected.length > 0 &&
-      received.length === expected.length &&
-      crypto.timingSafeEqual(received, expected)
-    );
-  }
-
   // Les routes de federation ne reposent pas sur la session navigateur. Elles
   // restent toutefois inaccessibles sans le secret d'environnement partage.
   app.put("/api/sync/config", (req, res) => {
     res.status(410).json({ error: "La réplication est remplacée par le mode agent" });
-  });
-
-  app.get("/api/sync/metrics", (req, res) => {
-    if (!validSyncToken(req))
-      return res.status(401).json({ error: "Authentification de synchronisation requise" });
-    if (!AGENT_MODE) return res.status(404).json({ error: "Agent non activé" });
-    return serveHostMetrics(req, res);
   });
 
   registerAgentRoutes(app, {
@@ -362,228 +340,13 @@ function createApp() {
     });
   }
 
-  // --- Supervision des hotes ------------------------------------------------
-  // CPU, RAM, temperature et disque de la machine locale (os, /sys, statfs).
-  // Chaque valeur est un pourcentage 0..100, sauf la temperature en degres. Une
-  // metrique indisponible vaut null (affichee "—") : zero est une mesure, son
-  // absence n'en est pas une, et les confondre ferait croire a un hote au repos.
-
-  function positiveInteger(value, max) {
-    const n = Number(value);
-    if (!Number.isSafeInteger(n) || n <= 0) return null;
-    return Math.min(n, max);
-  }
-
-  const {
-    localCpuPercent,
-    localRamPercent,
-    localSystemDetails,
-    localTemperature,
-    localDiskPercent
-  } = createLocalMetrics({ sanitizeText });
-
-  const HOST_METRICS_TTL = HOST_METRICS_INTERVAL;
-  let hostMetricsCache = { ts: 0, payload: null };
-  let hostMetricsInflight = null;
-  let lastLocalSuccessAt = null;
-
-  async function serveHostMetrics(_req, res) {
-    res.set("Cache-Control", "no-store");
-
-    if (hostMetricsCache.payload && Date.now() - hostMetricsCache.ts < HOST_METRICS_TTL) {
-      return res.json(hostMetricsCache.payload);
-    }
-    // Deduplication : plusieurs navigateurs simultanes partagent une seule salve
-    // de mesures plutot que d'interroger chaque hote une fois par onglet.
-    if (hostMetricsInflight) {
-      try {
-        return res.json(await hostMetricsInflight);
-      } catch (_error) {
-        return res.status(500).json({ error: "Lecture des mesures impossible" });
-      }
-    }
-
-    let config;
-    try {
-      config = readConfig();
-    } catch (_error) {
-      return res.status(500).json({ error: "Lecture de config.json impossible" });
-    }
-
-    const configuredHosts = Array.isArray(config.hosts) ? config.hosts : [];
-    const localHost = configuredHosts.find(
-      host => host?.monitoring?.type === "local" && host.monitoring.enabled === true
-    );
-    const hosts = localHost ? [localHost] : [];
-
-    // Les mesures locales sont lues une seule fois : deux hotes "local" designent
-    // la meme machine, on ne consomme donc le delta CPU qu'une fois par requete.
-    const localCpu = localCpuPercent();
-    const localRam = localRamPercent();
-    const localDetails = localSystemDetails();
-    const localTemp = localTemperature();
-    const localDump = readWireguardDump(WIREGUARD_DUMP_FILE);
-    const localSmart = readSmartDump(SMART_DUMP_FILE);
-    const localAptUpdates = hosts.some(
-      host =>
-        host.monitoring?.enabled &&
-        host.monitoring.type === "local" &&
-        host.monitoring.aptUpdates?.enabled !== false
-    )
-      ? readAptUpdatesReport(APT_UPDATES_REPORT_FILE)
-      : null;
-
-    const refresh = Promise.all(
-      hosts.map(async host => {
-        const type = HOST_MONITORING_TYPES.has(host.monitoring?.type)
-          ? host.monitoring.type
-          : "local";
-        try {
-          let metrics;
-          let wireguardFetchedAt = null;
-          let smartFetchedAt = null;
-          {
-            // Le dump local est le meme pour tous les hotes "local" : on le lit une
-            // fois et on date chaque copie de l'heure du fichier.
-            metrics = {
-              cpu: localCpu,
-              ram: localRam,
-              temperature: localTemp,
-              disk: localDiskPercent(host.monitoring?.path),
-              wireguard:
-                host.monitoring?.wireguard?.enabled === false
-                  ? null
-                  : localDump?.interfaces || null,
-              smart: host.monitoring?.smart?.enabled === false ? null : localSmart?.disks || null,
-              aptUpdates: localAptUpdates,
-              ...localDetails
-            };
-            if (host.monitoring?.wireguard?.interface && metrics.wireguard)
-              metrics.wireguard = metrics.wireguard.filter(
-                item => item.interface === host.monitoring.wireguard.interface
-              );
-            if (host.monitoring?.smart?.disks?.length && metrics.smart)
-              metrics.smart = metrics.smart.filter(item =>
-                host.monitoring.smart.disks.includes(item.device)
-              );
-            wireguardFetchedAt = localDump?.fetchedAt || null;
-            smartFetchedAt = localSmart?.fetchedAt || null;
-          }
-          return {
-            id: sanitizeText(host.id, 64),
-            name: sanitizeText(host.name, 100) || "Hote",
-            type,
-            ok: true,
-            cpu: metrics.cpu,
-            ram: metrics.ram,
-            temperature: metrics.temperature,
-            disk: metrics.disk,
-            os: sanitizeText(metrics.os, 200),
-            cpuModel: sanitizeText(metrics.cpuModel, 200),
-            cpuCores: positiveInteger(metrics.cpuCores, 1024),
-            ramTotal: positiveInteger(metrics.ramTotal, Number.MAX_SAFE_INTEGER),
-            wireguard: metrics.wireguard || null,
-            wireguardFetchedAt,
-            smart: metrics.smart || null,
-            smartFetchedAt,
-            aptUpdates: metrics.aptUpdates || null
-          };
-        } catch (error) {
-          return {
-            id: sanitizeText(host.id, 64),
-            name: sanitizeText(host.name, 100) || "Hote",
-            type,
-            ok: false,
-            error: error.message
-          };
-        }
-      })
-    ).then(results => {
-      if (!AGENT_MODE) return { hosts: results };
-      const collectedAt = new Date().toISOString();
-      const ok = results.length > 0 && results.every(result => result.ok);
-      if (ok) lastLocalSuccessAt = collectedAt;
-      return {
-        hosts: results,
-        protocol: agentProtocol.PROTOCOL,
-        agent: { id: AGENT_ID, capabilities: agentProtocol.CAPABILITIES },
-        collection: {
-          status: ok ? "available" : "unavailable",
-          collectedAt,
-          lastSuccessAt: lastLocalSuccessAt,
-          maxAgeMs: HOST_METRICS_INTERVAL * 3
-        }
-      };
-    });
-
-    hostMetricsInflight = refresh;
-    try {
-      const payload = await refresh;
-      hostMetricsCache = { ts: Date.now(), payload };
-      res.json(payload);
-    } catch (error) {
-      console.error("Refresh mesures:", error);
-      res.status(500).json({ error: "Lecture des mesures impossible" });
-    } finally {
-      if (hostMetricsInflight === refresh) hostMetricsInflight = null;
-    }
-  }
-  app.get("/api/host-metrics", serveHostMetrics);
-  app.get("/api/agent/metrics", (req, res) =>
-    AGENT_MODE ? serveHostMetrics(req, res) : res.sendStatus(404)
-  );
-
-  app.get("/api/agent/config", (req, res) => {
-    if (!AGENT_MODE) return res.sendStatus(404);
-    try {
-      const config = readConfig();
-      if (req.get("If-Match") && req.get("If-Match") !== configRepository.revision(config)) {
-        return res
-          .status(412)
-          .json({ error: "La configuration a changé ; rechargez avant d'enregistrer" });
-      }
-      const host = (config.hosts || []).find(
-        item => item.monitoring?.type === "local" && item.monitoring.enabled
-      );
-      res.set("Cache-Control", "no-store");
-      res.json({
-        name: host?.name || "Agent",
-        monitoring: host?.monitoring || { enabled: true, type: "local" }
-      });
-    } catch (_error) {
-      res.status(500).json({ error: "Lecture impossible" });
-    }
+  const hostMetrics = createHostMetrics({ settings, readConfig, agentId: AGENT_ID, log });
+  registerHostMetricsRoutes(app, {
+    hostMetrics,
+    agentMode: AGENT_MODE,
+    validSyncToken: createSyncTokenCheck(DASHMON_SYNC_TOKEN)
   });
-  app.put("/api/agent/config", (req, res) => {
-    if (!AGENT_MODE) return res.sendStatus(404);
-    try {
-      const current = readConfig();
-      const old = (current.hosts || []).find(
-        item => item.monitoring?.type === "local" && item.monitoring.enabled
-      );
-      const monitoring = sanitizeHostMonitoring({
-        ...req.body?.monitoring,
-        type: "local",
-        enabled: true
-      });
-      const host = {
-        id: old?.id || "host-" + crypto.randomBytes(6).toString("hex"),
-        name: sanitizeText(req.body?.name, 100) || "Agent",
-        icon: old?.icon || "fa-solid fa-server",
-        color: old?.color || "",
-        monitoring
-      };
-      current.hosts = (Array.isArray(current.hosts) ? current.hosts : []).filter(
-        item => item !== old
-      );
-      current.hosts.push(host);
-      writeConfig(current);
-      hostMetricsCache = { ts: 0, payload: null };
-      res.json({ ok: true });
-    } catch (_error) {
-      res.status(500).json({ error: "Enregistrement impossible" });
-    }
-  });
+  registerAgentConfigRoutes(app, { agentMode: AGENT_MODE, configRepository, hostMetrics });
 
   app.get("/api/status", (_req, res) => {
     res.set("Cache-Control", "no-store");
