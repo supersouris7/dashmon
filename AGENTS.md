@@ -42,11 +42,16 @@ reseau local : ne pas introduire de job qui contacterait un service prive.
 
 ## Verification
 
-```powershell
+```bash
 npm ci
-npm test          # les 3 suites doivent passer
-actionlint        # doit sortir avec 0
+npm run format:check   # la mise en forme Prettier doit etre respectee
+npm test               # toutes les suites de test/run.js doivent passer
+actionlint             # doit sortir avec 0
 ```
+
+`npm run test:browser` (Chromium requis) verifie en plus le parcours complet
+dans un navigateur. L'organisation du code est decrite dans
+`docs/ARCHITECTURE.md`.
 
 ## Suite de commit
 

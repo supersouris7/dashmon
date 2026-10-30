@@ -29,7 +29,7 @@ you stop guessing whether *that* thing is working.
 - **Two languages** — English and French, throughout the interface.
 - **Learns your habits** — services you open often float to the top.
 
-Node.js / Express, native ES modules, a single dependency. Runs anywhere Docker
+Node.js / Express, a single runtime dependency. Runs anywhere Docker
 runs, on **amd64 and arm64**.
 
 ---

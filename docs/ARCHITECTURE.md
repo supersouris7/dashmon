@@ -20,23 +20,47 @@ disposition propres au navigateur sont distinctes de la configuration serveur.
 
 ## Serveur
 
-- `server.js` assemble l'application, ses dépendances et les routes qui n'ont
-  pas encore de module dédié.
-- `lib/config-routes.js`, `lib/config-normalize.js`, `lib/config-fields.js` et
-  `lib/config-store.js` assurent respectivement les routes, la validation, les
-  champs spécialisés et l'écriture de configuration. Les révisions détectent
-  les modifications concurrentes ; l'écriture est atomique.
-- `lib/auth.js`, `lib/secrets.js`, `lib/security-headers.js`,
-  `lib/request-origin.js` et `lib/rate-limit.js` regroupent les mécanismes de
-  sécurité. Ne pas ajouter de secret ou d'exemple d'identifiant réel au dépôt.
-- `lib/agent-routes.js`, `lib/agent-protocol.js` et
-  `lib/replication-config.js` traitent la communication et la configuration
-  des agents.
-- `lib/local-metrics.js`, `lib/wireguard-report.js`, `lib/smart-report.js` et
-  `lib/apt-report.js` isolent les lectures et les formats de supervision.
-- `lib/registry.js`, `lib/widget-schema.js` et `lib/widget-core.js` chargent,
-  valident et exécutent les widgets. Chaque widget vit dans `widgets/` ; le
-  guide `EXTENDING.md` décrit le contrat d'extension.
+`server.js` ne contient que l'assemblage : il lit la configuration, crée les
+services, puis monte le pipeline Express dans l'ordre (sécurité, limites de
+débit, authentification, routes, erreurs). Son en-tête sert de plan du code.
+Chaque fichier de `lib/` commence par un commentaire qui décrit son rôle.
+
+```text
+server.js            assemblage de l'application
+agent-server.js      point d'entrée du mode agent
+lib/
+  config/            variables d'environnement (settings.js), config.json
+                     (store.js, repository.js), validation (normalize.js,
+                     fields.js), migrations de démarrage, secrets chiffrés
+  http/              client HTTP sortant (client.js), authentification,
+                     protections (en-têtes, origine, limites de débit, jeton
+                     des agents), journal des requêtes, erreurs
+  routes/            toutes les routes HTTP, un fichier par sujet ; chaque
+                     en-tête liste ses routes
+  widgets/           registre, schéma, stockage et cœur des widgets
+  status/            boucle de statut des services surveillés
+  host/              mesures de la machine (CPU, RAM, disque) et rapports
+                     WireGuard, SMART et APT
+  agent/             protocole, identité et pairage des agents
+  themes.js          validation des thèmes
+  version.js         libellé de version et détection des montages
+  lifecycle.js       démarrage, boucle de statut et arrêt propre
+  log.js             journaux horodatés
+widgets/<id>/        un dossier par widget (voir EXTENDING.md)
+```
+
+Quelques règles qui guident ce découpage :
+
+- Seul `lib/config/settings.js` lit `process.env` ; les autres modules
+  reçoivent l'objet `settings`.
+- Les routes reçoivent leurs dépendances en paramètre
+  (`registerXxxRoutes(app, { ... })`) : elles ne connaissent ni le fichier de
+  configuration ni le schéma, et se testent sans démarrer le serveur.
+- L'écriture de la configuration est atomique et les révisions (ETag)
+  détectent les modifications concurrentes.
+- Les commentaires et les journaux sont en anglais ; les messages renvoyés par
+  l'API restent en français, car l'interface les affiche.
+- Ne pas ajouter de secret ou d'exemple d'identifiant réel au dépôt.
 
 ## Navigateur
 
@@ -54,7 +78,8 @@ disposition propres au navigateur sont distinctes de la configuration serveur.
 
 ## Vérifications
 
-`npm test` exécute les tests sans navigateur. `npm run test:browser` nécessite
+`npm test` exécute les tests sans navigateur et `npm run format:check` vérifie
+la mise en forme (Prettier ; `npm run format` la corrige). `npm run test:browser` nécessite
 Chromium et un Node disposant de `WebSocket` ; il démarre une instance et un
 profil navigateur temporaires, puis vérifie notamment la connexion, le pairage,
 la sauvegarde et la création d'un hôte. La variable `CHROMIUM_BIN` peut désigner
