@@ -34,7 +34,8 @@ async function start(mode, port, folder) {
       CONFIG_FILE: path.join(folder, "config.json"),
       DASHMON_MODE: mode,
       DASHMON_PASSWORD: password,
-      DASHMON_SYNC_TOKEN: token
+      DASHMON_SYNC_TOKEN: token,
+      DASHMON_MASTER_KEY: crypto.randomBytes(32).toString("hex")
     },
     stdio: "ignore"
   });

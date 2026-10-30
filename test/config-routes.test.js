@@ -21,7 +21,8 @@ async function main() {
     revision: value => JSON.stringify(value.theme),
     normalize: value => structuredClone(value),
     ensureHostIds: () => {},
-    withCacheKeys: value => value,
+    forBrowser: value => value,
+    restoreSecrets: value => value,
     logger: { error: () => {} }
   });
   async function send(method, body, headers = {}) {

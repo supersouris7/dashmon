@@ -22,7 +22,7 @@ export function renderPairingEditor({
   }
   const docs = document.createElement("a");
   docs.href =
-    "https://github.com/supersouris7/dashmon/blob/main/docs/DEMARRAGE.md#3-installer-un-agent";
+    "https://github.com/supersouris7/dashmon/blob/main/docs/DEMARRAGE.md#3-install-an-agent";
   docs.target = "_blank";
   docs.rel = "noopener noreferrer";
   docs.textContent = t("agentDocumentation");

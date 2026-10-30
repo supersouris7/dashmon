@@ -2,7 +2,7 @@
 
 For a concise, step-by-step installation of the main dashboard and agents with
 copyable Portainer or Docker Compose stacks, start with the
-[guide de démarrage](../docs/DEMARRAGE.md).
+[startup guide](../docs/DEMARRAGE.md).
 
 Run Dashmon from the prebuilt image on Docker Hub. No build required.
 
@@ -16,7 +16,7 @@ With Compose:
 
 ```bash
 cp .env.example .env
-# edit .env: DASHMON_PASSWORD is mandatory; also set DASHMON_MASTER_KEY…
+# edit .env: DASHMON_PASSWORD and DASHMON_MASTER_KEY are mandatory
 docker compose up -d
 ```
 
@@ -84,21 +84,23 @@ See `.env.example`. The most important:
 | `DASHMON_PASSWORD` | empty outside Docker | Dashmon login; browser session lasts 30 days. Required by Compose and for a network bind |
 | `TRUST_PROXY` | `0` | `1` only if nginx terminates HTTPS in front of the container |
 | `DASHBOARD_INSECURE_TLS` | empty | `1` if your monitored hosts use self-signed certificates |
-| `DASHMON_MASTER_KEY` | empty | AES-256-GCM master key to encrypt widget secrets (e.g. Duplicati password) in `config.json` |
+| `DASHMON_MASTER_KEY` | **required** (main dashboard) | AES-256-GCM master key encrypting widget secrets (e.g. Duplicati password) in `config.json`. Not needed by agents |
 | `DASHMON_SYNC_TOKEN` | empty | Shared secret authorizing the main dashboard to read agent metrics |
 
 ### Widget secrets (Duplicati…)
 
 Service widgets (e.g. Duplicati) send a server-side password from the editor.
 
-With `DASHMON_MASTER_KEY` set, this password is **encrypted (AES-256-GCM)**
-in `config.json` instead of being stored as plain text.
+This password is **encrypted (AES-256-GCM)** in `config.json` with
+`DASHMON_MASTER_KEY`, which the main dashboard requires: it refuses to start
+without it. Passwords are never sent back to the browser, not even encrypted:
+the editor only shows that one is configured.
 
 Generate a key once, keep it secret, never commit it:
 
 ```bash
 # Linux / macOS
-openssl rand -base64 32
+openssl rand -hex 32
 ```
 
 ```powershell
@@ -111,8 +113,9 @@ or in the container environment.
 
 Behaviour:
 
-- Without a key, widget passwords fall back to plain text (warning in the logs at startup).
-- Existing plain-text passwords are encrypted automatically on the next config save.
+- Passwords stored in plain text by an older version are encrypted automatically at start-up.
+- A configuration export contains no password: after importing it into another
+  instance, re-enter the widget passwords.
 - If the key changes later, previously encrypted passwords become unreadable — re-enter them in the editor (empty field keeps the stored secret).
 
 ## 3. Data
@@ -130,7 +133,7 @@ Update the image and redeploy the stack to pick up a newer build.
 
 ### Main Dashmon stack
 
-Create `DASHMON_PASSWORD` (required) and `DASHMON_MASTER_KEY` (recommended)
+Create `DASHMON_PASSWORD` and `DASHMON_MASTER_KEY` (both required)
 in Portainer's stack environment. The master key encrypts widget credentials;
 keep a backup of it separately from the data volume. If using agents, also set
 `DASHMON_SYNC_TOKEN` to a separate, long random value. The same sync token must
@@ -151,7 +154,7 @@ services:
       - "8080:8080"
     environment:
       DASHMON_PASSWORD: ${DASHMON_PASSWORD:?Set DASHMON_PASSWORD}
-      DASHMON_MASTER_KEY: ${DASHMON_MASTER_KEY:-}
+      DASHMON_MASTER_KEY: ${DASHMON_MASTER_KEY:?Set DASHMON_MASTER_KEY}
       DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:-}
     volumes:
       - dashmon-data:/app/data
@@ -160,9 +163,8 @@ volumes:
   dashmon-data:
 ```
 
-Without `DASHMON_MASTER_KEY`, widget credentials are stored in plain text. The
-published port listens on host interfaces by default: restrict access using a
-firewall or put Dashmon behind HTTPS. If accessing it only through a reverse
+The published port listens on host interfaces by default: restrict access using
+a firewall or put Dashmon behind HTTPS. If accessing it only through a reverse
 proxy on the same host, bind the port to loopback instead. See the
 [Docker widget](#docker-widget-optional-socket) section before adding socket
 access.
@@ -238,9 +240,9 @@ roles no longer lock the dashboard when running in normal mode.
 The `dashmon-data` volume (`/app/data`) persists config, images and custom themes.
 Backup: `docker cp dashmon:/app/data ./backup-data` (container stopped).
 
-> **Mise à jour d'une ancienne installation** : l'image officielle tourne
-> maintenant sous l'utilisateur non-root `node` (uid 1000). Si votre volume a
-> été créé par une version antérieure, corrigez son propriétaire une fois :
+> **Upgrading an old installation**: the official image now runs as the non-root
+> `node` user (uid 1000). If your volume was created by an earlier version, fix
+> its owner once:
 > `docker run --rm -v dashmon-data:/d alpine chown -R 1000:1000 /d`
 
 ## 4. nginx (optional)
@@ -367,14 +369,13 @@ docker exec dashmon node -e "require('https').get('https://portainer.exemple.lan
 `NODE_EXTRA_CA_CERTS` *adds* to the roots bundled with Node, so public sites keep
 working.
 
-> **Ne montez jamais le dossier qui contient vos clés privées.** Un dossier de
-> certificats contient généralement aussi les clés de chaque service, et
-> éventuellement celle de l'autorité. Seul le certificat de l'CA est nécessaire,
-> et ce point vaut aussi pour les sauvegardes : une CA compromise permet de
-> signer un certificat pour n'importe lequel de vos services.
+> **Never mount the folder that holds your private keys.** A certificate folder
+> usually also contains the key of each service, and possibly the authority key.
+> Only the CA certificate is needed, and this applies to backups too: a
+> compromised CA can sign a certificate for any of your services.
 >
-> Ne placez pas non plus une CA privée dans le `Dockerfile` : l'image est
-> publiée publiquement.
+> Do not put a private CA in the `Dockerfile` either: the image is published
+> publicly.
 
 If `openssl s_client` returns a single certificate where you expected a chain,
 the server is not sending its intermediate. Either complete `ssl_trusted_certificate`
@@ -421,5 +422,5 @@ are normal when a path does not exist or `/sys` is not exposed.
 ## Notes
 
 - No embedded secrets: the bundled `config.json` only contains public examples. Widget passwords are
-  AES-256-GCM encrypted when `DASHMON_MASTER_KEY` is set (plain text otherwise).
+  AES-256-GCM encrypted with `DASHMON_MASTER_KEY` and never sent to the browser.
 - Logs: `docker logs dashmon`.

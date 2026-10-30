@@ -1,114 +1,112 @@
-# Mises a jour APT
+# APT updates
 
-La carte **Mises a jour APT** de la page Supervision affiche le dernier rapport
-de mise a jour d'un hote Debian ou Ubuntu. Dashmon ne lance jamais `apt` lui-meme : une tache
-cron locale execute le script, qui ecrit un rapport JSON atomique dans les
-donnees du conteneur, a cote des dumps WireGuard et SMART.
+The **APT updates** card on the Supervision page shows the last update report
+for a Debian or Ubuntu host. Dashmon never runs `apt` itself: a local cron job
+runs the script, which writes an atomic JSON report into the container data,
+next to the WireGuard and SMART dumps.
 
-Le script utilise `apt-get -y upgrade` : il installe les mises a jour qui ne demandent pas de
-suppression ou de nouvelle dependance, puis signale un redemarrage requis.
-Il n'installe aucune tache cron automatiquement.
+The script uses `apt-get -y upgrade`: it installs the updates that require no
+removal and no new dependency, then reports when a reboot is required. It does
+not install any cron job automatically.
 
 ## Installation
 
-Installez les fichiers sur l'hote qui execute Docker :
+Install the files on the host that runs Docker:
 
 ```sh
 sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/apt-updates.sh -o /usr/local/sbin/apt-updates.sh
 sudo chmod 755 /usr/local/sbin/apt-updates.sh
 ```
 
-**Attention : cette commande installe réellement les mises à jour sur l'hôte.**
-Elle ne demande pas de redémarrage sauf si `DASHMON_APT_REBOOT=1` est défini.
-Pour lancer un premier passage sur le principal :
+**Warning: this command really installs the updates on the host.** It does not
+ask for a reboot unless `DASHMON_APT_REBOOT=1` is set. To run a first pass on
+the primary:
 
 ```sh
 sudo /usr/local/sbin/apt-updates.sh
 ```
 
-Pour un agent installé avec la stack du [guide de démarrage](DEMARRAGE.md) :
+For an agent installed with the [startup guide](DEMARRAGE.md) stack:
 
 ```sh
 sudo env DASHMON_CONTAINER=dashmon-agent /usr/local/sbin/apt-updates.sh
 ```
 
-Le script ecrit par defaut dans `/app/data/apt-updates.json` du conteneur
-`dashmon`, a cote de `wireguard.dump` et `smart.json`. Si son nom differe,
-passez `DASHMON_CONTAINER=...` avant la commande.
+The script writes to `/app/data/apt-updates.json` in the `dashmon` container by
+default, next to `wireguard.dump` and `smart.json`. If its name differs, pass
+`DASHMON_CONTAINER=...` before the command.
 
-Pour un chemin different **dans** le conteneur, utilisez
-`DASHMON_APT_REPORT_CONTAINER_PATH`. Dashmon doit alors recevoir le meme chemin
-via `APT_UPDATES_REPORT_FILE`.
+For a different path **inside** the container, use
+`DASHMON_APT_REPORT_CONTAINER_PATH`. Dashmon must then receive the same path
+through `APT_UPDATES_REPORT_FILE`.
 
-## Horaire et redemarrage
+## Schedule and reboot
 
-Ajoutez cette ligne au crontab root avec `sudo crontab -e` :
+Add this line to the root crontab with `sudo crontab -e`:
 
 ```cron
 0 3 * * 3 /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
 ```
 
-Pour un **agent**, utilisez à la place :
+For an **agent**, use this line instead:
 
 ```cron
 0 3 * * 3 DASHMON_CONTAINER=dashmon-agent /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
 ```
 
-Si votre conteneur porte un autre nom, retrouvez-le avec `docker ps` et adaptez
-la commande. Ne créez qu'une tâche APT par hôte.
+If your container has another name, find it with `docker ps` and adapt the
+command. Create only one APT job per host.
 
-Le redemarrage automatique est **desactive**. Pour l'autoriser seulement apres
-une mise a jour reussie qui le requiert, prefixez la commande cron :
+Automatic reboot is **disabled**. To allow it only after a successful update
+that requires it, prefix the cron command:
 
 ```cron
 0 3 * * 3 DASHMON_APT_REBOOT=1 /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
 ```
 
-Pour autoriser le redémarrage sur l'hôte d'un agent :
+To allow the reboot on an agent host:
 
 ```cron
 0 3 * * 3 DASHMON_CONTAINER=dashmon-agent DASHMON_APT_REBOOT=1 /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
 ```
 
-Utilisez une seule des lignes APT proposées, pas plusieurs.
+Use only one of the proposed APT lines, not several.
 
-L'intervalle par defaut est de **7 jours**, ce qui correspond a la tache
-hebdomadaire ci-dessus. Si vous planifiez un autre rythme, indiquez-le au script
-pour que la carte affiche un prochain passage juste :
+The default interval is **7 days**, which matches the weekly job above. If you
+schedule another rhythm, tell the script so the card shows a correct next run:
 
 ```cron
 0 3 * * * DASHMON_APT_INTERVAL_HOURS=24 /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
 ```
 
-La valeur est un nombre d'heures. Le prochain passage est calcule a partir de la
-fin du passage courant : il s'agit d'une prevision, pas d'une lecture du
-crontab.
+The value is a number of hours. The next run is computed from the end of the
+current run: it is an estimate, not a read of the crontab.
 
-Le rapport est ecrit avant la demande de redemarrage, avec l'etat
-`redemarrage demande`.
+The report is written before the reboot request, with the state
+`reboot requested`.
 
-## Supervision Dashmon
+## Dashmon supervision
 
-L'hote local est toujours supervise. Dans **Modifier la supervision**, ouvrez
-l'onglet **Mises a jour APT**. La carte affiche un statut explicite, **À jour**
-ou **Pas à jour**, avec la meme icone de sante que la carte de l'hote, puis le
-nombre de mises a jour installees. Le chevron deplie le dernier passage, le
-prochain passage prevu et une alerte lorsqu'un redemarrage est requis.
+The local host is always monitored. In **Edit supervision**, open the
+**APT updates** tab. The card shows an explicit status, **Up to date** or
+**Not up to date**, with the same health icon as the host card, then the number
+of installed updates. The chevron expands the last run, the next planned run and
+a warning when a reboot is required.
 
-En cas d'echec, ouvrez **Détail de l’échec** sur la carte : le rapport indique
-l'etape (`update` ou `upgrade`), le code de sortie et un extrait borne de la
-sortie APT. Les URL de depots sont masquees dans cet extrait, mais il peut
-contenir d'autres informations sur le systeme : limitez l'acces a Dashmon.
-Les anciens rapports ne contiennent pas de detail. Installez la version a jour
-du script sur chaque hote ; l'image Dashmon seule ne met pas a jour ce script.
-Pour un rapport deja en echec, consultez les journaux APT de l'hote, par exemple
-`sudo tail -n 100 /var/log/apt/term.log` s'il existe, sans relancer de mise a jour.
+On failure, open **Failure detail** on the card: the report gives the step
+(`update` or `upgrade`), the exit code and a bounded excerpt of the APT output.
+Repository URLs are masked in that excerpt, but it may contain other system
+information: limit access to Dashmon. Older reports contain no detail. Install
+the up-to-date script on every host; the Dashmon image alone does not upgrade
+that script. For a report already failing, read the host APT logs, for example
+`sudo tail -n 100 /var/log/apt/term.log` if it exists, without running an update
+again.
 
-## Variante bind mount
+## Bind mount variant
 
-Si le script ne peut pas joindre Docker, montez un dossier de l'hote dans le
-conteneur. Les deux chemins sont distincts : le script utilise le chemin hote,
-Dashmon celui du conteneur.
+If the script cannot reach Docker, mount a host folder into the container. The
+two paths are distinct: the script uses the host path, Dashmon the container
+path.
 
 ```yaml
 services:
@@ -119,11 +117,10 @@ services:
       APT_UPDATES_REPORT_FILE: /reports/apt-updates.json
 ```
 
-La ligne cron devient alors :
+The cron line then becomes:
 
 ```cron
 0 3 * * 3 DASHMON_APT_REPORT_FILE=/srv/dashmon-reports/apt-updates.json /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
 ```
 
-Le chemin de lecture reste fixe par l'environnement, jamais par l'interface
-web.
+The read path stays fixed by the environment, never by the web interface.

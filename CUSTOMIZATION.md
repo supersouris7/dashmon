@@ -70,16 +70,16 @@ imported from the UI and persisted in `/app/data/themes/`.
 
 ### Creating a theme
 
-1. Open **Appearance** (top-right menu → *Modifier le thème*).
-2. Choose a starting theme and click **Exporter** → a `theme-<id>.json` is
+1. Open **Appearance** from the top-right menu.
+2. Choose a starting theme and click **Export** → a `theme-<id>.json` is
    downloaded.
 3. Edit the JSON (new `id`, `name`, colors and optional `css`) in any editor.
-4. In **Appearance → Gestion des thèmes**, click **Importer** and select the
+4. In **Appearance → Theme management**, click **Import** and select the
    file. The theme appears under *Custom themes* in the theme selector.
 5. Select it and close the window. It is applied immediately and survives
    container restarts (stored in `/app/data/themes/`).
 
-To remove a custom theme: select it, then **Gestion des thèmes → Supprimer**
+To remove a custom theme: select it, then **Theme management → Delete**
 (native themes cannot be deleted).
 
 ## Icons
@@ -100,18 +100,19 @@ A service card renders an image, not a font icon: its `icon` is a path or URL.
 
 - Imported PNG from your library → `icons/<filename>` (relative, served by the
   app), or
-- any direct image URL.
+- any direct image URL. [Dashboard Icons](https://dashboardicons.com/) provides
+  plain PNG logos for many self-hosted apps.
 
 **Importing a PNG:**
 
-1. **Edit Dashmon → Images** tab, then *Ajouter des images* — or click the
+1. **Edit Dashmon → Images** tab, then *Add images* — or click the
    image button on a service row while editing it.
 2. Pick a `.png` file (PNG only). It is uploaded to `/app/data/icons/` and
    referenced as `icons/<filename>`.
 3. The service uses it right away.
 
 **Deleting images:** **Edit Dashmon → Images** tab, select the ones to remove,
-then *Supprimer la sélection*.
+then *Delete selection*.
 
 ### Example
 
@@ -139,7 +140,7 @@ mandatory; without one it falls back to the first category (or "Autres").
 
 - One special tile per dashboard: enabling one replaces any other.
 - `category` chooses the section the tile is displayed in. In host view it joins
-  the "sans hôte" group.
+  the "no host" group.
 - The tile has no name and no icon of its own, hence nothing to set beyond the
   checkbox and the category.
 

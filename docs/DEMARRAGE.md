@@ -1,48 +1,48 @@
-# Installer Dashmon et ses agents
+# Install Dashmon and its agents
 
-## Choisir son installation
+## Choose your installation
 
-- **Principal** : le tableau de bord, à installer une seule fois.
-- **Agent** : facultatif ; à installer sur chaque autre machine à superviser.
-- **Portainer** : copier la stack dans **Stacks → Add stack → Web editor**.
-- **Docker Compose** : copier la même stack dans `compose.yaml`, puis lancer
-  `docker compose up -d` depuis son dossier.
+- **Primary**: the dashboard, installed once.
+- **Agent**: optional; installed on every other machine you want to monitor.
+- **Portainer**: paste the stack into **Stacks → Add stack → Web editor**.
+- **Docker Compose**: paste the same stack into `compose.yaml`, then run
+  `docker compose up -d` from its folder.
 
-Les exemples utilisent `unstable`, mis à jour depuis `main`. Pour une release
-stable, remplacez-le par une version publiée contenant les agents. Les exemples
-créent des volumes Docker nommés : ne les supprimez pas lors d'une mise à jour.
+The examples use `unstable`, updated from `main`. For a stable release, replace
+it with a published version that includes the agents. The examples create named
+Docker volumes: do not delete them during an upgrade.
 
-## 1. Préparer les secrets
+## 1. Prepare the secrets
 
-Générez **deux valeurs distinctes**, une pour la clé de chiffrement du principal
-et une pour le jeton commun aux agents :
+Generate **two distinct values**, one for the primary encryption key and one for
+the token shared by the agents:
 
 ```sh
 openssl rand -base64 32
 openssl rand -base64 32
 ```
 
-Choisissez aussi un mot de passe pour le principal et, pour chaque agent, un
-mot de passe pour sa page locale. Ne publiez jamais ces valeurs.
+Also pick a password for the primary and, for each agent, a password for its
+local page. Never publish these values.
 
-| Variable | Principal | Agent |
+| Variable | Primary | Agent |
 | --- | --- | --- |
-| `DASHMON_PASSWORD` | Mot de passe du tableau de bord | Mot de passe de la page locale ; peut être différent |
-| `DASHMON_MASTER_KEY` | Clé de chiffrement des secrets des widgets | Inutile |
-| `DASHMON_SYNC_TOKEN` | Jeton partagé, nécessaire pour les agents | **Même valeur que sur le principal** |
+| `DASHMON_PASSWORD` | Dashboard password | Local page password; may differ |
+| `DASHMON_MASTER_KEY` | Widget secret encryption key, **required** | Not needed |
+| `DASHMON_SYNC_TOKEN` | Shared token, required for the agents | **Same value as the primary** |
 
-Conservez une sauvegarde de la clé maîtresse : si elle change, les secrets des
-widgets précédemment chiffrés deviennent illisibles. Sans clé, ils sont stockés
-en clair. Pour une installation sans agent, le jeton peut rester vide.
+Keep a backup of the master key: if it changes, previously encrypted widget
+secrets become unreadable. Generate it with `openssl rand -hex 32`. For an
+installation without an agent, the token may stay empty.
 
-### Où saisir les valeurs ?
+### Where to enter the values
 
-**Portainer :** dans la page de la stack, sous **Environment variables**, ajoutez
-les noms et leurs valeurs, puis cliquez sur **Deploy the stack**. Les variables
-sont accessibles aux administrateurs de Portainer : protégez cet accès.
+**Portainer:** on the stack page, under **Environment variables**, add the names
+and their values, then click **Deploy the stack**. The variables are visible to
+Portainer administrators: protect that access.
 
-**Docker Compose :** dans le même dossier que `compose.yaml`, créez un fichier
-`.env` privé et ouvrez-le dans votre éditeur :
+**Docker Compose:** in the same folder as `compose.yaml`, create a private
+`.env` file and open it in your editor:
 
 ```sh
 umask 077
@@ -50,8 +50,8 @@ touch .env
 nano .env
 ```
 
-Saisissez les noms ci-dessous avec vos valeurs. Pour l'agent, la clé maîtresse
-peut être omise. Ne commitez jamais `.env`.
+Enter the names below with your values. For the agent, the master key may be
+omitted. Never commit `.env`.
 
 ```dotenv
 DASHMON_PASSWORD=
@@ -59,9 +59,9 @@ DASHMON_MASTER_KEY=
 DASHMON_SYNC_TOKEN=
 ```
 
-## 2. Installer le principal
+## 2. Install the primary
 
-Copiez cette stack dans Portainer ou dans `compose.yaml` :
+Paste this stack into Portainer or into `compose.yaml`:
 
 ```yaml
 services:
@@ -77,8 +77,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DASHMON_PASSWORD: ${DASHMON_PASSWORD:?Renseignez DASHMON_PASSWORD}
-      DASHMON_MASTER_KEY: ${DASHMON_MASTER_KEY:-}
+      DASHMON_PASSWORD: ${DASHMON_PASSWORD:?Set DASHMON_PASSWORD}
+      DASHMON_MASTER_KEY: ${DASHMON_MASTER_KEY:?Set DASHMON_MASTER_KEY}
       DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:-}
     volumes:
       - dashmon-data:/app/data
@@ -87,30 +87,28 @@ volumes:
   dashmon-data:
 ```
 
-Avec Compose, depuis le dossier contenant `compose.yaml` et `.env` :
+With Compose, from the folder that contains `compose.yaml` and `.env`:
 
 ```sh
 docker compose up -d
 docker compose ps
 ```
 
-Ouvrez l'adresse de votre serveur avec le port **8080** et connectez-vous. Dans
-`8080:8080`, le premier nombre est le port du serveur ; changez-le s'il est déjà
-occupé. Le second est le port interne de Dashmon : laissez-le à `8080`.
+Open your server address on port **8080** and sign in. In `8080:8080`, the first
+number is the server port; change it if it is already taken. The second is
+Dashmon's internal port: leave it at `8080`.
 
-Ces ports sont publiés sur les interfaces du serveur. Limitez l'accès par
-pare-feu et utilisez HTTPS ou un réseau privé de confiance. Pour un accès
-exclusivement local par un proxy sur le même serveur, utilisez
-`127.0.0.1:8080:8080` à la place.
+These ports are published on the server interfaces. Limit access with a firewall
+and use HTTPS or a trusted private network. For local-only access through a proxy
+on the same server, use `127.0.0.1:8080:8080` instead.
 
-Pour un accès en HTTPS avec nginx, suivez le guide
-**[HTTPS avec nginx](HTTPS.md)** : configuration prête à copier, certificat
-Let's Encrypt ou certificat local, et vérifications.
+For HTTPS access with nginx, follow the **[HTTPS with nginx](HTTPS.md)** guide:
+copy-paste configuration, Let's Encrypt or local certificate, and checks.
 
-## 3. Installer un agent
+## 3. Install an agent
 
-Sur la machine à superviser, créez une **autre stack** et renseignez son mot
-de passe ainsi que le **même** `DASHMON_SYNC_TOKEN` que sur le principal :
+On the machine to monitor, create **another stack** and set its password as well
+as the **same** `DASHMON_SYNC_TOKEN` as the primary:
 
 ```yaml
 services:
@@ -127,86 +125,84 @@ services:
       - "8081:8080"
     environment:
       DASHMON_MODE: agent
-      DASHMON_PASSWORD: ${DASHMON_PASSWORD:?Renseignez DASHMON_PASSWORD}
-      DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:?Renseignez DASHMON_SYNC_TOKEN}
+      DASHMON_PASSWORD: ${DASHMON_PASSWORD:?Set DASHMON_PASSWORD}
+      DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:?Set DASHMON_SYNC_TOKEN}
     volumes:
       - dashmon-agent-data:/app/data
-      # Facultatif : disque de l'hôte, en lecture seule.
+      # Optional: host disk, read-only.
       # - /:/host:ro
 
 volumes:
   dashmon-agent-data:
 ```
 
-Avec Compose, créez un dossier distinct, placez-y cette stack et son propre
-`.env`, puis lancez `docker compose up -d`. Les noms de conteneur ci-dessus
-permettent d'utiliser directement les commandes des guides d'intégration ;
-adaptez-les si vous installez plusieurs instances sur le même serveur.
+With Compose, create a separate folder, put this stack and its own `.env` in it,
+then run `docker compose up -d`. The container names above let you use the
+integration guides' commands directly; adapt them if you install several
+instances on the same server.
 
-Le volume nommé conserve les réglages de l'agent. Pour utiliser un dossier de
-l'hôte à la place, remplacez `dashmon-agent-data:/app/data` par le chemin
-absolu de votre dossier suivi de `:/app/data`, puis retirez la section `volumes`
-finale. Le dossier doit être inscriptible par l'UID `1000` du conteneur.
+The named volume keeps the agent settings. To use a host folder instead, replace
+`dashmon-agent-data:/app/data` with the absolute path of your folder followed by
+`:/app/data`, then remove the final `volumes` section. The folder must be
+writable by the container UID `1000`.
 
-1. Ouvrez l'adresse de l'agent avec son port publié, ici `8081`, puis
-   connectez-vous avec **son** mot de passe.
-2. Renseignez le nom de l'hôte et les options souhaitées. Pour mesurer le disque
-   de l'hôte, décommentez le montage `/host:ro`, redéployez et indiquez `/host`
-   dans le champ du chemin disque. Sinon la mesure concerne le conteneur.
-3. Sur le principal : **Modifier la supervision → Pairage**. Ajoutez l'adresse
-   complète de l'agent, par exemple `http://exemple.lan:8081`, puis donnez un
-   nom à l'onglet si souhaité. Associez ensuite l'hôte créé dans l'onglet
-   **Hôtes** : sa couleur et son icône sont reprises au survol de sa tuile dans
-   Supervision. Sans hôte, le pairage reste valable mais la tuile garde son
-   apparence par défaut.
-4. Cliquez sur **Tester la connexion**, puis sur **Enregistrer**. Le bouton
-   **Paramétrer** ouvre la page de l'agent. L'onglet apparaît dans Supervision.
+1. Open the agent address on its published port, here `8081`, then sign in with
+   **its** password.
+2. Set the host name and the options you need. To measure the host disk,
+   uncomment the `/host:ro` mount, redeploy and enter `/host` in the disk path
+   field. Otherwise the measurement covers the container.
+3. On the primary: **Edit supervision → Pairing**. Add the agent full address,
+   for example `http://exemple.lan:8081`, then name the tab if you want.
+   Next, link the host created in the **Hosts** tab: its color and icon are used
+   when hovering its tile in Supervision. Without a host, the pairing still
+   works but the tile keeps its default appearance.
+4. Click **Test connection**, then **Save**. The **Configure** button opens the
+   agent page. The tab appears in Supervision.
 
-Le test utilise le réseau et le certificat du **principal** ; le bouton
-Paramétrer utilise le navigateur. Ne testez qu'une adresse de confiance : le
-jeton lui est transmis. Restreignez le port de l'agent et protégez le trafic par
-HTTPS ou un réseau privé de confiance.
+The test uses the **primary** network and certificate; the Configure button uses
+the browser. Only test a trusted address: the token is sent to it. Restrict the
+agent port and protect the traffic with HTTPS or a trusted private network.
 
-## 4. Ajouter WireGuard, SMART ou APT
+## 4. Add WireGuard, SMART or APT
 
-Installez les scripts **sur chaque hôte concerné**, pas dans l'agent. Pour un
-agent, renseignez le nom de son conteneur dans les commandes et le cron. Les
-guides fournissent les commandes complètes :
+Install the scripts **on every host concerned**, not inside the agent. For an
+agent, use its container name in the commands and the cron job. The guides
+provide the full commands:
 
-- [WireGuard : installer et planifier le relevé](WIREGUARD.md)
-- [SMART : installer et planifier le relevé](SMART.md)
-- [APT : installer et planifier les mises à jour](APT_UPDATES.md)
+- [WireGuard: install and schedule the dump](WIREGUARD.md)
+- [SMART: install and schedule the dump](SMART.md)
+- [APT: install and schedule the updates](APT_UPDATES.md)
 
-Les rapports restent facultatifs. APT **installe réellement des mises à jour** ;
-son redémarrage automatique est désactivé sauf activation explicite.
+The reports stay optional. APT **actually installs updates**; its automatic
+reboot is disabled unless explicitly enabled.
 
-## 5. Mettre à jour et sauvegarder
+## 5. Upgrade and back up
 
-**Portainer :** ouvrez la stack, puis **Pull and redeploy** en demandant le
-téléchargement de l'image. Conservez le volume et les variables d'environnement.
+**Portainer:** open the stack, then **Pull and redeploy** asking for the image
+download. Keep the volume and the environment variables.
 
-**Compose :** dans le dossier de chaque stack :
+**Compose:** in each stack folder:
 
 ```sh
 docker compose pull
 docker compose up -d
 ```
 
-Sauvegardez le volume de données du principal et sa clé maîtresse séparément.
-Les agents ont chacun leur propre volume de configuration. Mettre à jour une
-image ne met pas à jour les scripts installés sur les hôtes.
+Back up the primary data volume and its master key separately. Each agent has
+its own configuration volume. Upgrading an image does not upgrade the scripts
+installed on the hosts.
 
-## Dépannage rapide
+## Quick troubleshooting
 
-| Problème | Vérification |
+| Problem | Check |
 | --- | --- |
-| Port déjà utilisé | `sudo ss -ltnp` ; changez le port à gauche dans `ports`. |
-| Agent inaccessible | Vérifiez son port, le pare-feu et l'adresse depuis le principal. |
-| Jeton refusé | Vérifiez que `DASHMON_SYNC_TOKEN` est identique sur les deux stacks, puis redéployez. |
-| Erreur de certificat ou DNS | Voir [DNS et certificats](../deploy/DEPLOYMENT.md#6-monitoring-lan-domains-lan-local). |
-| Aucune donnée SMART, APT ou WireGuard | Vérifiez le script et le nom du conteneur sur l'hôte concerné. |
-| Dossier monté non inscriptible | Le conteneur utilise l'UID `1000` ; vérifiez le propriétaire et les droits du dossier. |
+| Port already in use | `sudo ss -ltnp`; change the left-hand port in `ports`. |
+| Agent unreachable | Check its port, the firewall and the address from the primary. |
+| Token rejected | Check that `DASHMON_SYNC_TOKEN` is identical on both stacks, then redeploy. |
+| Certificate or DNS error | See [DNS and certificates](../deploy/DEPLOYMENT.md#6-monitoring-lan-domains-lan-local). |
+| No SMART, APT or WireGuard data | Check the script and the container name on the host concerned. |
+| Mounted folder not writable | The container uses UID `1000`; check the folder owner and permissions. |
 
-La [documentation de déploiement](../deploy/DEPLOYMENT.md) couvre également le
-proxy, le DNS, les certificats et le socket Docker facultatif. Pour une mise en
-place HTTPS pas à pas, voir [HTTPS avec nginx](HTTPS.md).
+The [deployment documentation](../deploy/DEPLOYMENT.md) also covers the proxy,
+DNS, certificates and the optional Docker socket. For a step-by-step HTTPS
+setup, see [HTTPS with nginx](HTTPS.md).

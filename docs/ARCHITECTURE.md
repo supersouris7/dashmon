@@ -1,87 +1,87 @@
-# Architecture de Dashmon
+# Dashmon architecture
 
-Cette page aide les contributeurs à situer les responsabilités du code. Les
-instructions d'installation et de configuration restent dans le README et
-les autres guides.
+This page helps contributors locate the responsibilities of the code.
+Installation and configuration instructions stay in the README and the other
+guides.
 
-## Vue d'ensemble
+## Overview
 
 ```text
-Navigateur : état et brouillons -> API HTTP -> serveur principal
-                                             |-- configuration et stockage
-                                             |-- supervision locale
-                                             |-- widgets
-                                             `-- agents distants (mesures uniquement)
+Browser: state and drafts -> HTTP API -> main server
+                                           |-- configuration and storage
+                                           |-- local supervision
+                                           |-- widgets
+                                           `-- remote agents (measurements only)
 ```
 
-Le mode agent expose sa supervision locale. Le principal interroge ses agents ;
-il ne leur envoie pas sa configuration de tableau de bord. Les préférences de
-disposition propres au navigateur sont distinctes de la configuration serveur.
+The agent mode exposes its local supervision. The primary queries its agents; it
+does not send them its dashboard configuration. Browser-owned layout preferences
+are distinct from the server configuration.
 
-## Serveur
+## Server
 
-`server.js` ne contient que l'assemblage : il lit la configuration, crée les
-services, puis monte le pipeline Express dans l'ordre (sécurité, limites de
-débit, authentification, routes, erreurs). Son en-tête sert de plan du code.
-Chaque fichier de `lib/` commence par un commentaire qui décrit son rôle.
+`server.js` only contains the assembly: it reads the configuration, creates the
+services, then mounts the Express pipeline in order (security, rate limits,
+authentication, routes, errors). Its header serves as the code map. Every file
+in `lib/` starts with a comment describing its role.
 
 ```text
-server.js            assemblage de l'application
-agent-server.js      point d'entrée du mode agent
+server.js            application assembly
+agent-server.js      agent mode entry point
 lib/
-  config/            variables d'environnement (settings.js), config.json
+  config/            environment variables (settings.js), config.json
                      (store.js, repository.js), validation (normalize.js,
-                     fields.js), migrations de démarrage, secrets chiffrés
-  http/              client HTTP sortant (client.js), authentification,
-                     protections (en-têtes, origine, limites de débit, jeton
-                     des agents), journal des requêtes, erreurs
-  routes/            toutes les routes HTTP, un fichier par sujet ; chaque
-                     en-tête liste ses routes
-  widgets/           registre, schéma, stockage et cœur des widgets
-  status/            boucle de statut des services surveillés
-  host/              mesures de la machine (CPU, RAM, disque) et rapports
-                     WireGuard, SMART et APT
-  agent/             protocole, identité et pairage des agents
-  themes.js          validation des thèmes
-  version.js         libellé de version et détection des montages
-  lifecycle.js       démarrage, boucle de statut et arrêt propre
-  log.js             journaux horodatés
-widgets/<id>/        un dossier par widget (voir EXTENDING.md)
+                     fields.js), startup migrations, encrypted secrets
+  http/              outgoing HTTP client (client.js), authentication,
+                     protections (headers, origin, rate limits, agent token),
+                     request log, errors
+  routes/            all HTTP routes, one file per topic; each header lists
+                     its routes
+  widgets/           widget registry, schema, storage and core
+  status/            status loop of the monitored services
+  host/              machine measurements (CPU, RAM, disk) and WireGuard,
+                     SMART and APT reports
+  agent/             protocol, identity and agent pairing
+  themes.js          theme validation
+  version.js         version label and mount detection
+  lifecycle.js       startup, status loop and clean shutdown
+  log.js             timestamped logs
+widgets/<id>/        one folder per widget (see EXTENDING.md)
 ```
 
-Quelques règles qui guident ce découpage :
+A few rules guide this split:
 
-- Seul `lib/config/settings.js` lit `process.env` ; les autres modules
-  reçoivent l'objet `settings`.
-- Les routes reçoivent leurs dépendances en paramètre
-  (`registerXxxRoutes(app, { ... })`) : elles ne connaissent ni le fichier de
-  configuration ni le schéma, et se testent sans démarrer le serveur.
-- L'écriture de la configuration est atomique et les révisions (ETag)
-  détectent les modifications concurrentes.
-- Les commentaires et les journaux sont en anglais ; les messages renvoyés par
-  l'API restent en français, car l'interface les affiche.
-- Ne pas ajouter de secret ou d'exemple d'identifiant réel au dépôt.
+- Only `lib/config/settings.js` reads `process.env`; the other modules receive
+  the `settings` object.
+- Routes receive their dependencies as parameters
+  (`registerXxxRoutes(app, { ... })`): they know neither the configuration file
+  nor the schema, and are tested without starting the server.
+- Configuration writes are atomic and revisions (ETag) detect concurrent
+  modifications.
+- Comments and logs are in English; the messages returned by the API stay in
+  French, because the interface displays them.
+- Do not add a secret or a real identifier example to the repository.
 
-## Navigateur
+## Browser
 
-- `public/js/state.js` contient l'état commun et la normalisation de la
-  configuration ; `api.js` gère les écritures et les révisions HTTP.
-- `editor.js` orchestre les panneaux et l'enregistrement. Les brouillons et
-  leur préparation sont dans `editor-draft.js`, `host-monitoring-draft.js` et
+- `public/js/state.js` holds the shared state and the configuration
+  normalization; `api.js` handles the writes and the HTTP revisions.
+- `editor.js` orchestrates the panels and the save. The drafts and their
+  preparation live in `editor-draft.js`, `host-monitoring-draft.js` and
   `replication-draft.js`.
-- `pairing-editor.js` et `pairing-list.js` gèrent le formulaire des agents ;
-  `monitoring-editors.js` et `apt-editor.js` gèrent les options de supervision.
-  `confirm-dialog.js`, `color-picker.js` et `editor-drag.js` portent des
-  composants partagés de l'éditeur.
-- `render.js`, `pages.js` et `supervision.js` construisent les vues ;
-  `view-prefs.js` conserve les préférences locales de présentation.
+- `pairing-editor.js` and `pairing-list.js` handle the agent form;
+  `monitoring-editors.js` and `apt-editor.js` handle the supervision options.
+  `confirm-dialog.js`, `color-picker.js` and `editor-drag.js` carry shared editor
+  components.
+- `render.js`, `pages.js` and `supervision.js` build the views; `view-prefs.js`
+  keeps the local presentation preferences.
 
-## Vérifications
+## Checks
 
-`npm test` exécute les tests sans navigateur et `npm run format:check` vérifie
-la mise en forme (Prettier ; `npm run format` la corrige). `npm run test:browser` nécessite
-Chromium et un Node disposant de `WebSocket` ; il démarre une instance et un
-profil navigateur temporaires, puis vérifie notamment la connexion, le pairage,
-la sauvegarde et la création d'un hôte. La variable `CHROMIUM_BIN` peut désigner
-le binaire si son nom n'est pas `chromium`. Exécuter aussi `actionlint` depuis
-la racine du dépôt pour contrôler les workflows.
+`npm test` runs the tests without a browser and `npm run format:check` checks
+the formatting (Prettier; `npm run format` fixes it). `npm run test:browser`
+needs Chromium and a Node with `WebSocket`; it starts a temporary instance and
+browser profile, then checks notably the login, the pairing, the save and the
+creation of a host. The `CHROMIUM_BIN` variable can point to the binary if its
+name is not `chromium`. Also run `actionlint` from the repository root to check
+the workflows.

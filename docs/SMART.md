@@ -1,12 +1,12 @@
-# Supervision SMART
+# SMART supervision
 
-Dashmon peut afficher l'etat SMART, la temperature et les compteurs d'usure
-des disques de l'hote Docker. Cette supervision est locale : le script est a
-executer sur la machine qui heberge le conteneur Dashmon.
+Dashmon can display the SMART status, temperature and wear counters of the
+Docker host disks. This supervision is local: the script runs on the machine
+that hosts the Dashmon container.
 
 ## Installation
 
-Installez `smartmontools`, puis recuperez le script :
+Install `smartmontools`, then fetch the script:
 
 ```sh
 sudo apt install smartmontools
@@ -14,68 +14,66 @@ sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/depl
 sudo chmod 755 /usr/local/sbin/smart-dump.sh
 ```
 
-Le script detecte les disques accessibles avec `smartctl --scan-open`, lance
-`smartctl -j -q noserial -a` pour chacun, puis ecrit le resultat dans
-`/app/data/smart.json` du conteneur `dashmon` :
+The script detects the disks reachable with `smartctl --scan-open`, runs
+`smartctl -j -q noserial -a` for each of them, then writes the result to
+`/app/data/smart.json` in the `dashmon` container:
 
 ```sh
 sudo /usr/local/sbin/smart-dump.sh
 ```
 
-Pour un agent installé avec la stack du [guide de démarrage](DEMARRAGE.md) :
+For an agent installed with the [startup guide](DEMARRAGE.md) stack:
 
 ```sh
 sudo /usr/local/sbin/smart-dump.sh dashmon-agent
 ```
 
-Le nom du conteneur et le chemin peuvent etre fournis en arguments :
+The container name and the path can be given as arguments:
 
 ```sh
 sudo /usr/local/sbin/smart-dump.sh dashmon /app/data/smart.json
 ```
 
-Pour limiter les disques releves, definissez `DASHMON_SMART_DEVICES` :
+To limit the disks read, set `DASHMON_SMART_DEVICES`:
 
 ```sh
 sudo DASHMON_SMART_DEVICES="/dev/sda /dev/sdb" /usr/local/sbin/smart-dump.sh
 ```
 
-Les boitiers USB ne rendent pas tous SMART accessible. Si `smartctl` requiert
-une option de type de peripherique, adaptez une copie locale du script.
+USB enclosures do not all expose SMART. If `smartctl` needs a device-type
+option, adapt a local copy of the script.
 
-## Planification
+## Scheduling
 
-Un releve toutes les quinze minutes est suffisant. Ajoutez cette ligne avec
-`sudo crontab -e` :
+One dump every fifteen minutes is enough. Add this line with `sudo crontab -e`:
 
 ```cron
 */15 * * * * /usr/local/sbin/smart-dump.sh >/dev/null 2>&1
 ```
 
-Pour un agent, remplacez cette ligne par :
+For an agent, replace that line with:
 
 ```cron
 */15 * * * * /usr/local/sbin/smart-dump.sh dashmon-agent >/dev/null 2>&1
 ```
 
-Si votre conteneur porte un autre nom, retrouvez-le avec `docker ps` et remplacez
-`dashmon-agent`. Dans la page locale de l'agent, activez **SMART** et laissez la
-liste des disques vide pour tous les afficher.
+If your container has another name, find it with `docker ps` and replace
+`dashmon-agent`. In the agent local page, enable **SMART** and leave the disk
+list empty to show them all.
 
-## Configuration Dashmon
+## Dashmon configuration
 
-L'hote local est toujours supervise. Ouvrez l'onglet **SMART** dans la
-configuration de supervision. La liste des disques est facultative : vide, elle affiche tous les
-disques du releve ; renseignez par exemple `/dev/sda, /dev/sdb` pour filtrer.
-Cliquez sur **Enregistrer** puis **Appliquer**.
+The local host is always monitored. Open the **SMART** tab in the supervision
+configuration. The disk list is optional: empty, it shows every disk in the
+dump; enter for example `/dev/sda, /dev/sdb` to filter. Click **Save**, then
+**Apply**.
 
-Le serveur lit par defaut `/app/data/smart.json`. Pour un bind mount, montez par
-exemple `/srv/dashmon-reports` sur `/reports:ro`, utilisez
-`SMART_DUMP_FILE=/reports/smart.json` pour Dashmon et
-`DASHMON_SMART_DUMP=/srv/dashmon-reports/smart.json` pour le script.
+The server reads `/app/data/smart.json` by default. For a bind mount, mount for
+example `/srv/dashmon-reports` on `/reports:ro`, use
+`SMART_DUMP_FILE=/reports/smart.json` for Dashmon and
+`DASHMON_SMART_DUMP=/srv/dashmon-reports/smart.json` for the script.
 
-## Securite
+## Security
 
-Le script utilise `-q noserial` : les numeros de serie des disques ne sont pas
-places dans le dump. Le fichier est ecrit de facon atomique afin que Dashmon ne
-lise jamais un releve incomplet.
+The script uses `-q noserial`: disk serial numbers are not placed in the dump.
+The file is written atomically so Dashmon never reads an incomplete dump.

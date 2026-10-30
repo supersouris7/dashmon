@@ -27,8 +27,8 @@ services:
       # deploy/DEPLOYMENT.md) : /certs/ca-bundle.pem
       NODE_EXTRA_CA_CERTS: ${NODE_EXTRA_CA_CERTS:-}
       # Chiffre les mots de passe des widgets (ex. Duplicati) dans config.json.
-      # Sans clé, les secrets sont stockés en clair (warning au démarrage).
-      DASHMON_MASTER_KEY: ${DASHMON_MASTER_KEY:-}
+      # Obligatoire : Dashmon refuse de démarrer sans clé. Conservez-la à part.
+      DASHMON_MASTER_KEY: ${DASHMON_MASTER_KEY:?Définissez DASHMON_MASTER_KEY dans .env (openssl rand -hex 32)}
       DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:-}
       # Supervision des hôtes et rapports locaux (voir deploy/DEPLOYMENT.md).
       HOST_METRICS_INTERVAL: ${HOST_METRICS_INTERVAL:-60}

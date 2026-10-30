@@ -199,7 +199,7 @@ async function main() {
   }
   ok(
     "agents : guide de deploiement accessible sur la page locale",
-    contains(agentPage, "DEMARRAGE.md#3-installer-un-agent")
+    contains(agentPage, "DEMARRAGE.md#3-install-an-agent")
   );
 
   // --- 2. Registre des widgets cote client ------------------------------

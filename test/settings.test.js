@@ -5,7 +5,9 @@ const { readSettings } = require("../lib/config/settings");
 const { releaseLabel } = require("../lib/version");
 
 const root = path.join(path.sep, "app");
-const read = (env, runningInDocker = false) => readSettings(env, { root, runningInDocker });
+const KEY = { DASHMON_MASTER_KEY: "k".repeat(64) };
+const read = (env, runningInDocker = false) =>
+  readSettings({ ...KEY, ...env }, { root, runningInDocker });
 
 // Defaults: everything lives under data/ next to the code.
 const defaults = read({});
@@ -27,6 +29,15 @@ assert.equal(read({ HOST_METRICS_INTERVAL: "2" }).hostMetricsInterval, 60000);
 assert.throws(() => read({ DASHMON_MODE: "agent", DASHMON_PASSWORD: "x" }), /DASHMON_SYNC_TOKEN/);
 assert.throws(() => read({}, true), /DASHMON_PASSWORD/);
 assert.equal(read({ DASHMON_PASSWORD: "x" }, true).password, "x");
+// The main dashboard requires the master key; an agent does not.
+assert.throws(() => readSettings({}, { root, runningInDocker: false }), /DASHMON_MASTER_KEY/);
+assert.equal(
+  readSettings(
+    { DASHMON_MODE: "agent", DASHMON_PASSWORD: "x", DASHMON_SYNC_TOKEN: "y" },
+    { root, runningInDocker: false }
+  ).masterKey,
+  ""
+);
 
 // Release label shown in the footer.
 assert.equal(releaseLabel("1.2.3"), "v1.2.3");

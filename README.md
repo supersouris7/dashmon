@@ -43,7 +43,7 @@ integrations and configuration.
 
 ## Quick start
 
-**[Guide pas à pas : principal, agent, Portainer et Docker Compose](docs/DEMARRAGE.md)**
+**[Step-by-step guide: primary, agent, Portainer and Docker Compose](docs/DEMARRAGE.md)**
 — includes ready-to-paste stacks, shared-token setup and links to integration guides.
 
 ### Docker (recommended)
@@ -51,10 +51,14 @@ integrations and configuration.
 ```bash
 read -rs -p "Dashmon password: " DASHMON_PASSWORD
 export DASHMON_PASSWORD
+# Encrypts widget passwords. Save it somewhere safe: it is needed again
+# whenever the container is recreated.
+export DASHMON_MASTER_KEY="$(openssl rand -hex 32)"
+echo "$DASHMON_MASTER_KEY"
 docker run -d --name dashmon --read-only --cap-drop=ALL --security-opt=no-new-privileges:true \
   -p 127.0.0.1:8080:8080 \
   -v dashmon-data:/app/data \
-  -e DASHMON_PASSWORD \
+  -e DASHMON_PASSWORD -e DASHMON_MASTER_KEY \
   supersouris7/dashmon
 ```
 
@@ -64,13 +68,13 @@ docker run -d --name dashmon --read-only --cap-drop=ALL --security-opt=no-new-pr
 
 ```bash
 cp .env.example .env
-# renseignez DASHMON_PASSWORD dans .env
+# fill in DASHMON_PASSWORD and DASHMON_MASTER_KEY in .env
 docker compose up -d
 ```
 
 ### Portainer
 
-Use the ready-to-paste [Portainer stack examples](docs/DEMARRAGE.md#2-installer-le-principal)
+Use the ready-to-paste [Portainer stack examples](docs/DEMARRAGE.md#2-install-the-primary)
 for the main dashboard and its optional supervision agents.
 
 Full walkthrough, environment variables, nginx example and troubleshooting:
@@ -96,8 +100,8 @@ publishing Docker images.
 5. Adjust the theme and language under **Appearance**.
 
 Config, icons and themes live in the `dashmon-data` volume (`/app/data`) — back
-that volume up and you're done. Configure widget credentials in the editor;
-see `.env.example` for the optional encryption key.
+that volume up, and keep `DASHMON_MASTER_KEY` somewhere safe: widget passwords
+are encrypted with it and never sent back to the browser.
 
 Web links live above the toolbar. Their color and visibility are configured in
 **Appearance**; visibility is remembered by each browser.
@@ -120,8 +124,8 @@ for service and category icons — pick any free solid or brand class, e.g.
 welcome.
 
 You can also upload your own **PNG icons** (editor → **Images** tab) and assign
-them to a service. A good source of plain self-hosted app logos is the
-[homer-icons](https://github.com/NX211/homer-icons) collection.
+them to a service. [Dashboard Icons](https://dashboardicons.com/) provides plain
+PNG logos for many self-hosted apps.
 
 ## Documentation
 

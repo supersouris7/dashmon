@@ -31,6 +31,7 @@ const SUITES = [
   "settings.test.js",
   "config-repository.test.js",
   "themes.test.js",
+  "widget-secrets.test.js",
   "editor-drag.test.js",
   "editor-draft.test.js"
 ];

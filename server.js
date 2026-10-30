@@ -69,12 +69,12 @@ function createApp() {
 
   // --- Services ----------------------------------------------------------
 
-  // Widget secrets are encrypted at rest with DASHMON_MASTER_KEY. Without a
-  // key they are stored in clear text, so Dashmon works without any setup.
+  // Widget secrets are encrypted at rest with DASHMON_MASTER_KEY, required in
+  // the main dashboard (see lib/config/settings.js).
   const secrets = createSecretCodec(settings.masterKey);
-  if (!settings.masterKey) {
+  if (settings.masterKey && settings.masterKey.length < 32) {
     log.warn(
-      "⚠ DASHMON_MASTER_KEY is not set: widget passwords are stored IN CLEAR TEXT in config.json."
+      "⚠ DASHMON_MASTER_KEY is short: use at least 32 random characters (openssl rand -hex 32)."
     );
   }
 
@@ -154,7 +154,8 @@ function createApp() {
     revision: config => configRepository.revision(config),
     normalize: config => configRepository.ensureLocalHost(normalizeConfig(config)),
     ensureHostIds: () => ensureHostIds(configRepository),
-    withCacheKeys: config => widgetCore.withCacheKeys(config),
+    forBrowser: config => widgetCore.forBrowser(config),
+    restoreSecrets: (incoming, current) => widgetCore.restoreSecrets(incoming, current),
     logger: log
   });
   registerIconRoutes(app, { iconsDir: settings.iconsDir, log });
@@ -182,18 +183,46 @@ function createApp() {
   app.use(notFound);
   app.use(errorHandler(log));
 
+  // Once the widget schemas are known: secrets still stored in clear text
+  // (installs that ran without a master key) are encrypted on disk.
+  function encryptStoredSecrets() {
+    const config = readConfig();
+    const count = widgetCore.encryptPlaintextSecrets(config);
+    if (count) {
+      configRepository.write(config);
+      log.info(`Encrypted ${count} widget secret(s) stored in clear text.`);
+    }
+  }
+
   return {
     app,
-    start: () => startServer({ app, settings, widgetCore, statusMonitor, log })
+    start: () =>
+      startServer({
+        app,
+        settings,
+        widgetCore,
+        statusMonitor,
+        log,
+        onWidgetsLoaded: encryptStoredSecrets
+      })
   };
 }
 
-if (require.main === module) {
-  createApp()
-    .start()
-    .catch(error => {
-      log.error("Start-up failed:", error);
-      process.exit(1);
-    });
+// Builds and starts the application; a configuration error (missing
+// variable...) is reported in one readable line instead of a stack trace.
+function main() {
+  let application;
+  try {
+    application = createApp();
+  } catch (error) {
+    log.error("Start-up failed:", error.message);
+    process.exit(1);
+  }
+  application.start().catch(error => {
+    log.error("Start-up failed:", error);
+    process.exit(1);
+  });
 }
-module.exports = { createApp };
+
+if (require.main === module) main();
+module.exports = { createApp, main };

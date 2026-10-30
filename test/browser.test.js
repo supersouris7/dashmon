@@ -47,6 +47,7 @@ async function main() {
         DASHMON_MODE: "primary",
         DASHMON_PASSWORD: password,
         DASHMON_SYNC_TOKEN: "",
+        DASHMON_MASTER_KEY: crypto.randomBytes(32).toString("hex"),
         ICONS_DIR: path.join(dataDir, "icons"),
         THEMES_CUSTOM_DIR: path.join(dataDir, "themes"),
         THEMES_NATIVE_DIR: path.join(root, "public", "themes"),
