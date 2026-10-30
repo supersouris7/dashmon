@@ -120,7 +120,9 @@ async function main() {
       hosts: [
         { id: "local", name: "Local", monitoring: { type: "local", enabled: false } },
         { id: "legacy", name: "Hôte", monitoring: { type: "proxmox", enabled: true } }
-      ]
+      ],
+      // Clicks are only counted for an existing service (key: its URL).
+      services: [{ name: "Service", url: "https://service.exemple.lan/", monitor: false }]
     })
   );
   const primary = await start("dashboard", await freePort(), primaryDir);
@@ -208,7 +210,7 @@ async function main() {
   response = await fetch(primary + "/api/usage", {
     method: "POST",
     headers: { Authorization: auth, "Content-Type": "application/json" },
-    body: JSON.stringify({ key: "service" })
+    body: JSON.stringify({ key: "https://service.exemple.lan/" })
   });
   assert.equal(response.status, 200);
   response = await fetch(primary + "/api/config", {
@@ -234,7 +236,7 @@ async function main() {
   assert.equal(response.status, 412);
   response = await fetch(primary + "/api/config", { headers: { Authorization: auth } });
   const saved = await response.json();
-  assert.equal(saved.usageCounts.service, 1);
+  assert.equal(saved.usageCounts["https://service.exemple.lan/"], 1);
   assert.equal(saved.replication.agentNames[new URL(agent).href], "Supervision distante");
   assert.equal(saved.replication.agentHosts[new URL(agent).href], "local");
   response = await fetch(primary + "/api/replication/metrics", {

@@ -58,6 +58,13 @@ async function main() {
   assert.equal((await send("patch", malicious)).status, 200);
   assert.equal(config.polluted, undefined);
   assert.equal(Object.hasOwn(config, "constructor"), false);
+  // Clicks are only counted for existing services.
+  config.services = [{ url: "service" }, { name: "Nas", host: "box", category: "" }];
+  assert.equal((await send("post", { key: "service" })).status, 200);
+  assert.equal(config.usageCounts.service, 5);
+  assert.equal((await send("post", { key: "Nas|box|" })).status, 200);
+  assert.equal((await send("post", { key: "unknown" })).status, 400);
+  assert.equal(config.usageCounts.unknown, undefined);
   console.log("PASS configuration : ecritures, conflits et compteurs");
 }
 main().catch(error => {
