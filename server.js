@@ -29,6 +29,9 @@ const { registerAgentRoutes } = require("./lib/routes/agents");
 const { HOST_MONITORING_TYPES, sanitizeHostMonitoring } = require("./lib/config/fields");
 const { createConfigNormalizer } = require("./lib/config/normalize");
 const { readSettings } = require("./lib/config/settings");
+const { createConfigRepository } = require("./lib/config/repository");
+const { runStartupMigrations, ensureHostIds } = require("./lib/config/migrations");
+const { loadAgentIdentity } = require("./lib/agent/identity");
 const { describeVersion, isMountedPath } = require("./lib/version");
 
 function createApp() {
@@ -189,174 +192,11 @@ function createApp() {
   });
   httpClient.configure({ insecure: INSECURE_TLS, timeout: STATUS_TIMEOUT });
 
-  function ensureDataFiles() {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-    fs.mkdirSync(ICONS_DIR, { recursive: true });
-    fs.mkdirSync(THEMES_CUSTOM_DIR, { recursive: true });
-    fs.mkdirSync(THEMES_NATIVE_DIR, { recursive: true });
-
-    if (!fs.existsSync(CONFIG_FILE)) {
-      const bundled = path.join(ROOT, "config.json");
-      if (fs.existsSync(bundled)) {
-        fs.copyFileSync(bundled, CONFIG_FILE);
-      } else {
-        writeConfig({
-          services: [],
-          categories: [],
-          dashboards: [{ id: "main", name: "Dashboard", icon: "fa-solid fa-grip" }],
-          hosts: [],
-          collapsed: {},
-          viewMode: "columns",
-          openMode: "same",
-          groupMode: "category",
-          theme: "dark",
-          webLinks: [],
-          smallIcons: false
-        });
-      }
-    }
-  }
-
-  ensureDataFiles();
-
-  function readConfig() {
-    const config = configStore.read();
-    // Les anciens reglages retires ne sont plus exposes ni recopies lors d'une
-    // sauvegarde. Le fichier existant reste lisible sans migration destructive.
-    for (const key of ["favicon", "faviconEnabled", "hostsDisplay", "webLinksCollapsed"]) {
-      delete config[key];
-    }
-    return ensureLocalHost(config);
-  }
-
-  function ensureLocalHost(config) {
-    config.hosts = Array.isArray(config.hosts) ? config.hosts : [];
-    let local =
-      config.hosts.find(
-        host => host?.monitoring?.type === "local" && host.monitoring.enabled === true
-      ) || config.hosts.find(host => host?.monitoring?.type === "local");
-    if (!local) {
-      const used = new Set(config.hosts.map(host => host?.id));
-      let id = "dashmon-local";
-      while (used.has(id)) id += "-local";
-      local = {
-        id,
-        name: AGENT_MODE ? "Agent" : "Dashmon",
-        icon: "fa-solid fa-server",
-        monitoring: { type: "local" }
-      };
-      config.hosts.unshift(local);
-    }
-    for (const host of config.hosts) {
-      if (host?.monitoring?.type === "local") host.monitoring.enabled = host === local;
-    }
-    return config;
-  }
-
-  // NOTE : aucun hôte d'exemple n'est injecté — la config est celle de
-  // l'utilisateur (vide à la première installation), adaptable à tout environnement.
-
-  const DEFAULT_WEB_LINKS = [
-    { name: "YouTube", url: "https://www.youtube.com", icon: "fa-brands fa-youtube" },
-    { name: "Outlook", url: "https://outlook.office.com", icon: "fa-solid fa-envelope" },
-    { name: "Google Drive", url: "https://drive.google.com", icon: "fa-brands fa-google-drive" },
-    { name: "GitHub", url: "https://github.com", icon: "fa-brands fa-github" }
-  ];
-  const WEB_LINKS_SEED_VERSION = 2;
-
-  function ensureWebLinksSeeded() {
-    let config;
-    try {
-      config = readConfig();
-    } catch (_error) {
-      return;
-    }
-
-    const currentVersion = Number(config.webLinksSeedVersion || 0);
-
-    if (currentVersion >= WEB_LINKS_SEED_VERSION) return;
-
-    // Ne jamais ecraser une liste de liens existante : une liste vide (liens
-    // supprimes volontairement) ou personnalisee doit etre respectee. On
-    // n'ajoute les liens par defaut qu'a une installation qui n'a pas de champ.
-    if (!Array.isArray(config.webLinks)) config.webLinks = DEFAULT_WEB_LINKS;
-    config.webLinksSeedVersion = WEB_LINKS_SEED_VERSION;
-
-    try {
-      writeConfig(config);
-    } catch (_error) {
-      // Ne pas bloquer le démarrage si l'écriture de migration échoue.
-    }
-  }
-
-  ensureWebLinksSeeded();
-
-  // Identifiants stables des hôtes : le widget Docker référence host.id pour
-  // survivre au renommage d'un serveur. Attribue un id aux hôtes qui n'en ont
-  // pas (ex. configs antérieures) et garantit leur unicité.
-  function ensureHostIds() {
-    let config;
-    try {
-      config = readConfig();
-    } catch (_error) {
-      return;
-    }
-    if (!Array.isArray(config.hosts)) return;
-
-    let changed = false;
-    const used = new Set();
-    config.hosts.forEach(host => {
-      const current = String((host && host.id) || "").trim();
-      if (!current || current.length > 64 || used.has(current)) {
-        host.id = "host-" + crypto.randomBytes(6).toString("hex");
-        changed = true;
-      }
-      used.add(host.id);
-    });
-    if (changed) {
-      try {
-        writeConfig(config);
-      } catch (_error) {}
-    }
-  }
-
-  ensureHostIds();
-  function agentIdentity() {
-    const file = path.join(DATA_DIR, "agent-id");
-    try {
-      const existing = fs.readFileSync(file, "utf8").trim();
-      if (/^[0-9a-f]{32}$/.test(existing)) return existing;
-      throw new Error("Identité d'agent invalide");
-    } catch (error) {
-      if (error.code !== "ENOENT") throw error;
-      const id = crypto.randomBytes(16).toString("hex");
-      try {
-        fs.writeFileSync(file, id + "\n", { encoding: "utf8", mode: 0o600, flag: "wx" });
-        return id;
-      } catch (writeError) {
-        if (writeError.code === "EEXIST") return agentIdentity();
-        throw writeError;
-      }
-    }
-  }
-  const AGENT_ID = AGENT_MODE ? agentIdentity() : "";
-  if (AGENT_MODE) {
-    const config = readConfig();
-    const local = (config.hosts || []).find(host => host.monitoring?.type === "local");
-    if (!local) {
-      config.hosts = Array.isArray(config.hosts) ? config.hosts : [];
-      config.hosts.push({
-        id: "host-" + crypto.randomBytes(6).toString("hex"),
-        name: "Agent",
-        icon: "fa-solid fa-server",
-        monitoring: { enabled: true, type: "local" }
-      });
-      writeConfig(config);
-    } else if (local.monitoring.enabled !== true) {
-      local.monitoring.enabled = true;
-      writeConfig(config);
-    }
-  }
+  const configRepository = createConfigRepository({ store: configStore, agentMode: AGENT_MODE });
+  const readConfig = () => configRepository.read();
+  const writeConfig = config => configRepository.write(config);
+  runStartupMigrations(settings, configRepository);
+  const AGENT_ID = AGENT_MODE ? loadAgentIdentity(DATA_DIR) : "";
 
   app.get("/healthz", (_req, res) => {
     res.set("Cache-Control", "no-store");
@@ -444,12 +284,8 @@ function createApp() {
     sanitizeReplication: value => sanitizeReplication(value)
   });
 
-  function writeConfig(output) {
-    configStore.write(output);
-  }
-
   function keepOneLocalHost(config) {
-    return ensureLocalHost(config);
+    return configRepository.ensureLocalHost(config);
   }
 
   async function replicateConfig(config) {
@@ -505,10 +341,10 @@ function createApp() {
   registerConfigRoutes(app, {
     readConfig,
     writeConfig,
-    revision: config => configStore.revision(config),
+    revision: config => configRepository.revision(config),
     normalize: config => keepOneLocalHost(buildConfigOutput(config)),
     replicate: replicateConfig,
-    ensureHostIds,
+    ensureHostIds: () => ensureHostIds(configRepository),
     withCacheKeys
   });
 
@@ -1140,7 +976,7 @@ function createApp() {
     if (!AGENT_MODE) return res.sendStatus(404);
     try {
       const config = readConfig();
-      if (req.get("If-Match") && req.get("If-Match") !== configStore.revision(config)) {
+      if (req.get("If-Match") && req.get("If-Match") !== configRepository.revision(config)) {
         return res
           .status(412)
           .json({ error: "La configuration a changé ; rechargez avant d'enregistrer" });
