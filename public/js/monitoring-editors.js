@@ -73,7 +73,8 @@ export function renderWireguardEditor(){
   indexes.forEach(index=>{
     const host=state.editHosts[index],prefs=host.monitoring.wireguard;
     const block=hostBlock(host);
-    const toggle=toggleButton(prefs.enabled,prefs.enabled ? t("wireguardShowPeers") : t("wireguardHidden"),"fa-solid fa-shield-halved",()=>{
+    // Comme la tuile de supervision : le dragon remplace l'icone WireGuard.
+    const toggle=toggleButton(prefs.enabled,prefs.enabled ? t("wireguardShowPeers") : t("wireguardHidden"),"fa-solid fa-dragon",()=>{
       prefs.enabled=!prefs.enabled;renderWireguardEditor();
     });
     block.appendChild(field(t("wireguardShowPeers"),toggle));
