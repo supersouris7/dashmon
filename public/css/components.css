@@ -815,17 +815,18 @@ body.is-refreshing .widget-status {
   justify-self: center;
 }
 
+/* Web links banner, in the flow under the toolbar and aligned with the
+   content. Same look as a tile: theme surface, border and shadow. */
 .web-links-section {
-  position: fixed;
-  inset: 0 0 auto;
-  z-index: 20;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px max(26px, calc((100vw - 1280px) / 2));
-  background: #272c33;
-  color: #ffffff;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  margin: 0 max(26px, calc((100vw - 1280px) / 2));
+  padding: 8px 16px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  box-shadow: var(--shadow);
 }
 
 #dashboard.small-icons .fortune-icon {
@@ -834,50 +835,6 @@ body.is-refreshing .widget-status {
   min-width: 28px;
   flex-basis: 28px;
   object-fit: contain;
-}
-
-.web-links-inner {
-  min-width: 0;
-  flex: 1;
-}
-
-.web-links-close,
-.web-links-restore {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: inherit;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.web-links-close {
-  flex: 0 0 30px;
-  height: 30px;
-  border-radius: 4px;
-}
-.web-links-close:hover {
-  background: rgba(127, 127, 127, 0.25);
-}
-.web-links-close:focus-visible,
-.web-links-restore:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: -3px;
-}
-.web-links-restore {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 30px;
-  height: 24px;
-  z-index: 20;
-  border-radius: 0 0 5px 0;
-  font-size: 13px;
-}
-.web-links-restore[hidden] {
-  display: none;
 }
 
 /* Smartphone et tablette : l'interface est epuree. Le bandeau des liens web et
@@ -891,6 +848,8 @@ body.is-refreshing .widget-status {
 }
 
 .web-links-list {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   flex-wrap: nowrap;

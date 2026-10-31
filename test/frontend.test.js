@@ -722,39 +722,11 @@ async function main() {
       dashReserved.length
     );
 
-    check("liens : six couleurs", Object.keys(stateModule.WEB_LINK_COLORS), [
-      "dark",
-      "red",
-      "blue",
-      "green",
-      "orange",
-      "purple"
-    ]);
     check(
-      "liens : couleur invalide recalee",
-      stateModule.normalizeWebLinksColor("invalid"),
-      "dark"
+      "liens : ancienne couleur du bandeau retiree",
+      "webLinksColor" in stateModule.normalizeConfig({ webLinksColor: "blue" }),
+      false
     );
-    check(
-      "liens : ancien rouge pastel converti",
-      stateModule.normalizeConfig({ webLinksColor: "pastel-red" }).webLinksColor,
-      "red"
-    );
-    for (const color of Object.keys(stateModule.WEB_LINK_COLORS)) {
-      const { background, foreground } = stateModule.webLinksColors(color);
-      const rgb = background
-        .slice(1)
-        .match(/../g)
-        .map(v => parseInt(v, 16) / 255)
-        .map(v => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
-      const luminance = rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722;
-      const contrast =
-        foreground === "#000000" ? (luminance + 0.05) / 0.05 : 1.05 / (luminance + 0.05);
-      ok(
-        "liens : contraste lisible " + color,
-        ["#000000", "#ffffff"].includes(foreground) && contrast >= 4.5
-      );
-    }
 
     const legacy = stateModule.normalizeConfig({
       hosts: [

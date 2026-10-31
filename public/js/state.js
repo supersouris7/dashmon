@@ -40,7 +40,6 @@ export const state = {
   sortMode: "alphabetical",
   usageCounts: {},
   webLinks: [],
-  webLinksColor: "dark",
   webLinksHidden: false,
   webLinksSeedVersion: 0,
   smallIcons: false,

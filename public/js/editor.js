@@ -458,7 +458,6 @@ async function applyEditorChanges() {
     // Fields without a form in the editor come from the imported file. View
     // preferences stay specific to the browser.
     if (importedConfigDraft) {
-      state.webLinksColor = importedConfigDraft.webLinksColor;
       state.theme = importedConfigDraft.theme;
       state.language = importedConfigDraft.language;
       state.usageCounts = { ...importedConfigDraft.usageCounts };

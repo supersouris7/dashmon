@@ -1,24 +1,12 @@
-// Web links banner above the toolbar: links, their counters, colour, and the
-// hide / restore buttons.
-import {
-  linkCounterValue,
-  compactCount,
-  webLinksColors,
-  WEB_LINK_COLORS,
-  normalizeWebLinksColor
-} from "../config/normalize.js";
+// Web links banner under the toolbar, styled like a tile: links and their
+// counters. It cannot be closed from the banner; Settings > Appearance turns
+// it on or off for this browser.
+import { linkCounterValue, compactCount } from "../config/normalize.js";
 import { state } from "../state.js";
-import {
-  webLinksSection,
-  restoreWebLinksBtn,
-  webLinksColorChoices,
-  webLinksList,
-  hideWebLinksBtn
-} from "../dom.js";
+import { webLinksSection, webLinksList, webLinksEnabledSelect } from "../dom.js";
 import { safeHref } from "./cards.js";
 import { sanitizeIconClass } from "../config/sanitize.js";
 import { t } from "../i18n.js";
-import { patchConfig } from "../api.js";
 import { saveViewPrefs } from "../view-prefs.js";
 
 // Number shown in the banner: "(3000)" when the counter is available, nothing
@@ -39,19 +27,8 @@ export function updateWebLinkCounters() {
 }
 
 export function updateWebLinksAppearance() {
-  const { background, foreground } = webLinksColors(state.webLinksColor);
-  for (const element of [webLinksSection, restoreWebLinksBtn]) {
-    element.style.backgroundColor = background;
-    element.style.color = foreground;
-  }
-  for (const choice of webLinksColorChoices.querySelectorAll("[data-color]")) {
-    const active = choice.dataset.color === state.webLinksColor;
-    choice.style.backgroundColor = WEB_LINK_COLORS[choice.dataset.color] || "transparent";
-    choice.classList.toggle("is-active", active);
-    choice.setAttribute("aria-checked", String(active));
-  }
   webLinksSection.style.display = state.webLinks.length && !state.webLinksHidden ? "flex" : "none";
-  restoreWebLinksBtn.hidden = !state.webLinks.length || !state.webLinksHidden;
+  webLinksEnabledSelect.value = state.webLinksHidden ? "off" : "on";
 }
 
 export function renderWebLinks() {
@@ -93,24 +70,8 @@ export function renderWebLinks() {
   });
 }
 
-webLinksColorChoices.addEventListener("click", event => {
-  const choice = event.target.closest("[data-color]");
-  if (!choice) return;
-  state.webLinksColor = normalizeWebLinksColor(choice.dataset.color);
+webLinksEnabledSelect.addEventListener("change", () => {
+  state.webLinksHidden = webLinksEnabledSelect.value === "off";
+  saveViewPrefs({ webLinksHidden: state.webLinksHidden });
   updateWebLinksAppearance();
-  patchConfig({ webLinksColor: state.webLinksColor });
-});
-
-hideWebLinksBtn.addEventListener("click", () => {
-  state.webLinksHidden = true;
-  saveViewPrefs({ webLinksHidden: true });
-  updateWebLinksAppearance();
-  restoreWebLinksBtn.focus();
-});
-
-restoreWebLinksBtn.addEventListener("click", () => {
-  state.webLinksHidden = false;
-  saveViewPrefs({ webLinksHidden: false });
-  updateWebLinksAppearance();
-  hideWebLinksBtn.focus();
 });

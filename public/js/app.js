@@ -68,8 +68,6 @@ import {
   menuLogoutBtn,
   themeSelect,
   languageSelect,
-  webLinksSection,
-  restoreWebLinksBtn,
   resetUsageBtn,
   importThemeBtn,
   exportThemeBtn,
@@ -123,7 +121,6 @@ async function loadConfig() {
     state.dashboardId = cfg.dashboards.some(d => d.id === viewPrefs.dashboardId)
       ? viewPrefs.dashboardId
       : cfg.dashboards[0]?.id || state.dashboardId;
-    state.webLinksColor = cfg.webLinksColor;
     state.theme = cfg.theme;
     state.language = cfg.language;
     state.usageCounts = cfg.usageCounts;
@@ -159,13 +156,8 @@ function setOpenMode(mode) {
 }
 
 function setToolbarHeight() {
-  const linksHeight = Math.max(
-    webLinksSection.getBoundingClientRect().height,
-    restoreWebLinksBtn.getBoundingClientRect().height
-  );
-  document.documentElement.style.setProperty("--web-links-h", linksHeight + "px");
   const rect = document.querySelector(".toolbar").getBoundingClientRect();
-  const bottom = Math.max(linksHeight, rect.bottom, 0);
+  const bottom = Math.max(rect.bottom, 0);
   document.documentElement.style.setProperty("--toolbar-h", bottom + "px");
 }
 
@@ -213,8 +205,7 @@ window.addEventListener("resize", () => {
 });
 window.addEventListener("scroll", setToolbarHeight, { passive: true });
 const headerObserver = new ResizeObserver(setToolbarHeight);
-for (const element of [webLinksSection, restoreWebLinksBtn, document.querySelector(".toolbar")])
-  headerObserver.observe(element);
+headerObserver.observe(document.querySelector(".toolbar"));
 const toolbarObserver = new ResizeObserver(updateToolbarLayout);
 toolbarObserver.observe(toolbar);
 toolbarObserver.observe(pageSwitch);

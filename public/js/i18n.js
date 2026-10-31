@@ -24,9 +24,7 @@ import {
   widgetConfigTitle,
   closeImageLibraryBtn,
   menuRefreshBtn,
-  menuLogoutBtn,
-  hideWebLinksBtn,
-  restoreWebLinksBtn
+  menuLogoutBtn
 } from "./dom.js";
 
 // Interface texts, one JSON file per language: easy to read, complete or
@@ -67,13 +65,6 @@ export function applyLanguage() {
   usageFieldLabel.textContent = t("usageLabel");
   resetUsageBtn.querySelector("span").textContent = t("resetUsage");
   searchInput.placeholder = t("search");
-  for (const [button, key] of [
-    [hideWebLinksBtn, "hideWebLinks"],
-    [restoreWebLinksBtn, "restoreWebLinks"]
-  ]) {
-    button.title = t(key);
-    button.setAttribute("aria-label", t(key));
-  }
   document.getElementById("supportLabel").textContent = t("support");
 
   const labels = [...topMenu.querySelectorAll(".top-menu-label")];
@@ -152,7 +143,9 @@ export function applyLanguage() {
     ["openModeFieldLabel", "openModeFieldLabel"],
     ["openModeOptionSame", "sameTab"],
     ["openModeOptionNew", "newTab"],
-    ["webLinksColorLabel", "webLinksColorLabel"],
+    ["webLinksEnabledLabel", "webLinksEnabledLabel"],
+    ["webLinksEnabledOn", "webLinksEnabledOn"],
+    ["webLinksEnabledOff", "webLinksEnabledOff"],
     ["categoryColumnsLabel", "categoryColumnsLabel"],
     ["tileColumnsLabel", "tileColumnsLabel"],
     ["supervisionColumnsLabel", "supervisionColumnsLabel"],
@@ -163,15 +156,6 @@ export function applyLanguage() {
   appearanceLabels.forEach(([id, key]) => {
     const el = document.getElementById(id);
     if (el) el.textContent = t(key);
-  });
-
-  // Colours are chosen as swatches: the name is a label, not visible text.
-  ["Dark", "Red", "Blue", "Green", "Orange", "Purple"].forEach(name => {
-    const el = document.getElementById("webLinksColor" + name);
-    if (!el) return;
-    const label = t("webLinksColor" + name);
-    el.title = label;
-    el.setAttribute("aria-label", label);
   });
 
   const pageSwitch = document.getElementById("pageSwitchGroup");

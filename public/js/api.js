@@ -30,7 +30,6 @@ export function saveConfig(immediate = false, { replaceUsage = false } = {}) {
       language: state.language,
       usageCounts: state.usageCounts,
       webLinks: state.webLinks,
-      webLinksColor: state.webLinksColor,
       webLinksSeedVersion: state.webLinksSeedVersion
     });
     configSaveChain = configSaveChain

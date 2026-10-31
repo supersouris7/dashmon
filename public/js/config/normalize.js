@@ -42,26 +42,6 @@ export const DEFAULT_WEB_LINKS = [
   { name: "GitHub", url: "https://github.com", icon: "fa-brands fa-github" }
 ];
 
-export const WEB_LINK_COLORS = Object.freeze({
-  dark: "#272c33",
-  red: "#d63b3b",
-  blue: "#1868e0",
-  green: "#0b8337",
-  orange: "#b35a05",
-  purple: "#7a3fc9"
-});
-
-export function normalizeWebLinksColor(value) {
-  if (value === "pastel-red") return "red";
-  return Object.hasOwn(WEB_LINK_COLORS, value) ? value : "dark";
-}
-
-// The banner text is always white: the colours above are dark enough to keep
-// it readable.
-export function webLinksColors(value) {
-  return { background: WEB_LINK_COLORS[normalizeWebLinksColor(value)], foreground: "#ffffff" };
-}
-
 export function normalizeCollapsed(collapsed) {
   if (!collapsed || typeof collapsed !== "object" || Array.isArray(collapsed)) return {};
   const out = { ...collapsed };
@@ -375,8 +355,7 @@ export function normalizeConfig(cfg = {}) {
     ),
     webLinksSeedVersion: Number.isFinite(Number(cfg.webLinksSeedVersion))
       ? Number(cfg.webLinksSeedVersion)
-      : 0,
-    webLinksColor: normalizeWebLinksColor(cfg.webLinksColor)
+      : 0
   };
   // Categories and hosts each have THEIR OWN palette: a host colour may
   // legitimately equal a category colour. Both lists are processed separately,

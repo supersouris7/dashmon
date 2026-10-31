@@ -61,7 +61,6 @@ main {
 
 .top-bar {
   margin: -26px -26px 24px;
-  padding-top: var(--web-links-h, 46px);
 }
 
 .toolbar {
