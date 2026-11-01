@@ -2,7 +2,7 @@
 // drafts (edit*) and the view preferences, plus lookups on them.
 //
 // How the config is validated lives in config/normalize.js.
-import { normalize } from "./util.js";
+import { normalize, foldText } from "./util.js";
 import { DEFAULT_DASHBOARDS } from "./config/normalize.js";
 
 // Stable, language-independent label of the group of services without a
@@ -73,6 +73,15 @@ export function compareServices(a, b) {
     if (usageA !== usageB) return usageB - usageA;
   }
   return normalize(a.name).localeCompare(normalize(b.name), "fr");
+}
+
+// Search match on a folded query (see foldText). The scheme is left out of the
+// URL: "http" or "https" would match every service.
+export function serviceMatchesSearch(service, query) {
+  const url = String(service.url || "").replace(/^[a-z][a-z0-9+.-]*:\/\//i, "");
+  return [service.name, service.category, service.host, url].some(value =>
+    foldText(value).includes(query)
+  );
 }
 
 export function getCategory(name) {

@@ -10,6 +10,13 @@ export function normalize(v) {
   return (v || "").toString().trim().toLowerCase();
 }
 
+// Search comparison: case and accents ignored, so "securite" finds "Sécurité".
+export function foldText(v) {
+  return normalize(v)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 export function compareNames(a, b) {
   return (a || "").localeCompare(b || "", "fr", { sensitivity: "base" });
 }

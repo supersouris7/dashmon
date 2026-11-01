@@ -142,6 +142,14 @@ async function main() {
     toolbar.hideToolbarSearch(700, 400, 160, 50),
     true
   );
+  {
+    const { foldText, serviceMatchesSearch } = await importStateModules();
+    check("recherche : accents et casse ignores", foldText(" Sécurité Hôte "), "securite hote");
+    const service = { name: "Coffre", category: "Sécurité", url: "https://coffre.exemple.lan" };
+    ok("recherche : categorie trouvee sans accent", serviceMatchesSearch(service, "securite"));
+    ok("recherche : URL sans le protocole", serviceMatchesSearch(service, "coffre.exemple"));
+    ok("recherche : le protocole ne correspond pas", !serviceMatchesSearch(service, "https"));
+  }
   check("toolbar : menu a gauche recadre", toolbar.menuRightOffset(-80, 150, 800), -88);
   check("toolbar : menu bien place inchange", toolbar.menuRightOffset(500, 730, 800), 0);
   check("toolbar : menu a droite recadre", toolbar.menuRightOffset(600, 830, 800), 38);

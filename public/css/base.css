@@ -196,6 +196,53 @@ main {
   display: none;
 }
 
+/* Clear button: shown once something is typed, in place of the shortcut. */
+.search-clear {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.search-clear:hover,
+.search-clear:focus-visible {
+  color: var(--text);
+  background: var(--surface-2);
+}
+.search-clear:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
+}
+.search-box.has-value .search-clear {
+  display: inline-flex;
+}
+.search-box.has-value .search {
+  padding-right: 40px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .search {
   display: block;
   width: 100%;

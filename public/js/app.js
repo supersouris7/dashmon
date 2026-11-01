@@ -53,6 +53,8 @@ import { loadWidgetRegistry } from "./widget-registry.js";
 import { hideToolbarSearch, menuRightOffset } from "./toolbar.js";
 import {
   searchInput,
+  searchClearBtn,
+  dashboard,
   viewBtn,
   iconsBtn,
   collapseAllBtn,
@@ -166,7 +168,21 @@ function setToolbarHeight() {
 const toolbar = document.querySelector(".toolbar");
 const pageSwitch = document.getElementById("pageSwitchGroup");
 const searchBox = searchInput.closest(".search-box");
+const toolbarActions = toolbar.querySelector(".toolbar-actions");
+// On a phone the toolbar has no room left: the search gets its own line
+// under it, at full width.
+function placeSearchBox(mobile) {
+  if (mobile && searchBox.parentElement === toolbar) {
+    toolbar.after(searchBox);
+    searchBox.classList.add("below-toolbar");
+  } else if (!mobile && searchBox.parentElement !== toolbar) {
+    toolbarActions.before(searchBox);
+    searchBox.classList.remove("below-toolbar");
+  }
+}
 function updateToolbarLayout() {
+  const mobile = window.innerWidth <= 800;
+  placeSearchBox(mobile);
   const styles = getComputedStyle(toolbar);
   const gap = parseFloat(styles.columnGap) || 0;
   const available =
@@ -185,11 +201,10 @@ function updateToolbarLayout() {
     0
   );
   const compact =
-    window.innerWidth > 800 &&
-    hideToolbarSearch(available, nav, actionWidth, gap * (actions.length + 1));
+    !mobile && hideToolbarSearch(available, nav, actionWidth, gap * (actions.length + 1));
   toolbar.classList.toggle("compact-search", compact);
   // Never leave an invisible filter active after a resize.
-  if ((compact || window.innerWidth <= 800) && searchInput.value) {
+  if (compact && searchInput.value) {
     searchInput.value = "";
     searchBox.classList.remove("has-value");
     if (state.page === "dashboard") render();
@@ -408,9 +423,25 @@ deleteThemeBtn.addEventListener("click", async () => {
 
 let renderTimer = null;
 searchInput.addEventListener("input", () => {
-  searchInput.closest(".search-box").classList.toggle("has-value", searchInput.value.length > 0);
+  searchBox.classList.toggle("has-value", searchInput.value.length > 0);
   clearTimeout(renderTimer);
   renderTimer = setTimeout(render, 150);
+});
+searchClearBtn.addEventListener("click", () => {
+  clearTimeout(renderTimer);
+  searchInput.value = "";
+  searchBox.classList.remove("has-value");
+  render();
+  searchInput.focus();
+});
+// Enter opens the service when the search leaves only one.
+searchInput.addEventListener("keydown", event => {
+  if (event.key !== "Enter" || event.isComposing || !searchInput.value.trim()) return;
+  event.preventDefault();
+  clearTimeout(renderTimer);
+  render();
+  const cards = dashboard.querySelectorAll("a.card");
+  if (cards.length === 1 && cards[0].getAttribute("href") !== "#") cards[0].click();
 });
 
 document.addEventListener("click", closeTopMenu);

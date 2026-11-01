@@ -1,12 +1,19 @@
 // Dashboard rendering: which services are visible (dashboard, search, special
 // tile), how they are grouped (category or host), and the collapse and status
 // updates. Cards, sections, web links and toolbar buttons live in dashboard/.
-import { state, getCategory, compareServices, FALLBACK_HOST } from "./state.js";
+import {
+  state,
+  getCategory,
+  getDashboard,
+  compareServices,
+  serviceMatchesSearch,
+  FALLBACK_HOST
+} from "./state.js";
 import { sanitizeUrl, sanitizeTileColor } from "./config/sanitize.js";
-import { normalize } from "./util.js";
+import { normalize, foldText } from "./util.js";
 import { t } from "./i18n.js";
 import { effectiveStatus, statusIcon } from "./status.js";
-import { dashboard, searchInput, collapseAllBtn } from "./dom.js";
+import { dashboard, searchInput, searchStatus, collapseAllBtn } from "./dom.js";
 import { updateWebLinkCounters, renderWebLinks } from "./dashboard/web-links.js";
 import {
   statusTitle,
@@ -38,13 +45,14 @@ function serviceInDashboard(service) {
   return categoryDashboardId(service.category) === currentDashboardId();
 }
 
+export function searchQuery() {
+  return foldText(searchInput.value);
+}
+
+// A search looks through every dashboard, not only the active one.
 function serviceMatchesQuery(service) {
-  if (!serviceInDashboard(service)) return false;
-  const query = normalize(searchInput.value);
-  if (!query) return true;
-  return [service.name, service.category, service.host, service.url].some(value =>
-    normalize(value).includes(query)
-  );
+  const query = searchQuery();
+  return query ? serviceMatchesSearch(service, query) : serviceInDashboard(service);
 }
 
 function groupFallbackName() {
@@ -56,14 +64,11 @@ export function groupLabel(name) {
 }
 
 // Special tile: one per dashboard, placed in the chosen category. When
-// grouping by host it joins the "no host" group. It follows the search and the
-// active dashboard like services do.
+// grouping by host it joins the "no host" group. It follows the active
+// dashboard and stays out of search results.
 function specialTileVisible() {
-  if (!state.specialTile) return false;
-  if (categoryDashboardId(state.specialTile.category) !== currentDashboardId()) return false;
-  const query = normalize(searchInput.value);
-  if (!query) return true;
-  return normalize(state.specialTile.category).includes(query);
+  if (!state.specialTile || searchQuery()) return false;
+  return categoryDashboardId(state.specialTile.category) === currentDashboardId();
 }
 
 function specialGroupName() {
@@ -123,11 +128,14 @@ export function render() {
   const special = specialGroup ? createSpecialCard() : null;
 
   dashboard.innerHTML = "";
+  announceSearch(filtered.length);
 
   if (!filtered.length && !special) {
     const empty = document.createElement("div");
     empty.className = "empty";
-    empty.textContent = t("noServices");
+    empty.textContent = searchQuery()
+      ? t("searchNoResult").replace("{query}", searchInput.value.trim())
+      : t("noServices");
     dashboard.appendChild(empty);
     return;
   }
@@ -182,12 +190,34 @@ export function render() {
         specialGroup === categoryName ? special : null
       );
       section.dataset.rank = String(index);
+      markOtherDashboard(section, categoryName);
       dashboard.appendChild(section);
     });
   }
 
   reorderDashboardSections(false);
   updateCollapseAllButton();
+}
+
+// Screen readers hear the number of results; nothing is said without a search.
+function announceSearch(count) {
+  searchStatus.textContent = !searchQuery()
+    ? ""
+    : !count
+      ? t("searchNoResult").replace("{query}", searchInput.value.trim())
+      : count === 1
+        ? t("searchResultOne")
+        : t("searchResults").replace("{count}", String(count));
+}
+
+// A search result from another dashboard names it in its section header.
+function markOtherDashboard(section, categoryName) {
+  const id = categoryDashboardId(categoryName);
+  if (!searchQuery() || id === currentDashboardId()) return;
+  const badge = document.createElement("span");
+  badge.className = "section-dashboard";
+  badge.textContent = getDashboard(id).name;
+  section.querySelector(".category-name").after(badge);
 }
 
 function getActiveGroupEntries() {
@@ -199,7 +229,9 @@ function getActiveGroupEntries() {
   }));
 }
 
+// During a search every section is open, whatever its saved state.
 function isGroupCollapsed(entry) {
+  if (searchQuery()) return false;
   return state.collapsed[entry.key] ?? state.collapsed[entry.name] ?? false;
 }
 

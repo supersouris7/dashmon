@@ -124,16 +124,28 @@
           <div id="mobilePageMenu" class="mobile-page-menu-list" role="menu"></div>
         </div>
 
-        <div class="search-box">
-          <i class="fa-solid fa-magnifying-glass"></i>
+        <div class="search-box" role="search">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
           <input
             id="search"
             class="search"
             type="search"
             placeholder="app, catégories, hôtes…"
+            aria-label="Rechercher dans les tableaux de bord"
+            enterkeyhint="go"
             autocomplete="off"
           />
-          <kbd class="search-key">/</kbd>
+          <kbd class="search-key" aria-hidden="true">/</kbd>
+          <button
+            id="searchClearBtn"
+            class="search-clear"
+            type="button"
+            title="Effacer la recherche"
+            aria-label="Effacer la recherche"
+          >
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+          <p id="searchStatus" class="visually-hidden" role="status"></p>
         </div>
 
         <div class="toolbar-actions">

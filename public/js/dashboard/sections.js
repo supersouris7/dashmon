@@ -2,7 +2,7 @@
 // reordering when a section is collapsed or expanded.
 import { state, getCategory, compareServices } from "../state.js";
 import { sanitizeTileColor, sanitizeIconClass } from "../config/sanitize.js";
-import { groupLabel, updateCollapseAllButton } from "../render.js";
+import { groupLabel, searchQuery, updateCollapseAllButton } from "../render.js";
 import { saveViewPrefs } from "../view-prefs.js";
 import { createCard } from "./cards.js";
 import { dashboard } from "../dom.js";
@@ -34,7 +34,8 @@ export function createSection(
     section.classList.add("tinted");
     section.style.setProperty("--tile-color", tileColor);
   }
-  if (state.collapsed[collapseKey] ?? state.collapsed[categoryName])
+  // A search opens every section: a collapsed one would hide its results.
+  if (!searchQuery() && (state.collapsed[collapseKey] ?? state.collapsed[categoryName]))
     section.classList.add("collapsed");
 
   const header = document.createElement("button");

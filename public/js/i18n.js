@@ -9,6 +9,7 @@ import {
   usageFieldLabel,
   resetUsageBtn,
   searchInput,
+  searchClearBtn,
   topMenu,
   groupCategoryBtn,
   groupHostBtn,
@@ -65,6 +66,9 @@ export function applyLanguage() {
   usageFieldLabel.textContent = t("usageLabel");
   resetUsageBtn.querySelector("span").textContent = t("resetUsage");
   searchInput.placeholder = t("search");
+  searchInput.setAttribute("aria-label", t("searchLabel"));
+  searchClearBtn.title = t("searchClear");
+  searchClearBtn.setAttribute("aria-label", t("searchClear"));
   document.getElementById("supportLabel").textContent = t("support");
 
   const labels = [...topMenu.querySelectorAll(".top-menu-label")];
