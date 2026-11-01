@@ -9,14 +9,14 @@ import { sanitizeIconClass } from "../config/sanitize.js";
 import { t } from "../i18n.js";
 import { saveViewPrefs } from "../view-prefs.js";
 
-// Number shown in the banner: "(3000)" when the counter is available, nothing
-// otherwise. Raw number without thousands separator, to stay compact. The link
+// Number shown in the banner's badge when the counter is available, nothing
+// otherwise (the empty badge is hidden). Raw number without thousands separator, to stay compact. The link
 // name stays alone until the measurement arrives, rather than show a
 // misleading zero.
 function linkCounterText(link) {
   if (!link.counter) return "";
   const value = linkCounterValue(link.counter, state.serviceStatus[link.url]);
-  return value == null ? "" : `(${compactCount(value)})`;
+  return value == null ? "" : compactCount(value);
 }
 
 export function updateWebLinkCounters() {

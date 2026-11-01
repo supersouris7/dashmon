@@ -732,9 +732,22 @@ body.is-refreshing .widget-status {
   font-weight: 600;
 }
 
+/* Counter badge: green number in a green outlined pill. */
 .web-link-counter {
-  font-size: 13px;
+  min-width: 22px;
+  padding: 1px 7px;
+  box-sizing: border-box;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  color: light-dark(#1a7f37, #3fb950);
+  font-size: 12px;
   font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.web-link-counter:empty {
+  display: none;
 }
 
 .web-link-row {
