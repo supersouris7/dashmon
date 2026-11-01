@@ -1589,6 +1589,224 @@ body[data-page="supervision"] #collapseAllBtn {
     monospace;
 }
 
+/* OpenCode: today's tokens and the last 30 days stay visible; the details
+   (period, models, tokens, tools, activity) open with the card, which then
+   takes two columns on a wide screen to keep the model lines readable. */
+.supervision-card-opencode {
+  cursor: pointer;
+}
+.supervision-card-opencode:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.supervision-card-opencode.is-healthy .supervision-health-state i {
+  color: var(--success);
+}
+.supervision-card-opencode.is-warning .supervision-health-state i {
+  color: var(--warning);
+}
+.supervision-card-opencode.expanded > .supervision-head .supervision-smart-chevron {
+  transform: rotate(180deg);
+}
+@media (min-width: 900px) {
+  .supervision-card-opencode.expanded {
+    grid-column: span 2;
+  }
+}
+.opencode-age {
+  margin-left: auto;
+  color: var(--muted);
+}
+.opencode-summary {
+  margin: 12px 0 10px;
+}
+.opencode-facts {
+  padding-top: 0;
+  border-top: 0;
+}
+.opencode-details {
+  display: none;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  cursor: default;
+}
+.supervision-card-opencode.expanded .opencode-details {
+  display: grid;
+}
+.opencode-period-body {
+  display: grid;
+  gap: 10px;
+}
+.opencode-periods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.opencode-period {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+.opencode-period.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  font-weight: 600;
+}
+.opencode-period:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.opencode-section-title {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.opencode-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+.opencode-figure,
+.opencode-token {
+  display: grid;
+  gap: 2px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-2);
+  min-width: 0;
+}
+.opencode-figure strong {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.opencode-figure span,
+.opencode-token span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.opencode-tokens {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 8px;
+}
+.opencode-token strong {
+  font-variant-numeric: tabular-nums;
+}
+.opencode-models {
+  display: grid;
+  gap: 10px;
+}
+.opencode-model {
+  display: grid;
+  gap: 4px;
+}
+.opencode-model-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.opencode-model-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.opencode-model-provider {
+  color: var(--muted);
+  font-size: 11px;
+}
+.opencode-model-amount {
+  margin-left: auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.opencode-model-cost {
+  min-width: 56px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.opencode-bar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--surface-2);
+}
+.opencode-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+}
+.opencode-model-detail {
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.opencode-tools {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 6px 14px;
+}
+.opencode-tool {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+.opencode-tool span {
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.opencode-tool strong {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.opencode-tool small {
+  color: light-dark(#8a5a00, var(--warning));
+  font-weight: 600;
+}
+.opencode-activity-box {
+  display: grid;
+  gap: 6px;
+}
+.opencode-activity {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 48px;
+}
+.opencode-activity span {
+  flex: 1;
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--accent);
+}
+.opencode-activity span.idle {
+  background: var(--border);
+}
+.opencode-empty {
+  margin: 0;
+  color: var(--muted);
+}
+
 @media (max-width: 700px) {
   /* Sur telephone, le menu de navigation occupe l'espace souple a gauche et
      les actions restent immediatement accessibles a droite, sur une ligne. */

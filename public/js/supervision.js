@@ -15,6 +15,7 @@ import {
 } from "./supervision/wireguard-card.js";
 import { visibleSmartDisks, smartCard } from "./supervision/smart-card.js";
 import { aptUpdatesCard } from "./supervision/apt-card.js";
+import { opencodeCard } from "./supervision/opencode-card.js";
 
 // Interval injected by the server (HOST_METRICS_INTERVAL). HTML served
 // without substitution (tests, local file) falls back to 60 s.
@@ -177,6 +178,12 @@ export function renderSupervision() {
     const prefs = host.monitoring?.aptUpdates;
     if (host.monitoring?.type === "local" && metrics?.ok && prefs?.enabled !== false)
       grid.appendChild(aptUpdatesCard(host, metrics));
+  });
+  // OpenCode only shows up once a report exists: most hosts never run it.
+  monitored.forEach(host => {
+    const metrics = byId.get(host.id);
+    if (metrics?.ok && metrics.opencode && host.monitoring?.opencode?.enabled !== false)
+      grid.appendChild(opencodeCard(host, metrics));
   });
   supervisionList.append(grid);
   updateSmartCollapseButton();

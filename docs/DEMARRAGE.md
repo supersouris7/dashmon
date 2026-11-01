@@ -177,6 +177,7 @@ provide the full commands:
 - [WireGuard: install and schedule the dump](WIREGUARD.md)
 - [SMART: install and schedule the dump](SMART.md)
 - [APT: install and schedule the updates](APT_UPDATES.md)
+- [OpenCode: schedule the usage statistics](OPENCODE.md), on the hosts running OpenCode
 
 The reports stay optional. APT **actually installs updates**; its automatic
 reboot is disabled unless explicitly enabled.

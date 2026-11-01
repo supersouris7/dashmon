@@ -589,6 +589,7 @@ async function main() {
       "supervisionSmartExpanded",
       "supervisionHostExpanded",
       "supervisionAptExpanded",
+      "supervisionOpencodeExpanded",
       "categoryColumns",
       "tileColumns",
       "supervisionColumns"
@@ -672,6 +673,7 @@ async function main() {
         supervisionSmartExpanded: ['["local","hote"]'],
         supervisionHostExpanded: [],
         supervisionAptExpanded: ['["local","hote"]'],
+        supervisionOpencodeExpanded: [],
         categoryColumns: "auto",
         tileColumns: "auto",
         supervisionColumns: "auto"

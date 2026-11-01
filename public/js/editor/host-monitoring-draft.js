@@ -12,7 +12,8 @@ export function blankMonitoring() {
     tokenSecretEnv: "",
     wireguard: { enabled: true, interface: "" },
     smart: { enabled: true, disks: [] },
-    aptUpdates: { enabled: true }
+    aptUpdates: { enabled: true },
+    opencode: { enabled: true }
   };
 }
 
@@ -55,6 +56,8 @@ export function serializeHostMonitoring(m) {
       ? { enabled: m.aptUpdates.enabled !== false }
       : null;
   if (apt && !apt.enabled) out.aptUpdates = apt;
+  if (m.opencode && typeof m.opencode === "object" && m.opencode.enabled === false)
+    out.opencode = { enabled: false };
   const meaningful =
     out.url ||
     out.node ||
@@ -63,6 +66,7 @@ export function serializeHostMonitoring(m) {
     out.tokenSecretEnv ||
     out.wireguard ||
     out.smart ||
-    out.aptUpdates;
+    out.aptUpdates ||
+    out.opencode;
   return !out.enabled && !meaningful ? undefined : out;
 }

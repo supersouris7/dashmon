@@ -164,5 +164,9 @@ export function renderHostSettings(container, { config, metrics, onRename = () =
   const apt = section("tabAptUpdates", "fa-solid fa-box");
   toggle(apt, "aptUpdates", "aptUpdatesShow");
   help(apt, "aptUpdatesHelp", "APT_UPDATES.md");
+
+  const opencode = section("tabOpencode", "fa-solid fa-terminal");
+  toggle(opencode, "opencode", "opencodeShow");
+  help(opencode, "opencodeHelp", "OPENCODE.md");
   container.appendChild(form);
 }

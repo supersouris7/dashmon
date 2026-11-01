@@ -12,10 +12,13 @@ async function main() {
   draft.path = " /host ";
   draft.smart.disks = ["disk", "disk", ""];
   draft.aptUpdates.enabled = false;
+  draft.opencode.enabled = false;
   const result = serializeHostMonitoring(draft);
   assert.equal(result.path, "/host");
   assert.deepEqual(result.smart.disks, ["disk"]);
   assert.equal(result.aptUpdates.enabled, false);
+  assert.deepEqual(result.opencode, { enabled: false });
+  assert.equal(serializeHostMonitoring(blankMonitoring()), undefined, "OpenCode actif par defaut");
   console.log("PASS supervision : serialisation du brouillon hote");
 }
 main().catch(error => {

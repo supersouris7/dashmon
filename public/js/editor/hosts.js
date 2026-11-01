@@ -40,6 +40,9 @@ export function renderHostEditor() {
     if (!host.monitoring.aptUpdates || typeof host.monitoring.aptUpdates !== "object") {
       host.monitoring.aptUpdates = { enabled: true };
     }
+    if (!host.monitoring.opencode || typeof host.monitoring.opencode !== "object") {
+      host.monitoring.opencode = { enabled: true };
+    }
 
     const item = document.createElement("div");
     item.className = "host-item";

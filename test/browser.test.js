@@ -243,7 +243,7 @@ async function main() {
     await evaluate("document.querySelector('[data-panel=localHostPanel]').textContent.trim()"),
     "Local"
   );
-  for (const name of ["wireguard", "smart", "aptUpdates"]) {
+  for (const name of ["wireguard", "smart", "aptUpdates", "opencode"]) {
     const changed = await evaluate(
       `(()=>{const input=document.querySelector('#localHostEditor [name=${name}]');const before=input.checked;input.click();return input.checked!==before;})()`
     );
@@ -267,13 +267,14 @@ async function main() {
   );
   assert.deepEqual(
     await evaluate(
-      "fetch('/api/config').then(r=>r.json()).then(c=>{const host=c.hosts.find(h=>h.monitoring?.enabled&&h.monitoring.type==='local');return {name:host.name,wireguard:host.monitoring.wireguard.enabled,smart:host.monitoring.smart,apt:host.monitoring.aptUpdates.enabled}})"
+      "fetch('/api/config').then(r=>r.json()).then(c=>{const host=c.hosts.find(h=>h.monitoring?.enabled&&h.monitoring.type==='local');return {name:host.name,wireguard:host.monitoring.wireguard.enabled,smart:host.monitoring.smart,apt:host.monitoring.aptUpdates.enabled,opencode:host.monitoring.opencode.enabled}})"
     ),
     {
       name: "Hote principal",
       wireguard: false,
       smart: { enabled: false, disks: ["/dev/sdb"] },
-      apt: false
+      apt: false,
+      opencode: false
     }
   );
   await evaluate(
