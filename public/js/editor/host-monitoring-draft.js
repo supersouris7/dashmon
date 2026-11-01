@@ -13,7 +13,8 @@ export function blankMonitoring() {
     wireguard: { enabled: true, interface: "" },
     smart: { enabled: true, disks: [] },
     aptUpdates: { enabled: true },
-    opencode: { enabled: true }
+    opencode: { enabled: true },
+    claude: { enabled: true }
   };
 }
 
@@ -58,6 +59,8 @@ export function serializeHostMonitoring(m) {
   if (apt && !apt.enabled) out.aptUpdates = apt;
   if (m.opencode && typeof m.opencode === "object" && m.opencode.enabled === false)
     out.opencode = { enabled: false };
+  if (m.claude && typeof m.claude === "object" && m.claude.enabled === false)
+    out.claude = { enabled: false };
   const meaningful =
     out.url ||
     out.node ||
@@ -67,6 +70,7 @@ export function serializeHostMonitoring(m) {
     out.wireguard ||
     out.smart ||
     out.aptUpdates ||
-    out.opencode;
+    out.opencode ||
+    out.claude;
   return !out.enabled && !meaningful ? undefined : out;
 }

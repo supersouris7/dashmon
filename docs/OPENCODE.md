@@ -20,8 +20,7 @@ prompts, the code or the conversations.
 Install the script on the host where OpenCode runs:
 
 ```sh
-sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/opencode-stats.sh -o /usr/local/bin/opencode-stats.sh
-sudo chmod 755 /usr/local/bin/opencode-stats.sh
+curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/opencode-stats.sh | sudo install -m 755 /dev/stdin /usr/local/bin/opencode-stats.sh
 ```
 
 Run it **as your own user**, not with `sudo`: the statistics live in your home
@@ -39,7 +38,8 @@ DASHMON_CONTAINER=dashmon-agent /usr/local/bin/opencode-stats.sh
 ```
 
 The script writes to `/app/data/opencode.json` in the `dashmon` container by
-default. If the container has another name, pass `DASHMON_CONTAINER=...`. For a
+default. The name depends on your installation (`docker ps` lists it): if the
+script answers `container 'dashmon' not found`, pass `DASHMON_CONTAINER=...`. For a
 different path **inside** the container, use `DASHMON_OPENCODE_CONTAINER_PATH`;
 Dashmon must then receive the same path through `OPENCODE_REPORT_FILE`.
 

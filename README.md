@@ -138,7 +138,7 @@ PNG logos for many self-hosted apps.
 | **[docs/HTTPS.md](docs/HTTPS.md)** | HTTPS with nginx: copy-paste configuration, Let's Encrypt or local certificate. |
 | **[docs/WIREGUARD.md](docs/WIREGUARD.md)** | WireGuard dump and cron script. |
 | **[docs/SMART.md](docs/SMART.md)** / **[docs/APT_UPDATES.md](docs/APT_UPDATES.md)** | Local SMART and APT supervision. |
-| **[docs/OPENCODE.md](docs/OPENCODE.md)** | OpenCode statistics: models, tokens, cost, tools. |
+| **[docs/OPENCODE.md](docs/OPENCODE.md)** / **[docs/CLAUDE_CODE.md](docs/CLAUDE_CODE.md)** | OpenCode and Claude Code statistics: models, tokens, tools. |
 | **[CUSTOMIZATION.md](CUSTOMIZATION.md)** | Themes and icons. |
 | **[docs/EXTENDING.md](docs/EXTENDING.md)** | Widget development. |
 | **[deploy/MAINTAINER.md](deploy/MAINTAINER.md)** | Image build and publication. |

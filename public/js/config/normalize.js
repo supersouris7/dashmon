@@ -76,6 +76,7 @@ export const VIEW_PREF_KEYS = Object.freeze([
   "supervisionHostExpanded",
   "supervisionAptExpanded",
   "supervisionOpencodeExpanded",
+  "supervisionClaudeExpanded",
   "categoryColumns",
   "tileColumns",
   "supervisionColumns"
@@ -127,6 +128,7 @@ export function normalizeViewPrefs(cfg = {}) {
     supervisionHostExpanded: normalizeExpandedKeys(cfg.supervisionHostExpanded),
     supervisionAptExpanded: normalizeExpandedKeys(cfg.supervisionAptExpanded),
     supervisionOpencodeExpanded: normalizeExpandedKeys(cfg.supervisionOpencodeExpanded),
+    supervisionClaudeExpanded: normalizeExpandedKeys(cfg.supervisionClaudeExpanded),
     categoryColumns: normalizeGridColumns(cfg.categoryColumns),
     tileColumns: normalizeGridColumns(cfg.tileColumns),
     supervisionColumns: normalizeGridColumns(cfg.supervisionColumns)
@@ -230,7 +232,8 @@ export function normalizeHostMonitoring(raw) {
       type === "local" ? normalizeWireguardPrefs(raw.wireguard) : { enabled: true, interface: "" },
     smart: normalizeSmartPrefs(raw.smart),
     aptUpdates: normalizeAptUpdatesPrefs(raw.aptUpdates),
-    opencode: normalizeAptUpdatesPrefs(raw.opencode)
+    opencode: normalizeAptUpdatesPrefs(raw.opencode),
+    claude: normalizeAptUpdatesPrefs(raw.claude)
   };
 }
 

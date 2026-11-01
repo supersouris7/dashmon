@@ -40,7 +40,7 @@ lib/
   widgets/           widget registry, schema, storage and core
   status/            status loop of the monitored services
   host/              machine measurements (CPU, RAM, disk) and WireGuard,
-                     SMART, APT and OpenCode reports
+                     SMART, APT, OpenCode and Claude Code reports
   agent/             protocol, identity and agent pairing
   themes.js          theme validation
   version.js         version label and mount detection
@@ -78,7 +78,7 @@ public/js/
                        buttons (view-controls.js)
   supervision.js       supervision page, instances and metrics refresh
   supervision/         one file per card (host, WireGuard, SMART, APT,
-                       OpenCode), shared
+                       coding agents: OpenCode and Claude Code), shared
                        card behaviour (cards.js) and texts (format.js)
   editor.js            settings page: navigation tree, save, import / export
   editor/              one file per panel (services, widgets, categories,

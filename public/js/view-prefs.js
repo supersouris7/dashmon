@@ -30,6 +30,7 @@ const ALLOWED = Object.freeze([
   "supervisionHostExpanded",
   "supervisionAptExpanded",
   "supervisionOpencodeExpanded",
+  "supervisionClaudeExpanded",
   "categoryColumns",
   "tileColumns",
   "supervisionColumns"

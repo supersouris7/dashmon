@@ -168,5 +168,9 @@ export function renderHostSettings(container, { config, metrics, onRename = () =
   const opencode = section("tabOpencode", "fa-solid fa-terminal");
   toggle(opencode, "opencode", "opencodeShow");
   help(opencode, "opencodeHelp", "OPENCODE.md");
+
+  const claude = section("tabClaude", "fa-solid fa-code");
+  toggle(claude, "claude", "claudeShow");
+  help(claude, "claudeHelp", "CLAUDE_CODE.md");
   container.appendChild(form);
 }

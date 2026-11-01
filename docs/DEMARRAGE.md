@@ -178,6 +178,7 @@ provide the full commands:
 - [SMART: install and schedule the dump](SMART.md)
 - [APT: install and schedule the updates](APT_UPDATES.md)
 - [OpenCode: schedule the usage statistics](OPENCODE.md), on the hosts running OpenCode
+- [Claude Code: schedule the usage statistics](CLAUDE_CODE.md), on the hosts running Claude Code
 
 The reports stay optional. APT **actually installs updates**; its automatic
 reboot is disabled unless explicitly enabled.

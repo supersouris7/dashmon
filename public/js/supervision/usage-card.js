@@ -1,5 +1,6 @@
-// OpenCode card: usage report written by deploy/opencode-stats.sh. Collapsed,
-// it shows today's activity and the last 30 days at a glance; expanded, the
+// Coding agent cards (OpenCode, Claude Code): usage reports written by
+// deploy/opencode-stats.sh and deploy/claude-stats.sh in one format. Collapsed,
+// a card shows today's activity and the last 30 days at a glance; expanded, the
 // chosen period with its models, tokens, cost, tools and daily activity.
 import {
   applyHostColor,
@@ -15,8 +16,26 @@ import { relativeAge, reportDateText, smartNumberText } from "./format.js";
 const PERIODS = ["today", "week", "month", "all"];
 // A report older than this is flagged: the cron job has probably stopped.
 const STALE_SECONDS = 6 * 3600;
-// The period shown in the details, kept across the periodic re-renders.
-let period = "month";
+// One card per source; `field` is the key of the report in the host metrics.
+export const USAGE_SOURCES = [
+  {
+    field: "opencode",
+    title: "supervisionOpencodeTitle",
+    icon: "fa-solid fa-terminal",
+    pref: "supervisionOpencodeExpanded",
+    keyName: "opencodeKey"
+  },
+  {
+    field: "claude",
+    title: "supervisionClaudeTitle",
+    icon: "fa-solid fa-code",
+    pref: "supervisionClaudeExpanded",
+    keyName: "claudeKey"
+  }
+];
+// The period shown in the details of each source, kept across the periodic
+// re-renders.
+const periodBySource = new Map();
 
 function locale() {
   return state.language === "fr" ? "fr-FR" : "en-US";
@@ -51,7 +70,7 @@ export function usedTokens(tokens) {
   );
 }
 
-// One entry per day of the last `days` days, zero when OpenCode was idle.
+// One entry per day of the last `days` days, zero when the agent was idle.
 export function dailyActivity(activity, days, now = new Date()) {
   const steps = new Map((activity || []).map(item => [item.date, Number(item.steps) || 0]));
   const out = [];
@@ -75,18 +94,18 @@ function element(tag, className, text) {
 }
 
 function sectionTitle(key) {
-  return element("h4", "opencode-section-title", t(key));
+  return element("h4", "usage-section-title", t(key));
 }
 
 function figures(data) {
-  const grid = element("div", "opencode-figures");
+  const grid = element("div", "usage-figures");
   for (const [key, value] of [
     ["opencodeSessions", smartNumberText(data.sessions)],
     ["opencodePrompts", smartNumberText(data.prompts)],
     ["opencodeSteps", smartNumberText(data.steps)],
-    ["opencodeCost", costText(data.cost)]
-  ]) {
-    const cell = element("div", "opencode-figure");
+    data.cost > 0 ? ["opencodeCost", costText(data.cost)] : null
+  ].filter(Boolean)) {
+    const cell = element("div", "usage-figure");
     cell.append(element("strong", "", value), element("span", "", t(key)));
     grid.appendChild(cell);
   }
@@ -94,7 +113,7 @@ function figures(data) {
 }
 
 function tokenBreakdown(tokens) {
-  const list = element("div", "opencode-tokens");
+  const list = element("div", "usage-tokens");
   for (const [key, field] of [
     ["opencodeTokensInput", "input"],
     ["opencodeTokensOutput", "output"],
@@ -102,7 +121,7 @@ function tokenBreakdown(tokens) {
     ["opencodeTokensCacheRead", "cacheRead"],
     ["opencodeTokensCacheWrite", "cacheWrite"]
   ]) {
-    const item = element("div", "opencode-token");
+    const item = element("div", "usage-token");
     const value = element("strong", "", tokensText(tokens[field]));
     value.title = smartNumberText(tokens[field]);
     item.append(element("span", "", t(key)), value);
@@ -115,26 +134,26 @@ function tokenBreakdown(tokens) {
 // tokens as a bar and the detail of its consumption underneath. Costs only
 // show when the period cost something: free and subscription models report 0.
 function modelList(models, showCost) {
-  const list = element("div", "opencode-models");
+  const list = element("div", "usage-models");
   const sorted = [...models].sort((a, b) => usedTokens(b.tokens) - usedTokens(a.tokens));
   const total = sorted.reduce((sum, model) => sum + usedTokens(model.tokens), 0);
   if (!sorted.length) {
-    list.appendChild(element("p", "opencode-empty", t("opencodeNoModel")));
+    list.appendChild(element("p", "usage-empty", t("opencodeNoModel")));
     return list;
   }
   for (const model of sorted) {
     const used = usedTokens(model.tokens);
     const share = total ? Math.round((used / total) * 100) : 0;
-    const row = element("div", "opencode-model");
-    const head = element("div", "opencode-model-head");
-    const name = element("span", "opencode-model-name", model.id);
+    const row = element("div", "usage-model");
+    const head = element("div", "usage-model-head");
+    const name = element("span", "usage-model-name", model.id);
     name.title = model.provider ? model.provider + "/" + model.id : model.id;
-    const provider = element("span", "opencode-model-provider", model.provider);
-    const amount = element("span", "opencode-model-amount", tokensText(used));
+    const provider = element("span", "usage-model-provider", model.provider);
+    const amount = element("span", "usage-model-amount", tokensText(used));
     amount.title = smartNumberText(used) + " " + t("opencodeTokensUnit");
     head.append(name, provider, amount);
-    if (showCost) head.appendChild(element("span", "opencode-model-cost", costText(model.cost)));
-    const bar = element("div", "opencode-bar");
+    if (showCost) head.appendChild(element("span", "usage-model-cost", costText(model.cost)));
+    const bar = element("div", "usage-bar");
     bar.setAttribute("role", "img");
     bar.setAttribute("aria-label", share + " %");
     const fill = element("span");
@@ -142,7 +161,7 @@ function modelList(models, showCost) {
     bar.appendChild(fill);
     const detail = element(
       "div",
-      "opencode-model-detail",
+      "usage-model-detail",
       [
         t("opencodeTokensInput") + " " + tokensText(model.tokens.input),
         t("opencodeTokensOutput") + " " + tokensText(model.tokens.output),
@@ -160,9 +179,9 @@ function modelList(models, showCost) {
 
 // Most used tools; a failure count turns the line orange.
 function toolList(tools) {
-  const list = element("div", "opencode-tools");
+  const list = element("div", "usage-tools");
   for (const tool of [...tools].sort((a, b) => b.calls - a.calls).slice(0, 8)) {
-    const item = element("div", "opencode-tool" + (tool.failed ? " warn" : ""));
+    const item = element("div", "usage-tool" + (tool.failed ? " warn" : ""));
     item.append(element("span", "", tool.name), element("strong", "", smartNumberText(tool.calls)));
     if (tool.failed) {
       const failed = element(
@@ -182,7 +201,7 @@ function toolList(tools) {
 function activityChart(activity) {
   const days = dailyActivity(activity, 30);
   const max = Math.max(1, ...days.map(day => day.steps));
-  const chart = element("div", "opencode-activity");
+  const chart = element("div", "usage-activity");
   chart.setAttribute("role", "img");
   chart.setAttribute(
     "aria-label",
@@ -201,8 +220,8 @@ function activityChart(activity) {
   return chart;
 }
 
-export function opencodeCard(host, metrics) {
-  const report = metrics.opencode;
+export function usageCard(host, metrics, source) {
+  const report = metrics[source.field];
   const periods = report.periods || {};
   const today = periods.today;
   const month = periods.month || periods.all;
@@ -215,11 +234,11 @@ export function opencodeCard(host, metrics) {
       ? { level: "healthy", label: "opencodeActiveToday", icon: "fa-solid fa-circle-check" }
       : { level: "unknown", label: "opencodeIdleToday", icon: "fa-solid fa-moon" };
 
-  const card = element("article", "supervision-card supervision-card-opencode is-" + health.level);
+  const card = element("article", "supervision-card supervision-card-usage is-" + health.level);
   applyHostColor(card, host);
   const key = cardKey(host);
-  card.dataset.opencodeKey = key;
-  const expanded = isExpanded("supervisionOpencodeExpanded", key);
+  card.dataset[source.keyName] = key;
+  const expanded = isExpanded(source.pref, key);
   card.classList.toggle("expanded", expanded);
   card.setAttribute("role", "button");
   card.setAttribute("aria-expanded", String(expanded));
@@ -227,12 +246,12 @@ export function opencodeCard(host, metrics) {
   const toggle = () => {
     const open = card.classList.toggle("expanded");
     card.setAttribute("aria-expanded", String(open));
-    setExpanded("supervisionOpencodeExpanded", key, open);
+    setExpanded(source.pref, key, open);
     updateSmartCollapseButton();
   };
   // The period buttons live inside the card: they must not fold it.
   card.addEventListener("click", event => {
-    if (!event.target.closest(".opencode-periods")) toggle();
+    if (!event.target.closest(".usage-periods")) toggle();
   });
   card.addEventListener("keydown", event => {
     if (event.target !== card || (event.key !== "Enter" && event.key !== " ")) return;
@@ -241,17 +260,12 @@ export function opencodeCard(host, metrics) {
   });
 
   const head = element("div", "supervision-head");
-  const icon = element("i", "fa-solid fa-terminal");
+  const icon = element("i", source.icon);
   icon.setAttribute("aria-hidden", "true");
   const badge = element("span", "supervision-type", report.version ? "v" + report.version : "IA");
   const chevron = element("i", "fa-solid fa-chevron-down supervision-smart-chevron");
   chevron.setAttribute("aria-hidden", "true");
-  head.append(
-    icon,
-    element("span", "supervision-name", t("supervisionOpencodeTitle")),
-    badge,
-    chevron
-  );
+  head.append(icon, element("span", "supervision-name", t(source.title)), badge, chevron);
   card.appendChild(head);
 
   const status = element("div", "supervision-health");
@@ -261,11 +275,11 @@ export function opencodeCard(host, metrics) {
   const label = element("strong", "", t(health.label));
   stateLine.append(stateIcon, label);
   status.appendChild(stateLine);
-  if (stale) status.appendChild(element("span", "opencode-age", relativeAge(age)));
+  if (stale) status.appendChild(element("span", "usage-age", relativeAge(age)));
   card.appendChild(status);
 
   // Summary, always visible: today's tokens, then the last 30 days.
-  const summary = element("div", "supervision-apt-summary opencode-summary");
+  const summary = element("div", "supervision-apt-summary usage-summary");
   const todayTokens = usedTokens(today?.tokens);
   const big = element("strong", "", tokensText(todayTokens));
   big.title = smartNumberText(todayTokens);
@@ -275,7 +289,7 @@ export function opencodeCard(host, metrics) {
     const main = [...(month.models || [])].sort(
       (a, b) => usedTokens(b.tokens) - usedTokens(a.tokens)
     )[0];
-    const facts = element("div", "supervision-smart-facts opencode-facts");
+    const facts = element("div", "supervision-smart-facts usage-facts");
     for (const text of [
       t(periods.month ? "opencodePeriodMonth" : "opencodePeriodAll") +
         " : " +
@@ -291,13 +305,14 @@ export function opencodeCard(host, metrics) {
   }
 
   // Details: the chosen period.
-  const details = element("div", "opencode-details");
+  const details = element("div", "usage-details");
   const available = PERIODS.filter(name => periods[name]);
+  let period = periodBySource.get(source.field) || "month";
   if (!periods[period]) period = available.includes("month") ? "month" : available[0];
-  const switcher = element("div", "opencode-periods");
+  const switcher = element("div", "usage-periods");
   switcher.setAttribute("role", "group");
   switcher.setAttribute("aria-label", t("opencodePeriod"));
-  const body = element("div", "opencode-period-body");
+  const body = element("div", "usage-period-body");
   const renderPeriod = () => {
     const data = periods[period];
     for (const button of switcher.children) {
@@ -317,13 +332,14 @@ export function opencodeCard(host, metrics) {
   for (const name of available) {
     const button = element(
       "button",
-      "opencode-period",
+      "usage-period",
       t("opencodePeriod" + name[0].toUpperCase() + name.slice(1))
     );
     button.type = "button";
     button.dataset.period = name;
     button.addEventListener("click", () => {
       period = name;
+      periodBySource.set(source.field, name);
       renderPeriod();
     });
     switcher.appendChild(button);
@@ -332,7 +348,7 @@ export function opencodeCard(host, metrics) {
   renderPeriod();
 
   const activitySource = (periods.month || periods.all)?.activity || [];
-  const activityBox = element("div", "opencode-activity-box");
+  const activityBox = element("div", "usage-activity-box");
   activityBox.append(sectionTitle("opencodeActivity"), activityChart(activitySource));
   const streak = element("div", "supervision-smart-facts");
   const reference = periods.all || month;

@@ -114,6 +114,7 @@ async function loadConfig() {
     state.supervisionHostExpanded = viewPrefs.supervisionHostExpanded;
     state.supervisionAptExpanded = viewPrefs.supervisionAptExpanded;
     state.supervisionOpencodeExpanded = viewPrefs.supervisionOpencodeExpanded;
+    state.supervisionClaudeExpanded = viewPrefs.supervisionClaudeExpanded;
     state.categoryColumns = viewPrefs.categoryColumns;
     state.tileColumns = viewPrefs.tileColumns;
     state.supervisionColumns = viewPrefs.supervisionColumns;

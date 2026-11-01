@@ -410,8 +410,9 @@ WireGuard peers for local hosts are read from a filtered dump file. The bundled
 script refreshes it with cron and removes private key material before Dashmon
 reads it. See [the WireGuard guide](../docs/WIREGUARD.md) for installation,
 names and bind mounts. SMART and APT have their own local guides:
-[SMART](../docs/SMART.md), [APT updates](../docs/APT_UPDATES.md) and
-[OpenCode statistics](../docs/OPENCODE.md).
+[SMART](../docs/SMART.md), [APT updates](../docs/APT_UPDATES.md),
+[OpenCode statistics](../docs/OPENCODE.md) and
+[Claude Code statistics](../docs/CLAUDE_CODE.md).
 
 ### Disk of the real host (type Local)
 

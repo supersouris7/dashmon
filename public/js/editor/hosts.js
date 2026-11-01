@@ -43,6 +43,9 @@ export function renderHostEditor() {
     if (!host.monitoring.opencode || typeof host.monitoring.opencode !== "object") {
       host.monitoring.opencode = { enabled: true };
     }
+    if (!host.monitoring.claude || typeof host.monitoring.claude !== "object") {
+      host.monitoring.claude = { enabled: true };
+    }
 
     const item = document.createElement("div");
     item.className = "host-item";

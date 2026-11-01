@@ -36,6 +36,7 @@ services:
       SMART_DUMP_FILE: ${SMART_DUMP_FILE:-}
       APT_UPDATES_REPORT_FILE: ${APT_UPDATES_REPORT_FILE:-}
       OPENCODE_REPORT_FILE: ${OPENCODE_REPORT_FILE:-}
+      CLAUDE_REPORT_FILE: ${CLAUDE_REPORT_FILE:-}
     volumes:
       - dashmon-data:/app/data
     # Résolution DNS des noms locaux (.lan, .home…) pour les pastilles d'état et

@@ -1589,42 +1589,42 @@ body[data-page="supervision"] #collapseAllBtn {
     monospace;
 }
 
-/* OpenCode: today's tokens and the last 30 days stay visible; the details
+/* Coding agents (OpenCode, Claude Code): today's tokens and the last 30 days stay visible; the details
    (period, models, tokens, tools, activity) open with the card, which then
    takes two columns on a wide screen to keep the model lines readable. */
-.supervision-card-opencode {
+.supervision-card-usage {
   cursor: pointer;
 }
-.supervision-card-opencode:focus-visible {
+.supervision-card-usage:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-.supervision-card-opencode.is-healthy .supervision-health-state i {
+.supervision-card-usage.is-healthy .supervision-health-state i {
   color: var(--success);
 }
-.supervision-card-opencode.is-warning .supervision-health-state i {
+.supervision-card-usage.is-warning .supervision-health-state i {
   color: var(--warning);
 }
-.supervision-card-opencode.expanded > .supervision-head .supervision-smart-chevron {
+.supervision-card-usage.expanded > .supervision-head .supervision-smart-chevron {
   transform: rotate(180deg);
 }
 @media (min-width: 900px) {
-  .supervision-card-opencode.expanded {
+  .supervision-card-usage.expanded {
     grid-column: span 2;
   }
 }
-.opencode-age {
+.usage-age {
   margin-left: auto;
   color: var(--muted);
 }
-.opencode-summary {
+.usage-summary {
   margin: 12px 0 10px;
 }
-.opencode-facts {
+.usage-facts {
   padding-top: 0;
   border-top: 0;
 }
-.opencode-details {
+.usage-details {
   display: none;
   gap: 10px;
   margin-top: 12px;
@@ -1633,19 +1633,19 @@ body[data-page="supervision"] #collapseAllBtn {
   font-size: 12px;
   cursor: default;
 }
-.supervision-card-opencode.expanded .opencode-details {
+.supervision-card-usage.expanded .usage-details {
   display: grid;
 }
-.opencode-period-body {
+.usage-period-body {
   display: grid;
   gap: 10px;
 }
-.opencode-periods {
+.usage-periods {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
-.opencode-period {
+.usage-period {
   padding: 4px 10px;
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -1654,16 +1654,16 @@ body[data-page="supervision"] #collapseAllBtn {
   font-size: 12px;
   cursor: pointer;
 }
-.opencode-period.active {
+.usage-period.active {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 16%, var(--surface));
   font-weight: 600;
 }
-.opencode-period:focus-visible {
+.usage-period:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-.opencode-section-title {
+.usage-section-title {
   margin: 4px 0 0;
   color: var(--muted);
   font-size: 11px;
@@ -1671,13 +1671,13 @@ body[data-page="supervision"] #collapseAllBtn {
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-.opencode-figures {
+.usage-figures {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 8px;
 }
-.opencode-figure,
-.opencode-token {
+.usage-figure,
+.usage-token {
   display: grid;
   gap: 2px;
   padding: 7px 9px;
@@ -1686,123 +1686,123 @@ body[data-page="supervision"] #collapseAllBtn {
   background: var(--surface-2);
   min-width: 0;
 }
-.opencode-figure strong {
+.usage-figure strong {
   font-size: 16px;
   font-variant-numeric: tabular-nums;
 }
-.opencode-figure span,
-.opencode-token span {
+.usage-figure span,
+.usage-token span {
   overflow: hidden;
   color: var(--muted);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.opencode-tokens {
+.usage-tokens {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
   gap: 8px;
 }
-.opencode-token strong {
+.usage-token strong {
   font-variant-numeric: tabular-nums;
 }
-.opencode-models {
+.usage-models {
   display: grid;
   gap: 10px;
 }
-.opencode-model {
+.usage-model {
   display: grid;
   gap: 4px;
 }
-.opencode-model-head {
+.usage-model-head {
   display: flex;
   align-items: baseline;
   gap: 8px;
   min-width: 0;
 }
-.opencode-model-name {
+.usage-model-name {
   overflow: hidden;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.opencode-model-provider {
+.usage-model-provider {
   color: var(--muted);
   font-size: 11px;
 }
-.opencode-model-amount {
+.usage-model-amount {
   margin-left: auto;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-.opencode-model-cost {
+.usage-model-cost {
   min-width: 56px;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
-.opencode-bar {
+.usage-bar {
   height: 6px;
   overflow: hidden;
   border-radius: 3px;
   background: var(--surface-2);
 }
-.opencode-bar span {
+.usage-bar span {
   display: block;
   height: 100%;
   border-radius: 3px;
   background: var(--accent);
 }
-.opencode-model-detail {
+.usage-model-detail {
   color: var(--muted);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
-.opencode-tools {
+.usage-tools {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 6px 14px;
 }
-.opencode-tool {
+.usage-tool {
   display: flex;
   align-items: baseline;
   gap: 6px;
   min-width: 0;
 }
-.opencode-tool span {
+.usage-tool span {
   overflow: hidden;
   color: var(--muted);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.opencode-tool strong {
+.usage-tool strong {
   margin-left: auto;
   font-variant-numeric: tabular-nums;
 }
-.opencode-tool small {
+.usage-tool small {
   color: light-dark(#8a5a00, var(--warning));
   font-weight: 600;
 }
-.opencode-activity-box {
+.usage-activity-box {
   display: grid;
   gap: 6px;
 }
-.opencode-activity {
+.usage-activity {
   display: flex;
   align-items: flex-end;
   gap: 2px;
   height: 48px;
 }
-.opencode-activity span {
+.usage-activity span {
   flex: 1;
   min-height: 2px;
   border-radius: 2px 2px 0 0;
   background: var(--accent);
 }
-.opencode-activity span.idle {
+.usage-activity span.idle {
   background: var(--border);
 }
-.opencode-empty {
+.usage-empty {
   margin: 0;
   color: var(--muted);
 }

@@ -26,6 +26,7 @@ export const state = {
   supervisionHostExpanded: [],
   supervisionAptExpanded: [],
   supervisionOpencodeExpanded: [],
+  supervisionClaudeExpanded: [],
   viewMode: "columns",
   // Grid density (view preferences): "auto" or 2 to 5 columns.
   categoryColumns: "auto",

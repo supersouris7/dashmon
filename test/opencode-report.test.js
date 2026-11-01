@@ -4,14 +4,14 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { spawnSync } = require("child_process");
-const { readOpencodeReport } = require("../lib/host/opencode-report");
+const { readUsageReport } = require("../lib/host/usage-report");
 
 function read(raw, size = 100) {
   const filesystem = {
     statSync: () => ({ isFile: () => true, size, mtimeMs: 100000 }),
     readFileSync: () => JSON.stringify(raw)
   };
-  return readOpencodeReport("report", { filesystem });
+  return readUsageReport("report", { filesystem });
 }
 const period = {
   sessions: 2,
@@ -113,7 +113,7 @@ try {
   assert.equal(written.version, "9.8.7");
   assert.deepEqual(Object.keys(written.periods), ["today", "week", "month", "all"]);
   assert.equal((fs.statSync(file).mode & 0o777).toString(8), "600");
-  assert.ok(readOpencodeReport(file).periods.all, "relevé du script relu par le serveur");
+  assert.ok(readUsageReport(file).periods.all, "relevé du script relu par le serveur");
 
   fs.rmSync(file);
   const failed = run({ TEST_FAILURE: "1" });

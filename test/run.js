@@ -22,6 +22,7 @@ const SUITES = [
   "confirm-dialog.test.js",
   "apt-report.test.js",
   "opencode-report.test.js",
+  "claude-stats.test.js",
   "smart-report.test.js",
   "wireguard-report.test.js",
   "replication-draft.test.js",
