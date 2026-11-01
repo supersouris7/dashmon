@@ -732,14 +732,16 @@ body.is-refreshing .widget-status {
   font-weight: 600;
 }
 
-/* Counter badge: green number in a green outlined pill. */
+/* Counter badge: green number in a green outlined pill on a light green
+   tint. */
 .web-link-counter {
   min-width: 22px;
   padding: 1px 7px;
   box-sizing: border-box;
   border: 1.5px solid currentColor;
   border-radius: 999px;
-  color: light-dark(#1a7f37, #3fb950);
+  color: light-dark(#116329, #3fb950);
+  background: color-mix(in srgb, currentColor 14%, transparent);
   font-size: 12px;
   font-weight: 700;
   line-height: 16px;
