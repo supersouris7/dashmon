@@ -227,7 +227,7 @@ configuration to an agent. Configure HTTPS or a trusted private network: the
 shared token travels in an HTTP header. Restrict access to the published port.
 For each address, **Test connection** checks access and the sync token from the
 main server, even before saving. Once saved, the agent appears by name under
-**Agents → Hosts**, alongside **Local** (the primary). Select a host to open the
+**Supervision**, alongside **Local** (the primary). Select a host to open the
 same general, WireGuard, SMART and APT settings form inside the primary.
 The primary forwards agent reads and writes to this saved address;
 the token never reaches the browser. Concurrent changes are rejected rather

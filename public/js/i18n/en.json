@@ -3,6 +3,7 @@
   "settingsDashboard": "Dashboard",
   "settingsLocalHost": "Local",
   "settingsAgents": "Agents",
+  "settingsSupervision": "Supervision",
   "hostGeneral": "General",
   "hostAppearance": "Host appearance",
   "hostSetupGuide": "Setup and help",

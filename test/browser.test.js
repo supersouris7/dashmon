@@ -170,7 +170,7 @@ async function main() {
     await evaluate("document.querySelector('#modalBackdrop').getBoundingClientRect().top"),
     0
   );
-  assert.equal(await evaluate("document.querySelectorAll('.settings-category').length"), 4);
+  assert.equal(await evaluate("document.querySelectorAll('.settings-category').length"), 5);
   await evaluate("document.querySelector('.settings-branch summary').click()");
   assert.equal(
     await evaluate("document.querySelector('[data-panel=servicesPanel]').getClientRects().length"),

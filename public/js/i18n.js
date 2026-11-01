@@ -45,7 +45,7 @@ export function applyLanguage() {
     ["settingsDashboard", "settingsDashboard"],
     ["settingsLocalHost", "settingsLocalHost"],
     ["localHostTitle", "settingsLocalHost"],
-    ["settingsHosts", "tabHosts"],
+    ["settingsHosts", "settingsSupervision"],
     ["settingsAgents", "settingsAgents"],
     ["settingsAdministration", "settingsAdministration"],
     ["settingsAppearance", "settingsAppearance"],

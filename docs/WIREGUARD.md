@@ -37,7 +37,7 @@ For an agent installed with the [startup guide](DEMARRAGE.md), use:
 sudo /usr/local/bin/wireguard-dump.sh dashmon-agent
 ```
 
-In **Settings → Agents → Hosts → your agent**, enable
+In **Settings → Supervision → your agent**, enable
 **WireGuard**. The main dashboard shows the
 report on the agent's Supervision tab.
 

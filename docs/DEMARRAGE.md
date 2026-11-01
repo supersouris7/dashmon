@@ -151,7 +151,7 @@ writable by the container UID `1000`.
    when hovering its tile in Supervision. Without a host, the pairing still
    works but the tile keeps its default appearance.
 2. Click **Test connection**, then **Save**. This agent appears by name under
-   **Agents → Hosts**, next to **Local** (the primary). Select its name to configure
+   **Supervision**, next to **Local** (the primary). Select its name to configure
    it without leaving the primary. Both use the same form: general settings,
    WireGuard, SMART and APT, with setup help available in each section.
 3. Set the host name and the options you need, then **Save**. To measure the host

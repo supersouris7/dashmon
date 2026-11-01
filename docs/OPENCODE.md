@@ -65,7 +65,7 @@ The card flags a report older than 6 hours: the job has probably stopped.
 ## Enable or hide the card
 
 The card shows up by itself with the first report. To hide it, open
-**Settings → Agents → Hosts**, choose the host, then uncheck **Show OpenCode
+**Settings → Supervision**, choose the host, then uncheck **Show OpenCode
 statistics** in the **OpenCode** section.
 
 ## Bind mount variant
