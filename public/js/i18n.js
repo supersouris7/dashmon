@@ -54,7 +54,7 @@ export function applyLanguage() {
     ["editorTabTheme", "theme"],
     ["editorTabPreferences", "settingsPreferences"],
     ["appearanceSaveHint", "appearanceSaveHint"],
-    ["preferencesSaveHint", "appearanceSaveHint"]
+    ["preferencesSaveHint", "preferencesSaveHint"]
   ])
     document.getElementById(id).textContent = t(key);
 
@@ -64,7 +64,7 @@ export function applyLanguage() {
   const logoutLabel = menuLogoutBtn.querySelector("span:nth-child(2)");
   if (logoutLabel) logoutLabel.textContent = t("logout");
 
-  themeFieldLabel.textContent = t("theme");
+  themeFieldLabel.textContent = t("themeActive");
   languageFieldLabel.textContent = t("language");
   usageFieldLabel.textContent = t("usageLabel");
   resetUsageBtn.querySelector("span").textContent = t("resetUsage");
@@ -133,6 +133,9 @@ export function applyLanguage() {
     ".settings-panel-title [data-title-key], .settings-panel-title[data-title-key]"
   ))
     title.textContent = t(title.dataset.titleKey);
+  // Short introduction at the top of a panel.
+  for (const text of document.querySelectorAll("[data-text-key]"))
+    text.textContent = t(text.dataset.textKey);
 
   document.getElementById("manageUploadHint").textContent = t("pngOnlyHint");
   document.getElementById("uploadPngHint").textContent = t("pngOnlyHint");

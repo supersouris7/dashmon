@@ -132,7 +132,7 @@
             class="search"
             type="search"
             placeholder="app, catégories, hôtes…"
-            aria-label="Rechercher dans les tableaux de bord"
+            aria-label="Rechercher dans les dashboards"
             enterkeyhint="go"
             autocomplete="off"
           />
@@ -260,7 +260,7 @@
         <nav class="edit-tabs" aria-labelledby="editorTitle">
           <details class="settings-branch" open>
             <summary class="settings-category">
-              <span id="settingsDashboard">Tableau de bord</span>
+              <span id="settingsDashboard">Dashboard</span>
             </summary>
             <div class="settings-children">
               <button class="edit-tab" type="button" data-panel="dashboardsPanel">
@@ -276,8 +276,8 @@
                 <span id="editorTabApplications">Applications</span>
               </button>
               <button class="edit-tab" type="button" data-panel="widgetsPanel">
-                <i class="fa-solid fa-puzzle-piece"></i>
-                <span id="editorTabWidgets">Widgets</span>
+                <i class="fa-solid fa-star"></i>
+                <span id="editorTabWidgets">Tuile spéciale</span>
               </button>
               <button class="edit-tab" type="button" data-panel="webLinksPanel">
                 <i class="fa-solid fa-globe"></i>
@@ -314,7 +314,7 @@
             <div class="settings-children">
               <button class="edit-tab" type="button" data-panel="replicationPanel">
                 <i class="fa-solid fa-circle-nodes"></i>
-                <span id="editorTabPairing">Pairage</span>
+                <span id="editorTabPairing">Appairage</span>
               </button>
             </div>
           </details>
@@ -352,7 +352,7 @@
                 id="editorSearch"
                 class="edit-input"
                 type="search"
-                placeholder="Rechercher une application..."
+                placeholder="Rechercher une application…"
                 autocomplete="off"
               />
             </div>
@@ -378,6 +378,7 @@
 
         <div id="categoriesPanel" class="edit-panel">
           <h2 class="settings-panel-title" data-title-key="tabCategories"></h2>
+          <p class="settings-panel-intro" data-text-key="introCategories"></p>
           <div id="categoryEditor" class="edit-list"></div>
           <div class="editor-actions">
             <button id="addCategoryBtn" class="action-btn" type="button">
@@ -388,6 +389,7 @@
 
         <div id="dashboardsPanel" class="edit-panel">
           <h2 class="settings-panel-title" data-title-key="tabDashboards"></h2>
+          <p class="settings-panel-intro" data-text-key="introDashboards"></p>
           <div id="dashboardEditor" class="edit-list"></div>
           <div class="editor-actions">
             <button id="addDashboardBtn" class="action-btn" type="button">
@@ -398,6 +400,7 @@
 
         <div id="hostsPanel" class="edit-panel">
           <h2 class="settings-panel-title" data-title-key="hostAppearance"></h2>
+          <p class="settings-panel-intro" data-text-key="introHosts"></p>
           <div id="hostEditor" class="edit-list"></div>
           <div class="editor-actions">
             <button id="addHostBtn" class="action-btn" type="button">
@@ -416,6 +419,7 @@
 
         <div id="webLinksPanel" class="edit-panel">
           <h2 class="settings-panel-title" data-title-key="tabWebLinks"></h2>
+          <p class="settings-panel-intro" data-text-key="introWebLinks"></p>
           <div id="webLinksEditor" class="edit-list"></div>
           <div class="editor-actions">
             <button id="addWebLinkBtn" class="action-btn" type="button">
@@ -482,12 +486,12 @@
 
         <div id="themePanel" class="edit-panel">
           <h2 class="settings-panel-title" data-title-key="theme"></h2>
-          <p id="appearanceSaveHint" class="upload-hint">
-            Ces préférences sont enregistrées immédiatement.
+          <p id="appearanceSaveHint" class="settings-panel-intro">
+            Le thème s’applique immédiatement, sur tous les navigateurs.
           </p>
           <div class="appearance-content">
             <label class="appearance-field">
-              <span id="themeFieldLabel">Thème</span>
+              <span id="themeFieldLabel">Thème actif</span>
               <select id="themeSelect" class="edit-select">
                 <option value="dark">Sombre</option>
                 <option value="light">Clair</option>
@@ -519,8 +523,9 @@
 
         <div id="preferencesPanel" class="edit-panel">
           <h2 class="settings-panel-title" data-title-key="settingsPreferences"></h2>
-          <p id="preferencesSaveHint" class="upload-hint">
-            Ces préférences sont enregistrées immédiatement.
+          <p id="preferencesSaveHint" class="settings-panel-intro">
+            Enregistrées immédiatement. La langue vaut pour tous les navigateurs ; les autres
+            préférences ne concernent que celui-ci.
           </p>
           <div class="appearance-content">
             <label class="appearance-field">

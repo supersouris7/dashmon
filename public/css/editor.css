@@ -195,7 +195,6 @@ body.modal-open {
 .modal .import-export-status,
 .modal .appearance-field,
 .modal .smart-disk-choices,
-.modal .widget-hint,
 .widget-config-panel .widget-cfg-field,
 .widget-config-panel .widget-cfg-note,
 .widget-config-panel .action-btn {
@@ -467,15 +466,6 @@ body.modal-open {
   margin-top: 16px;
   padding-top: 14px;
   border-top: 1px solid var(--border);
-}
-
-/* Onglet Widgets : une tuile speciale s'active par une case a cocher, puis
-   expose ses options (ici la seule : la categorie d'affichage). */
-.widget-hint {
-  margin: 0 0 4px;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--muted);
 }
 
 .widget-row {

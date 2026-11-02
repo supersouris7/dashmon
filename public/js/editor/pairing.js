@@ -23,7 +23,7 @@ export function renderPairingEditor({
   }
   const docs = document.createElement("a");
   docs.href =
-    "https://github.com/supersouris7/dashmon/blob/main/docs/DEMARRAGE.md#3-install-an-agent";
+    "https://github.com/supersouris7/dashmon/blob/main/docs/GETTING_STARTED.md#3-install-an-agent";
   docs.target = "_blank";
   docs.rel = "noopener noreferrer";
   docs.textContent = t("agentDocumentation");
@@ -37,7 +37,9 @@ export function renderPairingEditor({
   for (const [file, label] of [
     ["WIREGUARD.md", "WireGuard"],
     ["SMART.md", "SMART"],
-    ["APT_UPDATES.md", "APT"]
+    ["APT_UPDATES.md", "APT"],
+    ["OPENCODE.md", "OpenCode"],
+    ["CLAUDE_CODE.md", "Claude Code"]
   ]) {
     const link = document.createElement("a");
     link.href = "https://github.com/supersouris7/dashmon/blob/main/docs/" + file;

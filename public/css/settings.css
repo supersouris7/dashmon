@@ -197,6 +197,15 @@
   height: 38px;
 }
 
+/* One or two sentences under the title saying what the panel is for. */
+.settings-page .settings-panel-intro {
+  max-width: 760px;
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
 /* Same title on every panel, taken from its menu entry. */
 .settings-panel-title {
   display: flex;

@@ -21,7 +21,7 @@ export function renderWidgetsEditor() {
   widgetsEditor.innerHTML = "";
 
   const hint = document.createElement("p");
-  hint.className = "widget-hint";
+  hint.className = "settings-panel-intro";
   hint.textContent = t("specialTileHint");
   widgetsEditor.appendChild(hint);
 
