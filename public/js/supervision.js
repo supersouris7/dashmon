@@ -124,7 +124,7 @@ export function renderSupervision() {
         return {
           id: metric.id,
           name: metric.name || linked?.name || t("hostName"),
-          icon: linked?.icon || "fa-solid fa-server",
+          icon: "fa-solid fa-microchip",
           color: sanitizeTileColor(linked?.color),
           monitoring: { enabled: true, type: metric.type }
         };

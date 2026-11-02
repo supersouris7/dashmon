@@ -116,7 +116,7 @@ export function hostCard(host, metrics) {
   const head = document.createElement("div");
   head.className = "supervision-head";
   const icon = document.createElement("i");
-  icon.className = host.icon || "fa-solid fa-server";
+  icon.className = "fa-solid fa-microchip";
   icon.setAttribute("aria-hidden", "true");
   const name = document.createElement("span");
   name.className = "supervision-name";

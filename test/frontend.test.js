@@ -247,9 +247,9 @@ async function main() {
     contains(agentEditorSource, "fa-triangle-exclamation") && contains(confirmSource, '" multi"')
   );
   ok(
-    "agents : couleur et icone reprises de l'hote au survol",
+    "agents : couleur reprise de l'hote au survol, icone processeur",
     contains(supervisionSource, "agentHosts[selected.id]") &&
-      contains(supervisionSource, "linked?.icon") &&
+      contains(supervisionSource, "fa-solid fa-microchip") &&
       contains(supervisionSource, "sanitizeTileColor(linked?.color)")
   );
   for (const doc of ["WIREGUARD.md", "SMART.md", "APT_UPDATES.md"]) {
