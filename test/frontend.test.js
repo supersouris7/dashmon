@@ -133,12 +133,12 @@ async function main() {
   );
   const toolbar = await import(pathToFileURL(path.join(JS_DIR, "toolbar.js")).href);
   check(
-    "toolbar : recherche visible si assez de place",
+    "toolbar : recherche dans la barre si assez de place",
     toolbar.hideToolbarSearch(900, 400, 160, 50),
     false
   );
   check(
-    "toolbar : recherche masquee si les onglets prennent la place",
+    "toolbar : recherche sous la barre si les onglets prennent la place",
     toolbar.hideToolbarSearch(700, 400, 160, 50),
     true
   );

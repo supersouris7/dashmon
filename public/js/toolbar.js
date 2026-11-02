@@ -1,5 +1,6 @@
-// Pure measurements: the navigation may hold a variable number of tabs.
-export function hideToolbarSearch(available, navigation, actions, gaps, minimumSearch = 140) {
+// Pure measurements: the navigation may hold a variable number of tabs. Below
+// `minimumSearch` pixels the search leaves the toolbar for a line of its own.
+export function hideToolbarSearch(available, navigation, actions, gaps, minimumSearch = 200) {
   return available < navigation + actions + gaps + minimumSearch;
 }
 

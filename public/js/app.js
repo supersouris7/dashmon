@@ -169,20 +169,19 @@ const toolbar = document.querySelector(".toolbar");
 const pageSwitch = document.getElementById("pageSwitchGroup");
 const searchBox = searchInput.closest(".search-box");
 const toolbarActions = toolbar.querySelector(".toolbar-actions");
-// On a phone the toolbar has no room left: the search gets its own line
-// under it, at full width.
-function placeSearchBox(mobile) {
-  if (mobile && searchBox.parentElement === toolbar) {
+// On a phone, or when the tabs leave it too little room, the search gets its
+// own line under the toolbar, at full width: it is never hidden.
+function placeSearchBox(below) {
+  if (below && searchBox.parentElement === toolbar) {
     toolbar.after(searchBox);
     searchBox.classList.add("below-toolbar");
-  } else if (!mobile && searchBox.parentElement !== toolbar) {
+  } else if (!below && searchBox.parentElement !== toolbar) {
     toolbarActions.before(searchBox);
     searchBox.classList.remove("below-toolbar");
   }
 }
 function updateToolbarLayout() {
   const mobile = window.innerWidth <= 800;
-  placeSearchBox(mobile);
   const styles = getComputedStyle(toolbar);
   const gap = parseFloat(styles.columnGap) || 0;
   const available =
@@ -203,12 +202,7 @@ function updateToolbarLayout() {
   const compact =
     !mobile && hideToolbarSearch(available, nav, actionWidth, gap * (actions.length + 1));
   toolbar.classList.toggle("compact-search", compact);
-  // Never leave an invisible filter active after a resize.
-  if (compact && searchInput.value) {
-    searchInput.value = "";
-    searchBox.classList.remove("has-value");
-    if (state.page === "dashboard") render();
-  }
+  placeSearchBox(mobile || compact);
   if (topMenu.classList.contains("show")) positionTopMenu();
 }
 function positionTopMenu() {

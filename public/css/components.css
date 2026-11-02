@@ -861,7 +861,6 @@ body.is-refreshing .widget-status {
     display: none !important;
   }
   .search-box.below-toolbar {
-    max-width: none;
     margin: 0 14px 4px;
   }
   .search-box.below-toolbar .search-key {
@@ -871,10 +870,28 @@ body.is-refreshing .widget-status {
   .search-box.below-toolbar .search {
     font-size: 16px;
   }
+  /* Cible tactile de 40 px, l'icone garde sa taille. */
+  .search-clear {
+    right: 3px;
+    width: 40px;
+    height: 40px;
+  }
+  .search-box.has-value .search {
+    padding-right: 46px;
+  }
 }
 @media (max-width: 560px) {
+  /* Petit ecran : tout passe a 40 px, comme les boutons de la barre. */
   .search-box.below-toolbar {
+    height: 40px;
     margin: 0 12px 2px;
+  }
+  .search-box.below-toolbar .search {
+    height: 40px;
+    min-height: 40px;
+  }
+  .search-clear {
+    right: 0;
   }
 }
 
@@ -1865,7 +1882,8 @@ body[data-page="supervision"] #collapseAllBtn {
     align-items: center;
     gap: 8px;
     width: 100%;
-    height: 40px;
+    /* Meme hauteur que les boutons voisins : 46 px, puis 40 sous 560 px. */
+    height: 46px;
     padding: 0 10px;
     border: 1px solid var(--border);
     border-radius: 3px;
@@ -1942,6 +1960,9 @@ body[data-page="supervision"] #collapseAllBtn {
     width: 36px;
     height: 40px;
     min-height: 40px;
+  }
+  .mobile-page-btn {
+    height: 40px;
   }
   .appearance-field {
     grid-template-columns: 1fr;

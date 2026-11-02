@@ -149,10 +149,13 @@ main {
   margin-left: auto;
   position: relative;
   min-width: 0;
-  height: 40px;
+  height: 46px;
 }
-.toolbar.compact-search .search-box {
-  display: none;
+/* No room left in the toolbar (app.js): the search gets its own line under
+   it, aligned on the toolbar content. */
+.search-box.below-toolbar {
+  max-width: none;
+  margin: 0 max(26px, calc((100vw - 1280px) / 2)) 10px;
 }
 
 .search-box > i {
@@ -246,8 +249,8 @@ main {
 .search {
   display: block;
   width: 100%;
-  height: 40px;
-  min-height: 40px;
+  height: 46px;
+  min-height: 46px;
   padding: 0 10px 0 36px;
   border: 1px solid var(--border);
   border-radius: 3px;
@@ -256,6 +259,7 @@ main {
   color: var(--text);
   box-shadow: var(--shadow);
   font: inherit;
+  font-size: 14px;
 }
 
 .search::-webkit-search-cancel-button,
