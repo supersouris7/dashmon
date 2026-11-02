@@ -103,9 +103,9 @@
     "semantic_hash": ""
   },
   "public/js/i18n.js": {
-    "mtime": 1793625597.0403636,
-    "seen": 1793627410.6429207,
-    "ast_hash": "a61f9dfeed1c4509331d6ebd2536521e",
+    "mtime": 1793630654.9871595,
+    "seen": 1793630855.1067066,
+    "ast_hash": "be990c97d8022c0bd397e832c6c13ca0",
     "semantic_hash": ""
   },
   "public/js/images.js": {
@@ -223,9 +223,9 @@
     "semantic_hash": ""
   },
   "test/frontend.test.js": {
-    "mtime": 1793625470.695428,
-    "seen": 1793627410.6430788,
-    "ast_hash": "6a21c39fd3930227118958072aecb918",
+    "mtime": 1793630727.0278494,
+    "seen": 1793630855.106857,
+    "ast_hash": "e769ece1db794d75646665a0925ab8e3",
     "semantic_hash": ""
   },
   "test/run.js": {
@@ -499,21 +499,21 @@
     "semantic_hash": ""
   },
   "CUSTOMIZATION.md": {
-    "mtime": 1793615997.5515337,
-    "seen": 1793616030.0621836,
-    "ast_hash": "3d5ca983a52148497781f77caf75575a",
+    "mtime": 1793630750.696073,
+    "seen": 1793630855.1070607,
+    "ast_hash": "46b800c70e945a2852f3e4cafba4a130",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1793545025.6480315,
-    "seen": 1793545270.554199,
-    "ast_hash": "e04f2a34a1672eaaaf4a3a01a7aaa89a",
+    "mtime": 1793630750.696073,
+    "seen": 1793630855.107064,
+    "ast_hash": "5c8eed649d3e04fb14b879b680361caa",
     "semantic_hash": ""
   },
   "deploy/DEPLOYMENT.md": {
-    "mtime": 1793612879.1167808,
-    "seen": 1793612905.8243356,
-    "ast_hash": "252428d6402a4db499463c6ba3f77e1c",
+    "mtime": 1793630750.696073,
+    "seen": 1793630855.1070669,
+    "ast_hash": "84e614aa8abf8a3d55956d6c1a056d13",
     "semantic_hash": ""
   },
   "deploy/MAINTAINER.md": {
@@ -523,15 +523,9 @@
     "semantic_hash": ""
   },
   "docs/APT_UPDATES.md": {
-    "mtime": 1793523001.5975182,
-    "seen": 1793523126.3582346,
-    "ast_hash": "d8b6654c14a4b50cf04b4c010499a113",
-    "semantic_hash": ""
-  },
-  "docs/DEMARRAGE.md": {
-    "mtime": 1793612879.1167808,
-    "seen": 1793612905.8243601,
-    "ast_hash": "8805cc3ebe795bf21d090846dd26fcdb",
+    "mtime": 1793630750.696073,
+    "seen": 1793630855.1070733,
+    "ast_hash": "5feb82997be9d16ad83ed3b06823d90c",
     "semantic_hash": ""
   },
   "docs/EXTENDING.md": {
@@ -541,15 +535,15 @@
     "semantic_hash": ""
   },
   "docs/HTTPS.md": {
-    "mtime": 1793359816.5638983,
-    "seen": 1793365386.7162716,
-    "ast_hash": "dc873bb72e93bb56626b3b7b93a61298",
+    "mtime": 1793630750.696073,
+    "seen": 1793630855.1070895,
+    "ast_hash": "494d064a82cfafaa5d4325563c0e695d",
     "semantic_hash": ""
   },
   "docs/SMART.md": {
-    "mtime": 1793523001.5975182,
-    "seen": 1793523126.3582544,
-    "ast_hash": "287f2e9ed82fa81e5f0e7a7847068c4c",
+    "mtime": 1793630727.0238495,
+    "seen": 1793630855.1070952,
+    "ast_hash": "044d21134f58c98f611de3219372968a",
     "semantic_hash": ""
   },
   "docs/WIDGETS.md": {
@@ -559,15 +553,15 @@
     "semantic_hash": ""
   },
   "docs/WIREGUARD.md": {
-    "mtime": 1793523001.5975182,
-    "seen": 1793523126.3582606,
-    "ast_hash": "d32188962185af7fbc233bd41688c61d",
+    "mtime": 1793630727.0238495,
+    "seen": 1793630855.107102,
+    "ast_hash": "4836ed6eb76371d669ac4add28d4f8e9",
     "semantic_hash": ""
   },
   "public/index.html": {
-    "mtime": 1793625597.0443635,
-    "seen": 1793627410.643345,
-    "ast_hash": "7b81712fdf1d7a7297c78a46c00b6f2b",
+    "mtime": 1793630695.8235524,
+    "seen": 1793630855.1071048,
+    "ast_hash": "87b56e40776fa631f692730b0d467caf",
     "semantic_hash": ""
   },
   "public/login.html": {
@@ -1147,9 +1141,9 @@
     "semantic_hash": ""
   },
   "public/js/editor/pairing.js": {
-    "mtime": 1793613246.6118479,
-    "seen": 1793613545.5587485,
-    "ast_hash": "eb6d6c9355220b4f52abc43db8497dca",
+    "mtime": 1793630727.0238495,
+    "seen": 1793630855.1066787,
+    "ast_hash": "5976d2503fd2147532179035cf25a531",
     "semantic_hash": ""
   },
   "public/js/editor/replication-draft.js": {
@@ -1177,21 +1171,21 @@
     "semantic_hash": ""
   },
   "public/js/editor/widgets.js": {
-    "mtime": 1793362074.7189996,
-    "seen": 1793365386.715901,
-    "ast_hash": "b0069788fcb068ca3e78329a2bd264da",
+    "mtime": 1793630701.8156097,
+    "seen": 1793630855.1066966,
+    "ast_hash": "3ca62e9cbacde0c72a740c57ab642837",
     "semantic_hash": ""
   },
   "public/js/i18n/en.json": {
-    "mtime": 1793625597.0403636,
-    "seen": 1793627410.6429238,
-    "ast_hash": "c2966a605b69ed982c2670af8eed14b7",
+    "mtime": 1793630654.9831595,
+    "seen": 1793630855.1067102,
+    "ast_hash": "ef26c0c47a09092fc9bc3c143dba2935",
     "semantic_hash": ""
   },
   "public/js/i18n/fr.json": {
-    "mtime": 1793625597.0403636,
-    "seen": 1793627410.642927,
-    "ast_hash": "e8e9b6d063db75b761d7d6cdce05cb28",
+    "mtime": 1793630654.9831595,
+    "seen": 1793630855.1067135,
+    "ast_hash": "a61d1e1355693e028e326a9384d1dc32",
     "semantic_hash": ""
   },
   "public/js/supervision/apt-card.js": {
@@ -1267,9 +1261,9 @@
     "semantic_hash": ""
   },
   "docs/OPENCODE.md": {
-    "mtime": 1793545025.6520314,
-    "seen": 1793545270.5542269,
-    "ast_hash": "0f7872bb41c60ac744f94eaefbb44bef",
+    "mtime": 1793630727.0238495,
+    "seen": 1793630855.1070924,
+    "ast_hash": "7f5662895cac4f525ba0675f44f74ae3",
     "semantic_hash": ""
   },
   "deploy/claude-stats.sh": {
@@ -1297,9 +1291,9 @@
     "semantic_hash": ""
   },
   "docs/CLAUDE_CODE.md": {
-    "mtime": 1793545039.38812,
-    "seen": 1793545270.5542142,
-    "ast_hash": "e2118ad7aa5564b4b3c2fdf07760583d",
+    "mtime": 1793630727.0238495,
+    "seen": 1793630855.1070795,
+    "ast_hash": "bac5e3c4191bded2386a8f39ba54e07d",
     "semantic_hash": ""
   },
   "public/themes/high-contrast.json": {
@@ -1366,6 +1360,12 @@
     "mtime": 1793626128.4042687,
     "seen": 1793627410.6430883,
     "ast_hash": "8aac567f047756d2030f0e56106bfbf7",
+    "semantic_hash": ""
+  },
+  "docs/GETTING_STARTED.md": {
+    "mtime": 1793630750.696073,
+    "seen": 1793630855.1070862,
+    "ast_hash": "52f991998d7b2a2bddf662ec2a8ca930",
     "semantic_hash": ""
   },
   "package-lock.json": {

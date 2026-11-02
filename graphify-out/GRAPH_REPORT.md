@@ -1,17 +1,17 @@
 # Graph Report - dashmon  (2026-11-02)
 
 ## Corpus Check
-- 224 files · ~123,942 words
+- 224 files · ~124,338 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 17 file(s) not represented in the graph (top: (none) 7, .css 6, .example 2)
 
 ## Summary
-- 2148 nodes · 4188 edges · 128 communities (106 shown, 22 thin omitted)
+- 2148 nodes · 4189 edges · 128 communities (106 shown, 22 thin omitted)
 - Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 248 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4b96f4d0`
+- Built from commit: `a57ba439`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -437,7 +437,7 @@ Nodes (3): label, en, fr
 
 ### Community 87 - "Install Dashmon and its agents"
 Cohesion: 0.22
-Nodes (9): 1. Prepare the secrets, 2. Install the primary, 3. Install an agent, 4. Add WireGuard, SMART or APT, 5. Upgrade and back up, Choose your installation, Install Dashmon and its agents, Quick troubleshooting (+1 more)
+Nodes (9): 1. Prepare the secrets, 2. Install the primary, 3. Install an agent, 4. Add WireGuard, SMART, APT or usage statistics, 5. Upgrade and back up, Choose your installation, Install Dashmon and its agents, Quick troubleshooting (+1 more)
 
 ### Community 88 - "ref_fs"
 Cohesion: 0.19
@@ -472,7 +472,7 @@ Cohesion: 0.30
 Nodes (12): agentHostSelect(), agentUrlInput(), button(), createPairingList(), render(), row(), setStatus(), TEST_FAILURES (+4 more)
 
 ### Community 96 - "Dashmon architecture"
-Cohesion: 0.33
+Cohesion: 0.40
 Nodes (5): Browser, Checks, Dashmon architecture, Overview, Server
 
 ### Community 97 - "host/metrics.js"
@@ -596,7 +596,7 @@ Nodes (4): crypto, fs, loadAgentIdentity(), path
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `Add a widget to Dashmon` connect `lib/themes.js` to `widget-registry.js`, `README.md`?**
-  _High betweenness centrality (0.236) - this node is a cross-community bridge._
+  _High betweenness centrality (0.237) - this node is a cross-community bridge._
 - **Are the 19 inferred relationships involving `main()` (e.g. with `.cacheKey()` and `.check()`) actually correct?**
   _`main()` has 19 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `DEBIAN_FRONTEND`, `LC_ALL` to the rest of the system?**
