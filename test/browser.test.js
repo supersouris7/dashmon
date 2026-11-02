@@ -213,6 +213,28 @@ async function main() {
       "document.querySelector('.image-manager-empty')?.getBoundingClientRect().height"
     )) < 40
   );
+  // In every list the icon button sits left of the name.
+  await evaluate(
+    "document.querySelector('[data-panel=categoriesPanel]').click();document.querySelector('#addCategoryBtn').click()"
+  );
+  for (const [panel, row] of [
+    ["dashboardsPanel", ".dashboard-row"],
+    ["categoriesPanel", ".category-row"],
+    ["hostsPanel", ".host-row"],
+    ["webLinksPanel", ".web-link-row"]
+  ]) {
+    await evaluate(`document.querySelector('[data-panel=${panel}]').click()`);
+    assert.equal(
+      await evaluate(
+        `(()=>{const r=document.querySelector('#${panel} ${row}');const i=r.querySelector('.icon-picker').getBoundingClientRect();const n=r.querySelector('.edit-input').getBoundingClientRect();return i.right<=n.left&&Math.abs(i.top-n.top)<2})()`
+      ),
+      true,
+      panel
+    );
+  }
+  await evaluate(
+    "import('/js/state.js').then(({state})=>{state.editCategories.pop()}).then(()=>import('/js/editor/categories.js')).then(({renderCategoryEditor})=>renderCategoryEditor())"
+  );
   // Row trash buttons: a 38 px square without a word, named for screen readers.
   await evaluate("document.querySelector('[data-panel=hostsPanel]').click()");
   assert.deepEqual(

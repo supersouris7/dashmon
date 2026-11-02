@@ -88,9 +88,9 @@ export function renderCategoryEditor() {
 
     row.append(
       drag,
+      picker,
       name,
       dashboardSelect,
-      picker,
       createColorPicker(category, refreshColorEditors),
       remove
     );

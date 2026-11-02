@@ -106,7 +106,7 @@ export function renderWebLinksEditor() {
       renderWebLinksEditor();
     });
 
-    row.append(drag, name, url, counterWrap, iconPicker, del);
+    row.append(drag, iconPicker, name, url, counterWrap, del);
     webLinksEditor.appendChild(row);
   });
 }

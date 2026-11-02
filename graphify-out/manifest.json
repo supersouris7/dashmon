@@ -704,9 +704,9 @@
     "semantic_hash": ""
   },
   "test/browser.test.js": {
-    "mtime": 1793613834.8642023,
-    "seen": 1793613930.320351,
-    "ast_hash": "ff66df6fd121b159628872a2765f1a2d",
+    "mtime": 1793614276.879611,
+    "seen": 1793614377.593875,
+    "ast_hash": "dfe0a5105b6a280e2f3a08078635f0e7",
     "semantic_hash": ""
   },
   "test/editor-draft.test.js": {
@@ -1088,9 +1088,9 @@
     "semantic_hash": ""
   },
   "public/js/editor/categories.js": {
-    "mtime": 1793612755.6556356,
-    "seen": 1793612905.823057,
-    "ast_hash": "48daa1f3bc1ab2924cc2bf202a424b1e",
+    "mtime": 1793614269.6395133,
+    "seen": 1793614377.593697,
+    "ast_hash": "73b01ffa95937a6eac8ff7ebf2c41b74",
     "semantic_hash": ""
   },
   "public/js/editor/color-picker.js": {
@@ -1106,9 +1106,9 @@
     "semantic_hash": ""
   },
   "public/js/editor/dashboards.js": {
-    "mtime": 1793612755.6556356,
-    "seen": 1793612905.8230684,
-    "ast_hash": "02ee17b4ff568e2053347964a33e6ae6",
+    "mtime": 1793614269.6395133,
+    "seen": 1793614377.593709,
+    "ast_hash": "3d7562f9ea65b6cdc5665553b274f321",
     "semantic_hash": ""
   },
   "public/js/editor/draft.js": {
@@ -1130,9 +1130,9 @@
     "semantic_hash": ""
   },
   "public/js/editor/hosts.js": {
-    "mtime": 1793612755.6556356,
-    "seen": 1793612905.8230865,
-    "ast_hash": "d47758b819fa65a0dac85fd323fea800",
+    "mtime": 1793614269.6395133,
+    "seen": 1793614377.5937283,
+    "ast_hash": "42093479812481d29dbbfea65d67d156",
     "semantic_hash": ""
   },
   "public/js/editor/icon-picker.js": {
@@ -1166,9 +1166,9 @@
     "semantic_hash": ""
   },
   "public/js/editor/web-links.js": {
-    "mtime": 1793612755.6556356,
-    "seen": 1793612905.823111,
-    "ast_hash": "fe2ed895f1eb12eb01ea056a06fafdb4",
+    "mtime": 1793614269.6435134,
+    "seen": 1793614377.593754,
+    "ast_hash": "42d9a8456ceb5bbc9c5262d0b5d45878",
     "semantic_hash": ""
   },
   "public/js/editor/widget-config.js": {

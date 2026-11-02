@@ -52,7 +52,7 @@ export function renderDashboardEditor() {
       renderCategoryEditor();
     });
 
-    row.append(drag, name, picker, remove);
+    row.append(drag, picker, name, remove);
     makeDraggable(row, state.editDashboards, index, () => {
       renderDashboardEditor();
       renderCategoryEditor();

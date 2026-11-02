@@ -94,7 +94,7 @@ export function renderHostEditor() {
       remove.disabled = true;
       remove.title = t("localHostRequired");
     }
-    row.append(drag, name, picker, createColorPicker(host, refreshColorEditors), remove);
+    row.append(drag, picker, name, createColorPicker(host, refreshColorEditors), remove);
     item.appendChild(row);
 
     makeDraggable(row, state.editHosts, index, () => {

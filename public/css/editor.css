@@ -193,7 +193,8 @@ body.modal-open {
      ajoutent. Sans colonnes explicites, un element deborderait dans une
      colonne implicite et la ligne sortirait de sa largeur (width:max-content),
      ce qui fausse toute la mise en page des reglages. */
-  grid-template-columns: 30px minmax(150px, 1fr) minmax(120px, 240px) auto auto auto;
+  /* The icon sits left of the name, as on the dashboard. */
+  grid-template-columns: 30px auto minmax(150px, 1fr) minmax(120px, 240px) auto auto;
   gap: 8px;
   align-items: center;
   /* Full width, like the dashboard, host and web link rows. */
@@ -202,8 +203,8 @@ body.modal-open {
 
 .dashboard-row {
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) auto auto;
-  grid-template-areas: "drag name picker remove";
+  grid-template-columns: 30px auto minmax(0, 1fr) auto;
+  grid-template-areas: "drag picker name remove";
   gap: 8px;
   align-items: center;
   width: 100%;
@@ -683,7 +684,7 @@ body.modal-open {
 
 @media (max-width: 560px) {
   .category-row {
-    grid-template-columns: 24px minmax(0, 1fr) minmax(0, 1fr) 42px 22px 38px;
+    grid-template-columns: 24px 38px minmax(0, 1fr) minmax(0, 1fr) 38px 38px;
     gap: 6px;
   }
   .edit-tab {

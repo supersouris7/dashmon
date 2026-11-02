@@ -6,8 +6,8 @@
 
 .host-row {
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) auto auto auto;
-  grid-template-areas: "drag name picker color remove";
+  grid-template-columns: 30px auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "drag picker name color remove";
   gap: 8px;
   align-items: center;
   width: 100%;
@@ -785,7 +785,8 @@ body.is-refreshing .widget-status {
 
 .web-link-row {
   display: grid;
-  grid-template-columns: 32px minmax(150px, 1fr) minmax(250px, 1.5fr) minmax(190px, 1fr) auto auto;
+  /* Icon left of the name, as on the dashboard. */
+  grid-template-columns: 32px auto minmax(150px, 1fr) minmax(250px, 1.5fr) minmax(190px, 1fr) auto;
   gap: 8px;
   align-items: center;
 }
@@ -816,41 +817,35 @@ body.is-refreshing .widget-status {
   min-width: 0;
 }
 
-/* Narrow panel: name and buttons on the first line, then the URL, then the
-   counter. The six columns need about 900 px. */
+/* Narrow panel: icon, name and trash on the first line, then the URL, then
+   the counter, aligned under the name. The six columns need about 900 px. */
 @container (max-width: 900px) {
   .web-link-row {
-    grid-template-columns: 32px minmax(0, 1fr) auto auto;
-  }
-  .web-link-row > .icon-picker {
-    grid-area: 1 / 3;
+    grid-template-columns: 32px auto minmax(0, 1fr) auto;
   }
   .web-link-row > .delete-btn {
     grid-area: 1 / 4;
   }
   .web-link-row > .web-link-url {
-    grid-area: 2 / 2 / auto / -1;
+    grid-area: 2 / 3 / auto / -1;
   }
   .web-link-row > .web-link-counter-wrap {
-    grid-area: 3 / 2 / auto / -1;
+    grid-area: 3 / 3 / auto / -1;
   }
 }
 
 @media (max-width: 700px) {
   .web-link-row {
-    grid-template-columns: 32px minmax(0, 1fr) auto auto;
-  }
-  .web-link-row > .icon-picker {
-    grid-area: 1 / 3;
+    grid-template-columns: 32px auto minmax(0, 1fr) auto;
   }
   .web-link-row > .delete-btn {
     grid-area: 1 / 4;
   }
   .web-link-row > .web-link-url {
-    grid-area: 2 / 2 / auto / -1;
+    grid-area: 2 / 3 / auto / -1;
   }
   .web-link-row > .web-link-counter-wrap {
-    grid-area: 3 / 2 / auto / -1;
+    grid-area: 3 / 3 / auto / -1;
   }
 }
 
