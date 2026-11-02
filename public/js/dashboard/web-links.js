@@ -27,7 +27,7 @@ export function updateWebLinkCounters() {
 }
 
 export function updateWebLinksAppearance() {
-  webLinksSection.style.display = state.webLinks.length && !state.webLinksHidden ? "flex" : "none";
+  webLinksSection.hidden = !state.webLinks.length || state.webLinksHidden;
   webLinksEnabledSelect.value = state.webLinksHidden ? "off" : "on";
 }
 

@@ -1,3 +1,8 @@
+/* Settings window: a fixed frame of three areas, the title bar on top, the
+   menu tree on the left and the active panel on the right, with the
+   Cancel / Save footer under the panel. Each part of the frame is styled
+   here once; the controls inside the panels live in editor.css and
+   components.css. */
 .settings-page {
   top: 0;
   overflow: hidden;
@@ -5,28 +10,117 @@
 
 .settings-page .modal {
   display: grid;
-  height: 100dvh;
   grid-template-columns: 270px minmax(0, 1fr);
   grid-template-rows: 58px minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100dvh;
+  margin: 0;
+  overflow: visible;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
-.settings-page .modal > .modal-header:not(.editor-footer) {
+/* The title bar and the footer share the bar look. */
+.settings-page .modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  background: var(--bg);
+}
+
+.settings-page .modal-header:not(.editor-footer) {
   grid-column: 1 / -1;
+  position: sticky;
+  top: 0;
+  z-index: 5;
   padding: 0 24px;
+  border-bottom: 1px solid var(--border);
 }
 
+.settings-page .modal-title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.settings-page .editor-footer {
+  grid-column: 2;
+  grid-row: 3;
+  justify-content: flex-end;
+  padding: 12px 24px;
+  border-top: 1px solid var(--border);
+}
+
+.settings-page .editor-footer .action-group {
+  margin-left: auto;
+}
+
+/* Menu tree. */
 .settings-page .edit-tabs {
   grid-column: 1;
   grid-row: 2 / 4;
-  position: static;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 4px;
   padding: 16px 12px;
   overflow: auto;
-  border-bottom: 0;
+  scrollbar-width: thin;
+  background: var(--bg);
   border-right: 1px solid var(--border);
+}
+
+.settings-page .edit-tab {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  min-height: 38px;
+  padding: 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 400;
+  text-align: left;
+  white-space: normal;
+}
+
+.settings-page .edit-tab.active,
+.settings-page .edit-tab:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+/* Active panel. */
+.settings-page .edit-panel {
+  display: none;
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+  min-height: 0;
+  padding: 24px;
+  overflow: auto;
+  /* Lists adapt to the panel width, not the window (see .web-link-row). */
+  container-type: inline-size;
+}
+
+.settings-page .edit-panel.active {
+  display: block;
+}
+
+@media (max-width: 800px) {
+  .settings-page .editor-footer {
+    flex-wrap: wrap;
+    height: 44px;
+    font-size: 16px;
+  }
 }
 
 .settings-category {
@@ -55,13 +149,6 @@
 
 .settings-branch:not([open]) > .settings-children {
   display: none;
-}
-
-.settings-page .settings-children .edit-tab {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  width: 100%;
 }
 
 /* Fixed icon column: every label of the tree starts at the same x, and a
@@ -148,38 +235,6 @@
   accent-color: var(--accent);
 }
 
-.settings-page .edit-tab {
-  text-align: left;
-  padding: 10px;
-  border: 0;
-  border-radius: 6px;
-  white-space: normal;
-}
-
-.settings-page .edit-tab.active,
-.settings-page .edit-tab:hover {
-  background: var(--surface-2);
-  color: var(--text);
-}
-
-.settings-page .edit-panel {
-  grid-column: 2;
-  grid-row: 2;
-  min-width: 0;
-  padding: 24px;
-  overflow: auto;
-  /* Lists adapt to the panel width, not the window (see .web-link-row). */
-  container-type: inline-size;
-}
-
-.settings-page .editor-footer {
-  grid-column: 2;
-  grid-row: 3;
-  position: static;
-  padding: 12px 24px;
-  justify-content: flex-end;
-}
-
 @media (max-width: 700px) {
   .settings-page .modal {
     grid-template-columns: 160px minmax(0, 1fr);
@@ -222,11 +277,6 @@
 .settings-page .edit-panel a {
   color: var(--accent);
   text-underline-offset: 2px;
-}
-
-/* Square trash at the end of each row, same corner as the other controls. */
-.settings-page .edit-panel button.delete-btn {
-  border-radius: 3px;
 }
 
 /* Tab icon picker at the start of the Local / agent titles. */

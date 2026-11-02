@@ -75,17 +75,20 @@ public/js/
   api.js               reads and writes of the configuration
   render.js            dashboard rendering: visible services, groups, collapse
   dashboard/           tiles (cards.js), sections, web links banner, toolbar
-                       buttons (view-controls.js)
-  supervision.js       supervision page, instances and metrics refresh
+                       buttons (view-controls.js), search and group labels
+                       (query.js)
+  supervision.js       supervision page and metrics refresh
   supervision/         one file per card (host, WireGuard, SMART, APT,
                        coding agents: OpenCode and Claude Code), shared
-                       card behaviour (cards.js) and texts (format.js)
+                       card behaviour (cards.js), texts (format.js) and the
+                       supervised instances (instances.js)
   editor.js            settings page: navigation tree, save, import / export
   editor/              one file per panel (services, widgets, categories,
                        dashboards, hosts, web links, pairing...), the widget
                        settings dialog and the editor helpers (drafts, drag,
-                        colour and icon pickers, confirmation dialog); shared
-                        local/agent monitoring form in host-settings.js
+                       colour and icon pickers, confirmation dialog in
+                       confirm.js); shared local/agent monitoring form in
+                       host-settings.js
   config/              config schema (normalize.js), value checks (sanitize.js),
                        icon list
   i18n.js, i18n/       interface texts, one JSON file per language
@@ -93,6 +96,13 @@ public/js/
   pages.js, themes.js, view-prefs.js, images.js, fortune.js, metrics.js...
 ```
 
+- No module imports a module that imports it back: a submodule receives what
+  it needs as a parameter or from a shared leaf module.
+  `test/import-cycles.test.js` refuses any cycle.
+- Styles, in load order: `base.css` (theme variables, page layout, toolbar),
+  `editor.css` (form controls, dialogs), `components.css` (tiles, sections,
+  supervision cards, settings rows) and `settings.css` (the frame of the
+  settings window: title bar, menu tree, panel and footer, each styled once).
 - View preferences (columns, sorting, collapsed sections) live in the browser
   (`view-prefs.js`), not in `config.json`.
 - `config/normalize.js` and `config/sanitize.js` mirror the server rules: a

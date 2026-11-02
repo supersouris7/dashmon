@@ -87,42 +87,6 @@
   }
 }
 
-.modal {
-  display: flex;
-  flex-direction: column;
-  overflow: visible;
-}
-
-.edit-tabs {
-  flex: 0 0 auto;
-  position: sticky;
-  top: 58px;
-  z-index: 4;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 12px;
-}
-
-.edit-panel {
-  min-height: 0;
-  overflow: auto;
-}
-
-.edit-panel.active {
-  flex: 1 1 auto;
-}
-
-.editor-footer {
-  flex: 0 0 auto;
-  position: sticky;
-  top: auto;
-  bottom: 0;
-  z-index: 2;
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-  border-bottom: 0;
-}
-
 /* One service = a small block of labelled fields:
      Name | URL (wide)              | actions
      Category | Host | Widget      | (Image, Monitoring, Delete)
@@ -769,6 +733,11 @@ body.is-refreshing .widget-status {
   box-shadow: var(--shadow);
 }
 
+/* Hidden by web-links.js when there is no link or the user turned them off. */
+.web-links-section[hidden] {
+  display: none;
+}
+
 #dashboard.small-icons .fortune-icon {
   width: 28px;
   height: 22px;
@@ -778,12 +747,11 @@ body.is-refreshing .widget-status {
 }
 
 /* Smartphone et tablette : l'interface est epuree. Le bandeau des liens web
-   disparait ; il porte un "display" pose en style en ligne par le rendu
-   (web-links.js), d'ou le !important pour le masquer ici. La recherche passe
-   sur sa propre ligne sous la barre d'outils (app.js la deplace). */
+   disparait. La recherche passe sur sa propre ligne sous la barre d'outils
+   (app.js la deplace). */
 @media (max-width: 800px) {
-  #webLinksSection {
-    display: none !important;
+  .web-links-section {
+    display: none;
   }
   .search-box.below-toolbar {
     margin: 0 14px 4px;
@@ -1901,7 +1869,10 @@ body[data-page="supervision"] #collapseAllBtn {
   transform: rotate(-90deg);
 }
 
-button.delete-btn {
+/* Trash of the settings rows: outlined in the theme error colour, readable
+   on light and dark backgrounds alike. Two classes are enough to win over
+   .small-icon-btn and its hover state (editor.css, base.css). */
+.edit-panel .delete-btn {
   width: 38px;
   height: 38px;
   min-width: 38px;
@@ -1909,24 +1880,23 @@ button.delete-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: transparent !important;
-  /* Theme error colour: readable on light and dark backgrounds alike. */
-  color: var(--error) !important;
-  border: 1px solid color-mix(in srgb, var(--error) 45%, transparent) !important;
-  border-radius: 6px;
-  box-shadow: none !important;
+  background: transparent;
+  color: var(--error);
+  border: 1px solid color-mix(in srgb, var(--error) 45%, transparent);
+  border-radius: 3px;
+  box-shadow: none;
 }
 
-button.delete-btn i {
-  color: inherit !important;
+.edit-panel .delete-btn i {
+  color: inherit;
   font-size: 14px;
   opacity: 1;
 }
 
-button.delete-btn:hover {
-  background: color-mix(in srgb, var(--error) 10%, transparent) !important;
-  color: var(--error) !important;
-  border-color: color-mix(in srgb, var(--error) 75%, transparent) !important;
+.edit-panel .delete-btn:hover {
+  background: color-mix(in srgb, var(--error) 10%, transparent);
+  color: var(--error);
+  border-color: color-mix(in srgb, var(--error) 75%, transparent);
 }
 
 .modal i,

@@ -95,37 +95,6 @@ body.modal-open {
   font-size: 14px;
 }
 
-.modal {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  max-height: none;
-  overflow: visible;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-}
-
-.modal-header {
-  min-height: 58px;
-  padding: 0 max(26px, calc((100vw - 1280px) / 2));
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  background: var(--bg);
-}
-
-.modal-title {
-  flex: 1;
-  font-size: 16px;
-  font-weight: 700;
-}
-
 .modal-close,
 .small-icon-btn {
   width: 36px;
@@ -141,44 +110,6 @@ body.modal-open {
 .small-icon-btn:hover {
   border-color: var(--muted);
   background: var(--surface-3);
-}
-
-.edit-tabs {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 2px;
-  padding: 12px max(16px, calc((100vw - 1280px) / 2)) 0;
-  overflow-x: auto;
-  scrollbar-width: thin;
-}
-
-.edit-tab {
-  min-height: 38px;
-  flex: 0 0 auto;
-  padding: 0 14px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  font: inherit;
-  font-weight: 400;
-  white-space: nowrap;
-}
-
-.edit-tab.active {
-  color: var(--text);
-  background: transparent;
-  font-weight: 400;
-}
-
-.edit-panel {
-  display: none;
-  padding: 16px max(16px, calc((100vw - 1280px) / 2));
-}
-
-.edit-panel.active {
-  display: block;
 }
 
 .edit-list {
@@ -257,7 +188,6 @@ body.modal-open {
    independamment du panneau ou d'un label d'aide parent. */
 .modal .edit-input,
 .modal .edit-select,
-.modal .edit-tab,
 .modal .action-btn,
 .modal .host-monitor-field,
 .modal .host-monitor-hint,
@@ -647,17 +577,9 @@ body.modal-open {
   .image-library-panel {
     max-height: calc(100dvh - 20px);
   }
-  .modal-header {
-    padding: 0 14px;
-  }
-  .edit-panel {
-    padding: 12px;
-  }
+
   .editor-actions .action-btn {
     flex: 1;
-  }
-  .editor-footer {
-    flex-wrap: wrap;
   }
 }
 
@@ -666,15 +588,7 @@ body.modal-open {
     grid-template-columns: 24px 38px minmax(0, 1fr) minmax(0, 1fr) 38px 38px;
     gap: 6px;
   }
-  .edit-tab {
-    padding: 0 10px;
-  }
-  .modal-header {
-    padding: 0 10px;
-  }
-  .edit-panel {
-    padding: 10px;
-  }
+
   .edit-input,
   .edit-select {
     height: 44px;
@@ -689,14 +603,6 @@ body.modal-open {
   .edit-list {
     gap: 12px;
   }
-}
-
-.editor-footer {
-  justify-content: space-between;
-}
-
-.editor-footer .action-group {
-  margin-left: auto;
 }
 
 .drag-handle {
