@@ -25,6 +25,8 @@ import { renderPairingEditor } from "./editor/pairing.js";
 import { createAgentSettings } from "./editor/agent-settings.js";
 import { prepareEditorDraft } from "./editor/draft.js";
 import { renderHostSettings } from "./editor/host-settings.js";
+import { createTabIconPicker } from "./editor/icon-picker.js";
+import { DEFAULT_TAB_ICON } from "./config/icon-options.js";
 import {
   editorSearch,
   editorCategoryFilter,
@@ -226,12 +228,6 @@ function renderLocalSettings() {
   renderHostSettings(document.getElementById("localHostEditor"), {
     config: host,
     metrics: state.hostMetrics?.find(item => item.id === host.id),
-    tabIcon: {
-      value: host.tabIcon,
-      onChange(icon) {
-        host.tabIcon = icon;
-      }
-    },
     onRename(next) {
       for (const service of linkedServices) service.host = next;
       renderServiceEditor();
@@ -240,7 +236,26 @@ function renderLocalSettings() {
   });
 }
 
+// The tab icon is chosen from the title of the panel and repeated in the
+// settings tree, like the dashboard navigation shows it.
+function renderLocalTabIcon() {
+  const host = state.editHosts.find(
+    item => item.monitoring?.enabled && item.monitoring.type === "local"
+  );
+  const treeIcon = document.querySelector("[data-panel=localHostPanel] i");
+  const slot = document.querySelector("#localHostPanel .settings-panel-icon");
+  if (treeIcon) treeIcon.className = host?.tabIcon || DEFAULT_TAB_ICON;
+  if (!host) return slot.replaceChildren();
+  slot.replaceChildren(
+    createTabIconPicker(host.tabIcon, icon => {
+      host.tabIcon = icon;
+      if (treeIcon) treeIcon.className = icon;
+    })
+  );
+}
+
 function renderAgentTree() {
+  renderLocalTabIcon();
   agentSettings.renderTree(
     replicationEntries(state.replication || {}),
     replicationAtOpen?.secondaries || []

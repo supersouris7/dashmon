@@ -3,7 +3,7 @@ import { state } from "../state.js";
 import { sanitizeIconClass } from "../config/sanitize.js";
 import { ICON_OPTIONS, DEFAULT_TAB_ICON } from "../config/icon-options.js";
 import { t } from "../i18n.js";
-import { setIconLabel } from "./labelled-button.js";
+import { setIconButton } from "./labelled-button.js";
 
 function positionPicker(current, menu) {
   requestAnimationFrame(() => {
@@ -21,15 +21,14 @@ function positionPicker(current, menu) {
   });
 }
 
-function buildPicker(currentIcon, onSelect) {
+function buildPicker(currentIcon, onSelect, label = t("iconLabel")) {
   const picker = document.createElement("div");
   picker.className = "icon-picker";
 
   const current = document.createElement("button");
   current.className = "icon-picker-current";
   current.type = "button";
-  current.title = t("chooseIcon");
-  setIconLabel(current, sanitizeIconClass(currentIcon), t("iconLabel"));
+  setIconButton(current, sanitizeIconClass(currentIcon), label);
 
   const menu = document.createElement("div");
   menu.className = "icon-picker-menu";
@@ -43,7 +42,7 @@ function buildPicker(currentIcon, onSelect) {
     choice.addEventListener("click", e => {
       e.stopPropagation();
       onSelect(iconClass);
-      setIconLabel(current, iconClass, t("iconLabel"));
+      setIconButton(current, iconClass, label);
       picker.classList.remove("open");
     });
     menu.appendChild(choice);
@@ -66,8 +65,9 @@ function buildPicker(currentIcon, onSelect) {
   return picker;
 }
 
+// Icon of a supervision tab, shown next to the title of its settings panel.
 export function createTabIconPicker(currentIcon, onSelect) {
-  return buildPicker(currentIcon || DEFAULT_TAB_ICON, onSelect);
+  return buildPicker(currentIcon || DEFAULT_TAB_ICON, onSelect, t("tabIconLabel"));
 }
 
 export function createIconPicker(category, index) {

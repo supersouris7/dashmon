@@ -101,6 +101,7 @@
   "iconLabel": "Icon",
   "monitoringLabel": "Monitoring",
   "deleteLabel": "Delete",
+  "monitorHelp": "Monitoring dot. Green: the application is monitored and an outage counts as critical. Orange: monitored, non-critical. Grey: not monitored. Click the dot to change.",
   "monitorEnabled": "Monitoring enabled",
   "monitorDisabled": "Monitoring disabled",
   "monitorSoft": "Non-critical monitoring",
@@ -344,9 +345,5 @@
   "tileColumnsLabel": "Applications per row",
   "supervisionColumnsLabel": "Supervision cards per row",
   "gridAuto": "Automatic",
-  "monitorShortOn": "Monitored",
-  "monitorShortSoft": "Non-critical",
-  "monitorShortOff": "Not monitored",
-  "configureLabel": "Configure",
   "widgetConfigNone": "No widget to configure"
 }

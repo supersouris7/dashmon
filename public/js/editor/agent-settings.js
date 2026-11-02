@@ -4,6 +4,8 @@ import { state } from "../state.js";
 import { clone } from "../util.js";
 import { renderHostSettings } from "./host-settings.js";
 import { agentHostMetrics } from "../supervision.js";
+import { createTabIconPicker } from "./icon-picker.js";
+import { DEFAULT_TAB_ICON } from "../config/icon-options.js";
 
 export function createAgentSettings() {
   const drafts = new Map();
@@ -13,6 +15,7 @@ export function createAgentSettings() {
   const editor = document.getElementById("remoteAgentEditor");
   const status = document.getElementById("remoteAgentStatus");
   const title = document.getElementById("remoteAgentTitle");
+  const iconSlot = document.querySelector("#remoteAgentPanel .settings-panel-icon");
   const tree = document.getElementById("settingsAgentTree");
   const dirty = draft => JSON.stringify(draft.config) !== draft.baseline;
 
@@ -24,18 +27,7 @@ export function createAgentSettings() {
   }
 
   function renderForm(draft) {
-    const url = activeUrl;
-    renderHostSettings(editor, {
-      config: draft.config,
-      metrics: agentHostMetrics(url),
-      // The tab icon belongs to the pairing, saved by this dashboard.
-      tabIcon: {
-        value: state.replication?.agentIcons?.[url],
-        onChange(icon) {
-          state.replication.agentIcons = { ...state.replication.agentIcons, [url]: icon };
-        }
-      }
-    });
+    renderHostSettings(editor, { config: draft.config, metrics: agentHostMetrics(activeUrl) });
   }
 
   return {
@@ -64,7 +56,7 @@ export function createAgentSettings() {
         button.dataset.panel = "remoteAgentPanel";
         button.dataset.agentUrl = entry.url;
         const icon = document.createElement("i");
-        icon.className = "fa-solid fa-network-wired";
+        icon.className = state.replication?.agentIcons?.[entry.url] || DEFAULT_TAB_ICON;
         icon.setAttribute("aria-hidden", "true");
         const label = document.createElement("span");
         label.textContent = entry.name || new URL(entry.url).hostname;
@@ -85,6 +77,15 @@ export function createAgentSettings() {
       const openedGeneration = generation;
       activeUrl = url;
       title.textContent = name || new URL(url).hostname;
+      // The tab icon belongs to the pairing and is saved by this dashboard.
+      iconSlot.replaceChildren(
+        createTabIconPicker(state.replication?.agentIcons?.[url], icon => {
+          state.replication.agentIcons = { ...state.replication.agentIcons, [url]: icon };
+          for (const button of tree.querySelectorAll("button")) {
+            if (button.dataset.agentUrl === url) button.querySelector("i").className = icon;
+          }
+        })
+      );
       editor.replaceChildren();
       status.textContent = t("agentConfigLoading");
       try {

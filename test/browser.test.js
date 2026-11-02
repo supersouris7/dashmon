@@ -190,7 +190,7 @@ async function main() {
     await wait(150);
     assert.deepEqual(
       await evaluate(
-        `[...new Set([...document.querySelectorAll('#${panel} :is(.edit-input,.edit-select,.action-btn,.labelled-btn)')].filter(e=>e.getClientRects().length).map(e=>Math.round(e.getBoundingClientRect().height)))]`
+        `[...new Set([...document.querySelectorAll('#${panel} :is(.edit-input,.edit-select,.action-btn,.square-btn)')].filter(e=>e.getClientRects().length).map(e=>Math.round(e.getBoundingClientRect().height)))]`
       ),
       [38],
       panel
@@ -230,6 +230,13 @@ async function main() {
       "(()=>{const c=document.querySelector('.service-row:last-child');const b=c.querySelector('.service-image-btn');const r=b.getBoundingClientRect();return [Math.round(r.width),Math.round(r.height),c.firstElementChild===b,r.left<c.querySelector('.service-field').getBoundingClientRect().left]})()"
     ),
     [64, 64, true, true]
+  );
+  // Small buttons carry no word; monitoring is a dot with an info bubble.
+  assert.deepEqual(
+    await evaluate(
+      "(()=>{const c=document.querySelector('.service-row:last-child');const m=c.querySelector('.monitor-toggle');const w=c.querySelector('.widget-config-btn');const h=c.querySelector('.monitor-help');return [m.textContent.trim(),!!m.querySelector('.monitor-dot'),!!m.getAttribute('aria-label'),w.textContent.trim(),Math.round(w.getBoundingClientRect().width),!!h.title,h.nextElementSibling===m]})()"
+    ),
+    ["", true, true, "", 38, true, true]
   );
   await evaluate(
     "import('/js/state.js').then(({state})=>{state.editServices.pop()}).then(()=>import('/js/editor/services.js')).then(({renderServiceEditor})=>renderServiceEditor())"
@@ -297,11 +304,18 @@ async function main() {
   );
   // Icon of the local supervision tab, chosen from the host form.
   assert.equal(
-    await evaluate("document.querySelector('#localHostEditor .icon-picker-current i').className"),
+    await evaluate(
+      "document.querySelector('#localHostPanel .settings-panel-title .icon-picker-current i').className"
+    ),
     "fa-solid fa-chart-simple"
   );
   await evaluate(
-    "(()=>{const p=document.querySelector('#localHostEditor .icon-picker');p.querySelector('.icon-picker-current').click();[...p.querySelectorAll('.icon-choice')].find(c=>c.querySelector('i').className==='fa-solid fa-house').click()})()"
+    "(()=>{const p=document.querySelector('#localHostPanel .settings-panel-title .icon-picker');p.querySelector('.icon-picker-current').click();[...p.querySelectorAll('.icon-choice')].find(c=>c.querySelector('i').className==='fa-solid fa-house').click()})()"
+  );
+  // The settings tree repeats the chosen tab icon.
+  assert.equal(
+    await evaluate("document.querySelector('[data-panel=localHostPanel] i').className"),
+    "fa-solid fa-house"
   );
   const localFields = await evaluate(
     "[...document.querySelectorAll('#localHostEditor input')].map(input=>input.name)"
@@ -416,7 +430,7 @@ async function main() {
   );
   await evaluate("document.querySelector('#remoteAgentEditor [name=wireguard]').click()");
   await evaluate(
-    "(()=>{const p=document.querySelector('#remoteAgentEditor .icon-picker');p.querySelector('.icon-picker-current').click();[...p.querySelectorAll('.icon-choice')].find(c=>c.querySelector('i').className==='fa-solid fa-network-wired').click()})()"
+    "(()=>{const p=document.querySelector('#remoteAgentPanel .settings-panel-title .icon-picker');p.querySelector('.icon-picker-current').click();[...p.querySelectorAll('.icon-choice')].find(c=>c.querySelector('i').className==='fa-solid fa-network-wired').click()})()"
   );
 
   assert.equal(

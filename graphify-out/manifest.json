@@ -85,9 +85,9 @@
     "semantic_hash": ""
   },
   "public/js/editor.js": {
-    "mtime": 1793613268.9520226,
-    "seen": 1793613545.5587008,
-    "ast_hash": "1b31add41e858a0f6a65ca7b56d43da4",
+    "mtime": 1793613815.3840637,
+    "seen": 1793613930.3201678,
+    "ast_hash": "b129f592715c18d95f5db18704f360c1",
     "semantic_hash": ""
   },
   "public/js/format.js": {
@@ -103,9 +103,9 @@
     "semantic_hash": ""
   },
   "public/js/i18n.js": {
-    "mtime": 1793612746.7355497,
-    "seen": 1793612905.823128,
-    "ast_hash": "2dde2d782b4f6d812fbe537eafeecb43",
+    "mtime": 1793613833.9521956,
+    "seen": 1793613930.320245,
+    "ast_hash": "37cf588518655b7714f1717063f5732d",
     "semantic_hash": ""
   },
   "public/js/images.js": {
@@ -566,9 +566,9 @@
     "semantic_hash": ""
   },
   "public/index.html": {
-    "mtime": 1793612746.7355497,
-    "seen": 1793612905.8243918,
-    "ast_hash": "dfd5f23cabd4827e72559a226237a28c",
+    "mtime": 1793613815.3800638,
+    "seen": 1793613930.3206398,
+    "ast_hash": "87fb985ebbe42eccc07383d7c37bbe23",
     "semantic_hash": ""
   },
   "public/login.html": {
@@ -704,9 +704,9 @@
     "semantic_hash": ""
   },
   "test/browser.test.js": {
-    "mtime": 1793613335.1645346,
-    "seen": 1793613545.5588768,
-    "ast_hash": "d0d161182a7c91f5bc8ba4156e475f08",
+    "mtime": 1793613834.8642023,
+    "seen": 1793613930.320351,
+    "ast_hash": "ff66df6fd121b159628872a2765f1a2d",
     "semantic_hash": ""
   },
   "test/editor-draft.test.js": {
@@ -1094,9 +1094,9 @@
     "semantic_hash": ""
   },
   "public/js/editor/color-picker.js": {
-    "mtime": 1793374329.3135314,
-    "seen": 1793460511.1976483,
-    "ast_hash": "fb6a81f8509fb762a49e5b1a4292aa15",
+    "mtime": 1793613773.6597664,
+    "seen": 1793613930.320179,
+    "ast_hash": "4165004688f30c6399212035f5c77a84",
     "semantic_hash": ""
   },
   "public/js/editor/confirm-dialog.js": {
@@ -1136,9 +1136,9 @@
     "semantic_hash": ""
   },
   "public/js/editor/icon-picker.js": {
-    "mtime": 1793613466.77753,
-    "seen": 1793613545.5587382,
-    "ast_hash": "bd9839c576a202e74bbb0b5777e15744",
+    "mtime": 1793613773.6637664,
+    "seen": 1793613930.320207,
+    "ast_hash": "e3cf62f376330e3f47d459a18ea84a5f",
     "semantic_hash": ""
   },
   "public/js/editor/pairing-list.js": {
@@ -1160,9 +1160,9 @@
     "semantic_hash": ""
   },
   "public/js/editor/services.js": {
-    "mtime": 1793612788.219945,
-    "seen": 1793612905.8231082,
-    "ast_hash": "892badd55d61fc98fd94c3338076bce1",
+    "mtime": 1793613833.7801945,
+    "seen": 1793613930.3202248,
+    "ast_hash": "9cbcebd25d08a034e345e9353f5fbd0f",
     "semantic_hash": ""
   },
   "public/js/editor/web-links.js": {
@@ -1184,15 +1184,15 @@
     "semantic_hash": ""
   },
   "public/js/i18n/en.json": {
-    "mtime": 1793613268.9520226,
-    "seen": 1793613545.558778,
-    "ast_hash": "3b5316e3a49bbb12034b6006015df746",
+    "mtime": 1793613796.7559311,
+    "seen": 1793613930.3202484,
+    "ast_hash": "e49b5efe7f739031217b04214f81523c",
     "semantic_hash": ""
   },
   "public/js/i18n/fr.json": {
-    "mtime": 1793613268.9520226,
-    "seen": 1793613545.5587811,
-    "ast_hash": "47c4d6b7bc5150230d80afba30be80f2",
+    "mtime": 1793613796.7519312,
+    "seen": 1793613930.3202515,
+    "ast_hash": "326d7ef284f65cd9c619f2fd0f9ac385",
     "semantic_hash": ""
   },
   "public/js/supervision/apt-card.js": {
@@ -1244,21 +1244,21 @@
     "semantic_hash": ""
   },
   "public/js/editor/agent-settings.js": {
-    "mtime": 1793613268.9520226,
-    "seen": 1793613545.5587041,
-    "ast_hash": "97242685e6b08a5e026aa7ef5f60016b",
+    "mtime": 1793613815.3840637,
+    "seen": 1793613930.320172,
+    "ast_hash": "5e03952501823a03f3732adc1497a067",
     "semantic_hash": ""
   },
   "public/js/editor/host-settings.js": {
-    "mtime": 1793613268.9520226,
-    "seen": 1793613545.5587316,
-    "ast_hash": "cd357c44673a07046b2a09180e143615",
+    "mtime": 1793613815.3800638,
+    "seen": 1793613930.3202004,
+    "ast_hash": "e65750d6015402ae07a13f6853721a9a",
     "semantic_hash": ""
   },
   "public/js/editor/labelled-button.js": {
-    "mtime": 1793612755.6436355,
-    "seen": 1793612905.8230934,
-    "ast_hash": "c1d06fe3a046ff3b95cdbbba94a551b4",
+    "mtime": 1793613773.6597664,
+    "seen": 1793613930.3202105,
+    "ast_hash": "cd047a28c960212724a5027d3ae46e2a",
     "semantic_hash": ""
   },
   "deploy/opencode-stats.sh": {

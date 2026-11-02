@@ -19,7 +19,7 @@ import {
 } from "../widget-registry.js";
 import { openImageLibrary } from "../images.js";
 import { confirmDelete } from "../editor.js";
-import { setDeleteIcon } from "./labelled-button.js";
+import { setDeleteIcon, setIconButton } from "./labelled-button.js";
 
 export function refreshEditorCategoryFilter() {
   const current = editorCategoryFilter.value;
@@ -89,12 +89,6 @@ function iconElement(className) {
   icon.className = className;
   icon.setAttribute("aria-hidden", "true");
   return icon;
-}
-
-function labelText(text) {
-  const span = document.createElement("span");
-  span.textContent = text;
-  return span;
 }
 
 export function renderServiceEditor() {
@@ -215,25 +209,28 @@ export function renderServiceEditor() {
       })
     );
 
+    // Monitoring: a coloured dot (green monitored, orange non-critical, grey
+    // off), cycled on click; the info bubble next to it explains the colours.
+    const monitorState =
+      service.monitor === false ? "off" : service.monitor === "soft" ? "soft" : "on";
     const monitor = document.createElement("button");
-    monitor.className = `monitor-toggle service-action ${service.monitor !== false ? "active" : ""} ${service.monitor === "soft" ? "soft" : ""}`;
+    monitor.className = `monitor-toggle monitor-${monitorState}`;
     monitor.type = "button";
-    monitor.title =
-      service.monitor === false
-        ? t("monitorDisabled")
-        : service.monitor === "soft"
-          ? t("monitorSoft")
-          : t("monitorEnabled");
-    monitor.append(
-      iconElement(service.monitor === "soft" ? "fa-solid fa-eye" : "fa-solid fa-heart-pulse"),
-      labelText(
-        service.monitor === false
-          ? t("monitorShortOff")
-          : service.monitor === "soft"
-            ? t("monitorShortSoft")
-            : t("monitorShortOn")
-      )
+    const dot = document.createElement("span");
+    dot.className = "monitor-dot";
+    setIconButton(
+      monitor,
+      dot,
+      t({ on: "monitorEnabled", soft: "monitorSoft", off: "monitorDisabled" }[monitorState])
     );
+    monitor.setAttribute("aria-pressed", String(monitorState !== "off"));
+    const monitorHelp = document.createElement("span");
+    monitorHelp.className = "monitor-help";
+    monitorHelp.tabIndex = 0;
+    monitorHelp.setAttribute("role", "img");
+    monitorHelp.title = t("monitorHelp");
+    monitorHelp.setAttribute("aria-label", t("monitorHelp"));
+    monitorHelp.append(iconElement("fa-solid fa-circle-info"));
     monitor.addEventListener("click", () => {
       const current = state.editServices[index].monitor;
       state.editServices[index].monitor =
@@ -253,7 +250,7 @@ export function renderServiceEditor() {
 
     const actions = document.createElement("div");
     actions.className = "service-actions";
-    actions.append(monitor, remove);
+    actions.append(monitorHelp, monitor, remove);
 
     const widgetWrap = document.createElement("div");
     widgetWrap.className = "service-widget";
@@ -290,8 +287,7 @@ export function renderServiceEditor() {
     widgetConfigBtn.className =
       "small-icon-btn widget-config-btn" + (service.widget ? "" : " disabled");
     widgetConfigBtn.title = service.widget ? t("widgetConfigTitle") : t("widgetConfigNone");
-    widgetConfigBtn.setAttribute("aria-label", widgetConfigBtn.title);
-    widgetConfigBtn.append(iconElement("fa-solid fa-sliders"), labelText(t("configureLabel")));
+    setIconButton(widgetConfigBtn, "fa-solid fa-sliders", widgetConfigBtn.title);
     widgetConfigBtn.addEventListener("click", () => {
       if (service.widget) {
         openWidgetConfig(index);

@@ -314,27 +314,13 @@
   object-fit: contain;
 }
 
-/* Monitoring toggle (icon and word, fixed width so the rows line up) and
-   the square trash. */
+/* Monitoring help, dot and trash. */
 .service-actions {
   grid-area: actions;
   display: flex;
   align-items: center;
   gap: 8px;
   align-self: center;
-}
-
-.service-actions .service-action {
-  width: 160px;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 0 12px;
-  box-sizing: border-box;
-  font-size: 14px;
-  white-space: nowrap;
 }
 
 .service-widget {
@@ -349,16 +335,7 @@
 }
 
 .service-widget .widget-config-btn {
-  /* Overrides the 36 px square of .small-icon-btn: the button carries a word. */
-  width: auto;
-  display: flex;
-  align-items: center;
-  gap: 6px;
   flex: 0 0 auto;
-  height: 38px;
-  padding: 0 12px;
-  font-size: 14px;
-  white-space: nowrap;
 }
 
 .service-widget .widget-config-btn.disabled {
@@ -700,8 +677,8 @@ body.is-refreshing .widget-status {
    widget gardent la meme taille que sur une tuile normale. */
 
 .monitor-toggle {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -709,16 +686,33 @@ body.is-refreshing .widget-status {
   border: 1px solid var(--border);
   border-radius: 3px;
   background: var(--surface-2);
-  color: var(--muted);
   cursor: pointer;
 }
 
-.monitor-toggle.active {
-  color: var(--text);
+/* Monitoring dot: green monitored, orange non-critical, hollow grey off. */
+.monitor-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--success);
 }
-.monitor-toggle.soft {
+.monitor-soft .monitor-dot {
+  background: var(--warning);
+}
+.monitor-off .monitor-dot {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--muted);
+}
+
+.monitor-help {
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted);
+  cursor: help;
+}
+.monitor-help:hover,
+.monitor-help:focus-visible {
   color: var(--text);
-  opacity: 0.85;
 }
 
 #dashboard.small-icons .service-icon,

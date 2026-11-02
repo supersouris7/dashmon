@@ -324,7 +324,7 @@
             </summary>
             <div class="settings-children">
               <button class="edit-tab" type="button" data-panel="localHostPanel">
-                <i class="fa-solid fa-computer"></i>
+                <i class="fa-solid fa-chart-simple"></i>
                 <span id="settingsLocalHost">Local</span>
               </button>
               <div id="settingsAgentTree"></div>
@@ -407,7 +407,10 @@
         </div>
 
         <div id="localHostPanel" class="edit-panel">
-          <h2 class="settings-panel-title" data-title-key="settingsLocalHost"></h2>
+          <h2 class="settings-panel-title">
+            <span class="settings-panel-icon"></span>
+            <span data-title-key="settingsLocalHost"></span>
+          </h2>
           <div id="localHostEditor"></div>
         </div>
 
@@ -469,7 +472,10 @@
         </div>
 
         <div id="remoteAgentPanel" class="edit-panel">
-          <h2 id="remoteAgentTitle" class="settings-panel-title"></h2>
+          <h2 class="settings-panel-title">
+            <span class="settings-panel-icon"></span>
+            <span id="remoteAgentTitle"></span>
+          </h2>
           <p id="remoteAgentStatus" role="status"></p>
           <div id="remoteAgentEditor"></div>
         </div>

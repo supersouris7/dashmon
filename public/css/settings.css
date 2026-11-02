@@ -112,6 +112,9 @@
 
 /* Same title on every panel, taken from its menu entry. */
 .settings-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0 0 16px;
   font-size: 18px;
   font-weight: 600;
@@ -224,4 +227,9 @@
 /* Square trash at the end of each row, same corner as the other controls. */
 .settings-page .edit-panel button.delete-btn {
   border-radius: 3px;
+}
+
+/* Tab icon picker at the start of the Local / agent titles. */
+.settings-panel-icon:empty {
+  display: none;
 }

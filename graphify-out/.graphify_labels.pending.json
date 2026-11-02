@@ -102,7 +102,7 @@
   "100": "ref_fs",
   "101": "wireguard-report.js",
   "102": "system.js",
-  "103": "js/metrics.js",
+  "103": "services.js",
   "104": "Registry",
   "105": "smart-report.js",
   "106": "state.js",
@@ -119,5 +119,6 @@
   "117": "OpenCode statistics",
   "118": "opencode-stats.sh",
   "119": "Claude Code statistics",
+  "120": "sections.js",
   "122": "claude-stats.sh"
 }

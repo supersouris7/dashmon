@@ -101,6 +101,7 @@
   "iconLabel": "Icône",
   "monitoringLabel": "Supervision",
   "deleteLabel": "Supprimer",
+  "monitorHelp": "Pastille de supervision. Verte : l’application est surveillée et une panne compte comme critique. Orange : surveillée, non critique. Grise : non surveillée. Cliquez sur la pastille pour changer.",
   "monitorEnabled": "Supervision activée",
   "monitorDisabled": "Supervision désactivée",
   "monitorSoft": "Supervision non importante",
@@ -344,9 +345,5 @@
   "tileColumnsLabel": "Applications par ligne",
   "supervisionColumnsLabel": "Cartes de supervision par ligne",
   "gridAuto": "Automatique",
-  "monitorShortOn": "Surveillé",
-  "monitorShortSoft": "Non critique",
-  "monitorShortOff": "Non surveillé",
-  "configureLabel": "Configurer",
   "widgetConfigNone": "Aucun widget à configurer"
 }

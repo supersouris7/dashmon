@@ -123,7 +123,9 @@ export function applyLanguage() {
     if (el) el.textContent = t(key);
   });
   // Each settings panel repeats the name of its menu entry as its title.
-  for (const title of document.querySelectorAll(".settings-panel-title[data-title-key]"))
+  for (const title of document.querySelectorAll(
+    ".settings-panel-title [data-title-key], .settings-panel-title[data-title-key]"
+  ))
     title.textContent = t(title.dataset.titleKey);
 
   document.getElementById("manageUploadHint").textContent = t("pngOnlyHint");

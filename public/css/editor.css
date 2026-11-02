@@ -809,32 +809,24 @@ body.modal-open {
   outline-offset: 1px;
 }
 
-/* Buttons with an icon and a word (editor/labelled-button.js). The selector
-   outweighs the fixed squares of .small-icon-btn, .icon-picker-current and
-   .color-swatch-btn, including the per-list rules (.web-link-row ...). */
-.edit-panel .labelled-btn.labelled-btn {
-  width: auto;
-  min-width: 0;
-  /* Same height as the fields of the row (.edit-input / .edit-select). */
+/* Small row buttons without a word (editor/labelled-button.js): a 38 px
+   square, the height of the fields. The selector outweighs the sizes of
+   .small-icon-btn, .icon-picker-current and .color-swatch-btn, including the
+   per-list rules (.web-link-row ...). */
+.edit-panel .square-btn.square-btn {
+  width: 38px;
+  min-width: 38px;
   height: 38px;
   min-height: 38px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 12px;
+  justify-content: center;
+  padding: 0;
   border-radius: 3px;
-  font-size: 14px;
-  white-space: nowrap;
+  font-size: 16px;
 }
 
-/* Fixed icon box: the button keeps one width whatever the glyph, so the
-   columns of successive rows line up. */
-.edit-panel .labelled-btn > i {
-  width: 1.25em;
-  text-align: center;
-}
-
-.color-swatch-btn.labelled-btn {
+.color-swatch-btn.square-btn {
   background: var(--surface-2);
   /* The swatch dot already has its ring: no second inner border. */
   box-shadow: none;
