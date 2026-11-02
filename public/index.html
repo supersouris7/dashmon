@@ -72,6 +72,7 @@
           var theme = localStorage.getItem("dashmon.theme");
           if (theme) docEl.setAttribute("data-theme", theme);
           var vars = localStorage.getItem("dashmon.themeVars");
+          if (vars) vars = vars.replace(/--warning:\s*#f5c542/gi, "--warning:#ff8a1f");
           if (vars) {
             var preload = document.createElement("style");
             preload.textContent = ":root{" + vars + "}";

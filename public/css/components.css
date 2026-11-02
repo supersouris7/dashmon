@@ -561,6 +561,10 @@ body.is-refreshing .widget-status {
   color: var(--error);
 }
 
+.widget-badge.warn {
+  color: var(--warning);
+}
+
 .widget-badge.pending {
   opacity: 0.6;
 }

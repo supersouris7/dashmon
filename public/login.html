@@ -12,6 +12,7 @@
           var root = document.documentElement;
           var theme = localStorage.getItem("dashmon.theme");
           var vars = localStorage.getItem("dashmon.themeVars");
+          if (vars) vars = vars.replace(/--warning:\s*#f5c542/gi, "--warning:#ff8a1f");
           if (theme) root.dataset.theme = theme;
           if (vars) {
             var style = document.createElement("style");
