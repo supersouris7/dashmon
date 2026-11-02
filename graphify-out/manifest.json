@@ -103,9 +103,9 @@
     "semantic_hash": ""
   },
   "public/js/i18n.js": {
-    "mtime": 1793558251.426725,
-    "seen": 1793558519.5649111,
-    "ast_hash": "5fbdadec3a4ecfa1593ba08e9103326e",
+    "mtime": 1793611842.1789765,
+    "seen": 1793612384.7956102,
+    "ast_hash": "72c5e036ecaea87c84b31371188ba185",
     "semantic_hash": ""
   },
   "public/js/images.js": {
@@ -566,15 +566,15 @@
     "semantic_hash": ""
   },
   "public/index.html": {
-    "mtime": 1793558251.426725,
-    "seen": 1793558519.5652983,
-    "ast_hash": "66e7afbdd75faa950471619f16367d36",
+    "mtime": 1793611835.1029391,
+    "seen": 1793612384.796223,
+    "ast_hash": "292d127de81d51d926ca05b28371ce35",
     "semantic_hash": ""
   },
   "public/login.html": {
-    "mtime": 1793370686.779756,
-    "seen": 1793370736.404955,
-    "ast_hash": "d545efc277ca249918b05506c1ef051e",
+    "mtime": 1793610751.9808218,
+    "seen": 1793612384.7962277,
+    "ast_hash": "a34e01ffbbe861affb53179c346b810c",
     "semantic_hash": ""
   },
   "public/images/fortunecookie.png": {
@@ -704,9 +704,9 @@
     "semantic_hash": ""
   },
   "test/browser.test.js": {
-    "mtime": 1793545062.1322668,
-    "seen": 1793545270.5539565,
-    "ast_hash": "0106d1b718c87f45db7d675b90f6c579",
+    "mtime": 1793612333.5429227,
+    "seen": 1793612384.7957618,
+    "ast_hash": "b454cc1dd7af6576110ce44101646c8c",
     "semantic_hash": ""
   },
   "test/editor-draft.test.js": {
@@ -1148,9 +1148,9 @@
     "semantic_hash": ""
   },
   "public/js/editor/pairing.js": {
-    "mtime": 1793373455.6423397,
-    "seen": 1793460511.1976855,
-    "ast_hash": "130db4c34ba15668f72b5172f8701d30",
+    "mtime": 1793611842.1789765,
+    "seen": 1793612384.795572,
+    "ast_hash": "d36214d2d693956f07cd1b1fa9fe4148",
     "semantic_hash": ""
   },
   "public/js/editor/replication-draft.js": {
@@ -1184,15 +1184,15 @@
     "semantic_hash": ""
   },
   "public/js/i18n/en.json": {
-    "mtime": 1793558251.438725,
-    "seen": 1793558519.5649142,
-    "ast_hash": "183d4f8f0adaf728ab545f9ce588ab96",
+    "mtime": 1793611842.1789765,
+    "seen": 1793612384.7956147,
+    "ast_hash": "ffb44d00eb174d21d5bd6780360ff041",
     "semantic_hash": ""
   },
   "public/js/i18n/fr.json": {
-    "mtime": 1793558251.426725,
-    "seen": 1793558519.5649173,
-    "ast_hash": "f3b9ba57f5c6753bc530dabfbb026d19",
+    "mtime": 1793611842.1789765,
+    "seen": 1793612384.7956197,
+    "ast_hash": "e610ebb23c5116a99d7e6f996987fc9b",
     "semantic_hash": ""
   },
   "public/js/supervision/apt-card.js": {
@@ -1244,9 +1244,9 @@
     "semantic_hash": ""
   },
   "public/js/editor/agent-settings.js": {
-    "mtime": 1793371737.9001513,
-    "seen": 1793371837.5923297,
-    "ast_hash": "6b91ed07191c1c285c445b2bf5de9390",
+    "mtime": 1793611842.1789765,
+    "seen": 1793612384.7955048,
+    "ast_hash": "dd9ba177ecd02fbd52b1cb38b0f36b0c",
     "semantic_hash": ""
   },
   "public/js/editor/host-settings.js": {

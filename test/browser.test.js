@@ -177,6 +177,36 @@ async function main() {
     0
   );
   await evaluate("document.querySelector('.settings-branch summary').click()");
+  // Layout of the settings: one control height, nothing wider than its panel,
+  // a title on each panel, the empty image list on one line.
+  for (const panel of ["webLinksPanel", "hostsPanel", "imagesPanel", "appearancePanel"]) {
+    await evaluate(`document.querySelector('[data-panel=${panel}]').click()`);
+    await wait(150);
+    assert.deepEqual(
+      await evaluate(
+        `[...new Set([...document.querySelectorAll('#${panel} :is(.edit-input,.edit-select,.action-btn,.labelled-btn)')].filter(e=>e.getClientRects().length).map(e=>Math.round(e.getBoundingClientRect().height)))]`
+      ),
+      [38],
+      panel
+    );
+    assert.equal(
+      await evaluate(
+        `(()=>{const p=document.querySelector('#${panel}');const r=p.getBoundingClientRect();return p.scrollWidth<=p.clientWidth&&[...p.querySelectorAll('*')].every(e=>e.getBoundingClientRect().right<=r.right+1)})()`
+      ),
+      true,
+      panel
+    );
+    assert.notEqual(
+      await evaluate(`document.querySelector('#${panel} .settings-panel-title').textContent`),
+      "",
+      panel
+    );
+  }
+  assert.ok(
+    (await evaluate(
+      "document.querySelector('.image-manager-empty')?.getBoundingClientRect().height"
+    )) < 40
+  );
   await evaluate("document.querySelector('[data-panel=appearancePanel]').click()");
   assert.equal(
     await evaluate(

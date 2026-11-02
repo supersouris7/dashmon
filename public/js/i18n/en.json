@@ -30,6 +30,7 @@
   "agentDocumentation": "Agent documentation",
   "configConflict": "Configuration changed in another tab. Reload the page before retrying.",
   "agentIntegrationDocs": "Integration guides",
+  "labelSeparator": ":",
   "localHostRequired": "The local host is always monitored.",
   "agentTabName": "Tab name (optional)",
   "agentHostLabel": "Associated host",

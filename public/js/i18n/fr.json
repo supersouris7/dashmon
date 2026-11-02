@@ -30,6 +30,7 @@
   "agentDocumentation": "Documentation des agents",
   "configConflict": "La configuration a changé dans un autre onglet. Rechargez la page avant de réessayer.",
   "agentIntegrationDocs": "Guides d’intégration",
+  "labelSeparator": " :",
   "localHostRequired": "L’hôte local est toujours supervisé.",
   "agentTabName": "Nom de l’onglet (facultatif)",
   "agentHostLabel": "Hôte associé",

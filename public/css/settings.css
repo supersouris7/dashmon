@@ -58,8 +58,17 @@
 }
 
 .settings-page .settings-children .edit-tab {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   width: 100%;
+}
+
+/* Fixed icon column: every label of the tree starts at the same x, and a
+   label on two lines wraps under its own text, not under the icon. */
+.settings-page .edit-tab > i {
+  flex: 0 0 1.25em;
+  text-align: center;
 }
 
 .settings-page .edit-tab:disabled {
@@ -70,7 +79,44 @@
 .host-settings {
   display: grid;
   gap: 16px;
+}
+
+/* Forms keep one readable width; lists (applications, links, hosts...) use
+   the whole panel. */
+.settings-page :is(.host-settings, .appearance-content, .import-export-panel) {
   max-width: 760px;
+}
+
+/* One label column for every settings form (appearance, local host, agents). */
+.settings-page :is(.appearance-field, .host-settings .host-monitor-field) {
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.settings-page :is(.appearance-field > span, .host-settings .host-monitor-field > span) {
+  color: var(--text);
+  font-weight: 400;
+}
+
+/* One control height in the whole dialog: buttons match the 38 px of the
+   fields (components.css raises toolbar buttons to 40 px), and the close
+   button is a square. */
+.settings-page :is(.action-btn, .modal-close) {
+  min-height: 38px;
+}
+
+.settings-page .modal-close {
+  width: 38px;
+  height: 38px;
+}
+
+/* Same title on every panel, taken from its menu entry. */
+.settings-panel-title {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 .host-settings-section {
@@ -119,6 +165,8 @@
   min-width: 0;
   padding: 24px;
   overflow: auto;
+  /* Lists adapt to the panel width, not the window (see .web-link-row). */
+  container-type: inline-size;
 }
 
 .settings-page .editor-footer {
@@ -164,4 +212,11 @@
 /* Appearance settings apply at once: the Cancel / Save footer is hidden. */
 .editor-footer.editor-footer-hidden {
   display: none;
+}
+
+/* Links of the panels (pairing guides...) follow the theme, not the browser
+   default blue. */
+.settings-page .edit-panel a {
+  color: var(--accent);
+  text-underline-offset: 2px;
 }

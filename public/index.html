@@ -264,30 +264,30 @@
             </summary>
             <div class="settings-children">
               <button class="edit-tab" type="button" data-panel="dashboardsPanel">
-                <i class="fa-solid fa-grip"></i>&nbsp;
+                <i class="fa-solid fa-grip"></i>
                 <span id="editorTabDashboards">Dashboards</span>
               </button>
               <button class="edit-tab" type="button" data-panel="categoriesPanel">
-                <i class="fa-solid fa-tags"></i>&nbsp;
+                <i class="fa-solid fa-tags"></i>
                 <span id="editorTabCategories">Catégories</span>
               </button>
               <button class="edit-tab active" type="button" data-panel="servicesPanel">
-                <i class="fa-solid fa-cubes"></i>&nbsp;
+                <i class="fa-solid fa-cubes"></i>
                 <span id="editorTabApplications">Applications</span>
               </button>
               <button class="edit-tab" type="button" data-panel="widgetsPanel">
-                <i class="fa-solid fa-puzzle-piece"></i>&nbsp;
+                <i class="fa-solid fa-puzzle-piece"></i>
                 <span id="editorTabWidgets">Widgets</span>
               </button>
               <button class="edit-tab" type="button" data-panel="webLinksPanel">
-                <i class="fa-solid fa-globe"></i>&nbsp;
+                <i class="fa-solid fa-globe"></i>
                 <span id="editorTabWebLinks">Liens web</span>
               </button>
               <button class="edit-tab" type="button" data-panel="imagesPanel">
-                <i class="fa-regular fa-images"></i>&nbsp; <span id="editorTabImages">Images</span>
+                <i class="fa-regular fa-images"></i> <span id="editorTabImages">Images</span>
               </button>
               <button class="edit-tab" type="button" data-panel="hostsPanel">
-                <i class="fa-solid fa-server"></i>&nbsp;
+                <i class="fa-solid fa-server"></i>
                 <span id="editorTabHosts">Apparence des hôtes</span>
               </button>
             </div>
@@ -298,7 +298,7 @@
             </summary>
             <div class="settings-children">
               <button class="edit-tab" type="button" data-panel="appearancePanel">
-                <i class="fa-solid fa-palette"></i>&nbsp;
+                <i class="fa-solid fa-palette"></i>
                 <span id="editorTabAppearance">Thème et préférences</span>
               </button>
             </div>
@@ -309,7 +309,7 @@
             </summary>
             <div class="settings-children">
               <button class="edit-tab" type="button" data-panel="replicationPanel">
-                <i class="fa-solid fa-circle-nodes"></i>&nbsp;
+                <i class="fa-solid fa-circle-nodes"></i>
                 <span id="editorTabPairing">Pairage</span>
               </button>
             </div>
@@ -320,6 +320,7 @@
             </summary>
             <div class="settings-children">
               <button class="edit-tab" type="button" data-panel="localHostPanel">
+                <i class="fa-solid fa-computer"></i>
                 <span id="settingsLocalHost">Local</span>
               </button>
               <div id="settingsAgentTree"></div>
@@ -331,7 +332,7 @@
             </summary>
             <div class="settings-children">
               <button class="edit-tab" type="button" data-panel="importExportPanel">
-                <i class="fa-solid fa-file-import"></i>&nbsp;
+                <i class="fa-solid fa-file-import"></i>
                 <span id="editorTabImportExport">Import / Export</span>
               </button>
             </div>
@@ -339,6 +340,7 @@
         </nav>
 
         <div id="servicesPanel" class="edit-panel active">
+          <h2 class="settings-panel-title" data-title-key="tabApplications"></h2>
           <div class="editor-filterbar">
             <div class="editor-search">
               <i class="fa-solid fa-magnifying-glass"></i>
@@ -366,10 +368,12 @@
         </div>
 
         <div id="widgetsPanel" class="edit-panel">
+          <h2 class="settings-panel-title" data-title-key="tabWidgets"></h2>
           <div id="widgetsEditor" class="edit-list"></div>
         </div>
 
         <div id="categoriesPanel" class="edit-panel">
+          <h2 class="settings-panel-title" data-title-key="tabCategories"></h2>
           <div id="categoryEditor" class="edit-list"></div>
           <div class="editor-actions">
             <button id="addCategoryBtn" class="action-btn" type="button">
@@ -379,6 +383,7 @@
         </div>
 
         <div id="dashboardsPanel" class="edit-panel">
+          <h2 class="settings-panel-title" data-title-key="tabDashboards"></h2>
           <div id="dashboardEditor" class="edit-list"></div>
           <div class="editor-actions">
             <button id="addDashboardBtn" class="action-btn" type="button">
@@ -388,6 +393,7 @@
         </div>
 
         <div id="hostsPanel" class="edit-panel">
+          <h2 class="settings-panel-title" data-title-key="hostAppearance"></h2>
           <div id="hostEditor" class="edit-list"></div>
           <div class="editor-actions">
             <button id="addHostBtn" class="action-btn" type="button">
@@ -397,11 +403,12 @@
         </div>
 
         <div id="localHostPanel" class="edit-panel">
-          <h2 id="localHostTitle">Local</h2>
+          <h2 class="settings-panel-title" data-title-key="settingsLocalHost"></h2>
           <div id="localHostEditor"></div>
         </div>
 
         <div id="webLinksPanel" class="edit-panel">
+          <h2 class="settings-panel-title" data-title-key="tabWebLinks"></h2>
           <div id="webLinksEditor" class="edit-list"></div>
           <div class="editor-actions">
             <button id="addWebLinkBtn" class="action-btn" type="button">
@@ -411,6 +418,7 @@
         </div>
 
         <div id="imagesPanel" class="edit-panel">
+          <h2 class="settings-panel-title" data-title-key="tabImages"></h2>
           <div class="image-manager-toolbar">
             <button id="manageUploadBtn" class="action-btn" type="button">
               <i class="fa-solid fa-plus"></i>&nbsp;
@@ -432,6 +440,7 @@
         </div>
 
         <div id="importExportPanel" class="edit-panel">
+          <h2 class="settings-panel-title" data-title-key="tabImportExport"></h2>
           <div class="import-export-panel">
             <p id="importExportHint" class="import-export-hint">
               Importez ou exportez la configuration complète de Dashmon.
@@ -451,16 +460,18 @@
         </div>
 
         <div id="replicationPanel" class="edit-panel">
+          <h2 class="settings-panel-title" data-title-key="tabPairing"></h2>
           <div id="replicationEditor" class="edit-list"></div>
         </div>
 
         <div id="remoteAgentPanel" class="edit-panel">
-          <h2 id="remoteAgentTitle"></h2>
+          <h2 id="remoteAgentTitle" class="settings-panel-title"></h2>
           <p id="remoteAgentStatus" role="status"></p>
           <div id="remoteAgentEditor"></div>
         </div>
 
         <div id="appearancePanel" class="edit-panel">
+          <h2 class="settings-panel-title" data-title-key="settingsPreferences"></h2>
           <p id="appearanceSaveHint" class="upload-hint">
             Ces préférences sont enregistrées immédiatement.
           </p>

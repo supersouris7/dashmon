@@ -32,7 +32,7 @@ export function renderPairingEditor({
   integrations.className = "agent-doc-links";
   integrations.setAttribute("aria-label", t("agentIntegrationDocs"));
   const docsLabel = document.createElement("span");
-  docsLabel.textContent = t("agentIntegrationDocs") + " :";
+  docsLabel.textContent = t("agentIntegrationDocs") + t("labelSeparator");
   integrations.appendChild(docsLabel);
   for (const [file, label] of [
     ["WIREGUARD.md", "WireGuard"],

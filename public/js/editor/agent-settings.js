@@ -51,7 +51,12 @@ export function createAgentSettings() {
         button.className = "edit-tab";
         button.dataset.panel = "remoteAgentPanel";
         button.dataset.agentUrl = entry.url;
-        button.textContent = entry.name || new URL(entry.url).hostname;
+        const icon = document.createElement("i");
+        icon.className = "fa-solid fa-network-wired";
+        icon.setAttribute("aria-hidden", "true");
+        const label = document.createElement("span");
+        label.textContent = entry.name || new URL(entry.url).hostname;
+        button.append(icon, label);
         button.disabled = !savedUrls.includes(entry.url);
         if (button.disabled) button.title = t("agentSavePairFirst");
         if (

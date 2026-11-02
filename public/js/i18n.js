@@ -45,7 +45,6 @@ export function applyLanguage() {
   for (const [id, key] of [
     ["settingsDashboard", "settingsDashboard"],
     ["settingsLocalHost", "settingsLocalHost"],
-    ["localHostTitle", "settingsLocalHost"],
     ["settingsHosts", "settingsSupervision"],
     ["settingsAgents", "settingsAgents"],
     ["settingsAdministration", "settingsAdministration"],
@@ -121,6 +120,9 @@ export function applyLanguage() {
     const el = document.getElementById(id);
     if (el) el.textContent = t(key);
   });
+  // Each settings panel repeats the name of its menu entry as its title.
+  for (const title of document.querySelectorAll(".settings-panel-title[data-title-key]"))
+    title.textContent = t(title.dataset.titleKey);
 
   document.getElementById("manageUploadHint").textContent = t("pngOnlyHint");
   document.getElementById("uploadPngHint").textContent = t("pngOnlyHint");

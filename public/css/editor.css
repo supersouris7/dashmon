@@ -193,11 +193,11 @@ body.modal-open {
      ajoutent. Sans colonnes explicites, un element deborderait dans une
      colonne implicite et la ligne sortirait de sa largeur (width:max-content),
      ce qui fausse toute la mise en page des reglages. */
-  grid-template-columns: 30px minmax(150px, 220px) minmax(120px, 1fr) auto auto auto;
+  grid-template-columns: 30px minmax(150px, 1fr) minmax(120px, 240px) auto auto auto;
   gap: 8px;
   align-items: center;
-  width: max-content;
-  max-width: 100%;
+  /* Full width, like the dashboard, host and web link rows. */
+  width: 100%;
 }
 
 .dashboard-row {
@@ -335,6 +335,10 @@ body.modal-open {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.45;
+}
+
+.import-export-status:empty {
+  display: none;
 }
 
 .import-export-status {
@@ -808,18 +812,29 @@ body.modal-open {
 .edit-panel .labelled-btn.labelled-btn {
   width: auto;
   min-width: 0;
-  height: 34px;
-  min-height: 34px;
+  /* Same height as the fields of the row (.edit-input / .edit-select). */
+  height: 38px;
+  min-height: 38px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 0 10px;
-  font-size: 12px;
+  padding: 0 12px;
+  border-radius: 3px;
+  font-size: 14px;
   white-space: nowrap;
+}
+
+/* Fixed icon box: the button keeps one width whatever the glyph, so the
+   columns of successive rows line up. */
+.edit-panel .labelled-btn > i {
+  width: 1.25em;
+  text-align: center;
 }
 
 .color-swatch-btn.labelled-btn {
   background: var(--surface-2);
+  /* The swatch dot already has its ring: no second inner border. */
+  box-shadow: none;
 }
 
 .swatch-dot {
