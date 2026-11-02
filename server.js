@@ -65,13 +65,10 @@ const { log } = require("./lib/log");
 // Upper bound for one outgoing check, shared by the core and the plugins.
 const STATUS_TIMEOUT = 4000;
 
-function createApp() {
-  const settings = readSettings(process.env, { root: __dirname });
-  const version = describeVersion(settings);
+// --- Services --------------------------------------------------------------
+
+function createServices(settings) {
   const { agentMode } = settings;
-
-  // --- Services ----------------------------------------------------------
-
   // Widget secrets are encrypted at rest with DASHMON_MASTER_KEY, required in
   // the main dashboard (see lib/config/settings.js).
   const secrets = createSecretCodec(settings.masterKey);
@@ -125,9 +122,27 @@ function createApp() {
   setInterval(() => failures.cleanup(), 300000).unref();
   const limits = createRequestLimits();
 
-  // --- Express pipeline (order matters) ------------------------------------
+  return {
+    widgetCore,
+    configRepository,
+    readConfig,
+    pairing,
+    normalizeConfig,
+    statusMonitor,
+    hostMetrics,
+    auth,
+    failures,
+    limits
+  };
+}
 
-  const app = express();
+// --- Express pipeline (order matters) ----------------------------------------
+
+// Parsing, security headers, origin check, rate limits, then the
+// authentication of the mode: sync token on an agent, session on the main
+// dashboard.
+function applySecurity(app, settings, { auth, failures, limits }) {
+  const { agentMode } = settings;
   if (settings.trustProxy > 0) app.set("trust proxy", settings.trustProxy);
   app.disable("x-powered-by");
   app.use(express.json({ limit: "1mb", strict: true }));
@@ -157,7 +172,20 @@ function createApp() {
     });
   }
   app.use(requestLog(log));
+}
 
+function registerRoutes(app, settings, version, services) {
+  const {
+    widgetCore,
+    configRepository,
+    readConfig,
+    pairing,
+    normalizeConfig,
+    statusMonitor,
+    hostMetrics,
+    auth
+  } = services;
+  const { agentMode } = settings;
   registerSystemRoutes(app, { settings, version, readConfig });
   registerWidgetRoutes(app, { widgetCore });
 
@@ -204,6 +232,17 @@ function createApp() {
 
   app.use(notFound);
   app.use(errorHandler(log));
+}
+
+function createApp() {
+  const settings = readSettings(process.env, { root: __dirname });
+  const version = describeVersion(settings);
+  const services = createServices(settings);
+  const { widgetCore, configRepository, readConfig, statusMonitor } = services;
+
+  const app = express();
+  applySecurity(app, settings, services);
+  registerRoutes(app, settings, version, services);
 
   // Once the widget schemas are known: secrets still stored in clear text
   // (installs that ran without a master key) are encrypted on disk.

@@ -220,11 +220,8 @@ function activityChart(activity) {
   return chart;
 }
 
-export function usageCard(host, metrics, source) {
-  const report = metrics[source.field];
-  const periods = report.periods || {};
-  const today = periods.today;
-  const month = periods.month || periods.all;
+// Card colour and status line: stale report, active today or idle.
+function usageHealth(report, today) {
   const age = report.fetchedAt ? Math.floor(Date.now() / 1000) - report.fetchedAt : null;
   const stale = age !== null && age > STALE_SECONDS;
   const active = (today?.steps || 0) > 0;
@@ -233,9 +230,11 @@ export function usageCard(host, metrics, source) {
     : active
       ? { level: "healthy", label: "opencodeActiveToday", icon: "fa-solid fa-circle-check" }
       : { level: "unknown", label: "opencodeIdleToday", icon: "fa-solid fa-moon" };
+  return { health, stale, age };
+}
 
-  const card = element("article", "supervision-card supervision-card-usage is-" + health.level);
-  applyHostColor(card, host);
+// The whole card folds and unfolds, except from the period buttons.
+function makeFoldable(card, host, source) {
   const key = cardKey(host);
   card.dataset[source.keyName] = key;
   const expanded = isExpanded(source.pref, key);
@@ -258,7 +257,9 @@ export function usageCard(host, metrics, source) {
     event.preventDefault();
     toggle();
   });
+}
 
+function usageHead(report, source) {
   const head = element("div", "supervision-head");
   const icon = element("i", source.icon);
   icon.setAttribute("aria-hidden", "true");
@@ -266,8 +267,10 @@ export function usageCard(host, metrics, source) {
   const chevron = element("i", "fa-solid fa-chevron-down supervision-smart-chevron");
   chevron.setAttribute("aria-hidden", "true");
   head.append(icon, element("span", "supervision-name", t(source.title)), badge, chevron);
-  card.appendChild(head);
+  return head;
+}
 
+function usageStatus(health, stale, age) {
   const status = element("div", "supervision-health");
   const stateLine = element("span", "supervision-health-state");
   const stateIcon = element("i", health.icon);
@@ -276,9 +279,11 @@ export function usageCard(host, metrics, source) {
   stateLine.append(stateIcon, label);
   status.appendChild(stateLine);
   if (stale) status.appendChild(element("span", "usage-age", relativeAge(age)));
-  card.appendChild(status);
+  return status;
+}
 
-  // Summary, always visible: today's tokens, then the last 30 days.
+// Summary, always visible: today's tokens, then the last 30 days.
+function usageSummary(card, periods, today, month) {
   const summary = element("div", "supervision-apt-summary usage-summary");
   const todayTokens = usedTokens(today?.tokens);
   const big = element("strong", "", tokensText(todayTokens));
@@ -303,9 +308,10 @@ export function usageCard(host, metrics, source) {
       facts.appendChild(element("span", "", text));
     card.appendChild(facts);
   }
+}
 
-  // Details: the chosen period.
-  const details = element("div", "usage-details");
+// Details: the figures of the chosen period, remembered per source.
+function periodDetails(periods, source) {
   const available = PERIODS.filter(name => periods[name]);
   let period = periodBySource.get(source.field) || "month";
   if (!periods[period]) period = available.includes("month") ? "month" : available[0];
@@ -344,9 +350,11 @@ export function usageCard(host, metrics, source) {
     });
     switcher.appendChild(button);
   }
-  details.append(switcher, body);
   renderPeriod();
+  return [switcher, body];
+}
 
+function activityDetails(report, periods, month) {
   const activitySource = (periods.month || periods.all)?.activity || [];
   const activityBox = element("div", "usage-activity-box");
   activityBox.append(sectionTitle("opencodeActivity"), activityChart(activitySource));
@@ -370,7 +378,24 @@ export function usageCard(host, metrics, source) {
     element("span", "", t("opencodeReportDate") + " : " + reportDateText(report.fetchedAt))
   );
   activityBox.appendChild(streak);
-  details.appendChild(activityBox);
+  return activityBox;
+}
+
+export function usageCard(host, metrics, source) {
+  const report = metrics[source.field];
+  const periods = report.periods || {};
+  const today = periods.today;
+  const month = periods.month || periods.all;
+  const { health, stale, age } = usageHealth(report, today);
+
+  const card = element("article", "supervision-card supervision-card-usage is-" + health.level);
+  applyHostColor(card, host);
+  makeFoldable(card, host, source);
+  card.append(usageHead(report, source), usageStatus(health, stale, age));
+  usageSummary(card, periods, today, month);
+
+  const details = element("div", "usage-details");
+  details.append(...periodDetails(periods, source), activityDetails(report, periods, month));
   card.appendChild(details);
   return card;
 }

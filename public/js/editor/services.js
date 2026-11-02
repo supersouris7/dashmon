@@ -91,6 +91,206 @@ function iconElement(className) {
   return icon;
 }
 
+// A select whose options are the given [value, label] pairs.
+function optionsSelect(choices, current) {
+  const select = document.createElement("select");
+  select.className = "edit-select";
+  choices.forEach(([value, label]) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    select.appendChild(option);
+  });
+  select.value = current;
+  return select;
+}
+
+// Host of the service. A host name that no longer exists stays selectable,
+// so opening the settings never changes a service by itself.
+function hostSelect(service, index, hostNames) {
+  const current = (service.host || "").trim();
+  const choices = [["", t("noHost")], ...hostNames.map(name => [name, name])];
+  if (current && !hostNames.includes(current)) choices.push([current, current]);
+  const host = optionsSelect(choices, current);
+  host.title = t("hostLabel");
+  host.addEventListener("change", () => {
+    state.editServices[index].host = host.value;
+  });
+  return host;
+}
+
+function categorySelect(service, index) {
+  const current = service.category || "Autres";
+  const names = [...new Set([...state.editCategories.map(c => c.name).filter(Boolean), current])];
+  const category = optionsSelect(
+    names.map(name => [name, name]),
+    current
+  );
+  category.addEventListener("change", () => {
+    state.editServices[index].category = category.value;
+  });
+  return category;
+}
+
+function textInput(value, placeholder, onInput) {
+  const input = document.createElement("input");
+  input.className = "edit-input";
+  input.placeholder = placeholder;
+  input.value = value || "";
+  input.addEventListener("input", () => onInput(input.value));
+  return input;
+}
+
+// Square tile at the start of the card, same format as the Images panel.
+function imageButton(service, index) {
+  const button = document.createElement("button");
+  button.className = "service-image-btn";
+  button.type = "button";
+  button.title = t("choosePng");
+  button.setAttribute("aria-label", t("choosePng"));
+  if (service.icon) {
+    const preview = document.createElement("img");
+    preview.src = service.icon;
+    preview.alt = "";
+    preview.onerror = () => preview.replaceWith(iconElement("fa-solid fa-image"));
+    button.append(preview);
+  } else {
+    button.append(iconElement("fa-solid fa-image"));
+  }
+  button.addEventListener("click", () =>
+    openImageLibrary(value => {
+      state.editServices[index].icon = value;
+      renderServiceEditor();
+    })
+  );
+  return button;
+}
+
+// Monitoring: a coloured dot (green monitored, orange non-critical, grey
+// off), cycled on click; the info bubble next to it explains the colours.
+function monitorControls(service, index) {
+  const monitorState =
+    service.monitor === false ? "off" : service.monitor === "soft" ? "soft" : "on";
+  const monitor = document.createElement("button");
+  monitor.className = `monitor-toggle monitor-${monitorState}`;
+  monitor.type = "button";
+  const dot = document.createElement("span");
+  dot.className = "monitor-dot";
+  setIconButton(
+    monitor,
+    dot,
+    t({ on: "monitorEnabled", soft: "monitorSoft", off: "monitorDisabled" }[monitorState])
+  );
+  monitor.setAttribute("aria-pressed", String(monitorState !== "off"));
+  monitor.addEventListener("click", () => {
+    const current = state.editServices[index].monitor;
+    state.editServices[index].monitor =
+      current === false ? true : current === "soft" ? false : "soft";
+    renderServiceEditor();
+  });
+  const help = document.createElement("span");
+  help.className = "monitor-help";
+  help.tabIndex = 0;
+  help.setAttribute("role", "img");
+  help.title = t("monitorHelp");
+  help.setAttribute("aria-label", t("monitorHelp"));
+  help.append(iconElement("fa-solid fa-circle-info"));
+  return [help, monitor];
+}
+
+function deleteButton(index) {
+  const remove = document.createElement("button");
+  remove.className = "small-icon-btn delete-btn";
+  remove.type = "button";
+  setDeleteIcon(remove, t("deleteLabel"));
+  remove.addEventListener("click", async () => {
+    if (!(await confirmDelete(t("confirmDeleteService")))) return;
+    state.editServices.splice(index, 1);
+    renderServiceEditor();
+  });
+  return remove;
+}
+
+// The widget menu is built from the registry: adding a widget needs no edit
+// here. Returns the block and a function that shows a widget picked from
+// the name of the service.
+function widgetControls(service, index) {
+  const wrap = document.createElement("div");
+  wrap.className = "service-widget";
+  const type = optionsSelect(
+    [
+      ["", t("widgetStandard")],
+      ...listWidgetMetas().map(meta => [meta.id, widgetLabel(meta, state.language)])
+    ],
+    hasWidgetType(service.widget) ? service.widget.type : ""
+  );
+  type.classList.add("widget-type");
+  type.title = t("widgetLabel");
+  type.setAttribute("aria-label", t("widgetLabel"));
+  type.addEventListener("change", () => {
+    // Changing widget: start again from the manifest defaults and keep only the
+    // keys both share (inheritWidgetConfig).
+    const edited = state.editServices[index];
+    manualWidgetChoices.add(edited);
+    edited.widget = type.value ? inheritWidgetConfig(type.value, service.widget) : null;
+    renderServiceEditor();
+  });
+
+  const configure = document.createElement("button");
+  configure.type = "button";
+  configure.className = "small-icon-btn widget-config-btn" + (service.widget ? "" : " disabled");
+  configure.title = service.widget ? t("widgetConfigTitle") : t("widgetConfigNone");
+  setIconButton(configure, "fa-solid fa-sliders", configure.title);
+  configure.addEventListener("click", () => {
+    if (service.widget) openWidgetConfig(index);
+  });
+  wrap.append(type, configure);
+
+  const showSuggested = widgetId => {
+    type.value = widgetId;
+    configure.classList.remove("disabled");
+    configure.title = t("widgetConfigTitle");
+  };
+  return { wrap, showSuggested };
+}
+
+function serviceRow(service, index, hostNames) {
+  const row = document.createElement("div");
+  row.className = "service-row";
+  row._serviceRef = service;
+
+  const widget = widgetControls(service, index);
+  // Typing a known application name proposes its widget, unless the user
+  // already chose one by hand.
+  const name = textInput(service.name, t("nameLabel"), value => {
+    const edited = state.editServices[index];
+    edited.name = value;
+    if (manualWidgetChoices.has(edited) || edited.widget) return;
+    const suggested = suggestedWidgetId(value);
+    if (!suggested) return;
+    edited.widget = inheritWidgetConfig(suggested, null);
+    widget.showSuggested(suggested);
+  });
+  const url = textInput(service.url, t("urlLabel"), value => {
+    state.editServices[index].url = value;
+  });
+
+  const actions = document.createElement("div");
+  actions.className = "service-actions";
+  actions.append(...monitorControls(service, index), deleteButton(index));
+
+  row.append(
+    imageButton(service, index),
+    serviceField(t("nameLabel"), name, "name"),
+    serviceField(t("urlLabel"), url, "url"),
+    serviceField(t("categoryLabel"), categorySelect(service, index), "category"),
+    serviceField(t("hostLabel"), hostSelect(service, index, hostNames), "host"),
+    serviceField(t("widgetLabel"), widget.wrap, "widget"),
+    actions
+  );
+  return row;
+}
+
 export function renderServiceEditor() {
   serviceEditor.innerHTML = "";
   refreshEditorCategoryFilter();
@@ -98,215 +298,20 @@ export function renderServiceEditor() {
   const search = normalize(editorSearch.value);
   const categoryFilter = editorCategoryFilter.value;
   const hostFilter = editorHostFilter.value;
-
   const hostNames = getEditorHostNames();
 
-  const sortedServices = state.editServices
+  state.editServices
     .map((service, index) => ({ service, index }))
-    .sort((a, b) => compareNames(a.service.name, b.service.name));
-
-  sortedServices.forEach(({ service, index }) => {
-    if (search && !normalize(service.name).includes(search)) return;
-    if (categoryFilter && (service.category || "Autres") !== categoryFilter) return;
-    if (hostFilter && (service.host || "") !== hostFilter) return;
-    const row = document.createElement("div");
-    row.className = "service-row";
-    row._serviceRef = service;
-
-    const name = document.createElement("input");
-    name.className = "edit-input";
-    name.placeholder = t("nameLabel");
-    name.value = service.name || "";
-    name.addEventListener("input", () => {
-      const edited = state.editServices[index];
-      edited.name = name.value;
-      if (manualWidgetChoices.has(edited) || edited.widget) return;
-      const suggested = suggestedWidgetId(name.value);
-      if (!suggested) return;
-      edited.widget = inheritWidgetConfig(suggested, null);
-      widgetType.value = suggested;
-      widgetConfigBtn.classList.remove("disabled");
-      widgetConfigBtn.title = t("widgetConfigTitle");
-    });
-
-    const host = document.createElement("select");
-    host.className = "edit-select";
-    host.title = t("hostLabel");
-
-    const currentHost = (service.host || "").trim();
-
-    const noHostOption = document.createElement("option");
-    noHostOption.value = "";
-    noHostOption.textContent = t("noHost");
-    host.appendChild(noHostOption);
-
-    hostNames.forEach(hostName => {
-      const option = document.createElement("option");
-      option.value = hostName;
-      option.textContent = hostName;
-      host.appendChild(option);
-    });
-
-    host.value = currentHost;
-    if (host.value !== currentHost) {
-      const fallback = document.createElement("option");
-      fallback.value = currentHost;
-      fallback.textContent = currentHost;
-      host.appendChild(fallback);
-      host.value = currentHost;
-    }
-
-    host.addEventListener("change", () => {
-      state.editServices[index].host = host.value;
-    });
-
-    const category = document.createElement("select");
-    category.className = "edit-select";
-    const categoryNames = [
-      ...new Set([
-        ...state.editCategories.map(c => c.name).filter(Boolean),
-        service.category || "Autres"
-      ])
-    ];
-    categoryNames.forEach(categoryName => {
-      const option = document.createElement("option");
-      option.value = categoryName;
-      option.textContent = categoryName;
-      if (categoryName === (service.category || "Autres")) option.selected = true;
-      category.appendChild(option);
-    });
-    category.addEventListener(
-      "change",
-      () => (state.editServices[index].category = category.value)
+    .sort((a, b) => compareNames(a.service.name, b.service.name))
+    .filter(
+      ({ service }) =>
+        (!search || normalize(service.name).includes(search)) &&
+        (!categoryFilter || (service.category || "Autres") === categoryFilter) &&
+        (!hostFilter || (service.host || "") === hostFilter)
+    )
+    .forEach(({ service, index }) =>
+      serviceEditor.appendChild(serviceRow(service, index, hostNames))
     );
-
-    const url = document.createElement("input");
-    url.className = "edit-input";
-    url.placeholder = t("urlLabel");
-    url.value = service.url || "";
-    url.addEventListener("input", () => (state.editServices[index].url = url.value));
-
-    // Square tile at the start of the card, same format as the Images panel.
-    const chooseIcon = document.createElement("button");
-    chooseIcon.className = "service-image-btn";
-    chooseIcon.type = "button";
-    chooseIcon.title = t("choosePng");
-    chooseIcon.setAttribute("aria-label", t("choosePng"));
-    if (service.icon) {
-      const preview = document.createElement("img");
-      preview.src = service.icon;
-      preview.alt = "";
-      preview.onerror = () => preview.replaceWith(iconElement("fa-solid fa-image"));
-      chooseIcon.append(preview);
-    } else {
-      chooseIcon.append(iconElement("fa-solid fa-image"));
-    }
-
-    chooseIcon.addEventListener("click", () =>
-      openImageLibrary(value => {
-        state.editServices[index].icon = value;
-        renderServiceEditor();
-      })
-    );
-
-    // Monitoring: a coloured dot (green monitored, orange non-critical, grey
-    // off), cycled on click; the info bubble next to it explains the colours.
-    const monitorState =
-      service.monitor === false ? "off" : service.monitor === "soft" ? "soft" : "on";
-    const monitor = document.createElement("button");
-    monitor.className = `monitor-toggle monitor-${monitorState}`;
-    monitor.type = "button";
-    const dot = document.createElement("span");
-    dot.className = "monitor-dot";
-    setIconButton(
-      monitor,
-      dot,
-      t({ on: "monitorEnabled", soft: "monitorSoft", off: "monitorDisabled" }[monitorState])
-    );
-    monitor.setAttribute("aria-pressed", String(monitorState !== "off"));
-    const monitorHelp = document.createElement("span");
-    monitorHelp.className = "monitor-help";
-    monitorHelp.tabIndex = 0;
-    monitorHelp.setAttribute("role", "img");
-    monitorHelp.title = t("monitorHelp");
-    monitorHelp.setAttribute("aria-label", t("monitorHelp"));
-    monitorHelp.append(iconElement("fa-solid fa-circle-info"));
-    monitor.addEventListener("click", () => {
-      const current = state.editServices[index].monitor;
-      state.editServices[index].monitor =
-        current === false ? true : current === "soft" ? false : "soft";
-      renderServiceEditor();
-    });
-
-    const remove = document.createElement("button");
-    remove.className = "small-icon-btn delete-btn";
-    remove.type = "button";
-    setDeleteIcon(remove, t("deleteLabel"));
-    remove.addEventListener("click", async () => {
-      if (!(await confirmDelete(t("confirmDeleteService")))) return;
-      state.editServices.splice(index, 1);
-      renderServiceEditor();
-    });
-
-    const actions = document.createElement("div");
-    actions.className = "service-actions";
-    actions.append(monitorHelp, monitor, remove);
-
-    const widgetWrap = document.createElement("div");
-    widgetWrap.className = "service-widget";
-
-    // The widget menu is built from the registry: adding a widget needs no edit
-    // here.
-    const widgetType = document.createElement("select");
-    widgetType.className = "edit-select widget-type";
-    widgetType.title = t("widgetLabel");
-    [
-      ["", t("widgetStandard")],
-      ...listWidgetMetas().map(meta => [meta.id, widgetLabel(meta, state.language)])
-    ].forEach(([value, label]) => {
-      const option = document.createElement("option");
-      option.value = value;
-      option.textContent = label;
-      widgetType.appendChild(option);
-    });
-    widgetType.value = hasWidgetType(service.widget) ? service.widget.type : "";
-    widgetType.addEventListener("change", () => {
-      // Changing widget: start again from the manifest defaults and keep only the
-      // keys both share (inheritWidgetConfig).
-      const edited = state.editServices[index];
-      manualWidgetChoices.add(edited);
-      edited.widget = widgetType.value
-        ? inheritWidgetConfig(widgetType.value, service.widget)
-        : null;
-      renderServiceEditor();
-    });
-    widgetWrap.appendChild(widgetType);
-
-    const widgetConfigBtn = document.createElement("button");
-    widgetConfigBtn.type = "button";
-    widgetConfigBtn.className =
-      "small-icon-btn widget-config-btn" + (service.widget ? "" : " disabled");
-    widgetConfigBtn.title = service.widget ? t("widgetConfigTitle") : t("widgetConfigNone");
-    setIconButton(widgetConfigBtn, "fa-solid fa-sliders", widgetConfigBtn.title);
-    widgetConfigBtn.addEventListener("click", () => {
-      if (service.widget) {
-        openWidgetConfig(index);
-      }
-    });
-    widgetWrap.appendChild(widgetConfigBtn);
-
-    widgetType.setAttribute("aria-label", t("widgetLabel"));
-    row.append(
-      chooseIcon,
-      serviceField(t("nameLabel"), name, "name"),
-      serviceField(t("urlLabel"), url, "url"),
-      serviceField(t("categoryLabel"), category, "category"),
-      serviceField(t("hostLabel"), host, "host"),
-      serviceField(t("widgetLabel"), widgetWrap, "widget"),
-      actions
-    );
-    serviceEditor.appendChild(row);
-  });
 }
 
 addServiceBtn.addEventListener("click", () => {

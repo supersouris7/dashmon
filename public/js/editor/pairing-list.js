@@ -15,6 +15,114 @@ function setStatus(status, state, text) {
   status.replaceChildren(icon, document.createTextNode(text));
 }
 
+const TEST_FAILURES = {
+  token_missing: "agentTokenMissing",
+  unauthorized: "agentUnauthorized",
+  invalid_url: "agentInvalidUrl",
+  invalid_response: "agentInvalidResponse",
+  incompatible_protocol: "agentIncompatible"
+};
+
+// Asks the server to reach the agent with the sync token, and shows the
+// outcome next to the button.
+async function testAgent(entry, button, status) {
+  const target = agentUrl(entry.url);
+  if (!target) {
+    setStatus(status, "error", t("agentInvalidUrl"));
+    return;
+  }
+  button.disabled = true;
+  setStatus(status, "pending", t("agentTesting"));
+  try {
+    const response = await fetch("/api/agents/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: target })
+    });
+    const result = await response.json();
+    setStatus(
+      status,
+      result.ok ? "ok" : "error",
+      t(result.ok ? "agentConnected" : TEST_FAILURES[result.reason] || "agentUnreachable")
+    );
+  } catch (_error) {
+    setStatus(status, "error", t("agentUnreachable"));
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function button(text, className) {
+  const element = document.createElement("button");
+  element.type = "button";
+  element.className = className;
+  element.textContent = text;
+  return element;
+}
+
+// Host whose colour and icon dress the agent tab. A host deleted since is
+// dropped from the pairing.
+function agentHostSelect(entry, hostChoices, syncPairs) {
+  const select = document.createElement("select");
+  select.className = "edit-select";
+  select.title = t("agentHostLabel");
+  for (const [value, label] of [
+    ["", t("agentHostNone")],
+    ...hostChoices().map(host => [host.id, host.name])
+  ]) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    select.appendChild(option);
+  }
+  select.value = entry.host || "";
+  if (select.value !== (entry.host || "")) {
+    entry.host = "";
+    syncPairs();
+  }
+  select.addEventListener("change", () => {
+    entry.host = select.value;
+    syncPairs();
+  });
+  return select;
+}
+
+// Address of the agent, checked as it is typed and completed on blur
+// ("192.0.2.4:8080" becomes "http://192.0.2.4:8080/"). Typing clears the
+// result of a previous test.
+function agentUrlInput(entry, syncPairs, status) {
+  const input = document.createElement("input");
+  input.className = "edit-input";
+  input.placeholder = "https://agent.exemple.lan:8080";
+  input.maxLength = 300;
+  input.value = entry.url || "";
+  const invalid = document.createElement("p");
+  invalid.className = "host-monitor-hint agent-url-error";
+  invalid.textContent = t("agentInvalidUrl");
+  invalid.hidden = true;
+  const validate = () => {
+    const raw = String(entry.url || "").trim();
+    const ok = !raw || Boolean(agentUrl(raw));
+    input.setAttribute("aria-invalid", String(!ok));
+    invalid.hidden = ok;
+  };
+  input.addEventListener("input", () => {
+    entry.url = input.value;
+    syncPairs();
+    validate();
+    status.className = "agent-test-status";
+    status.replaceChildren();
+  });
+  input.addEventListener("blur", () => {
+    const normalized = agentUrl(entry.url);
+    if (normalized) entry.url = normalized;
+    input.value = entry.url || "";
+    syncPairs();
+    validate();
+  });
+  return { input, invalid, validate };
+}
+
 // Rows of the pairing list. The draft and the save remain the responsibility
 // of the editor, which provides the callbacks.
 export function createPairingList({
@@ -26,6 +134,49 @@ export function createPairingList({
   monitoringField,
   setAddDisabled
 }) {
+  function row(entry, index) {
+    const item = document.createElement("div");
+    item.className = "agent-editor-item";
+    const status = document.createElement("span");
+    status.className = "agent-test-status";
+    status.setAttribute("role", "status");
+    const url = agentUrlInput(entry, syncPairs, status);
+
+    const nameInput = document.createElement("input");
+    nameInput.className = "edit-input";
+    nameInput.maxLength = 100;
+    nameInput.placeholder = t("agentTabName");
+    nameInput.value = entry.name || "";
+    nameInput.addEventListener("input", () => {
+      entry.name = nameInput.value;
+      syncPairs();
+    });
+
+    const test = button(t("agentTest"), "action-btn");
+    test.addEventListener("click", () => testAgent(entry, test, status));
+    const remove = button(t("agentRemove"), "action-btn danger");
+    remove.addEventListener("click", async () => {
+      if (!(await confirmDelete(t("confirmDeleteAgent")))) return;
+      entries.splice(index, 1);
+      syncPairs();
+      render();
+      setAddDisabled(entries.length >= 20);
+    });
+    const actions = document.createElement("div");
+    actions.className = "agent-editor-actions";
+    actions.append(test, remove, status);
+
+    item.append(
+      monitoringField(t("agentUrlLabel"), url.input),
+      url.invalid,
+      monitoringField(t("agentTabName"), nameInput),
+      monitoringField(t("agentHostLabel"), agentHostSelect(entry, hostChoices, syncPairs)),
+      actions
+    );
+    list.appendChild(item);
+    url.validate();
+  }
+
   function render() {
     list.replaceChildren();
     if (!entries.length) {
@@ -35,135 +186,7 @@ export function createPairingList({
       list.appendChild(empty);
       return;
     }
-    entries.forEach((entry, index) => {
-      const item = document.createElement("div");
-      item.className = "agent-editor-item";
-      const urlInput = document.createElement("input");
-      urlInput.className = "edit-input";
-      urlInput.placeholder = "https://agent.exemple.lan:8080";
-      urlInput.maxLength = 300;
-      urlInput.value = entry.url || "";
-      const invalid = document.createElement("p");
-      invalid.className = "host-monitor-hint agent-url-error";
-      invalid.textContent = t("agentInvalidUrl");
-      invalid.hidden = true;
-      const validate = () => {
-        const raw = String(entry.url || "").trim();
-        const ok = !raw || Boolean(agentUrl(raw));
-        urlInput.setAttribute("aria-invalid", String(!ok));
-        invalid.hidden = ok;
-      };
-      const nameInput = document.createElement("input");
-      nameInput.className = "edit-input";
-      nameInput.maxLength = 100;
-      nameInput.placeholder = t("agentTabName");
-      nameInput.value = entry.name || "";
-      nameInput.addEventListener("input", () => {
-        entry.name = nameInput.value;
-        syncPairs();
-      });
-
-      const hostSelect = document.createElement("select");
-      hostSelect.className = "edit-select";
-      hostSelect.title = t("agentHostLabel");
-      const noHost = document.createElement("option");
-      noHost.value = "";
-      noHost.textContent = t("agentHostNone");
-      hostSelect.appendChild(noHost);
-      hostChoices().forEach(host => {
-        const option = document.createElement("option");
-        option.value = host.id;
-        option.textContent = host.name;
-        hostSelect.appendChild(option);
-      });
-      hostSelect.value = entry.host || "";
-      if (hostSelect.value !== (entry.host || "")) {
-        entry.host = "";
-        syncPairs();
-      }
-      hostSelect.addEventListener("change", () => {
-        entry.host = hostSelect.value;
-        syncPairs();
-      });
-
-      const status = document.createElement("span");
-      status.className = "agent-test-status";
-      status.setAttribute("role", "status");
-      const test = document.createElement("button");
-      test.type = "button";
-      test.className = "action-btn";
-      test.textContent = t("agentTest");
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.className = "action-btn danger";
-      remove.textContent = t("agentRemove");
-      remove.addEventListener("click", async () => {
-        if (!(await confirmDelete(t("confirmDeleteAgent")))) return;
-        entries.splice(index, 1);
-        syncPairs();
-        render();
-        setAddDisabled(entries.length >= 20);
-      });
-      urlInput.addEventListener("input", () => {
-        entry.url = urlInput.value;
-        syncPairs();
-        validate();
-        status.className = "agent-test-status";
-        status.replaceChildren();
-      });
-      urlInput.addEventListener("blur", () => {
-        const normalized = agentUrl(entry.url);
-        if (normalized) entry.url = normalized;
-        urlInput.value = entry.url || "";
-        syncPairs();
-        validate();
-      });
-      test.addEventListener("click", async () => {
-        const target = agentUrl(entry.url);
-        if (!target) {
-          setStatus(status, "error", t("agentInvalidUrl"));
-          return;
-        }
-        test.disabled = true;
-        setStatus(status, "pending", t("agentTesting"));
-        try {
-          const response = await fetch("/api/agents/test", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url: target })
-          });
-          const result = await response.json();
-          const reasons = {
-            token_missing: "agentTokenMissing",
-            unauthorized: "agentUnauthorized",
-            invalid_url: "agentInvalidUrl",
-            invalid_response: "agentInvalidResponse",
-            incompatible_protocol: "agentIncompatible"
-          };
-          setStatus(
-            status,
-            result.ok ? "ok" : "error",
-            t(result.ok ? "agentConnected" : reasons[result.reason] || "agentUnreachable")
-          );
-        } catch (_error) {
-          setStatus(status, "error", t("agentUnreachable"));
-        } finally {
-          test.disabled = false;
-        }
-      });
-      const actions = document.createElement("div");
-      actions.className = "agent-editor-actions";
-      actions.append(test, remove, status);
-      item.append(
-        monitoringField(t("agentUrlLabel"), urlInput),
-        invalid,
-        monitoringField(t("agentTabName"), nameInput),
-        monitoringField(t("agentHostLabel"), hostSelect),
-        actions
-      );
-      list.appendChild(item);
-      validate();
-    });
+    entries.forEach(row);
   }
   return render;
 }

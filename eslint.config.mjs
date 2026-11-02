@@ -29,6 +29,17 @@ export default [
       eqeqeq: ["error", "always", { null: "ignore" }]
     }
   },
+  // A function longer than this is split into named steps. Test scripts are
+  // long lists of checks and are left out.
+  {
+    ignores: ["test/**"],
+    rules: {
+      "max-lines-per-function": [
+        "error",
+        { max: 150, skipBlankLines: true, skipComments: true, IIFEs: true }
+      ]
+    }
+  },
   // Server, agent, widget backends and tests: CommonJS on Node.
   {
     files: ["**/*.js"],
