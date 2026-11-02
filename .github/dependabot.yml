@@ -1,16 +1,22 @@
 # The Node base image, the npm packages and the GitHub actions are pinned to
 # exact versions or digests; Dependabot proposes their updates as pull
-# requests, which the workflow checks before anything is merged.
+# requests, which the workflow checks before anything is merged. A release
+# is only proposed once it is a week old: time for a compromised package to
+# be found and pulled.
 version: 2
 updates:
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       dev-tools:
         dependency-type: development
@@ -18,3 +24,5 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
