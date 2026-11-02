@@ -308,6 +308,7 @@ export function normalizeConfig(cfg = {}) {
             name: sanitizeText(host.name, 100),
             icon: sanitizeIconClass(host.icon),
             color: sanitizeTileColor(host.color),
+            ...(host.tabIcon ? { tabIcon: sanitizeIconClass(host.tabIcon) } : {}),
             monitoring: normalizeHostMonitoring(host.monitoring)
           }))
         : derivedHosts.map(host => ({
@@ -330,6 +331,18 @@ export function normalizeConfig(cfg = {}) {
               Object.entries(cfg.replication.agentNames)
                 .map(([url, name]) => [sanitizeUrl(url), sanitizeText(name, 100)])
                 .filter(([url, name]) => url && name)
+            )
+          : {},
+      // Icon of each agent tab in the dashboard navigation (empty: default).
+      agentIcons:
+        cfg.replication?.agentIcons &&
+        typeof cfg.replication.agentIcons === "object" &&
+        !Array.isArray(cfg.replication.agentIcons)
+          ? Object.fromEntries(
+              Object.entries(cfg.replication.agentIcons)
+                .filter(([, icon]) => icon)
+                .map(([url, icon]) => [sanitizeUrl(url), sanitizeIconClass(icon)])
+                .filter(([url]) => url)
             )
           : {},
       // Each pairing points to a host of the editor: its colour and icon dress the

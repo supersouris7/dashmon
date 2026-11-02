@@ -411,9 +411,12 @@ body.modal-open {
   display: none;
   position: fixed;
   z-index: 1300;
-  width: 242px;
+  /* Five 40 px columns, padding and the vertical scrollbar: no horizontal
+     scrolling. */
+  width: 262px;
   max-height: 280px;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   grid-template-columns: repeat(5, 40px);
   gap: 6px;
   padding: 9px;

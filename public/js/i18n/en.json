@@ -29,6 +29,7 @@
   "agentHint": "Agents expose local supervision only. Configure the same DASHMON_SYNC_TOKEN on each agent and this instance. Only test trusted addresses: the token is sent to them.",
   "agentDocumentation": "Agent documentation",
   "configConflict": "Configuration changed in another tab. Reload the page before retrying.",
+  "tabIconLabel": "Tab icon",
   "agentIntegrationDocs": "Integration guides",
   "labelSeparator": ":",
   "localHostRequired": "The local host is always monitored.",

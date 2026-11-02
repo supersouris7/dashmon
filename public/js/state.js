@@ -19,6 +19,7 @@ export const state = {
     instanceName: "Dashmon",
     secondaries: [],
     agentNames: {},
+    agentIcons: {},
     agentHosts: {}
   },
   collapsed: {},

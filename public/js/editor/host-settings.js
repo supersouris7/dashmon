@@ -1,7 +1,10 @@
 // Same monitoring form for the primary and agents; only their save differs.
 import { t } from "../i18n.js";
+import { createTabIconPicker } from "./icon-picker.js";
 
-export function renderHostSettings(container, { config, metrics, onRename = () => {} }) {
+// tabIcon: { value, onChange } for the icon of the supervision tab in the
+// dashboard navigation; it is stored by the primary, not in the host config.
+export function renderHostSettings(container, { config, metrics, onRename = () => {}, tabIcon }) {
   container.replaceChildren();
   const form = document.createElement("div");
   form.className = "host-settings";
@@ -72,6 +75,11 @@ export function renderHostSettings(container, { config, metrics, onRename = () =
     config.name = value;
     onRename(value);
   });
+  if (tabIcon) {
+    const picker = createTabIconPicker(tabIcon.value, tabIcon.onChange);
+    picker.querySelector(".icon-picker-current").name = "tabIcon";
+    field(general, "tabIconLabel", picker);
+  }
   input(
     general,
     "hostDiskPath",

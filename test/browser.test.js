@@ -295,6 +295,14 @@ async function main() {
   await evaluate(
     "(()=>{const input=document.querySelector('#localHostEditor [name=agentHostName]');input.value='Hote principal';input.dispatchEvent(new Event('input',{bubbles:true}));})()"
   );
+  // Icon of the local supervision tab, chosen from the host form.
+  assert.equal(
+    await evaluate("document.querySelector('#localHostEditor .icon-picker-current i').className"),
+    "fa-solid fa-chart-simple"
+  );
+  await evaluate(
+    "(()=>{const p=document.querySelector('#localHostEditor .icon-picker');p.querySelector('.icon-picker-current').click();[...p.querySelectorAll('.icon-choice')].find(c=>c.querySelector('i').className==='fa-solid fa-house').click()})()"
+  );
   const localFields = await evaluate(
     "[...document.querySelectorAll('#localHostEditor input')].map(input=>input.name)"
   );
@@ -336,10 +344,11 @@ async function main() {
   );
   assert.deepEqual(
     await evaluate(
-      "fetch('/api/config').then(r=>r.json()).then(c=>{const host=c.hosts.find(h=>h.monitoring?.enabled&&h.monitoring.type==='local');return {name:host.name,wireguard:host.monitoring.wireguard.enabled,smart:host.monitoring.smart,apt:host.monitoring.aptUpdates.enabled,opencode:host.monitoring.opencode.enabled,claude:host.monitoring.claude.enabled}})"
+      "fetch('/api/config').then(r=>r.json()).then(c=>{const host=c.hosts.find(h=>h.monitoring?.enabled&&h.monitoring.type==='local');return {name:host.name,tab:host.tabIcon,wireguard:host.monitoring.wireguard.enabled,smart:host.monitoring.smart,apt:host.monitoring.aptUpdates.enabled,opencode:host.monitoring.opencode.enabled,claude:host.monitoring.claude.enabled}})"
     ),
     {
       name: "Hote principal",
+      tab: "fa-solid fa-house",
       wireguard: false,
       smart: { enabled: false, disks: ["/dev/sdb"] },
       apt: false,
@@ -406,6 +415,10 @@ async function main() {
     true
   );
   await evaluate("document.querySelector('#remoteAgentEditor [name=wireguard]').click()");
+  await evaluate(
+    "(()=>{const p=document.querySelector('#remoteAgentEditor .icon-picker');p.querySelector('.icon-picker-current').click();[...p.querySelectorAll('.icon-choice')].find(c=>c.querySelector('i').className==='fa-solid fa-network-wired').click()})()"
+  );
+
   assert.equal(
     await evaluate(
       "document.querySelector('#settingsAgentTree button').parentElement.parentElement.querySelector('[data-panel=localHostPanel]') !== null"
@@ -443,6 +456,19 @@ async function main() {
       `fetch('/api/agents/config?url='+encodeURIComponent(${JSON.stringify(agentBase)})).then(r=>r.json()).then(r=>r.config.monitoring.wireguard.enabled)`
     ),
     false
+  );
+  // The tab icons are saved by this dashboard and dress the navigation.
+  assert.equal(
+    await evaluate(
+      `fetch('/api/config').then(r=>r.json()).then(c=>c.replication.agentIcons[new URL(${JSON.stringify(agentBase)}).href])`
+    ),
+    "fa-solid fa-network-wired"
+  );
+  assert.deepEqual(
+    await evaluate(
+      `["local",new URL(${JSON.stringify(agentBase)}).href].map(id=>document.querySelector('.page-btn[data-supervision-instance-id="'+id+'"] i')?.className)`
+    ),
+    ["fa-solid fa-house", "fa-solid fa-network-wired"]
   );
   await evaluate(
     "document.querySelector('[data-panel=servicesPanel]').click(); document.querySelector('#addServiceBtn').click(); document.querySelector('[data-panel=themePanel]').click(); document.querySelector('#closeBtn').click()"

@@ -8,7 +8,15 @@ const normalize = createConfigNormalizer({
 const config = normalize({
   dashboards: [{ id: "first", name: "Principal" }],
   categories: [{ name: "Divers", dashboardId: "first", color: "#AABBCC" }],
-  hosts: [{ id: "host", name: "Machine", monitoring: { type: "local", enabled: true } }],
+  hosts: [
+    {
+      id: "host",
+      name: "Machine",
+      tabIcon: "fa-solid fa-house",
+      monitoring: { type: "local", enabled: true }
+    },
+    { id: "other", name: "Autre", tabIcon: "", monitoring: { type: "local", enabled: false } }
+  ],
   specialTile: { type: "fortune", category: "Divers" },
   webLinks: [{ name: "Lien", url: "https://exemple.lan" }],
   usageCounts: { item: 3.9 },
@@ -22,6 +30,9 @@ assert.equal(config.theme.length, 64);
 assert.equal(config.categories[0].dashboardId, "first");
 assert.equal(config.categories[0].color, "#aabbcc");
 assert.equal(config.hosts[0].monitoring.enabled, true);
+// Tab icon of the local supervision tab: kept when set, absent otherwise.
+assert.equal(config.hosts[0].tabIcon, "fa-solid fa-house");
+assert.equal("tabIcon" in config.hosts[1], false);
 assert.equal(config.specialTile.type, "fortune");
 assert.equal(config.webLinks[0].url, "https://exemple.lan/");
 assert.equal(config.usageCounts.item, 3);

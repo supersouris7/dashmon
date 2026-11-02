@@ -85,9 +85,9 @@
     "semantic_hash": ""
   },
   "public/js/editor.js": {
-    "mtime": 1793612746.7395499,
-    "seen": 1793612905.823049,
-    "ast_hash": "e2d258c0c6cd5c29636721b1156e3fee",
+    "mtime": 1793613268.9520226,
+    "seen": 1793613545.5587008,
+    "ast_hash": "1b31add41e858a0f6a65ca7b56d43da4",
     "semantic_hash": ""
   },
   "public/js/format.js": {
@@ -127,9 +127,9 @@
     "semantic_hash": ""
   },
   "public/js/pages.js": {
-    "mtime": 1793362591.8552923,
-    "seen": 1793365386.715929,
-    "ast_hash": "d1b85c943799e42137db4d30421de61e",
+    "mtime": 1793613256.8959284,
+    "seen": 1793613545.558794,
+    "ast_hash": "a19c7eef96188542faee46ceb4beb52b",
     "semantic_hash": ""
   },
   "public/js/render.js": {
@@ -139,9 +139,9 @@
     "semantic_hash": ""
   },
   "public/js/state.js": {
-    "mtime": 1793558315.4911516,
-    "seen": 1793558519.5649362,
-    "ast_hash": "63b8820ae62486114fe54536dbe73ee4",
+    "mtime": 1793613246.6118479,
+    "seen": 1793613545.5588005,
+    "ast_hash": "9bda30affdbed0bcef8ef1e098d9e8f1",
     "semantic_hash": ""
   },
   "public/js/status.js": {
@@ -151,9 +151,9 @@
     "semantic_hash": ""
   },
   "public/js/supervision.js": {
-    "mtime": 1793607711.7477393,
-    "seen": 1793607970.7444215,
-    "ast_hash": "ddc59c311ff7bf23e48914dd1ec935a7",
+    "mtime": 1793613256.8959284,
+    "seen": 1793613545.558807,
+    "ast_hash": "963d198785f6c1b41b09b4b6df2fea7c",
     "semantic_hash": ""
   },
   "public/js/themes.js": {
@@ -224,9 +224,9 @@
     "semantic_hash": ""
   },
   "test/frontend.test.js": {
-    "mtime": 1793607835.2366173,
-    "seen": 1793607970.7445292,
-    "ast_hash": "6043034c7b805e0438300a1dd60aa502",
+    "mtime": 1793613300.3562665,
+    "seen": 1793613545.5589128,
+    "ast_hash": "677f8d2880533d49e85b07a70d908be1",
     "semantic_hash": ""
   },
   "test/run.js": {
@@ -614,9 +614,9 @@
     "semantic_hash": ""
   },
   "test/replication-config.test.js": {
-    "mtime": 1793354891.6638298,
-    "seen": 1793358178.4971461,
-    "ast_hash": "c589218197aecc0d64f5d2b814ad0e8f",
+    "mtime": 1793613290.9321935,
+    "seen": 1793613545.5589294,
+    "ast_hash": "a2cd58d585bbc6eff0dcd0a4db890db7",
     "semantic_hash": ""
   },
   "test/local-metrics.test.js": {
@@ -692,9 +692,9 @@
     "semantic_hash": ""
   },
   "test/config-normalize.test.js": {
-    "mtime": 1793359816.6438992,
-    "seen": 1793365386.7160213,
-    "ast_hash": "b518e145bcd08b1889a4c3c347c03757",
+    "mtime": 1793613290.9321935,
+    "seen": 1793613545.5588863,
+    "ast_hash": "1b9552373395b5328d9328be1ecfce5f",
     "semantic_hash": ""
   },
   "test/editor-drag.test.js": {
@@ -704,9 +704,9 @@
     "semantic_hash": ""
   },
   "test/browser.test.js": {
-    "mtime": 1793612800.5520608,
-    "seen": 1793612905.8239815,
-    "ast_hash": "6e46b772f83965cb14f5833652b25c53",
+    "mtime": 1793613335.1645346,
+    "seen": 1793613545.5588768,
+    "ast_hash": "d0d161182a7c91f5bc8ba4156e475f08",
     "semantic_hash": ""
   },
   "test/editor-draft.test.js": {
@@ -740,9 +740,9 @@
     "semantic_hash": ""
   },
   "lib/agent/replication-config.js": {
-    "mtime": 1793355808.278466,
-    "seen": 1793358178.4968405,
-    "ast_hash": "31bffe6313d49b6f06d27806016411f3",
+    "mtime": 1793613246.6118479,
+    "seen": 1793613545.5584989,
+    "ast_hash": "137861382ea7b271021a2f64fb1988ed",
     "semantic_hash": ""
   },
   "lib/config/fields.js": {
@@ -758,9 +758,9 @@
     "semantic_hash": ""
   },
   "lib/config/normalize.js": {
-    "mtime": 1793471196.3276281,
-    "seen": 1793471374.2891514,
-    "ast_hash": "5c629ccb36d5f4bc4b57d5d9f3eb0e58",
+    "mtime": 1793613246.6118479,
+    "seen": 1793613545.5585108,
+    "ast_hash": "0d71b076a7cbdddec6e9eefe83e2baff",
     "semantic_hash": ""
   },
   "lib/config/repository.js": {
@@ -1046,15 +1046,15 @@
     "semantic_hash": ""
   },
   "public/js/config/icon-options.js": {
-    "mtime": 1793361297.8884823,
-    "seen": 1793365386.7158287,
-    "ast_hash": "2e9defca2b9d8e4265ac66e0bda99131",
+    "mtime": 1793613256.8959284,
+    "seen": 1793613545.5586731,
+    "ast_hash": "af588bd4b330d80050cd89d7bfbcd2c9",
     "semantic_hash": ""
   },
   "public/js/config/normalize.js": {
-    "mtime": 1793545004.4198947,
-    "seen": 1793545270.5537577,
-    "ast_hash": "259461d7aecafcc878b15338f60e843d",
+    "mtime": 1793613246.6118479,
+    "seen": 1793613545.558677,
+    "ast_hash": "d8851d3b57661a67576c9da4b3173559",
     "semantic_hash": ""
   },
   "public/js/config/sanitize.js": {
@@ -1112,9 +1112,9 @@
     "semantic_hash": ""
   },
   "public/js/editor/draft.js": {
-    "mtime": 1793362074.138995,
-    "seen": 1793365386.7158694,
-    "ast_hash": "a7150959ec8f670c526f9038544c37c3",
+    "mtime": 1793613381.7048898,
+    "seen": 1793613545.558721,
+    "ast_hash": "a282ee1f256103b156a9cd3b2c99e66b",
     "semantic_hash": ""
   },
   "public/js/editor/drag.js": {
@@ -1136,9 +1136,9 @@
     "semantic_hash": ""
   },
   "public/js/editor/icon-picker.js": {
-    "mtime": 1793374328.5975256,
-    "seen": 1793460511.197675,
-    "ast_hash": "23b8b7c2b0169d0849ebcab22726b230",
+    "mtime": 1793613466.77753,
+    "seen": 1793613545.5587382,
+    "ast_hash": "bd9839c576a202e74bbb0b5777e15744",
     "semantic_hash": ""
   },
   "public/js/editor/pairing-list.js": {
@@ -1148,9 +1148,9 @@
     "semantic_hash": ""
   },
   "public/js/editor/pairing.js": {
-    "mtime": 1793611842.1789765,
-    "seen": 1793612384.795572,
-    "ast_hash": "d36214d2d693956f07cd1b1fa9fe4148",
+    "mtime": 1793613246.6118479,
+    "seen": 1793613545.5587485,
+    "ast_hash": "eb6d6c9355220b4f52abc43db8497dca",
     "semantic_hash": ""
   },
   "public/js/editor/replication-draft.js": {
@@ -1184,15 +1184,15 @@
     "semantic_hash": ""
   },
   "public/js/i18n/en.json": {
-    "mtime": 1793612788.2239451,
-    "seen": 1793612905.8231308,
-    "ast_hash": "adede54fcaca5d4c3822ae2ea1a5848b",
+    "mtime": 1793613268.9520226,
+    "seen": 1793613545.558778,
+    "ast_hash": "3b5316e3a49bbb12034b6006015df746",
     "semantic_hash": ""
   },
   "public/js/i18n/fr.json": {
-    "mtime": 1793612788.2239451,
-    "seen": 1793612905.8231337,
-    "ast_hash": "d286525f2f69d26760fbf34db1f5fd89",
+    "mtime": 1793613268.9520226,
+    "seen": 1793613545.5587811,
+    "ast_hash": "47c4d6b7bc5150230d80afba30be80f2",
     "semantic_hash": ""
   },
   "public/js/supervision/apt-card.js": {
@@ -1244,15 +1244,15 @@
     "semantic_hash": ""
   },
   "public/js/editor/agent-settings.js": {
-    "mtime": 1793611842.1789765,
-    "seen": 1793612384.7955048,
-    "ast_hash": "dd9ba177ecd02fbd52b1cb38b0f36b0c",
+    "mtime": 1793613268.9520226,
+    "seen": 1793613545.5587041,
+    "ast_hash": "97242685e6b08a5e026aa7ef5f60016b",
     "semantic_hash": ""
   },
   "public/js/editor/host-settings.js": {
-    "mtime": 1793545004.4238946,
-    "seen": 1793545270.5538101,
-    "ast_hash": "e65750d6015402ae07a13f6853721a9a",
+    "mtime": 1793613268.9520226,
+    "seen": 1793613545.5587316,
+    "ast_hash": "cd357c44673a07046b2a09180e143615",
     "semantic_hash": ""
   },
   "public/js/editor/labelled-button.js": {

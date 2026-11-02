@@ -1,5 +1,6 @@
 // Remote drafts stay in the primary browser; the token stays on its server.
 import { t } from "../i18n.js";
+import { state } from "../state.js";
 import { clone } from "../util.js";
 import { renderHostSettings } from "./host-settings.js";
 import { agentHostMetrics } from "../supervision.js";
@@ -23,7 +24,18 @@ export function createAgentSettings() {
   }
 
   function renderForm(draft) {
-    renderHostSettings(editor, { config: draft.config, metrics: agentHostMetrics(activeUrl) });
+    const url = activeUrl;
+    renderHostSettings(editor, {
+      config: draft.config,
+      metrics: agentHostMetrics(url),
+      // The tab icon belongs to the pairing, saved by this dashboard.
+      tabIcon: {
+        value: state.replication?.agentIcons?.[url],
+        onChange(icon) {
+          state.replication.agentIcons = { ...state.replication.agentIcons, [url]: icon };
+        }
+      }
+    });
   }
 
   return {

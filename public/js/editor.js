@@ -226,6 +226,12 @@ function renderLocalSettings() {
   renderHostSettings(document.getElementById("localHostEditor"), {
     config: host,
     metrics: state.hostMetrics?.find(item => item.id === host.id),
+    tabIcon: {
+      value: host.tabIcon,
+      onChange(icon) {
+        host.tabIcon = icon;
+      }
+    },
     onRename(next) {
       for (const service of linkedServices) service.host = next;
       renderServiceEditor();

@@ -29,6 +29,7 @@
   "agentHint": "Les agents exposent uniquement leur supervision locale. Configurez le même DASHMON_SYNC_TOKEN sur chaque agent et sur cette instance. Ne testez que des adresses de confiance : le jeton leur est transmis.",
   "agentDocumentation": "Documentation des agents",
   "configConflict": "La configuration a changé dans un autre onglet. Rechargez la page avant de réessayer.",
+  "tabIconLabel": "Icône de l’onglet",
   "agentIntegrationDocs": "Guides d’intégration",
   "labelSeparator": " :",
   "localHostRequired": "L’hôte local est toujours supervisé.",

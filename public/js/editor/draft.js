@@ -45,6 +45,7 @@ export function prepareEditorDraft(state) {
       name: (h.name || "").trim(),
       icon: h.icon || "fa-solid fa-server",
       color: sanitizeTileColor(h.color),
+      ...(h.tabIcon ? { tabIcon: h.tabIcon } : {}),
       monitoring: serializeHostMonitoring(h.monitoring)
     }))
     .filter(h => h.name);

@@ -23,6 +23,7 @@ export const ICON_OPTIONS = [
   "fa-solid fa-battery-quarter",
   "fa-solid fa-battery-empty",
   "fa-solid fa-gauge-high",
+  "fa-solid fa-chart-simple",
   "fa-solid fa-chart-line",
   "fa-solid fa-chart-column",
   "fa-solid fa-chart-pie",
@@ -266,3 +267,6 @@ export const ICON_OPTIONS = [
   "fa-brands fa-opera",
   "fa-brands fa-spotify"
 ];
+
+// Default icon of a supervision tab in the dashboard navigation.
+export const DEFAULT_TAB_ICON = "fa-solid fa-chart-simple";

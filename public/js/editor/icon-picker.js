@@ -1,14 +1,14 @@
 // Font Awesome icon picker used in the editor (tiles, hosts, web links).
 import { state } from "../state.js";
 import { sanitizeIconClass } from "../config/sanitize.js";
-import { ICON_OPTIONS } from "../config/icon-options.js";
+import { ICON_OPTIONS, DEFAULT_TAB_ICON } from "../config/icon-options.js";
 import { t } from "../i18n.js";
 import { setIconLabel } from "./labelled-button.js";
 
 function positionPicker(current, menu) {
   requestAnimationFrame(() => {
     const rect = current.getBoundingClientRect();
-    const width = 242;
+    const width = 262;
     const height = Math.min(menu.scrollHeight || 280, 280);
     let left = rect.left;
     let top = rect.bottom + 6;
@@ -64,6 +64,10 @@ function buildPicker(currentIcon, onSelect) {
 
   picker.append(current, menu);
   return picker;
+}
+
+export function createTabIconPicker(currentIcon, onSelect) {
+  return buildPicker(currentIcon || DEFAULT_TAB_ICON, onSelect);
 }
 
 export function createIconPicker(category, index) {

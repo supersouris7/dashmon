@@ -882,9 +882,15 @@ async function main() {
     replication: {
       secondaries: ["https://exemple.lan"],
       agentNames: { "https://exemple.lan": "Supervision" },
+      agentIcons: { "https://exemple.lan": "fa-solid fa-server" },
       agentHosts: { "https://exemple.lan": "host-1" }
     }
   }).replication;
+  check(
+    "agent : icone d'onglet normalisee",
+    namedAgent.agentIcons["https://exemple.lan/"],
+    "fa-solid fa-server"
+  );
   check(
     "agent : nom et URL normalises",
     namedAgent.agentNames["https://exemple.lan/"],

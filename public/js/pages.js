@@ -15,6 +15,8 @@ import {
 import { pageSwitchGroup, mobilePageBtn, mobilePageMenu } from "./dom.js";
 import { saveViewPrefs } from "./view-prefs.js";
 import { t } from "./i18n.js";
+import { DEFAULT_TAB_ICON } from "./config/icon-options.js";
+import { sanitizeIconClass } from "./config/sanitize.js";
 
 function button(page, icon, label, active) {
   const btn = document.createElement("button");
@@ -124,7 +126,7 @@ export function renderPageSwitch() {
   supervisionInstances().forEach(instance => {
     const label = supervisionInstanceLabel(instance);
     const active = state.page === "supervision" && instance.id === activeInstanceId;
-    const icon = "fa-solid fa-chart-simple";
+    const icon = instance.icon ? sanitizeIconClass(instance.icon) : DEFAULT_TAB_ICON;
     const sup = button("supervision", icon, label, active);
     sup.dataset.supervisionInstanceId = instance.id;
     sup.title = label;

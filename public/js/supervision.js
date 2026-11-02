@@ -50,13 +50,21 @@ function localMachineName() {
   return (local && String(local.name || "").trim()) || "Dashmon";
 }
 
+// Icon of the local supervision tab, chosen in Settings > Supervision > Local.
+function localTabIcon() {
+  const hosts = Array.isArray(state.hosts) ? state.hosts : [];
+  const local = hosts.find(host => host?.monitoring?.type === "local" && host.monitoring.enabled);
+  return local?.tabIcon || "";
+}
+
 export function supervisionInstances() {
   const local = localMachineName();
   const configured = state.replication?.secondaries || [];
   const names = state.replication?.agentNames || {};
+  const icons = state.replication?.agentIcons || {};
   return [
-    { id: "local", name: local },
-    ...configured.map(url => ({ id: url, url, name: names[url] || "" }))
+    { id: "local", name: local, icon: localTabIcon() },
+    ...configured.map(url => ({ id: url, url, name: names[url] || "", icon: icons[url] || "" }))
   ];
 }
 

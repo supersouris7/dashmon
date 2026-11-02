@@ -53,6 +53,7 @@ export function renderPairingEditor({
       instanceName: "Dashmon",
       secondaries: [],
       agentNames: {},
+      agentIcons: {},
       agentHosts: {}
     };
   if (!state.replication.agentHosts || typeof state.replication.agentHosts !== "object")
@@ -67,6 +68,12 @@ export function renderPairingEditor({
   const validHostIds = new Set(state.editHosts.map(host => String(host.id || "")).filter(Boolean));
   const syncPairs = () => {
     Object.assign(state.replication, serializeReplicationEntries(entries, validHostIds));
+    // A tab icon only lives as long as its pairing.
+    state.replication.agentIcons = Object.fromEntries(
+      Object.entries(state.replication.agentIcons || {}).filter(([url]) =>
+        state.replication.secondaries.includes(url)
+      )
+    );
     onPairsChanged();
   };
   if (entries.length && !hostChoices().length) {
