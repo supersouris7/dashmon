@@ -2,7 +2,7 @@
 // reordering when a section is collapsed or expanded.
 import { state, getCategory, compareServices } from "../state.js";
 import { sanitizeTileColor, sanitizeIconClass } from "../config/sanitize.js";
-import { groupLabel, searchQuery, updateCollapseAllButton } from "../render.js";
+import { groupLabel, searchQuery } from "./query.js";
 import { saveViewPrefs } from "../view-prefs.js";
 import { createCard } from "./cards.js";
 import { dashboard } from "../dom.js";
@@ -11,7 +11,9 @@ export function createSection(
   categoryName,
   categoryServices,
   groupType = "category",
-  specialCard = null
+  specialCard = null,
+  // Called when the section is folded or unfolded by a click on its header.
+  onToggle = () => {}
 ) {
   const category =
     groupType === "host"
@@ -52,7 +54,7 @@ export function createSection(
     const collapsing = !section.classList.contains("collapsed");
     state.collapsed[collapseKey] = collapsing;
     delete state.collapsed[categoryName];
-    updateCollapseAllButton();
+    onToggle();
     saveViewPrefs({ collapsed: state.collapsed });
 
     if (collapsing) {

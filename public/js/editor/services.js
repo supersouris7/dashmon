@@ -18,7 +18,7 @@ import {
   widgetLabel
 } from "../widget-registry.js";
 import { openImageLibrary } from "../images.js";
-import { confirmDelete } from "../editor.js";
+import { confirmDelete } from "./confirm.js";
 import { setDeleteIcon, setIconButton } from "./icon-button.js";
 
 export function refreshEditorCategoryFilter() {

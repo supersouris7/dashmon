@@ -19,7 +19,7 @@ import { renderPageSwitch } from "./pages.js";
 import { renderSupervision } from "./supervision.js";
 import { applyTheme } from "./themes.js";
 import { renderImageManager } from "./images.js";
-import { createConfirmDialog } from "./editor/confirm-dialog.js";
+import { confirmDialog, openConfirm, confirmDelete } from "./editor/confirm.js";
 import { agentUrl, replicationEntries } from "./editor/replication-draft.js";
 import { renderPairingEditor } from "./editor/pairing.js";
 import { createAgentSettings } from "./editor/agent-settings.js";
@@ -51,15 +51,6 @@ import { renderDashboardEditor } from "./editor/dashboards.js";
 import { monitoringField, renderHostEditor, createHostDraft } from "./editor/hosts.js";
 
 const saveStatus = document.getElementById("saveStatus");
-const confirmBackdrop = document.getElementById("confirmBackdrop");
-const confirmDialog = createConfirmDialog({
-  backdrop: confirmBackdrop,
-  icon: document.getElementById("confirmIcon"),
-  title: document.getElementById("confirmTitle"),
-  message: document.getElementById("confirmMessage"),
-  actions: document.getElementById("confirmActions")
-});
-const openConfirm = confirmDialog.open;
 let editorBaseline = "";
 let replicationAtOpen = null;
 let pairingDraft = null;
@@ -84,29 +75,6 @@ function editorSnapshot() {
     pairingDraft,
     agents: agentSettings.snapshot()
   });
-}
-
-// Confirmation of an irreversible action other than a deletion.
-export function confirmDanger({ title, message, confirmLabel }) {
-  return openConfirm({
-    title,
-    message,
-    actions: [
-      { id: "cancel", label: t("cancelBtn") },
-      { id: "confirm", label: confirmLabel, className: "action-btn danger" }
-    ]
-  }).then(result => result === "confirm");
-}
-
-export function confirmDelete(message) {
-  return openConfirm({
-    title: t("confirmDeleteTitle"),
-    message,
-    actions: [
-      { id: "cancel", label: t("cancelBtn") },
-      { id: "confirm", label: t("deleteLabel"), className: "action-btn danger" }
-    ]
-  }).then(result => result === "confirm");
 }
 
 function showSaveStatus() {

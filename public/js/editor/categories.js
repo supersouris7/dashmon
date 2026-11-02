@@ -3,8 +3,7 @@ import { categoryEditor, addCategoryBtn } from "../dom.js";
 import { state } from "../state.js";
 import { t } from "../i18n.js";
 import { createIconPicker } from "./icon-picker.js";
-import { confirmDelete } from "../editor.js";
-import { refreshColorEditors } from "./hosts.js";
+import { confirmDelete } from "./confirm.js";
 import { renderServiceEditor } from "./services.js";
 import { renderWidgetsEditor } from "./widgets.js";
 import { createColorPicker } from "./color-picker.js";
@@ -92,7 +91,7 @@ export function renderCategoryEditor() {
       picker,
       name,
       dashboardSelect,
-      createColorPicker(category, refreshColorEditors),
+      createColorPicker(category, renderCategoryEditor),
       remove
     );
     makeDraggable(row, state.editCategories, index, renderCategoryEditor);

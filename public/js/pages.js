@@ -7,11 +7,13 @@ import { render } from "./render.js";
 import {
   renderSupervision,
   startSupervisionMetrics,
-  stopSupervisionMetrics,
+  stopSupervisionMetrics
+} from "./supervision.js";
+import {
   selectedSupervisionInstanceId,
   supervisionInstanceLabel,
   supervisionInstances
-} from "./supervision.js";
+} from "./supervision/instances.js";
 import { pageSwitchGroup, mobilePageBtn, mobilePageMenu } from "./dom.js";
 import { saveViewPrefs } from "./view-prefs.js";
 import { t } from "./i18n.js";

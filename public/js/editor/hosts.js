@@ -1,20 +1,14 @@
 // Dashboard host inventory: names, icons and colours; monitoring has its own form.
-import { renderCategoryEditor } from "./categories.js";
 import { t } from "../i18n.js";
 import { state } from "../state.js";
 import { hostEditor, editorHostFilter, addHostBtn } from "../dom.js";
 import { blankMonitoring } from "./host-monitoring-draft.js";
 import { renderServiceEditor } from "./services.js";
 import { createHostIconPicker } from "./icon-picker.js";
-import { confirmDelete } from "../editor.js";
+import { confirmDelete } from "./confirm.js";
 import { createColorPicker } from "./color-picker.js";
 import { makeDraggable } from "./drag.js";
 import { setDeleteIcon } from "./icon-button.js";
-
-export function refreshColorEditors() {
-  renderCategoryEditor();
-  renderHostEditor();
-}
 
 export function monitoringField(labelText, control) {
   const field = document.createElement("label");
@@ -95,7 +89,7 @@ export function renderHostEditor() {
       remove.disabled = true;
       remove.title = t("localHostRequired");
     }
-    row.append(drag, picker, name, createColorPicker(host, refreshColorEditors), remove);
+    row.append(drag, picker, name, createColorPicker(host, renderHostEditor), remove);
     item.appendChild(row);
 
     makeDraggable(row, state.editHosts, index, () => {

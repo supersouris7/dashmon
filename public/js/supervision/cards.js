@@ -1,6 +1,6 @@
 // Behaviour shared by the supervision cards: expanded state (a view
 // preference saved at once), expand / collapse all, host colour.
-import { selectedSupervisionInstanceId } from "../supervision.js";
+import { selectedSupervisionInstanceId } from "./instances.js";
 import { state } from "../state.js";
 import { saveViewPrefs } from "../view-prefs.js";
 import { supervisionList, collapseAllBtn } from "../dom.js";

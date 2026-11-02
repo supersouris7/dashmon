@@ -10,7 +10,7 @@ import {
   FALLBACK_HOST
 } from "./state.js";
 import { sanitizeUrl, sanitizeTileColor } from "./config/sanitize.js";
-import { normalize, foldText } from "./util.js";
+import { normalize } from "./util.js";
 import { t } from "./i18n.js";
 import { effectiveStatus, statusIcon } from "./status.js";
 import { dashboard, searchInput, searchStatus, collapseAllBtn } from "./dom.js";
@@ -23,6 +23,7 @@ import {
   createCard
 } from "./dashboard/cards.js";
 import { createSection, reorderDashboardSections } from "./dashboard/sections.js";
+import { searchQuery } from "./dashboard/query.js";
 
 // Active dashboard, bounded to an existing id: a preference from another
 // browser pointing at a deleted dashboard must not empty the screen.
@@ -45,10 +46,6 @@ function serviceInDashboard(service) {
   return categoryDashboardId(service.category) === currentDashboardId();
 }
 
-export function searchQuery() {
-  return foldText(searchInput.value);
-}
-
 // A search looks through every dashboard, not only the active one.
 function serviceMatchesQuery(service) {
   const query = searchQuery();
@@ -57,10 +54,6 @@ function serviceMatchesQuery(service) {
 
 function groupFallbackName() {
   return state.groupMode === "host" ? FALLBACK_HOST : "Autres";
-}
-
-export function groupLabel(name) {
-  return state.groupMode === "host" && name === FALLBACK_HOST ? t("noHost") : name;
 }
 
 // Special tile: one per dashboard, placed in the chosen category. When
@@ -175,7 +168,8 @@ export function render() {
         hostName,
         items,
         "host",
-        specialGroup === hostName ? special : null
+        specialGroup === hostName ? special : null,
+        updateCollapseAllButton
       );
       section.dataset.rank = String(index);
       dashboard.appendChild(section);
@@ -187,7 +181,8 @@ export function render() {
         categoryName,
         items,
         "category",
-        specialGroup === categoryName ? special : null
+        specialGroup === categoryName ? special : null,
+        updateCollapseAllButton
       );
       section.dataset.rank = String(index);
       markOtherDashboard(section, categoryName);

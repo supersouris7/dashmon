@@ -32,6 +32,7 @@ const SUITES = [
   "config-normalize.test.js",
   "config-parity.test.js",
   "icons-routes.test.js",
+  "import-cycles.test.js",
   "settings.test.js",
   "config-repository.test.js",
   "themes.test.js",

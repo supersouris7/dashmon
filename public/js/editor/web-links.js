@@ -4,7 +4,7 @@ import { state } from "../state.js";
 import { t } from "../i18n.js";
 import { createWebLinkIconPicker } from "./icon-picker.js";
 import { LINK_COUNTER_TYPES } from "../config/normalize.js";
-import { confirmDelete } from "../editor.js";
+import { confirmDelete } from "./confirm.js";
 import { moveItem } from "./drag.js";
 import { setDeleteIcon } from "./icon-button.js";
 

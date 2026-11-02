@@ -4,7 +4,7 @@ import { state } from "../state.js";
 import { t } from "../i18n.js";
 import { renderCategoryEditor } from "./categories.js";
 import { createDashboardIconPicker } from "./icon-picker.js";
-import { confirmDelete } from "../editor.js";
+import { confirmDelete } from "./confirm.js";
 import { makeDraggable } from "./drag.js";
 import { setDeleteIcon } from "./icon-button.js";
 

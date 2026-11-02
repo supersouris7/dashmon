@@ -41,7 +41,8 @@ import { startStatusLoop, setupVisibilityPause, manualRefresh } from "./metrics.
 import { renderSupervision } from "./supervision.js";
 import { toggleAllSmartDetails } from "./supervision/cards.js";
 import { renderPageSwitch, setPage } from "./pages.js";
-import { openEditor, requestCloseEditor, dismissConfirm, confirmDanger } from "./editor.js";
+import { openEditor, requestCloseEditor, dismissConfirm } from "./editor.js";
+import { confirmDanger } from "./editor/confirm.js";
 import { renderHostEditor } from "./editor/hosts.js";
 import { renderDashboardEditor } from "./editor/dashboards.js";
 import { renderCategoryEditor } from "./editor/categories.js";
