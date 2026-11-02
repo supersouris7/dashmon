@@ -145,15 +145,18 @@ The named volume keeps the agent settings. To use a host folder instead, replace
 `:/app/data`, then remove the final `volumes` section. The folder must be
 writable by the container UID `1000`.
 
-1. On the primary: **Settings → Agents → Pairing**. Add the agent full address,
-   for example `http://exemple.lan:8081`, then name the tab if you want.
-   Next, link a host from **Dashboard → Hosts**: its color and icon are used
-   when hovering its tile in Supervision. Without a host, the pairing still
-   works but the tile keeps its default appearance.
+1. On the primary: **Settings → Agents → Pairing**, then **Add agent**. Enter
+   the agent full address, for example `http://exemple.lan:8081`, then name the
+   tab if you want. Pick an **Associated host** (created beforehand in
+   **Settings → Dashboard → Hosts**): the agent's supervision cards reuse its
+   color and icon. Without a host, the pairing still works but the cards keep
+   their default appearance.
 2. Click **Test connection**, then **Save**. This agent appears by name under
    **Supervision**, next to **Local** (the primary). Select its name to configure
    it without leaving the primary. Both use the same form: general settings,
-   WireGuard, SMART and APT, with setup help available in each section.
+   WireGuard, SMART, APT, OpenCode and Claude Code, with setup help in each
+   section. The icon next to the panel title sets the icon of the agent's tab
+   on the Supervision page.
 3. Set the host name and the options you need, then **Save**. To measure the host
    disk, uncomment the `/host:ro` mount, redeploy and enter `/host` in the disk
    path field. Otherwise the measurement covers the container.
@@ -168,7 +171,7 @@ volumes are preserved; `DASHMON_PASSWORD` on an agent is no longer used. The
 container and host mounts remain read-only; only the agent data volume stores
 its settings. No host command can be launched from this interface.
 
-## 4. Add WireGuard, SMART or APT
+## 4. Add WireGuard, SMART, APT or usage statistics
 
 Install the scripts **on every host concerned**, not inside the agent. For an
 agent, use its container name in the commands and the cron job. The guides

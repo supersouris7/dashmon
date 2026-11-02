@@ -26,7 +26,8 @@ you stop guessing whether *that* thing is working.
   configures hosts and peer display.
 - **Supervision agents** — deploy a lightweight agent on another host and view
   its local metrics from the main dashboard, without copying its configuration.
-- **Themes** — dark and light built in, plus your own custom themes and CSS.
+- **Themes** — five built in (dark, light, polar night, Matrix, high contrast),
+  plus your own custom themes and CSS.
 - **Two languages** — English and French, throughout the interface.
 - **Learns your habits** — services you open often float to the top.
 
@@ -44,7 +45,7 @@ integrations and configuration.
 
 ## Quick start
 
-**[Step-by-step guide: primary, agent, Portainer and Docker Compose](docs/DEMARRAGE.md)**
+**[Step-by-step guide: primary, agent, Portainer and Docker Compose](docs/GETTING_STARTED.md)**
 — includes ready-to-paste stacks, shared-token setup and links to integration guides.
 
 ### Docker (recommended)
@@ -75,7 +76,7 @@ docker compose up -d
 
 ### Portainer
 
-Use the ready-to-paste [Portainer stack examples](docs/DEMARRAGE.md#2-install-the-primary)
+Use the ready-to-paste [Portainer stack examples](docs/GETTING_STARTED.md#2-install-the-primary)
 for the main dashboard and its optional supervision agents.
 
 Full walkthrough, environment variables, nginx example and troubleshooting:
@@ -95,17 +96,20 @@ publishing Docker images.
 ## First steps
 
 1. Open **Settings → Dashboard → Applications** and add your services (name, URL, icon, category, host).
-2. Turn on **Status monitoring** for the services you want a pill on.
+2. Set each service's **monitoring dot**: green for a monitored service whose
+   outage is critical, orange for monitored but non-critical, grey for no check.
 3. Give a service a **widget** — that's where the live numbers appear.
 4. Add hosts to organize services by machine, with their own icons and colors.
-5. Adjust the theme and language under **Settings → Appearance**.
+5. Pick a theme under **Settings → Appearance → Theme**, and the language under
+   **Settings → Appearance → Preferences**.
 
 Config, icons and themes live in the `dashmon-data` volume (`/app/data`) — back
 that volume up, and keep `DASHMON_MASTER_KEY` somewhere safe: widget passwords
 are encrypted with it and never sent back to the browser.
 
-Web links live above the toolbar. Their color and visibility are configured in
-**Settings → Appearance**; visibility is remembered by each browser.
+Web links live in a banner under the toolbar. They are edited in **Settings →
+Dashboard → Web links**; showing or hiding the banner is set in **Settings →
+Appearance → Preferences** and remembered by each browser.
 
 ### What lives where
 
@@ -124,7 +128,7 @@ for service and category icons — pick any free solid or brand class, e.g.
 `fa-solid fa-folder`. Requests for additional icons, within the free set, are
 welcome.
 
-You can also upload your own **PNG icons** (editor → **Images** tab) and assign
+You can also upload your own **PNG icons** (**Settings → Dashboard → Images**) and assign
 them to a service. [Dashboard Icons](https://dashboardicons.com/) provides plain
 PNG logos for many self-hosted apps.
 
@@ -134,13 +138,14 @@ PNG logos for many self-hosted apps.
 | --- | --- |
 | **[docs/WIDGETS.md](docs/WIDGETS.md)** | Widgets and web-link counters. |
 | **[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)** | Installation, environment and troubleshooting. |
-| **[docs/DEMARRAGE.md](docs/DEMARRAGE.md)** | Principal and agent setup, Portainer and Compose stacks. |
+| **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** | Principal and agent setup, Portainer and Compose stacks. |
 | **[docs/HTTPS.md](docs/HTTPS.md)** | HTTPS with nginx: copy-paste configuration, Let's Encrypt or local certificate. |
 | **[docs/WIREGUARD.md](docs/WIREGUARD.md)** | WireGuard dump and cron script. |
-| **[docs/SMART.md](docs/SMART.md)** / **[docs/APT_UPDATES.md](docs/APT_UPDATES.md)** | Local SMART and APT supervision. |
+| **[docs/SMART.md](docs/SMART.md)** / **[docs/APT_UPDATES.md](docs/APT_UPDATES.md)** | SMART and APT supervision, local or on an agent. |
 | **[docs/OPENCODE.md](docs/OPENCODE.md)** / **[docs/CLAUDE_CODE.md](docs/CLAUDE_CODE.md)** | OpenCode and Claude Code statistics: models, tokens, tools. |
 | **[CUSTOMIZATION.md](CUSTOMIZATION.md)** | Themes and icons. |
 | **[docs/EXTENDING.md](docs/EXTENDING.md)** | Widget development. |
+| **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | Code organization, for contributors. |
 | **[deploy/MAINTAINER.md](deploy/MAINTAINER.md)** | Image build and publication. |
 
 > Monitoring URLs that use LAN names such as `portainer.exemple.lan`? Docker's resolver does

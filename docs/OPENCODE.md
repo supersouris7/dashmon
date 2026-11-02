@@ -31,7 +31,7 @@ directory. Writing into the container requires that this user may use Docker
 /usr/local/bin/opencode-stats.sh
 ```
 
-For an agent installed with the [startup guide](DEMARRAGE.md) stack:
+For an agent installed with the [startup guide](GETTING_STARTED.md) stack:
 
 ```sh
 DASHMON_CONTAINER=dashmon-agent /usr/local/bin/opencode-stats.sh

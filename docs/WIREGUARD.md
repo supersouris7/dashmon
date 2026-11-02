@@ -31,7 +31,7 @@ needs a special mount:
 sudo /usr/local/bin/wireguard-dump.sh
 ```
 
-For an agent installed with the [startup guide](DEMARRAGE.md), use:
+For an agent installed with the [startup guide](GETTING_STARTED.md), use:
 
 ```sh
 sudo /usr/local/bin/wireguard-dump.sh dashmon-agent

@@ -260,7 +260,7 @@ async function main() {
   }
   ok(
     "agents : guide de deploiement accessible depuis le principal",
-    contains(agentEditorSource, "DEMARRAGE.md#3-install-an-agent")
+    contains(agentEditorSource, "GETTING_STARTED.md#3-install-an-agent")
   );
 
   // --- 2. Registre des widgets cote client ------------------------------

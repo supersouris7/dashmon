@@ -26,7 +26,7 @@ the primary:
 sudo /usr/local/sbin/apt-updates.sh
 ```
 
-For an agent installed with the [startup guide](DEMARRAGE.md) stack:
+For an agent installed with the [startup guide](GETTING_STARTED.md) stack:
 
 ```sh
 sudo env DASHMON_CONTAINER=dashmon-agent /usr/local/sbin/apt-updates.sh
@@ -93,7 +93,7 @@ The card shows an explicit status, **Up to date** or
 of installed updates. The chevron expands the last run, the next planned run and
 a warning when a reboot is required.
 
-On failure, open **Failure detail** on the card: the report gives the step
+On failure, open **Failure details** on the card: the report gives the step
 (`update` or `upgrade`), the exit code and a bounded excerpt of the APT output.
 Repository URLs are masked in that excerpt, but it may contain other system
 information: limit access to Dashmon. Older reports contain no detail. Install

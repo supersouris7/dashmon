@@ -123,12 +123,12 @@ From the built-in sample configuration:
 { "name": "Portainer", "url": "https://portainer.exemple.lan", "icon": "icons/portainer.png", "monitor": true }
 ```
 
-The `icons/portainer.png` PNG was imported through the **Images** tab.
+The `icons/portainer.png` PNG was imported through **Settings → Dashboard → Images**.
 
-## Special tiles (widgets)
+## Special tile
 
-The dashboard can carry a single special tile, enabled in the **Widgets** tab of
-the editor. A special tile is not a service: it has no URL, no status check and
+Dashmon can carry a single special tile, enabled in **Settings → Dashboard →
+Special tile**. A special tile is not a service: it has no URL, no status check and
 no widget. Today the only type is **Fortune Cookie**, which shows a phrase a day
 and draws another phrase on click.
 
@@ -139,7 +139,8 @@ mandatory; without one it falls back to the first category (or "Autres").
 "specialTile": { "type": "fortune", "category": "Divers" }
 ```
 
-- One special tile per dashboard: enabling one replaces any other.
+- One special tile in total: enabling one replaces any other. It shows on the
+  dashboard its category belongs to.
 - `category` chooses the section the tile is displayed in. In host view it joins
   the "no host" group.
 - The tile has no name and no icon of its own, hence nothing to set beyond the

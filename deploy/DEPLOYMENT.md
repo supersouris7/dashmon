@@ -2,7 +2,7 @@
 
 For a concise, step-by-step installation of the main dashboard and agents with
 copyable Portainer or Docker Compose stacks, start with the
-[startup guide](../docs/DEMARRAGE.md).
+[startup guide](../docs/GETTING_STARTED.md).
 
 Run Dashmon from the prebuilt image on Docker Hub. No build required.
 
@@ -216,12 +216,12 @@ RAM reflect what the container can observe; the default disk is the container
 filesystem. To monitor a host filesystem, mount it read-only and set its
 container path in the agent configuration on the primary.
 
-On the main instance, open **Settings → Agents → Pairing**, enter each agent's
-base URL on its own line, optionally enter a tab name for each agent, and save.
-Then link a host from **Dashboard → Hosts**: its color and icon are reused
-when hovering the host tile in Supervision. Without a host, the pairing still
-works but the tile keeps its default appearance. Without a name, the tab uses
-the address's hostname. The Supervision page can then select each agent. The
+On the main instance, open **Settings → Agents → Pairing** and click **Add
+agent** for each agent: enter its base URL, optionally a tab name, and pick an
+**Associated host** (created beforehand in **Settings → Dashboard → Hosts**).
+The agent's supervision cards reuse that host's color and icon. Without a host,
+the pairing still works but the cards keep their default appearance. Without a
+name, the tab uses the address's hostname. The Supervision page can then select each agent. The
 main instance fetches metrics on demand; it never sends dashboard
 configuration to an agent. Configure HTTPS or a trusted private network: the
 shared token travels in an HTTP header. Restrict access to the published port.

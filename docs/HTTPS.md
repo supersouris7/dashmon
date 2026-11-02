@@ -10,7 +10,7 @@ Docker. A variant with nginx in Docker is shown at the end of the page.
 ## Before you start
 
 - Dashmon already runs and answers on port `8080`
-  (see [Install Dashmon](DEMARRAGE.md)).
+  (see [Install Dashmon](GETTING_STARTED.md)).
 - A DNS name points to the machine:
   - public name: `dashmon.example.com`, usable with Let's Encrypt;
   - local name: `dashmon.exemple.lan`, usable with an internal certificate.
@@ -226,7 +226,7 @@ and do not disable TLS verification.
 The primary reaches an agent from **its server**, not from the browser. If the
 agent is also served over HTTPS:
 
-- in **Settings → Pairing**, enter the full address, for example
+- in **Settings → Agents → Pairing**, enter the full address, for example
   `https://agent.exemple.lan:8443`; without a scheme, Dashmon adds `http://`;
 - the agent certificate must be trusted by the **primary**. For an internal
   authority, mount its certificate and set `NODE_EXTRA_CA_CERTS`

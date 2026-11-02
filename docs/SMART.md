@@ -22,7 +22,7 @@ The script detects the disks reachable with `smartctl --scan-open`, runs
 sudo /usr/local/sbin/smart-dump.sh
 ```
 
-For an agent installed with the [startup guide](DEMARRAGE.md) stack:
+For an agent installed with the [startup guide](GETTING_STARTED.md) stack:
 
 ```sh
 sudo /usr/local/sbin/smart-dump.sh dashmon-agent
