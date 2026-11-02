@@ -40,7 +40,7 @@ function check(name, actual, expected) {
   try {
     assert.deepStrictEqual(actual, expected);
     console.log("PASS " + name);
-  } catch (error) {
+  } catch (_error) {
     failures++;
     console.error("FAIL " + name);
     console.error("     attendu : " + show(expected));
@@ -1655,9 +1655,6 @@ async function main() {
       { info, config: {}, lang, t: linkStrings(id)(lang) },
       formatModule.formatters(lang)
     );
-  const ytStrings = linkStrings("youtube");
-  const hubStrings = linkStrings("dockerhub");
-  const ghStrings = linkStrings("github");
 
   // AdGuard affiche le volume de requetes en k/M (meme format que les
   // compteurs du bandeau), pour eviter une longue suite de chiffres.

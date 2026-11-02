@@ -102,10 +102,13 @@ public/js/
 
 ## Checks
 
-`npm test` runs the tests without a browser and `npm run format:check` checks
-the formatting (Prettier; `npm run format` fixes it). `npm run test:browser`
+`npm test` runs the tests without a browser, `npm run lint` the static analysis
+(ESLint: undefined names, unused variables and imports) and
+`npm run format:check` checks the formatting (Prettier; `npm run format` fixes
+it). The browser and server normalizations of the config are written twice:
+`test/config-parity.test.js` checks that they agree. `npm run test:browser`
 needs Chromium and a Node with `WebSocket`; it starts a temporary instance and
 browser profile, then checks notably the login, the pairing, the save and the
 creation of a host. The `CHROMIUM_BIN` variable can point to the binary if its
 name is not `chromium`. Also run `actionlint` from the repository root to check
-the workflows.
+the workflows. The workflow runs all of these on every push and pull request.

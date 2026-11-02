@@ -45,6 +45,7 @@ reseau local : ne pas introduire de job qui contacterait un service prive.
 ```bash
 npm ci
 npm run format:check   # la mise en forme Prettier doit etre respectee
+npm run lint           # ESLint ne doit signaler aucune erreur
 npm test               # toutes les suites de test/run.js doivent passer
 actionlint             # doit sortir avec 0
 ```

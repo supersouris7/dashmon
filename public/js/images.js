@@ -14,7 +14,7 @@ import {
 } from "./dom.js";
 
 let activeIconSetter = null;
-let managedImageSelection = new Set();
+const managedImageSelection = new Set();
 
 async function getImageLibrary() {
   const response = await fetch("/api/icons", { cache: "no-store" });

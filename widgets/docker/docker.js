@@ -395,7 +395,7 @@ async function registryManifestDigest(ref, host, platform) {
   const path = "/v2/" + parsed.repo + "/manifests/" + encodeURIComponent(parsed.tag);
 
   const attempt = async (protocol, hostname, reqPath, token) => {
-    let headers = { Accept: MANIFEST_ACCEPT };
+    const headers = { Accept: MANIFEST_ACCEPT };
     if (token) headers.Authorization = "Bearer " + token;
     let response = await registryRequest(protocol, hostname, reqPath, headers);
     if (!token && (response.status === 401 || response.status === 403)) {

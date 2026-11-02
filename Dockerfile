@@ -1,4 +1,4 @@
-FROM node:24-alpine AS build
+FROM node:24-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85 AS build
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ COPY widgets ./widgets
 COPY public ./public
 RUN mkdir -p /app/data/icons /app/data/themes
 
-FROM node:24-alpine
+FROM node:24-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85
 
 WORKDIR /app
 

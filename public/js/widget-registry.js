@@ -40,7 +40,7 @@ function str(value, max) {
 // with an empty registry (existing widgets then show as "unavailable" rather
 // than breaking the whole dashboard).
 export async function loadWidgetRegistry() {
-  let list = [];
+  let list;
   try {
     const response = await fetch("/api/widgets", { cache: "no-store" });
     if (!response.ok) throw new Error("HTTP " + response.status);

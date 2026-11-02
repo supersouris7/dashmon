@@ -16,7 +16,6 @@ import {
   setExpanded,
   updateSmartCollapseButton
 } from "./cards.js";
-import { state } from "../state.js";
 
 // A metric bar: a label, a track filled to the value, a number. The severity
 // class does not depend on the theme (the fill stays readable).
@@ -133,9 +132,10 @@ export function hostCard(host, metrics) {
       value => !isMissing(value)
     );
   let chevron = null;
+  // Shared by the expanded state read here and saved by the click below.
+  const key = cardKey(host);
   if (details) {
     card.classList.add("has-details");
-    const key = cardKey(host);
     card.dataset.hostKey = key;
     card.setAttribute("role", "button");
     card.tabIndex = 0;

@@ -32,7 +32,6 @@ function image(id, tags, digests) {
 }
 
 const img1 = "sha256:image1";
-const img2 = "sha256:image2";
 
 // --- computeDockerSummary ---
 // 1. Tout vert : 9 conteneurs actifs, images locales à jour (vérification

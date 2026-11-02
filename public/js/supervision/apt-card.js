@@ -8,7 +8,6 @@ import {
   updateSmartCollapseButton
 } from "./cards.js";
 import { t } from "../i18n.js";
-import { state } from "../state.js";
 import { smartNumberText, reportDateText } from "./format.js";
 
 export function aptUpdatesCard(host, metrics) {

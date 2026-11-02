@@ -200,7 +200,7 @@ async function reloadThemeState() {
 function sanitizeVarValue(value) {
   return String(value || "")
     .trim()
-    .replace(/[\{\}\;\n\r\"\'\<\>\\]/g, "")
+    .replace(/[{};\n\r"'<>\\]/g, "")
     .slice(0, 200);
 }
 
