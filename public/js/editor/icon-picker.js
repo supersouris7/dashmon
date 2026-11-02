@@ -3,7 +3,7 @@ import { state } from "../state.js";
 import { sanitizeIconClass } from "../config/sanitize.js";
 import { ICON_OPTIONS, DEFAULT_TAB_ICON } from "../config/icon-options.js";
 import { t } from "../i18n.js";
-import { setIconButton } from "./labelled-button.js";
+import { setIconButton } from "./icon-button.js";
 
 function positionPicker(current, menu) {
   requestAnimationFrame(() => {

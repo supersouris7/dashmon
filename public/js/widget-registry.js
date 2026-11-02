@@ -22,7 +22,6 @@ const SECRET_PREFIX = "aes1.";
 
 const metas = new Map();
 const renderers = new Map();
-let loaded = false;
 
 function isPlainObject(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
@@ -41,7 +40,6 @@ function str(value, max) {
 // with an empty registry (existing widgets then show as "unavailable" rather
 // than breaking the whole dashboard).
 export async function loadWidgetRegistry() {
-  loaded = true;
   let list = [];
   try {
     const response = await fetch("/api/widgets", { cache: "no-store" });
@@ -109,10 +107,6 @@ function injectStyles(entries) {
 }
 
 // --- Metadata --------------------------------------------------------------
-
-export function isRegistryLoaded() {
-  return loaded;
-}
 
 export function listWidgetMetas() {
   // An internal (hidden) plugin is part of the engine, not a user choice: it

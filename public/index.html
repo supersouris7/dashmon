@@ -109,6 +109,7 @@
      cette barre est donc le seul repère qui reste à l'écran. Le texte qu'elle
      reçoit sert à l'accessibilité, la barre est trop fine pour l'afficher. -->
     <div class="refresh-bar" id="refreshBar" role="status" aria-live="polite"></div>
+    <h1 class="visually-hidden">Dashmon</h1>
     <header class="top-bar">
       <div class="toolbar">
         <div class="page-switch" role="group" id="pageSwitchGroup" aria-label="Navigation"></div>
@@ -532,7 +533,11 @@
 
             <div class="appearance-field">
               <span id="webLinksEnabledLabel">Liens web</span>
-              <select id="webLinksEnabledSelect" class="edit-select">
+              <select
+                id="webLinksEnabledSelect"
+                aria-labelledby="webLinksEnabledLabel"
+                class="edit-select"
+              >
                 <option value="on" id="webLinksEnabledOn">Activés</option>
                 <option value="off" id="webLinksEnabledOff">Désactivés</option>
               </select>
@@ -540,7 +545,7 @@
 
             <div class="appearance-field">
               <span id="openModeFieldLabel">Ouverture des liens</span>
-              <select id="openModeSelect" class="edit-select">
+              <select id="openModeSelect" aria-labelledby="openModeFieldLabel" class="edit-select">
                 <option value="same" id="openModeOptionSame">Même onglet</option>
                 <option value="new" id="openModeOptionNew">Nouvel onglet</option>
               </select>
@@ -550,6 +555,7 @@
               <span id="categoryColumnsLabel">Colonnes de catégories</span>
               <select
                 id="categoryColumnsSelect"
+                aria-labelledby="categoryColumnsLabel"
                 class="edit-select"
                 data-grid-pref="categoryColumns"
               >
@@ -563,7 +569,12 @@
 
             <div class="appearance-field">
               <span id="tileColumnsLabel">Applications par ligne</span>
-              <select id="tileColumnsSelect" class="edit-select" data-grid-pref="tileColumns">
+              <select
+                id="tileColumnsSelect"
+                aria-labelledby="tileColumnsLabel"
+                class="edit-select"
+                data-grid-pref="tileColumns"
+              >
                 <option value="auto" id="tileColumnsAuto">Automatique</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
@@ -576,6 +587,7 @@
               <span id="supervisionColumnsLabel">Cartes de supervision par ligne</span>
               <select
                 id="supervisionColumnsSelect"
+                aria-labelledby="supervisionColumnsLabel"
                 class="edit-select"
                 data-grid-pref="supervisionColumns"
               >

@@ -19,7 +19,7 @@ import {
 } from "../widget-registry.js";
 import { openImageLibrary } from "../images.js";
 import { confirmDelete } from "../editor.js";
-import { setDeleteIcon, setIconButton } from "./labelled-button.js";
+import { setDeleteIcon, setIconButton } from "./icon-button.js";
 
 export function refreshEditorCategoryFilter() {
   const current = editorCategoryFilter.value;

@@ -9,7 +9,7 @@ import { renderServiceEditor } from "./services.js";
 import { renderWidgetsEditor } from "./widgets.js";
 import { createColorPicker } from "./color-picker.js";
 import { makeDraggable } from "./drag.js";
-import { setDeleteIcon } from "./labelled-button.js";
+import { setDeleteIcon } from "./icon-button.js";
 
 export function renderCategoryEditor() {
   categoryEditor.innerHTML = "";
@@ -26,6 +26,7 @@ export function renderCategoryEditor() {
     const name = document.createElement("input");
     name.className = "edit-input";
     name.placeholder = t("categoryName");
+    name.setAttribute("aria-label", t("categoryName"));
     name.value = category.name || "";
 
     const originalName = category.name || "";

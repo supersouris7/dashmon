@@ -106,15 +106,6 @@ export async function fetchConfig() {
   return response.json();
 }
 
-export async function putConfig(body) {
-  const response = await fetch("/api/config", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  if (!response.ok) throw new Error("HTTP " + response.status);
-}
-
 // Click counter: local increment plus a light request that survives page
 // navigation (the big PUT /api/config would be cut off by the click).
 export function bumpUsage(key) {

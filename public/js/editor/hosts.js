@@ -9,7 +9,7 @@ import { createHostIconPicker } from "./icon-picker.js";
 import { confirmDelete } from "../editor.js";
 import { createColorPicker } from "./color-picker.js";
 import { makeDraggable } from "./drag.js";
-import { setDeleteIcon } from "./labelled-button.js";
+import { setDeleteIcon } from "./icon-button.js";
 
 export function refreshColorEditors() {
   renderCategoryEditor();
@@ -61,6 +61,7 @@ export function renderHostEditor() {
     const name = document.createElement("input");
     name.className = "edit-input";
     name.placeholder = t("hostName");
+    name.setAttribute("aria-label", t("hostName"));
     name.value = host.name || "";
     name.addEventListener("input", () => {
       const previous = state.editHosts[index].name;

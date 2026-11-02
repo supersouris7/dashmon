@@ -2,7 +2,7 @@
 // palette of config/sanitize.js.
 import { TILE_COLORS, sanitizeTileColor } from "../config/sanitize.js";
 import { t } from "../i18n.js";
-import { setIconButton } from "./labelled-button.js";
+import { setIconButton } from "./icon-button.js";
 
 function closeColorPalette() {
   for (const palette of document.querySelectorAll(".color-palette:not([hidden])"))

@@ -232,6 +232,26 @@ async function main() {
       panel
     );
   }
+  // Every field of the settings has a name of its own: a placeholder is not a
+  // label, it disappears as soon as something is typed.
+  for (const panel of [
+    "servicesPanel",
+    "dashboardsPanel",
+    "categoriesPanel",
+    "hostsPanel",
+    "webLinksPanel",
+    "preferencesPanel"
+  ]) {
+    await evaluate(`document.querySelector('[data-panel=${panel}]').click()`);
+    assert.deepEqual(
+      await evaluate(
+        `[...document.querySelectorAll('#${panel} :is(input:not([type=hidden]),select,textarea)')].filter(e=>e.getClientRects().length&&!(e.getAttribute('aria-label')||e.getAttribute('aria-labelledby')||e.labels.length||e.title)).map(e=>e.id||e.className)`
+      ),
+      [],
+      panel
+    );
+  }
+  assert.equal(await evaluate("document.querySelectorAll('h1').length"), 1);
   await evaluate(
     "import('/js/state.js').then(({state})=>{state.editCategories.pop()}).then(()=>import('/js/editor/categories.js')).then(({renderCategoryEditor})=>renderCategoryEditor())"
   );

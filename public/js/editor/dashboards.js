@@ -6,7 +6,7 @@ import { renderCategoryEditor } from "./categories.js";
 import { createDashboardIconPicker } from "./icon-picker.js";
 import { confirmDelete } from "../editor.js";
 import { makeDraggable } from "./drag.js";
-import { setDeleteIcon } from "./labelled-button.js";
+import { setDeleteIcon } from "./icon-button.js";
 
 // Dashboards editor: name and icon, in tab order. Deleting a dashboard
 // deletes no category: its categories join the first remaining dashboard, so
@@ -27,6 +27,7 @@ export function renderDashboardEditor() {
     const name = document.createElement("input");
     name.className = "edit-input";
     name.placeholder = t("dashboardName");
+    name.setAttribute("aria-label", t("dashboardName"));
     name.value = dashboard.name || "";
     name.addEventListener("input", () => {
       state.editDashboards[index].name = name.value;

@@ -100,10 +100,6 @@ export function loadFortunes() {
   return loading;
 }
 
-export function fortuneCount() {
-  return messages.length;
-}
-
 // Tests and the renderer need the list without going through the network.
 export function setFortunes(list) {
   messages = normalizeMessages(list);

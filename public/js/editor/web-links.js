@@ -6,7 +6,7 @@ import { createWebLinkIconPicker } from "./icon-picker.js";
 import { LINK_COUNTER_TYPES } from "../config/normalize.js";
 import { confirmDelete } from "../editor.js";
 import { moveItem } from "./drag.js";
-import { setDeleteIcon } from "./labelled-button.js";
+import { setDeleteIcon } from "./icon-button.js";
 
 export function renderWebLinksEditor() {
   webLinksEditor.innerHTML = "";
@@ -22,12 +22,14 @@ export function renderWebLinksEditor() {
     const name = document.createElement("input");
     name.className = "edit-input";
     name.placeholder = t("nameLabel");
+    name.setAttribute("aria-label", t("nameLabel"));
     name.value = link.name || "";
     name.addEventListener("input", () => (state.editWebLinks[index].name = name.value));
 
     const url = document.createElement("input");
     url.className = "edit-input web-link-url";
     url.placeholder = "https://...";
+    url.setAttribute("aria-label", t("urlLabel"));
     url.value = link.url || "";
     url.addEventListener("input", () => (state.editWebLinks[index].url = url.value));
 

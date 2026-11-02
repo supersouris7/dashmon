@@ -261,7 +261,6 @@ body.modal-open {
 .modal .action-btn,
 .modal .host-monitor-field,
 .modal .host-monitor-hint,
-.modal .wireguard-help-text,
 .modal .import-export-hint,
 .modal .import-export-status,
 .modal .appearance-field,
@@ -453,27 +452,6 @@ body.modal-open {
     width: 100%;
     max-width: 100%;
   }
-}
-
-.image-field {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 38px;
-  gap: 6px;
-}
-
-.image-library-btn {
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  background: var(--surface-2);
-  color: var(--text);
-  cursor: pointer;
-}
-
-.image-library-btn:hover {
-  border-color: var(--muted);
-  background: var(--surface-3);
 }
 
 .image-library,
@@ -811,7 +789,7 @@ body.modal-open {
   outline-offset: 1px;
 }
 
-/* Small row buttons without a word (editor/labelled-button.js): a 38 px
+/* Small row buttons without a word (editor/icon-button.js): a 38 px
    square, the height of the fields. The selector outweighs the sizes of
    .small-icon-btn, .icon-picker-current and .color-swatch-btn, including the
    per-list rules (.web-link-row ...). */

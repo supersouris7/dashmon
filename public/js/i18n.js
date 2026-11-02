@@ -19,6 +19,8 @@ import {
   editorTitle,
   closeBtn,
   editorSearch,
+  editorCategoryFilter,
+  editorHostFilter,
   cancelBtn,
   saveBtn,
   imageLibraryTitle,
@@ -95,6 +97,10 @@ export function applyLanguage() {
   editorTitle.textContent = t("settings");
   closeBtn.title = t("close");
   editorSearch.placeholder = t("searchEditor");
+  // A placeholder disappears once something is typed: it is not a label.
+  editorSearch.setAttribute("aria-label", t("searchEditorLabel"));
+  editorCategoryFilter.setAttribute("aria-label", t("filterByCategory"));
+  editorHostFilter.setAttribute("aria-label", t("filterByHost"));
 
   const editorLabels = [
     ["editorTabApplications", "tabApplications"],
