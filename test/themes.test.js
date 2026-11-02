@@ -10,7 +10,7 @@ const {
 
 assert.deepEqual(
   readThemes(path.join(__dirname, "../public/themes")).map(theme => theme.id),
-  ["dark", "light", "matrix"]
+  ["dark", "high-contrast", "light", "matrix", "polar"]
 );
 
 const variables = Object.fromEntries(REQUIRED_VARIABLES.map(key => [key, "#123456"]));

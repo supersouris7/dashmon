@@ -1,0 +1,23 @@
+{
+  "id": "polar",
+  "name": "Nuit polaire",
+  "author": "native",
+  "description": "Bleu nuit profond, accent cyan",
+  "version": "1.0.0",
+  "variables": {
+    "bg": "#0d1424",
+    "surface": "#131c30",
+    "surface-2": "#1a253c",
+    "surface-3": "#222f49",
+    "border": "#34446a",
+    "text": "#e8eefc",
+    "muted": "#9aa9c9",
+    "accent": "#6cc4ff",
+    "danger": "#e06c7a",
+    "success": "#4fd6a4",
+    "error": "#ff6b81",
+    "warning": "#ffb454",
+    "shadow": "0 2px 8px rgba(0,0,0,.45)"
+  },
+  "css": "[data-theme=\"polar\"] .service-icon{\n  filter:none !important;\n  opacity:1;\n}"
+}

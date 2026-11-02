@@ -117,6 +117,8 @@
   "dark": "Sombre",
   "light": "Clair",
   "matrix": "Matrix",
+  "polar": "Nuit polaire",
+  "highContrast": "Contraste élevé",
   "close": "Fermer",
   "search": "app, catégories, hôtes…",
   "searchLabel": "Rechercher dans les tableaux de bord",

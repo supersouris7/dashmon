@@ -157,9 +157,9 @@
     "semantic_hash": ""
   },
   "public/js/themes.js": {
-    "mtime": 1793373034.6949687,
-    "seen": 1793373081.9146097,
-    "ast_hash": "6d081da78326ed4de0e94101f8b4d1be",
+    "mtime": 1793615901.394785,
+    "seen": 1793616030.0618904,
+    "ast_hash": "d18860ac3ef8ebaf5acdf551a9eeadf0",
     "semantic_hash": ""
   },
   "public/js/toolbar.js": {
@@ -499,9 +499,9 @@
     "semantic_hash": ""
   },
   "CUSTOMIZATION.md": {
-    "mtime": 1793615217.9492633,
-    "seen": 1793615385.4766197,
-    "ast_hash": "b065a9e30e8d980a8a9485f764ea603f",
+    "mtime": 1793615997.5515337,
+    "seen": 1793616030.0621836,
+    "ast_hash": "3d5ca983a52148497781f77caf75575a",
     "semantic_hash": ""
   },
   "README.md": {
@@ -565,9 +565,9 @@
     "semantic_hash": ""
   },
   "public/index.html": {
-    "mtime": 1793615202.897135,
-    "seen": 1793615385.476666,
-    "ast_hash": "1f4d69c821e641d4c0d2f4d9b8958315",
+    "mtime": 1793615901.394785,
+    "seen": 1793616030.062229,
+    "ast_hash": "bd48fc83f00551eae25db45b7252069e",
     "semantic_hash": ""
   },
   "public/login.html": {
@@ -703,9 +703,9 @@
     "semantic_hash": ""
   },
   "test/browser.test.js": {
-    "mtime": 1793614276.879611,
-    "seen": 1793614377.593875,
-    "ast_hash": "dfe0a5105b6a280e2f3a08078635f0e7",
+    "mtime": 1793615901.394785,
+    "seen": 1793616030.061943,
+    "ast_hash": "b347f1d17454ced33b33b81e28964aa6",
     "semantic_hash": ""
   },
   "test/editor-draft.test.js": {
@@ -1027,9 +1027,9 @@
     "semantic_hash": ""
   },
   "test/themes.test.js": {
-    "mtime": 1793615231.597379,
-    "seen": 1793615385.4764612,
-    "ast_hash": "c608f7e41fab0866eeb4afafb3d6d6db",
+    "mtime": 1793615890.9387033,
+    "seen": 1793616030.0620267,
+    "ast_hash": "414c4216812cfa718311370585ac8b4d",
     "semantic_hash": ""
   },
   "test/widget-secrets.test.js": {
@@ -1183,15 +1183,15 @@
     "semantic_hash": ""
   },
   "public/js/i18n/en.json": {
-    "mtime": 1793613796.7559311,
-    "seen": 1793613930.3202484,
-    "ast_hash": "e49b5efe7f739031217b04214f81523c",
+    "mtime": 1793615890.9387033,
+    "seen": 1793616030.0618312,
+    "ast_hash": "8a07ebc8849f264279c00be5d9677329",
     "semantic_hash": ""
   },
   "public/js/i18n/fr.json": {
-    "mtime": 1793613796.7519312,
-    "seen": 1793613930.3202515,
-    "ast_hash": "326d7ef284f65cd9c619f2fd0f9ac385",
+    "mtime": 1793615890.9347034,
+    "seen": 1793616030.061835,
+    "ast_hash": "1e46ba3c7e4b0708e5b9417d7d4f7000",
     "semantic_hash": ""
   },
   "public/js/supervision/apt-card.js": {
@@ -1306,6 +1306,18 @@
     "mtime": 1793545039.38812,
     "seen": 1793545270.5542142,
     "ast_hash": "e2118ad7aa5564b4b3c2fdf07760583d",
+    "semantic_hash": ""
+  },
+  "public/themes/high-contrast.json": {
+    "mtime": 1793615890.9347034,
+    "seen": 1793616030.061911,
+    "ast_hash": "a4cbd99ce3292a70ab7cee081c6a48f7",
+    "semantic_hash": ""
+  },
+  "public/themes/polar.json": {
+    "mtime": 1793615890.9347034,
+    "seen": 1793616030.0619218,
+    "ast_hash": "f87fe4a2a74b547073f99c5b37d5f1ce",
     "semantic_hash": ""
   },
   "package-lock.json": {

@@ -143,7 +143,7 @@ async function main() {
   await wait(1800);
   assert.deepEqual(
     await evaluate("[...document.querySelector('#themeSelect').options].map(option=>option.value)"),
-    ["dark", "light", "matrix"]
+    ["dark", "light", "polar", "matrix", "high-contrast"]
   );
   for (const removed of ["black", "rainbow-dark", "rainbow-light"]) {
     assert.equal(

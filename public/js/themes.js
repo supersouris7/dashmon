@@ -8,7 +8,17 @@ import { themeSelect } from "./dom.js";
 const NATIVE_LABEL_KEY = {
   dark: "dark",
   light: "light",
-  matrix: "matrix"
+  matrix: "matrix",
+  polar: "polar",
+  "high-contrast": "highContrast"
+};
+
+// Order of the native themes in the menu: the two classics first, the
+// accessibility theme last. Unknown native ids follow, by id.
+const NATIVE_ORDER = ["dark", "light", "polar", "matrix", "high-contrast"];
+const nativeRank = theme => {
+  const index = NATIVE_ORDER.indexOf(theme.id);
+  return index === -1 ? NATIVE_ORDER.length : index;
 };
 
 function themeLabel(theme) {
@@ -75,7 +85,11 @@ export async function loadThemes() {
     if (!response.ok) throw new Error("HTTP " + response.status);
     const data = await response.json();
     state.themes = {
-      native: Array.isArray(data.native) ? data.native.map(t => ({ ...t, native: true })) : [],
+      native: Array.isArray(data.native)
+        ? data.native
+            .map(t => ({ ...t, native: true }))
+            .sort((a, b) => nativeRank(a) - nativeRank(b) || a.id.localeCompare(b.id))
+        : [],
       custom: Array.isArray(data.custom) ? data.custom.map(t => ({ ...t, native: false })) : []
     };
   } catch (error) {

@@ -1,0 +1,23 @@
+{
+  "id": "high-contrast",
+  "name": "Contraste élevé",
+  "author": "native",
+  "description": "Noir pur, texte blanc, accent jaune : lisibilité maximale",
+  "version": "1.0.0",
+  "variables": {
+    "bg": "#000000",
+    "surface": "#0a0a0a",
+    "surface-2": "#161616",
+    "surface-3": "#222222",
+    "border": "#8a8a8a",
+    "text": "#ffffff",
+    "muted": "#d0d0d0",
+    "accent": "#ffd400",
+    "danger": "#ff6b6b",
+    "success": "#3dff7a",
+    "error": "#ff6b6b",
+    "warning": "#ffa64d",
+    "shadow": "none"
+  },
+  "css": "[data-theme=\"high-contrast\"] .page-btn[aria-pressed=\"true\"] {\n  background: var(--surface-3);\n  box-shadow: inset 0 -3px 0 var(--accent);\n}\n\n[data-theme=\"high-contrast\"] :focus-visible {\n  outline: 2px solid var(--accent);\n  outline-offset: 2px;\n}"
+}

@@ -117,6 +117,8 @@
   "dark": "Dark",
   "light": "Light",
   "matrix": "Matrix",
+  "polar": "Polar night",
+  "highContrast": "High contrast",
   "close": "Close",
   "search": "app, categories, hosts…",
   "searchLabel": "Search the dashboards",

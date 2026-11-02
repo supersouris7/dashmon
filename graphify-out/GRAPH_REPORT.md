@@ -1,17 +1,17 @@
 # Graph Report - dashmon  (2026-11-02)
 
 ## Corpus Check
-- 214 files · ~121,249 words
+- 216 files · ~121,462 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 17 file(s) not represented in the graph (top: (none) 7, .css 6, .example 2)
 
 ## Summary
-- 2058 nodes · 3970 edges · 118 communities (96 shown, 22 thin omitted)
+- 2060 nodes · 3973 edges · 116 communities (94 shown, 22 thin omitted)
 - Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 247 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d8ecf589`
+- Built from commit: `80b2507d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -32,7 +32,7 @@
 - auth.test.js
 - createLocalMetrics
 - _template/manifest.json
-- services.js
+- widget-registry.js
 - sanitizeText
 - gotify/manifest.json
 - with
@@ -71,7 +71,7 @@
 - duplicati/server.js
 - qbittorrent/server.js
 - dashboard/web-links.js
-- Add a widget to Dashmon
+- services.js
 - security-headers.test.js
 - lichess/client.mjs
 - dashmon
@@ -103,18 +103,16 @@
 - opencode-report.test.js
 - Dashmon architecture
 - host/metrics.js
-- js/metrics.js
+- sections.js
 - render.js
 - ref_fs
 - wireguard-report.js
-- api.js
-- state.js
+- createConfirmDialog
 - Registry
 - smart-report.js
-- editor/widgets.js
+- hosts.js
 - verifyRequestOrigin
 - .prettierrc.json
-- pairing.js
 - apt.test.js
 - monitor.js
 - registerConfigRoutes
@@ -151,15 +149,15 @@
 ## Import Cycles
 - None detected.
 
-## Communities (118 total, 22 thin omitted)
+## Communities (116 total, 22 thin omitted)
 
 ### Community 0 - "supervision.js"
 Cohesion: 0.06
-Nodes (92): DEFAULT_TAB_ICON, ICON_OPTIONS, mobilePageBtn, mobilePageMenu, pageSwitchGroup, supervisionList, createAgentSettings(), renderForm() (+84 more)
+Nodes (100): DEFAULT_TAB_ICON, ICON_OPTIONS, mobilePageBtn, mobilePageMenu, pageSwitchGroup, supervisionList, createAgentSettings(), renderForm() (+92 more)
 
 ### Community 1 - "dom.js"
-Cohesion: 0.08
-Nodes (39): cancelBtn, collapseAllBtn, configImportInput, deleteThemeBtn, editorSearch, editorTabImages, editorTitle, exportThemeBtn (+31 more)
+Cohesion: 0.06
+Nodes (50): addCategoryBtn, addDashboardBtn, addHostBtn, addWebLinkBtn, cancelBtn, categoryEditor, closeBtn, collapseAllBtn (+42 more)
 
 ### Community 2 - "core.js"
 Cohesion: 0.17
@@ -217,9 +215,9 @@ Nodes (13): clampPercent(), createLocalMetrics(), localCpuPercent(), localDiskPe
 Cohesion: 0.06
 Nodes (34): cacheKey, client, config, description, en, fr, apiToken, apiTokenConfigured (+26 more)
 
-### Community 16 - "services.js"
-Cohesion: 0.06
-Nodes (72): addCategoryBtn, addDashboardBtn, addHostBtn, addServiceBtn, addWebLinkBtn, categoryEditor, dashboardEditor, editorCategoryFilter (+64 more)
+### Community 16 - "widget-registry.js"
+Cohesion: 0.07
+Nodes (45): Add a widget to Dashmon, client.mjs, If the plugin is missing or broken, Installing a third-party widget, Keeping a value over time, manifest.json, Security rules, server.js (+37 more)
 
 ### Community 17 - "sanitizeText"
 Cohesion: 0.15
@@ -238,8 +236,8 @@ Cohesion: 0.06
 Nodes (31): cap_drop, container_name, dns, environment, image, ports, read_only, restart (+23 more)
 
 ### Community 21 - "js/themes.js"
-Cohesion: 0.23
-Nodes (18): patchConfig(), allThemes(), applyTheme(), applyThemeLabels(), buildThemeSelect(), currentTheme(), deleteCustomTheme(), importThemeFile() (+10 more)
+Cohesion: 0.18
+Nodes (22): patchConfig(), themeSelect, allThemes(), applyTheme(), applyThemeLabels(), buildThemeSelect(), currentTheme(), deleteCustomTheme() (+14 more)
 
 ### Community 22 - "createAuth"
 Cohesion: 0.16
@@ -270,8 +268,8 @@ Cohesion: 0.17
 Nodes (12): 1. Prepare Dashmon, 2. Install nginx and certbot, 3. Configure the HTTP proxy, 4. Add the certificate, 5. Check, Before you start, HTTPS with nginx, Local name: internal certificate (+4 more)
 
 ### Community 30 - "app.js"
-Cohesion: 0.13
-Nodes (24): closeTopMenu(), gridSelects, headerObserver, openSettings(), pageSwitch, PHONE, placeSearchBox(), positionTopMenu() (+16 more)
+Cohesion: 0.09
+Nodes (35): closeTopMenu(), gridSelects, headerObserver, init(), openSettings(), pageSwitch, PHONE, placeSearchBox() (+27 more)
 
 ### Community 31 - "en"
 Cohesion: 0.11
@@ -282,8 +280,8 @@ Cohesion: 0.11
 Nodes (19): error, metric, metricForks, metricForksShort, metricIssues, metricIssuesShort, metricStars, metricStarsShort (+11 more)
 
 ### Community 33 - "js/config/normalize.js"
-Cohesion: 0.11
-Nodes (29): DEFAULT_CATEGORIES, DEFAULT_DASHBOARDS, DEFAULT_HOSTS, DEFAULT_SERVICES, DEFAULT_WEB_LINKS, HOST_MONITORING_TYPES, LINK_COUNTER_TYPES, normalizeAptUpdatesPrefs() (+21 more)
+Cohesion: 0.12
+Nodes (32): DEFAULT_CATEGORIES, DEFAULT_DASHBOARDS, DEFAULT_HOSTS, DEFAULT_SERVICES, DEFAULT_WEB_LINKS, HOST_MONITORING_TYPES, LINK_COUNTER_TYPES, normalizeAptUpdatesPrefs() (+24 more)
 
 ### Community 34 - "agent.test.js"
 Cohesion: 0.10
@@ -326,7 +324,7 @@ Cohesion: 0.07
 Nodes (34): 1. Run, 2. Environment variables, 3. Data, 4. nginx (optional), 5. Verification, 6. Monitoring LAN domains (.lan, .local…), 7. Private CA certificates, 8. Host supervision (+26 more)
 
 ### Community 44 - "images.js"
-Cohesion: 0.14
+Cohesion: 0.13
 Nodes (18): closeImageLibraryBtn, imageGrid, imageLibrary, imageManagerGrid, manageDeleteBtn, managePngUpload, manageSelectionCount, manageUploadBtn (+10 more)
 
 ### Community 45 - "fortune.js"
@@ -338,8 +336,8 @@ Cohesion: 0.20
 Nodes (9): cacheKey, config, hidden, id, interval, probe, server, strings (+1 more)
 
 ### Community 47 - "dashboard/cards.js"
-Cohesion: 0.38
-Nodes (10): bumpUsage(), appendTileIcon(), applyWidgetStatus(), createCard(), statusTitle(), updateStatusIndicators(), effectiveStatus(), statusIcon() (+2 more)
+Cohesion: 0.35
+Nodes (11): bumpUsage(), appendTileIcon(), applyWidgetStatus(), createCard(), statusTitle(), updateStatusIndicators(), serviceUsageKey(), effectiveStatus() (+3 more)
 
 ### Community 48 - "AGENTS.md"
 Cohesion: 0.15
@@ -366,12 +364,12 @@ Cohesion: 0.39
 Nodes (5): check(), cookieOf(), login(), numberOf(), transferInfo()
 
 ### Community 54 - "dashboard/web-links.js"
-Cohesion: 0.27
-Nodes (11): compactCount(), linkCounterValue(), sanitizeIconClass(), safeHref(), linkCounterText(), renderWebLinks(), updateWebLinkCounters(), updateWebLinksAppearance() (+3 more)
+Cohesion: 0.46
+Nodes (7): compactCount(), linkCounterValue(), safeHref(), linkCounterText(), renderWebLinks(), updateWebLinkCounters(), updateWebLinksAppearance()
 
-### Community 56 - "Add a widget to Dashmon"
-Cohesion: 0.18
-Nodes (16): Add a widget to Dashmon, client.mjs, If the plugin is missing or broken, Installing a third-party widget, Keeping a value over time, manifest.json, Security rules, server.js (+8 more)
+### Community 56 - "services.js"
+Cohesion: 0.21
+Nodes (16): addServiceBtn, editorCategoryFilter, editorHostFilter, editorSearch, serviceEditor, getEditorHostNames(), iconElement(), refreshEditorCategoryFilter() (+8 more)
 
 ### Community 57 - "security-headers.test.js"
 Cohesion: 0.28
@@ -454,8 +452,8 @@ Cohesion: 0.24
 Nodes (7): createReplicationConfig(), sanitizeReplication(), associated(), sanitizeSyncUrl(), assert, result, { sanitizeReplication, sanitizeSyncUrl }
 
 ### Community 94 - "editor.js"
-Cohesion: 0.09
-Nodes (45): loadConfig(), setToolbarHeight(), normalizeConfig(), normalizeDashboards(), updateGroupModeMenu(), updateIconsButton(), updateOpenModeMenu(), updateSortModeMenu() (+37 more)
+Cohesion: 0.08
+Nodes (40): configConflict, configSaveChain, fetchConfig(), pendingConfigPatch, saveConfig(), setConfigRevision(), loadConfig(), setToolbarHeight() (+32 more)
 
 ### Community 95 - "opencode-report.test.js"
 Cohesion: 0.18
@@ -469,13 +467,13 @@ Nodes (5): Browser, Checks, Dashmon architecture, Overview, Server
 Cohesion: 0.20
 Nodes (12): fs, nonnegativeInteger(), readAptUpdatesReport(), createHostMetrics(), collect(), handle(), hostReport(), filteredReports() (+4 more)
 
-### Community 98 - "js/metrics.js"
-Cohesion: 0.33
-Nodes (9): init(), menuRefreshBtn, refreshBar, manualRefresh(), pageHidden(), refreshStatus(), setRefreshPending(), setupVisibilityPause() (+1 more)
+### Community 98 - "sections.js"
+Cohesion: 0.28
+Nodes (12): sanitizeTileColor(), tileColorFor(), createSection(), getDashboardSections(), prefersReducedMotion(), reorderDashboardSections(), sectionHomeRank(), dashboard (+4 more)
 
 ### Community 99 - "render.js"
-Cohesion: 0.17
-Nodes (30): tileColorFor(), createSection(), getDashboardSections(), prefersReducedMotion(), reorderDashboardSections(), sectionHomeRank(), dashboard, searchStatus (+22 more)
+Cohesion: 0.22
+Nodes (23): announceSearch(), categoryDashboardId(), createSpecialCard(), currentDashboardId(), getActiveGroupEntries(), getCollapseAllState(), getVisibleGroupNames(), groupFallbackName() (+15 more)
 
 ### Community 100 - "ref_fs"
 Cohesion: 0.08
@@ -485,21 +483,17 @@ Nodes (25): crypto, DEFAULT_WEB_LINKS, ensureAgentLocalHost(), ensureHostIds(), 
 Cohesion: 0.29
 Nodes (9): byteCount(), fs, handshakeSeconds(), normalizePeer(), normalizeWireguard(), readWireguardDump(), assert, filesystem (+1 more)
 
-### Community 102 - "api.js"
-Cohesion: 0.29
-Nodes (6): configConflict, configSaveChain, fetchConfig(), pendingConfigPatch, saveConfig(), setConfigRevision()
-
-### Community 103 - "state.js"
-Cohesion: 0.39
-Nodes (7): compareServices(), FALLBACK_HOST, serviceMatchesSearch(), serviceUsageKey(), foldText(), isTypingTarget(), normalize()
+### Community 102 - "createConfirmDialog"
+Cohesion: 0.50
+Nodes (3): createConfirmDialog(), cancel(), open()
 
 ### Community 105 - "smart-report.js"
 Cohesion: 0.36
 Nodes (8): fs, normalizeSmartDisk(), readSmartDump(), smartAttribute(), smartNumber(), assert, disk, filesystem
 
-### Community 106 - "editor/widgets.js"
-Cohesion: 0.50
-Nodes (4): widgetsEditor, renderWidgetsEditor(), SPECIAL_TILES, validSpecialCategory()
+### Community 106 - "hosts.js"
+Cohesion: 0.21
+Nodes (25): renderCategoryEditor(), closeColorPalette(), createColorPicker(), confirmDelete(), renderDashboardEditor(), makeDraggable(), moveItem(), blankMonitoring() (+17 more)
 
 ### Community 107 - "verifyRequestOrigin"
 Cohesion: 0.39
@@ -508,10 +502,6 @@ Nodes (6): defaultPort(), sameOrigin(), STATE_CHANGING, verifyRequestOrigin(), a
 ### Community 108 - ".prettierrc.json"
 Cohesion: 0.50
 Nodes (3): arrowParens, printWidth, trailingComma
-
-### Community 109 - "pairing.js"
-Cohesion: 0.49
-Nodes (7): sanitizeUrl(), createPairingList(), render(), setStatus(), renderPairingEditor(), agentUrl(), serializeReplicationEntries()
 
 ### Community 110 - "apt.test.js"
 Cohesion: 0.08
@@ -539,23 +529,23 @@ Nodes (6): Bind mount variant, Claude Code statistics, Enable or hide the card, 
 
 ## Knowledge Gaps
 - **2 isolated node(s):** `DEBIAN_FRONTEND`, `LC_ALL`
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 990 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 991 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **22 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Add a widget to Dashmon` connect `Add a widget to Dashmon` to `README.md`?**
-  _High betweenness centrality (0.229) - this node is a cross-community bridge._
+- **Why does `Add a widget to Dashmon` connect `widget-registry.js` to `README.md`?**
+  _High betweenness centrality (0.231) - this node is a cross-community bridge._
 - **Are the 11 inferred relationships involving `createApp()` (e.g. with `server.js` and `agentApiFilter()`) actually correct?**
   _`createApp()` has 11 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `DEBIAN_FRONTEND`, `LC_ALL` to the rest of the system?**
   _2 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `supervision.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.06465201465201466 - nodes in this community are weakly interconnected._
-- **Why does `text()` connect `lib/themes.js` to `Themes`, `Add a widget to Dashmon`?**
+  _Cohesion score 0.0575712143928036 - nodes in this community are weakly interconnected._
+- **Why does `text()` connect `lib/themes.js` to `Themes`, `widget-registry.js`?**
   _High betweenness centrality (0.208) - this node is a cross-community bridge._
 - **Are the 19 inferred relationships involving `main()` (e.g. with `.cacheKey()` and `.check()`) actually correct?**
   _`main()` has 19 INFERRED edges - model-reasoned connections that need verification._
 - **Should `dom.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.08013937282229965 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.058001397624039136 - nodes in this community are weakly interconnected._
