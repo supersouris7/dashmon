@@ -19,6 +19,7 @@ import {
 } from "../widget-registry.js";
 import { openImageLibrary } from "../images.js";
 import { confirmDelete } from "../editor.js";
+import { setDeleteIcon } from "./labelled-button.js";
 
 export function refreshEditorCategoryFilter() {
   const current = editorCategoryFilter.value;
@@ -191,21 +192,20 @@ export function renderServiceEditor() {
     url.value = service.url || "";
     url.addEventListener("input", () => (state.editServices[index].url = url.value));
 
+    // Square tile at the start of the card, same format as the Images panel.
     const chooseIcon = document.createElement("button");
-    chooseIcon.className = "image-library-btn";
+    chooseIcon.className = "service-image-btn";
     chooseIcon.type = "button";
     chooseIcon.title = t("choosePng");
-
-    chooseIcon.classList.add("service-action");
+    chooseIcon.setAttribute("aria-label", t("choosePng"));
     if (service.icon) {
       const preview = document.createElement("img");
       preview.src = service.icon;
       preview.alt = "";
-      preview.className = "editor-icon-preview";
       preview.onerror = () => preview.replaceWith(iconElement("fa-solid fa-image"));
-      chooseIcon.append(preview, labelText(t("imageButton")));
+      chooseIcon.append(preview);
     } else {
-      chooseIcon.append(iconElement("fa-solid fa-image"), labelText(t("imageButton")));
+      chooseIcon.append(iconElement("fa-solid fa-image"));
     }
 
     chooseIcon.addEventListener("click", () =>
@@ -242,10 +242,9 @@ export function renderServiceEditor() {
     });
 
     const remove = document.createElement("button");
-    remove.className = "small-icon-btn delete-btn service-action";
+    remove.className = "small-icon-btn delete-btn";
     remove.type = "button";
-    remove.title = t("deleteLabel");
-    remove.append(iconElement("fa-solid fa-trash"), labelText(t("deleteLabel")));
+    setDeleteIcon(remove, t("deleteLabel"));
     remove.addEventListener("click", async () => {
       if (!(await confirmDelete(t("confirmDeleteService")))) return;
       state.editServices.splice(index, 1);
@@ -254,7 +253,7 @@ export function renderServiceEditor() {
 
     const actions = document.createElement("div");
     actions.className = "service-actions";
-    actions.append(chooseIcon, monitor, remove);
+    actions.append(monitor, remove);
 
     const widgetWrap = document.createElement("div");
     widgetWrap.className = "service-widget";
@@ -302,6 +301,7 @@ export function renderServiceEditor() {
 
     widgetType.setAttribute("aria-label", t("widgetLabel"));
     row.append(
+      chooseIcon,
       serviceField(t("nameLabel"), name, "name"),
       serviceField(t("urlLabel"), url, "url"),
       serviceField(t("categoryLabel"), category, "category"),

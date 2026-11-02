@@ -6,7 +6,7 @@ import { createWebLinkIconPicker } from "./icon-picker.js";
 import { LINK_COUNTER_TYPES } from "../config/normalize.js";
 import { confirmDelete } from "../editor.js";
 import { moveItem } from "./drag.js";
-import { setIconLabel } from "./labelled-button.js";
+import { setDeleteIcon } from "./labelled-button.js";
 
 export function renderWebLinksEditor() {
   webLinksEditor.innerHTML = "";
@@ -86,8 +86,7 @@ export function renderWebLinksEditor() {
     const del = document.createElement("button");
     del.className = "small-icon-btn delete-btn";
     del.type = "button";
-    del.title = t("deleteLabel");
-    setIconLabel(del, "fa-solid fa-trash", t("deleteLabel"));
+    setDeleteIcon(del, t("deleteLabel"));
     del.addEventListener("click", async () => {
       if (!(await confirmDelete(t("confirmDeleteWebLink")))) return;
       state.editWebLinks.splice(index, 1);

@@ -220,3 +220,8 @@
   color: var(--accent);
   text-underline-offset: 2px;
 }
+
+/* Square trash at the end of each row, same corner as the other controls. */
+.settings-page .edit-panel button.delete-btn {
+  border-radius: 3px;
+}

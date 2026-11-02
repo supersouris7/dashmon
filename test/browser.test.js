@@ -179,7 +179,13 @@ async function main() {
   await evaluate("document.querySelector('.settings-branch summary').click()");
   // Layout of the settings: one control height, nothing wider than its panel,
   // a title on each panel, the empty image list on one line.
-  for (const panel of ["webLinksPanel", "hostsPanel", "imagesPanel", "appearancePanel"]) {
+  for (const panel of [
+    "webLinksPanel",
+    "hostsPanel",
+    "imagesPanel",
+    "themePanel",
+    "preferencesPanel"
+  ]) {
     await evaluate(`document.querySelector('[data-panel=${panel}]').click()`);
     await wait(150);
     assert.deepEqual(
@@ -207,10 +213,43 @@ async function main() {
       "document.querySelector('.image-manager-empty')?.getBoundingClientRect().height"
     )) < 40
   );
-  await evaluate("document.querySelector('[data-panel=appearancePanel]').click()");
+  // Row trash buttons: a 38 px square without a word, named for screen readers.
+  await evaluate("document.querySelector('[data-panel=hostsPanel]').click()");
+  assert.deepEqual(
+    await evaluate(
+      "(()=>{const b=document.querySelector('#hostsPanel .delete-btn');const r=b.getBoundingClientRect();return [Math.round(r.width),Math.round(r.height),b.textContent.trim(),!!b.getAttribute('aria-label')]})()"
+    ),
+    [38, 38, "", true]
+  );
+  // The image of an application is a square tile at the start of its card.
+  await evaluate(
+    "document.querySelector('[data-panel=servicesPanel]').click();document.querySelector('#addServiceBtn').click()"
+  );
+  assert.deepEqual(
+    await evaluate(
+      "(()=>{const c=document.querySelector('.service-row:last-child');const b=c.querySelector('.service-image-btn');const r=b.getBoundingClientRect();return [Math.round(r.width),Math.round(r.height),c.firstElementChild===b,r.left<c.querySelector('.service-field').getBoundingClientRect().left]})()"
+    ),
+    [64, 64, true, true]
+  );
+  await evaluate(
+    "import('/js/state.js').then(({state})=>{state.editServices.pop()}).then(()=>import('/js/editor/services.js')).then(({renderServiceEditor})=>renderServiceEditor())"
+  );
+  // Theme and preferences are two entries of the Appearance branch.
+  await evaluate("document.querySelector('[data-panel=preferencesPanel]').click()");
   assert.equal(
     await evaluate(
-      "!!document.querySelector('#appearancePanel #themeSelect') && document.querySelector('#appearancePanel').getClientRects().length > 0"
+      "!!document.querySelector('#preferencesPanel #languageSelect') && !document.querySelector('#preferencesPanel #themeSelect')"
+    ),
+    true
+  );
+  assert.equal(
+    await evaluate("getComputedStyle(document.querySelector('.editor-footer')).display"),
+    "none"
+  );
+  await evaluate("document.querySelector('[data-panel=themePanel]').click()");
+  assert.equal(
+    await evaluate(
+      "!!document.querySelector('#themePanel #themeSelect') && document.querySelector('#themePanel').getClientRects().length > 0"
     ),
     true
   );
@@ -377,7 +416,7 @@ async function main() {
     "(()=>{const i=document.querySelector('#remoteAgentEditor [name=agentHostName]');i.value='Agent navigateur';i.dispatchEvent(new Event('input',{bubbles:true}));})()"
   );
   await evaluate(
-    "document.querySelector('[data-panel=appearancePanel]').click();document.querySelector('#settingsAgentTree button').click()"
+    "document.querySelector('[data-panel=themePanel]').click();document.querySelector('#settingsAgentTree button').click()"
   );
   await wait(100);
   assert.equal(
@@ -406,7 +445,7 @@ async function main() {
     false
   );
   await evaluate(
-    "document.querySelector('[data-panel=servicesPanel]').click(); document.querySelector('#addServiceBtn').click(); document.querySelector('[data-panel=appearancePanel]').click(); document.querySelector('#closeBtn').click()"
+    "document.querySelector('[data-panel=servicesPanel]').click(); document.querySelector('#addServiceBtn').click(); document.querySelector('[data-panel=themePanel]').click(); document.querySelector('#closeBtn').click()"
   );
   await wait(200);
   assert.equal(

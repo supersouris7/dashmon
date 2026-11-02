@@ -218,7 +218,7 @@ container path in the agent configuration on the primary.
 
 On the main instance, open **Settings → Agents → Pairing**, enter each agent's
 base URL on its own line, optionally enter a tab name for each agent, and save.
-Then link a host from **Dashboard → Host appearance**: its color and icon are reused
+Then link a host from **Dashboard → Hosts**: its color and icon are reused
 when hovering the host tile in Supervision. Without a host, the pairing still
 works but the tile keeps its default appearance. Without a name, the tab uses
 the address's hostname. The Supervision page can then select each agent. The

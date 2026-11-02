@@ -9,7 +9,7 @@ import { renderServiceEditor } from "./services.js";
 import { renderWidgetsEditor } from "./widgets.js";
 import { createColorPicker } from "./color-picker.js";
 import { makeDraggable } from "./drag.js";
-import { setIconLabel } from "./labelled-button.js";
+import { setDeleteIcon } from "./labelled-button.js";
 
 export function renderCategoryEditor() {
   categoryEditor.innerHTML = "";
@@ -70,8 +70,7 @@ export function renderCategoryEditor() {
     const remove = document.createElement("button");
     remove.className = "small-icon-btn delete-btn";
     remove.type = "button";
-    remove.title = t("deleteLabel");
-    setIconLabel(remove, "fa-solid fa-trash", t("deleteLabel"));
+    setDeleteIcon(remove, t("deleteLabel"));
     remove.addEventListener("click", async () => {
       if (!(await confirmDelete(t("confirmDeleteCategory")))) return;
       const removedName = state.editCategories[index].name;

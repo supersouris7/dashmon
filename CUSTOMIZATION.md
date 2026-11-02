@@ -69,7 +69,7 @@ imported from the UI and persisted in `/app/data/themes/`.
 
 ### Creating a theme
 
-1. Open **Settings** from the top-right menu, then **Appearance → Theme and preferences**.
+1. Open **Settings** from the top-right menu, then **Appearance → Theme**.
 2. Choose a starting theme and click **Export** → a `theme-<id>.json` is
    downloaded.
 3. Edit the JSON (new `id`, `name`, colors and optional `css`) in any editor.

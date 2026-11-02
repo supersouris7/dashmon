@@ -347,10 +347,13 @@ function activateEditorPanel(panelId, agentUrl = "") {
   )
     branch.open = true;
   document.getElementById(panelId)?.classList.add("active");
-  // Appearance settings apply at once: Cancel / Save would mean nothing there.
+  // Theme and preferences apply at once: Cancel / Save would mean nothing there.
   document
     .querySelector(".editor-footer")
-    ?.classList.toggle("editor-footer-hidden", panelId === "appearancePanel");
+    ?.classList.toggle(
+      "editor-footer-hidden",
+      panelId === "themePanel" || panelId === "preferencesPanel"
+    );
   if (panelId === "imagesPanel") renderImageManager();
   if (panelId === "replicationPanel") renderReplicationEditor();
   if (panelId === "localHostPanel") renderLocalSettings();

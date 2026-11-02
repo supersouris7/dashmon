@@ -288,7 +288,7 @@
               </button>
               <button class="edit-tab" type="button" data-panel="hostsPanel">
                 <i class="fa-solid fa-server"></i>
-                <span id="editorTabHosts">Apparence des hôtes</span>
+                <span id="editorTabHosts">Hôtes</span>
               </button>
             </div>
           </details>
@@ -297,9 +297,13 @@
               <span id="settingsAppearance">Apparence</span>
             </summary>
             <div class="settings-children">
-              <button class="edit-tab" type="button" data-panel="appearancePanel">
+              <button class="edit-tab" type="button" data-panel="themePanel">
                 <i class="fa-solid fa-palette"></i>
-                <span id="editorTabAppearance">Thème et préférences</span>
+                <span id="editorTabTheme">Thème</span>
+              </button>
+              <button class="edit-tab" type="button" data-panel="preferencesPanel">
+                <i class="fa-solid fa-sliders"></i>
+                <span id="editorTabPreferences">Préférences</span>
               </button>
             </div>
           </details>
@@ -470,8 +474,8 @@
           <div id="remoteAgentEditor"></div>
         </div>
 
-        <div id="appearancePanel" class="edit-panel">
-          <h2 class="settings-panel-title" data-title-key="settingsPreferences"></h2>
+        <div id="themePanel" class="edit-panel">
+          <h2 class="settings-panel-title" data-title-key="theme"></h2>
           <p id="appearanceSaveHint" class="upload-hint">
             Ces préférences sont enregistrées immédiatement.
           </p>
@@ -502,7 +506,15 @@
                 </button>
               </div>
             </div>
+          </div>
+        </div>
 
+        <div id="preferencesPanel" class="edit-panel">
+          <h2 class="settings-panel-title" data-title-key="settingsPreferences"></h2>
+          <p id="preferencesSaveHint" class="upload-hint">
+            Ces préférences sont enregistrées immédiatement.
+          </p>
+          <div class="appearance-content">
             <label class="appearance-field">
               <span id="languageFieldLabel">Langue</span>
               <select id="languageSelect" class="edit-select">

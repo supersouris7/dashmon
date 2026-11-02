@@ -49,8 +49,10 @@ export function applyLanguage() {
     ["settingsAgents", "settingsAgents"],
     ["settingsAdministration", "settingsAdministration"],
     ["settingsAppearance", "settingsAppearance"],
-    ["editorTabAppearance", "settingsPreferences"],
-    ["appearanceSaveHint", "appearanceSaveHint"]
+    ["editorTabTheme", "theme"],
+    ["editorTabPreferences", "settingsPreferences"],
+    ["appearanceSaveHint", "appearanceSaveHint"],
+    ["preferencesSaveHint", "appearanceSaveHint"]
   ])
     document.getElementById(id).textContent = t(key);
 

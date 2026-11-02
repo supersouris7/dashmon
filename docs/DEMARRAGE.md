@@ -147,7 +147,7 @@ writable by the container UID `1000`.
 
 1. On the primary: **Settings → Agents → Pairing**. Add the agent full address,
    for example `http://exemple.lan:8081`, then name the tab if you want.
-   Next, link a host from **Dashboard → Host appearance**: its color and icon are used
+   Next, link a host from **Dashboard → Hosts**: its color and icon are used
    when hovering its tile in Supervision. Without a host, the pairing still
    works but the tile keeps its default appearance.
 2. Click **Test connection**, then **Save**. This agent appears by name under
