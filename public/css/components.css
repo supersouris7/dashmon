@@ -1111,7 +1111,7 @@ body[data-page="supervision"] #collapseAllBtn {
 
 .supervision-card.tinted:hover {
   transform: translateY(-1px);
-  border-color: var(--tile-color);
+  border-color: var(--tile-ink);
   background: color-mix(in srgb, var(--tile-color) 9%, var(--surface));
 }
 
@@ -1884,7 +1884,7 @@ body[data-page="supervision"] #collapseAllBtn {
   font-variant-numeric: tabular-nums;
 }
 .usage-tool small {
-  color: light-dark(#8a5a00, var(--warning));
+  color: var(--warning);
   font-weight: 600;
 }
 .usage-activity-box {
@@ -2072,8 +2072,9 @@ button.delete-btn {
   align-items: center;
   justify-content: center;
   background: transparent !important;
-  color: #ff6b6b !important;
-  border: 1px solid rgba(255, 107, 107, 0.38) !important;
+  /* Theme error colour: readable on light and dark backgrounds alike. */
+  color: var(--error) !important;
+  border: 1px solid color-mix(in srgb, var(--error) 45%, transparent) !important;
   border-radius: 6px;
   box-shadow: none !important;
 }
@@ -2085,9 +2086,9 @@ button.delete-btn i {
 }
 
 button.delete-btn:hover {
-  background: rgba(255, 107, 107, 0.1) !important;
-  color: #ff8a8a !important;
-  border-color: rgba(255, 107, 107, 0.65) !important;
+  background: color-mix(in srgb, var(--error) 10%, transparent) !important;
+  color: var(--error) !important;
+  border-color: color-mix(in srgb, var(--error) 75%, transparent) !important;
 }
 
 .modal i,

@@ -581,9 +581,18 @@ main {
    categorie appartient la tuile, et le titre reprend la teinte en permanence.
    La classe .tinted distingue une section coloree : sans elle, --tile-color
    vaudrait transparent et la bordure disparaitrait. */
+/* On a light theme the palette is too pale to read (down to 1.25:1): the
+   visible tint (--tile-ink) is mixed with the text colour, which keeps every
+   colour above 3:1. light-dark() follows the colour scheme set by themes.js. */
+.section.tinted,
+.card.tinted,
+.supervision-card.tinted {
+  --tile-ink: light-dark(color-mix(in srgb, var(--tile-color) 55%, var(--text)), var(--tile-color));
+}
+
 .section.tinted .card:hover,
 .cards > .card.tinted:hover {
-  border-color: var(--tile-color);
+  border-color: var(--tile-ink);
   background: color-mix(in srgb, var(--tile-color) 9%, var(--surface));
 }
 
@@ -592,7 +601,7 @@ main {
    illisible des que la teinte est sombre, et un bandeau de titres colores
    serait bien plus bruyant qu'une rangee d'icones. */
 .section.tinted .category-icon {
-  color: var(--tile-color);
+  color: var(--tile-ink);
 }
 
 .card:hover {
@@ -696,7 +705,7 @@ main {
   color: var(--accent);
 }
 .app-sponsor-heart {
-  color: #e25555;
+  color: var(--error);
   opacity: 0.85;
   transition: opacity 0.15s ease;
 }

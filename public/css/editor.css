@@ -376,11 +376,12 @@ body.modal-open {
   background: var(--surface-3);
 }
 
+/* Danger tint taken from the theme, so it suits light themes too. */
 .action-btn.danger,
 .small-icon-btn.danger {
-  color: #fff;
-  border-color: #743a3a;
-  background: #4a2424;
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--danger) 60%, var(--surface));
+  background: color-mix(in srgb, var(--danger) 30%, var(--surface));
 }
 
 .action-btn:disabled {
@@ -390,7 +391,7 @@ body.modal-open {
 }
 
 .action-btn.danger:disabled {
-  background: #4a2424;
+  background: color-mix(in srgb, var(--danger) 30%, var(--surface));
 }
 
 .icon-picker {
@@ -742,7 +743,7 @@ body.modal-open {
 
 .service-row.drag-over,
 .category-row.drag-over {
-  outline: 1px solid #56626e;
+  outline: 1px solid var(--muted);
   outline-offset: 2px;
 }
 

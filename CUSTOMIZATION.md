@@ -66,6 +66,7 @@ imported from the UI and persisted in `/app/data/themes/`.
 | `shadow` | card box-shadow |
 | `success` (optional) | status "up" dots, metric bars |
 | `error` (optional) | status "down" dots, critical bars |
+| `warning` (optional) | "needs attention" dots, high bars, non-critical monitoring |
 
 ### Creating a theme
 
