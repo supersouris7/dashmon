@@ -6,6 +6,7 @@ import {
   sanitizeText,
   sanitizeIconClass,
   sanitizeUrl,
+  sanitizeSyncUrl,
   sanitizeTileColor,
   sanitizeImagePath,
   assignTileColors
@@ -29,12 +30,6 @@ export const DEFAULT_DASHBOARDS = [{ id: "main", name: "Dashboard", icon: "fa-so
 // Reserved id: "supervision" is a separate page, never a dashboard.
 export const RESERVED_DASHBOARD_IDS = Object.freeze(["supervision"]);
 
-// No example host or service: the config is the user's own, empty on a new
-// install.
-export const DEFAULT_HOSTS = [];
-
-export const DEFAULT_SERVICES = [];
-
 export const DEFAULT_WEB_LINKS = [
   { name: "YouTube", url: "https://www.youtube.com", icon: "fa-brands fa-youtube" },
   { name: "Outlook", url: "https://outlook.office.com", icon: "fa-solid fa-envelope" },
@@ -42,9 +37,15 @@ export const DEFAULT_WEB_LINKS = [
   { name: "GitHub", url: "https://github.com", icon: "fa-brands fa-github" }
 ];
 
+// Same rule as the server: only boolean flags, keys bounded to 200 characters
+// and 500 entries.
 export function normalizeCollapsed(collapsed) {
   if (!collapsed || typeof collapsed !== "object" || Array.isArray(collapsed)) return {};
-  const out = { ...collapsed };
+  const out = Object.fromEntries(
+    Object.entries(collapsed)
+      .filter(([key, value]) => typeof value === "boolean" && key.length <= 200)
+      .slice(0, 500)
+  );
   // Legacy cleanup: unprefixed keys (category:X, host:X as is) are duplicated
   // by the prefixed keys, which win; they are removed.
   for (const key of Object.keys(out)) {
@@ -196,6 +197,7 @@ export function compactCount(value) {
 export function normalizeDashboards(raw) {
   const seen = new Set();
   const list = (Array.isArray(raw) ? raw : [])
+    .slice(0, 20)
     .map(item => ({
       id: sanitizeText(item && item.id, 64),
       name: sanitizeText(item && item.name, 100),
@@ -216,20 +218,17 @@ export function normalizeDashboards(raw) {
 // Local supervision only: other machines are read through their agents.
 export const HOST_MONITORING_TYPES = Object.freeze(["local"]);
 
+// A monitoring of another type (the former Proxmox integration) is dropped,
+// as on the server.
 export function normalizeHostMonitoring(raw) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
-  if (raw.type === "proxmox") return null;
-  const type = HOST_MONITORING_TYPES.includes(raw.type) ? raw.type : "local";
+  if (raw.type && !HOST_MONITORING_TYPES.includes(raw.type)) return null;
+  const type = "local";
   return {
     enabled: raw.enabled === true,
     type,
-    url: sanitizeUrl(raw.url),
-    node: sanitizeText(raw.node, 50),
     path: sanitizeText(raw.path, 200),
-    tokenIdEnv: sanitizeText(raw.tokenIdEnv, 100),
-    tokenSecretEnv: sanitizeText(raw.tokenSecretEnv, 100),
-    wireguard:
-      type === "local" ? normalizeWireguardPrefs(raw.wireguard) : { enabled: true, interface: "" },
+    wireguard: normalizeWireguardPrefs(raw.wireguard),
     smart: normalizeSmartPrefs(raw.smart),
     aptUpdates: normalizeAptUpdatesPrefs(raw.aptUpdates),
     opencode: normalizeAptUpdatesPrefs(raw.opencode),
@@ -263,8 +262,53 @@ export function normalizeAptUpdatesPrefs(raw) {
   return { enabled: src.enabled !== false };
 }
 
+// Pairing settings: same rules as lib/agent/replication-config.js. Names,
+// icons and host links are only kept for an agent of the list.
+function normalizeReplication(raw) {
+  const source = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  const secondaries = Array.isArray(source.secondaries)
+    ? [...new Set(source.secondaries.map(sanitizeSyncUrl).filter(Boolean))].slice(0, 20)
+    : [];
+  const associated = (values, clean) => {
+    const out = {};
+    if (!values || typeof values !== "object" || Array.isArray(values)) return out;
+    for (const [url, value] of Object.entries(values)) {
+      const key = sanitizeSyncUrl(url);
+      const text = value ? clean(value) : "";
+      if (key && text && secondaries.includes(key)) out[key] = text;
+    }
+    return out;
+  };
+  return {
+    role: "primary",
+    instanceName: sanitizeText(source.instanceName, 100) || "Dashmon",
+    secondaries,
+    agentNames: associated(source.agentNames, value => sanitizeText(value, 100)),
+    // Icon of each agent tab in the dashboard navigation (empty: default).
+    agentIcons: associated(source.agentIcons, sanitizeIconClass),
+    // Each pairing points to a host of the editor: its colour and icon dress the
+    // remote tile. The match uses the stable id, never the name.
+    agentHosts: associated(source.agentHosts, value => sanitizeText(value, 64))
+  };
+}
+
+// Click counters: whole non-negative numbers, bounded like on the server.
+function normalizeUsageCounts(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  return Object.fromEntries(
+    Object.entries(raw)
+      .slice(0, 500)
+      .map(([key, value]) => {
+        const n = Number(value);
+        return [String(key).slice(0, 200), Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0];
+      })
+  );
+}
+
+// The limits on list lengths are those of lib/config/normalize.js: the server
+// would cut anything longer on save.
 export function normalizeConfig(cfg = {}) {
-  const normalizedServices = Array.isArray(cfg.services) ? clone(cfg.services) : [];
+  const normalizedServices = Array.isArray(cfg.services) ? clone(cfg.services).slice(0, 200) : [];
   const derivedHosts = [
     ...new Set(normalizedServices.map(service => (service.host || "").trim()).filter(Boolean))
   ].map(name => ({ name, icon: "fa-solid fa-server" }));
@@ -274,7 +318,7 @@ export function normalizeConfig(cfg = {}) {
   const dashboardIds = new Set(normalizedDashboards.map(d => d.id));
   const defaultDashboardId = normalizedDashboards[0].id;
   const normalizedCategories = (
-    Array.isArray(cfg.categories) ? clone(cfg.categories) : clone(DEFAULT_CATEGORIES)
+    Array.isArray(cfg.categories) ? clone(cfg.categories).slice(0, 50) : clone(DEFAULT_CATEGORIES)
   ).map(cat => ({
     name: sanitizeText(cat.name, 100),
     icon: sanitizeIconClass(cat.icon),
@@ -303,7 +347,7 @@ export function normalizeConfig(cfg = {}) {
     specialTile: normalizeSpecialTile(cfg.specialTile, normalizedCategories),
     hosts:
       Array.isArray(cfg.hosts) && cfg.hosts.length
-        ? cfg.hosts.map(host => ({
+        ? cfg.hosts.slice(0, 51).map(host => ({
             id: sanitizeText(host.id, 64),
             name: sanitizeText(host.name, 100),
             icon: sanitizeIconClass(host.icon),
@@ -315,63 +359,20 @@ export function normalizeConfig(cfg = {}) {
             ...host,
             id: host.id || "host-" + Math.random().toString(36).slice(2, 10)
           })),
-    replication: {
-      role: "primary",
-      instanceName: sanitizeText(cfg.replication?.instanceName, 100) || "Dashmon",
-      secondaries: Array.isArray(cfg.replication?.secondaries)
-        ? [
-            ...new Set(cfg.replication.secondaries.map(value => sanitizeUrl(value)).filter(Boolean))
-          ].slice(0, 20)
-        : [],
-      agentNames:
-        cfg.replication?.agentNames &&
-        typeof cfg.replication.agentNames === "object" &&
-        !Array.isArray(cfg.replication.agentNames)
-          ? Object.fromEntries(
-              Object.entries(cfg.replication.agentNames)
-                .map(([url, name]) => [sanitizeUrl(url), sanitizeText(name, 100)])
-                .filter(([url, name]) => url && name)
-            )
-          : {},
-      // Icon of each agent tab in the dashboard navigation (empty: default).
-      agentIcons:
-        cfg.replication?.agentIcons &&
-        typeof cfg.replication.agentIcons === "object" &&
-        !Array.isArray(cfg.replication.agentIcons)
-          ? Object.fromEntries(
-              Object.entries(cfg.replication.agentIcons)
-                .filter(([, icon]) => icon)
-                .map(([url, icon]) => [sanitizeUrl(url), sanitizeIconClass(icon)])
-                .filter(([url]) => url)
-            )
-          : {},
-      // Each pairing points to a host of the editor: its colour and icon dress the
-      // remote tile. The match uses the stable id, never the name.
-      agentHosts:
-        cfg.replication?.agentHosts &&
-        typeof cfg.replication.agentHosts === "object" &&
-        !Array.isArray(cfg.replication.agentHosts)
-          ? Object.fromEntries(
-              Object.entries(cfg.replication.agentHosts)
-                .map(([url, hostId]) => [sanitizeUrl(url), sanitizeText(hostId, 64)])
-                .filter(([url, hostId]) => url && hostId)
-            )
-          : {}
-    },
-    theme: typeof cfg.theme === "string" && cfg.theme.trim() ? cfg.theme.trim() : "dark",
-    language: cfg.language === "en" ? "en" : "fr",
-    usageCounts:
-      cfg.usageCounts && typeof cfg.usageCounts === "object" && !Array.isArray(cfg.usageCounts)
-        ? cfg.usageCounts
-        : {},
-    webLinks: (Array.isArray(cfg.webLinks) ? clone(cfg.webLinks) : clone(DEFAULT_WEB_LINKS)).map(
-      link => ({
-        name: sanitizeText(link.name, 100),
-        url: sanitizeUrl(link.url),
-        icon: sanitizeIconClass(link.icon),
-        counter: normalizeLinkCounter(link.counter)
-      })
-    ),
+    replication: normalizeReplication(cfg.replication),
+    theme:
+      typeof cfg.theme === "string" && cfg.theme.trim() ? cfg.theme.trim().slice(0, 64) : "dark",
+    language: cfg.language === "fr" ? "fr" : "en",
+    usageCounts: normalizeUsageCounts(cfg.usageCounts),
+    webLinks: (Array.isArray(cfg.webLinks)
+      ? clone(cfg.webLinks).slice(0, 100)
+      : clone(DEFAULT_WEB_LINKS)
+    ).map(link => ({
+      name: sanitizeText(link.name, 100),
+      url: sanitizeUrl(link.url),
+      icon: sanitizeIconClass(link.icon),
+      counter: normalizeLinkCounter(link.counter)
+    })),
     webLinksSeedVersion: Number.isFinite(Number(cfg.webLinksSeedVersion))
       ? Number(cfg.webLinksSeedVersion)
       : 0

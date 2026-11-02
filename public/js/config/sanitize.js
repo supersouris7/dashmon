@@ -16,6 +16,15 @@ export function sanitizeUrl(url) {
   return "";
 }
 
+// Address of a paired agent (lib/agent/replication-config.js): no credentials,
+// query string or fragment, which would leak or change the pairing target.
+export function sanitizeSyncUrl(value) {
+  const href = sanitizeUrl(value);
+  if (!href) return "";
+  const url = new URL(href);
+  return url.username || url.password || url.search || url.hash ? "" : url.href;
+}
+
 export const ICON_SAFE_RE = /^[a-z0-9][a-z0-9-]*( [a-z0-9][a-z0-9-]*)*$/;
 
 export function sanitizeIconClass(icon) {

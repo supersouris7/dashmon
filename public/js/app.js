@@ -331,7 +331,7 @@ themeSelect.addEventListener("change", () => {
 });
 
 languageSelect.addEventListener("change", () => {
-  state.language = languageSelect.value === "en" ? "en" : "fr";
+  state.language = languageSelect.value === "fr" ? "fr" : "en";
   applyLanguage();
   updateViewButton();
   updateIconsButton();

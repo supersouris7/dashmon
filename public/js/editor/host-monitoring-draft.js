@@ -5,11 +5,7 @@ export function blankMonitoring() {
   return {
     enabled: false,
     type: "local",
-    url: "",
-    node: "",
     path: "",
-    tokenIdEnv: "",
-    tokenSecretEnv: "",
     wireguard: { enabled: true, interface: "" },
     smart: { enabled: true, disks: [] },
     aptUpdates: { enabled: true },
@@ -24,11 +20,7 @@ export function serializeHostMonitoring(m) {
   const out = {
     enabled: m.enabled === true,
     type: HOST_MONITORING_TYPES.includes(m.type) ? m.type : "local",
-    url: (m.url || "").trim(),
-    node: (m.node || "").trim(),
-    path: (m.path || "").trim(),
-    tokenIdEnv: (m.tokenIdEnv || "").trim(),
-    tokenSecretEnv: (m.tokenSecretEnv || "").trim()
+    path: (m.path || "").trim()
   };
   const wg =
     m.type === "local" && m.wireguard && typeof m.wireguard === "object" ? m.wireguard : null;
@@ -62,15 +54,6 @@ export function serializeHostMonitoring(m) {
   if (m.claude && typeof m.claude === "object" && m.claude.enabled === false)
     out.claude = { enabled: false };
   const meaningful =
-    out.url ||
-    out.node ||
-    out.path ||
-    out.tokenIdEnv ||
-    out.tokenSecretEnv ||
-    out.wireguard ||
-    out.smart ||
-    out.aptUpdates ||
-    out.opencode ||
-    out.claude;
+    out.path || out.wireguard || out.smart || out.aptUpdates || out.opencode || out.claude;
   return !out.enabled && !meaningful ? undefined : out;
 }

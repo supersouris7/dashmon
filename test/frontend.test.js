@@ -762,10 +762,18 @@ async function main() {
       ],
       ["Hote", "#123456", true, "local"]
     );
+    // Comme sur le serveur (lib/config/fields.js) : un autre type est ecarte.
     check(
-      "config : supervision inconnue recalee sur local",
+      "config : supervision de type inconnu ignoree",
       stateModule.normalizeConfig({
         hosts: [{ name: "H", monitoring: { enabled: true, type: "n'importe quoi" } }]
+      }).hosts[0].monitoring,
+      null
+    );
+    check(
+      "config : supervision sans type consideree locale",
+      stateModule.normalizeConfig({
+        hosts: [{ name: "H", monitoring: { enabled: true } }]
       }).hosts[0].monitoring.type,
       "local"
     );
@@ -773,13 +781,6 @@ async function main() {
       "config : seul local est un type de supervision",
       stateModule.HOST_MONITORING_TYPES.slice(),
       ["local"]
-    );
-    check(
-      "config : ancien type Linux recale sur local",
-      stateModule.normalizeConfig({
-        hosts: [{ name: "H", monitoring: { enabled: true, type: "linux" } }]
-      }).hosts[0].monitoring.type,
-      "local"
     );
     check(
       "config : ancienne supervision Proxmox ignoree",
