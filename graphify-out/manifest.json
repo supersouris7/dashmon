@@ -1267,9 +1267,9 @@
     "semantic_hash": ""
   },
   "deploy/claude-stats.sh": {
-    "mtime": 1793544934.259443,
-    "seen": 1793545270.5535486,
-    "ast_hash": "67860e7646fff77c9b74601b1ca4871f",
+    "mtime": 1793700628.1898456,
+    "seen": 1793700720.1817276,
+    "ast_hash": "e95e2d3e07826256b2138fb3a274d8db",
     "semantic_hash": ""
   },
   "lib/host/usage-report.js": {
@@ -1285,15 +1285,15 @@
     "semantic_hash": ""
   },
   "test/claude-stats.test.js": {
-    "mtime": 1793545114.0166016,
-    "seen": 1793545270.5539594,
-    "ast_hash": "d749a2ed9fe12a03f834f4110bbeec0c",
+    "mtime": 1793700638.9499311,
+    "seen": 1793700720.1821945,
+    "ast_hash": "164cfa6f51d4852c825551e125ca89a4",
     "semantic_hash": ""
   },
   "docs/CLAUDE_CODE.md": {
-    "mtime": 1793630727.0238495,
-    "seen": 1793630855.1070795,
-    "ast_hash": "bac5e3c4191bded2386a8f39ba54e07d",
+    "mtime": 1793700667.0661538,
+    "seen": 1793700720.1824722,
+    "ast_hash": "dd2c30b6c165fb3232f8a7c5524638bf",
     "semantic_hash": ""
   },
   "public/themes/high-contrast.json": {
