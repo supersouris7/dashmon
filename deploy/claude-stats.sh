@@ -7,6 +7,11 @@
 # Run it as the user who works with Claude Code: the session logs live in
 # their home directory. Conversations never leave the host, only counters.
 #
+# No Node.js is needed on the host: the counting runs with the Node.js of the
+# Dashmon container, which receives the log lines on its standard input and
+# keeps nothing. Only the bind mount variant (DASHMON_CLAUDE_REPORT, no
+# Docker) runs it with a local node.
+#
 # Usage : claude-stats.sh [container] [path-in-container]
 set -eu
 
@@ -25,37 +30,54 @@ case "${1:-}" in
     ;;
 esac
 
-# cron starts with a minimal PATH: the newest nvm install is tried too.
-if [ -z "$NODE" ]; then
-  if command -v node >/dev/null 2>&1; then
-    NODE="$(command -v node)"
-  else
-    NODE="$(ls -d "${HOME:-}"/.nvm/versions/node/*/bin/node 2>/dev/null | sort -V | tail -n 1 || true)"
-  fi
-fi
-if [ -z "$NODE" ] || [ ! -x "$NODE" ]; then
-  echo "claude-stats.sh: 'node' not found. Set NODE_BIN." >&2
-  exit 1
-fi
 if [ ! -d "$CLAUDE_DIR/projects" ]; then
   echo "claude-stats.sh: no session logs in $CLAUDE_DIR/projects. Set CLAUDE_CONFIG_DIR." >&2
   exit 1
+fi
+
+# Where the counting runs: in the Dashmon container by default, with a local
+# node for the bind mount variant only.
+if [ -n "$HOST_FILE" ]; then
+  # cron starts with a minimal PATH: the newest nvm install is tried too.
+  if [ -z "$NODE" ]; then
+    if command -v node >/dev/null 2>&1; then
+      NODE="$(command -v node)"
+    else
+      NODE="$(ls -d "${HOME:-}"/.nvm/versions/node/*/bin/node 2>/dev/null | sort -V | tail -n 1 || true)"
+    fi
+  fi
+  if [ -z "$NODE" ] || [ ! -x "$NODE" ]; then
+    echo "claude-stats.sh: writing on the host needs Node.js ('node' not found). Set NODE_BIN, or drop DASHMON_CLAUDE_REPORT to use the Dashmon container." >&2
+    exit 1
+  fi
+else
+  if ! command -v docker >/dev/null 2>&1; then
+    echo "claude-stats.sh: 'docker' not found. Set DASHMON_CLAUDE_REPORT to write on the host." >&2
+    exit 1
+  fi
+  if ! docker inspect "$CONT_NAME" >/dev/null 2>&1; then
+    echo "claude-stats.sh: container '$CONT_NAME' not found. Set DASHMON_CONTAINER." >&2
+    exit 1
+  fi
 fi
 
 TMP="$(mktemp "${TMPDIR:-/tmp}/dashmon-claude.XXXXXX")"
 trap 'rm -f "$TMP"' EXIT
 
 # Each assistant reply is logged once per content block with the same usage:
-# replies are counted once by message id. Only counters are printed.
-"$NODE" - "$CLAUDE_DIR/projects" > "$TMP" <<'EOF'
+# replies are counted once by message id. Only counters are printed. The
+# input is the log lines, each file announced by a "#FILE <path>" line.
+CODE="$(cat <<'EOF'
 "use strict";
-const fs = require("fs");
-const path = require("path");
 const readline = require("readline");
 
 const DAY = 86400000;
 const now = new Date();
-const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+// Days follow the host clock, not the container one (often UTC): the host
+// passes its offset, "+0100" for example.
+const offset = (process.argv[1] || "").match(/^([+-])(\d\d)(\d\d)$/);
+const SHIFT = offset ? (offset[1] === "-" ? -1 : 1) * (Number(offset[2]) * 60 + Number(offset[3])) * 60000 : 0;
+const midnight = Math.floor((now.getTime() + SHIFT) / DAY) * DAY - SHIFT;
 const PERIODS = {
   today: midnight,
   week: midnight - 6 * DAY,
@@ -64,17 +86,7 @@ const PERIODS = {
 };
 
 function dayKey(time) {
-  const d = new Date(time);
-  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
-}
-
-function files(dir, out = []) {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) files(full, out);
-    else if (entry.isFile() && entry.name.endsWith(".jsonl")) out.push(full);
-  }
-  return out;
+  return new Date(time + SHIFT).toISOString().slice(0, 10);
 }
 
 // A typed prompt, not a tool result, a command output or an injected note.
@@ -99,49 +111,55 @@ async function main() {
   const subagents = [];
   let version = "";
   let versionTime = 0;
-  for (const file of files(process.argv[2])) {
-    const subagent = file.split(path.sep).includes("subagents");
-    // A session counts in every period where it was active.
-    let last = 0;
-    let session = "";
-    const lines = readline.createInterface({ input: fs.createReadStream(file), crlfDelay: Infinity });
-    for await (const line of lines) {
-      if (!line.includes('"type":"assistant"') && !line.includes('"type":"user"')) continue;
-      let record;
-      try {
-        record = JSON.parse(line);
-      } catch (_error) {
-        continue;
+  // A session counts in every period where it was active.
+  let current = null;
+  const close = () => {
+    if (!current?.last) return;
+    if (current.subagent) subagents.push(current.last);
+    else sessions.push({ id: current.session || current.file, time: current.last });
+  };
+  const lines = readline.createInterface({ input: process.stdin, crlfDelay: Infinity });
+  for await (const line of lines) {
+    if (line.startsWith("#FILE ")) {
+      close();
+      const file = line.slice(6);
+      current = { file, subagent: file.split("/").includes("subagents"), last: 0, session: "" };
+      continue;
+    }
+    if (!current) continue;
+    if (!line.includes('"type":"assistant"') && !line.includes('"type":"user"')) continue;
+    let record;
+    try {
+      record = JSON.parse(line);
+    } catch (_error) {
+      continue;
+    }
+    const time = Date.parse(record.timestamp);
+    if (!Number.isFinite(time)) continue;
+    current.last = Math.max(current.last, time);
+    current.session ||= record.sessionId || "";
+    if (record.version && time > versionTime) {
+      version = String(record.version);
+      versionTime = time;
+    }
+    const content = Array.isArray(record.message?.content) ? record.message.content : [];
+    if (record.type === "assistant") {
+      const id = record.message?.id;
+      const model = record.message?.model;
+      if (id && model && !model.startsWith("<")) {
+        replies.set(id, { time, model, usage: record.message.usage || {} });
       }
-      const time = Date.parse(record.timestamp);
-      if (!Number.isFinite(time)) continue;
-      last = Math.max(last, time);
-      session ||= record.sessionId || "";
-      if (record.version && time > versionTime) {
-        version = String(record.version);
-        versionTime = time;
+      for (const block of content) {
+        if (block?.type === "tool_use" && block.id) toolUses.set(block.id, { time, name: String(block.name || "") });
       }
-      const content = Array.isArray(record.message?.content) ? record.message.content : [];
-      if (record.type === "assistant") {
-        const id = record.message?.id;
-        const model = record.message?.model;
-        if (id && model && !model.startsWith("<")) {
-          replies.set(id, { time, model, usage: record.message.usage || {} });
-        }
-        for (const block of content) {
-          if (block?.type === "tool_use" && block.id) toolUses.set(block.id, { time, name: String(block.name || "") });
-        }
-      } else {
-        if (isPrompt(record)) prompts.push(time);
-        for (const block of content) {
-          if (block?.type === "tool_result" && block.is_error === true) failures.add(block.tool_use_id);
-        }
+    } else {
+      if (isPrompt(record)) prompts.push(time);
+      for (const block of content) {
+        if (block?.type === "tool_result" && block.is_error === true) failures.add(block.tool_use_id);
       }
     }
-    if (!last) continue;
-    if (subagent) subagents.push(last);
-    else sessions.push({ id: session || file, time: last });
   }
+  close();
 
   const allDays = new Set([...replies.values()].map(reply => dayKey(reply.time)));
   let streak = 0;
@@ -217,8 +235,19 @@ main().catch(error => {
   process.exit(1);
 });
 EOF
+)"
+
+# Only the lines the counting reads leave the files: the others (file
+# snapshots, summaries...) are dropped on the host.
+logs() {
+  find "$CLAUDE_DIR/projects" -type f -name '*.jsonl' | while IFS= read -r file; do
+    printf '#FILE %s\n' "$file"
+    grep -E '"type":"(assistant|user)"' "$file" || true
+  done
+}
 
 if [ -n "$HOST_FILE" ]; then
+  logs | "$NODE" -e "$CODE" "$(date +%z)" > "$TMP"
   mkdir -p "$(dirname "$HOST_FILE")"
   OUT_TMP="${HOST_FILE}.tmp"
   cp "$TMP" "$OUT_TMP"
@@ -229,15 +258,7 @@ if [ -n "$HOST_FILE" ]; then
   exit 0
 fi
 
-if ! command -v docker >/dev/null 2>&1; then
-  echo "claude-stats.sh: 'docker' not found. Set DASHMON_CLAUDE_REPORT to write on the host." >&2
-  exit 1
-fi
-if ! docker inspect "$CONT_NAME" >/dev/null 2>&1; then
-  echo "claude-stats.sh: container '$CONT_NAME' not found. Set DASHMON_CONTAINER." >&2
-  exit 1
-fi
-
+logs | docker exec -i "$CONT_NAME" node -e "$CODE" "$(date +%z)" > "$TMP"
 # Atomic write: the server never meets a half-written JSON.
 docker exec -i "$CONT_NAME" sh -c "cat > '$CONT_PATH.tmp' && mv -f '$CONT_PATH.tmp' '$CONT_PATH'" < "$TMP"
 echo "claude-stats.sh: report written to $CONT_NAME:$CONT_PATH" >&2

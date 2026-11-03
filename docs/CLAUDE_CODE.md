@@ -27,10 +27,10 @@ Install the script on the host where Claude Code runs:
 curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/claude-stats.sh | sudo install -m 755 /dev/stdin /usr/local/bin/claude-stats.sh
 ```
 
-The script needs Node.js. It looks for `node` in the `PATH`, then in the newest
-[nvm](https://github.com/nvm-sh/nvm) install. If it is installed elsewhere, set
-`NODE_BIN=/path/to/node`. If Claude Code keeps its data outside `~/.claude`,
-set `CLAUDE_CONFIG_DIR`, as for Claude Code itself.
+Nothing else is needed on the host: the counting runs with the Node.js of the
+Dashmon container, which receives the log lines on its input and keeps nothing.
+If Claude Code keeps its data outside `~/.claude`, set `CLAUDE_CONFIG_DIR`, as
+for Claude Code itself.
 
 Run it **as your own user**, not with `sudo`: the session logs live in your home
 directory. Writing into the container requires that this user may use Docker
@@ -89,7 +89,11 @@ statistics** in the **Claude Code** section.
 ## Bind mount variant
 
 If your user cannot reach Docker, mount a host folder into the container. The
-script uses the host path, Dashmon the container path.
+script uses the host path, Dashmon the container path. Without Docker, the
+counting runs on the host: this variant needs
+[Node.js](https://nodejs.org). The script looks for `node` in the `PATH`, then
+in the newest [nvm](https://github.com/nvm-sh/nvm) install; elsewhere, set
+`NODE_BIN=/path/to/node`.
 
 ```yaml
 services:

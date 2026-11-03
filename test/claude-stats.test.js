@@ -146,6 +146,45 @@ try {
   assert.equal(all.activeDays, 2);
   assert.equal(report.periods.month.sessions, 1, "session ancienne hors des 30 jours");
 
+  // Default mode: no Node.js on the host, the counting runs in the Dashmon
+  // container. A fake "docker" runs the commands of "docker exec" here.
+  const bin = path.join(dir, "bin");
+  fs.mkdirSync(bin);
+  fs.writeFileSync(
+    path.join(bin, "docker"),
+    `#!/bin/sh
+case "$1" in
+  inspect) [ "$2" = dashmon ] ;;
+  exec) shift 3; exec "$@" ;;
+  *) exit 1 ;;
+esac
+`,
+    { mode: 0o755 }
+  );
+  const inContainer = path.join(dir, "out", "container.json");
+  const docker = extra =>
+    run({
+      PATH: bin + path.delimiter + process.env.PATH,
+      DASHMON_CLAUDE_REPORT: "",
+      DASHMON_CLAUDE_CONTAINER_PATH: inContainer,
+      NODE_BIN: path.join(dir, "absent-node"),
+      ...extra
+    });
+  const viaContainer = docker({});
+  assert.equal(viaContainer.status, 0, viaContainer.stderr);
+  assert.deepEqual(
+    readUsageReport(inContainer).periods,
+    report.periods,
+    "meme releve par le conteneur que par le node local"
+  );
+  const noContainer = docker({ DASHMON_CONTAINER: "autre" });
+  assert.notEqual(noContainer.status, 0);
+  assert.match(noContainer.stderr, /container 'autre' not found/);
+
+  const noNode = run({ NODE_BIN: path.join(dir, "absent-node"), PATH: "/usr/bin:/bin" });
+  assert.notEqual(noNode.status, 0, "variante sur l'hote sans node");
+  assert.match(noNode.stderr, /needs Node\.js/);
+
   fs.rmSync(file);
   const missing = run({ CLAUDE_CONFIG_DIR: path.join(dir, "absent") });
   assert.notEqual(missing.status, 0, "pas de relevé sans journaux");
