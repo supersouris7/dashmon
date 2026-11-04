@@ -12,7 +12,7 @@ async function main() {
   };
   let config = { theme: "dark", usageCounts: { service: 4 } };
   let writes = 0;
-  registerConfigRoutes(app, {
+  const { flushUsage } = registerConfigRoutes(app, {
     readConfig: () => structuredClone(config),
     writeConfig: value => {
       config = structuredClone(value);
@@ -23,7 +23,8 @@ async function main() {
     ensureHostIds: () => {},
     forBrowser: value => value,
     restoreSecrets: value => value,
-    logger: { error: () => {} }
+    logger: { error: () => {} },
+    usageFlushDelay: 60000
   });
   async function send(method, body, headers = {}) {
     const result = { status: 200, headers: {} };
@@ -59,12 +60,29 @@ async function main() {
   assert.equal(config.polluted, undefined);
   assert.equal(Object.hasOwn(config, "constructor"), false);
   // Clicks are only counted for existing services.
+  // They are grouped: nothing is written per click, the GET already sees
+  // them, and the flush (timer or shutdown) writes them once.
   config.services = [{ url: "service" }, { name: "Nas", host: "box", category: "" }];
+  const before = writes;
   assert.equal((await send("post", { key: "service" })).status, 200);
-  assert.equal(config.usageCounts.service, 5);
+  assert.equal((await send("post", { key: "service" })).status, 200);
   assert.equal((await send("post", { key: "Nas|box|" })).status, 200);
   assert.equal((await send("post", { key: "unknown" })).status, 400);
+  assert.equal(writes, before);
+  assert.equal(config.usageCounts.service, 4);
+  assert.equal((await send("get")).body.usageCounts.service, 6);
+  flushUsage();
+  assert.equal(writes, before + 1);
+  assert.equal(config.usageCounts.service, 6);
+  assert.equal(config.usageCounts["Nas|box|"], 1);
   assert.equal(config.usageCounts.unknown, undefined);
+  flushUsage();
+  assert.equal(writes, before + 1);
+  // Counts replaced on purpose drop the clicks still pending.
+  await send("post", { key: "service" });
+  await send("put", { theme: "dark", usageCounts: {} }, { "X-Dashmon-Replace-Usage": "1" });
+  flushUsage();
+  assert.deepEqual(config.usageCounts, {});
   console.log("PASS configuration : ecritures, conflits et compteurs");
 }
 main().catch(error => {

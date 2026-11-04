@@ -99,6 +99,8 @@ public/js/
   i18n.js, i18n/       interface texts, one JSON file per language
   widget-registry.js   loads the widgets published by the server
   pages.js, themes.js, view-prefs.js, images.js, fortune.js, metrics.js...
+  preload.js           theme applied before the first paint (dashboard and login)
+  login.js             login page
 ```
 
 - No module imports a module that imports it back: a submodule receives what

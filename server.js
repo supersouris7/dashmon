@@ -94,7 +94,7 @@ function createServices(settings) {
   });
 
   const configRepository = createConfigRepository({
-    store: new ConfigStore(settings.configFile),
+    store: new ConfigStore(settings.configFile, { log }),
     agentMode
   });
   runStartupMigrations(settings, configRepository);
@@ -138,6 +138,21 @@ function createServices(settings) {
 
 // --- Express pipeline (order matters) ----------------------------------------
 
+// A reverse proxy in front without TRUST_PROXY: every client then shares the
+// proxy address, so one client's wrong passwords block everyone. Said once.
+function warnUntrustedProxy() {
+  let warned = false;
+  return (req, _res, next) => {
+    if (!warned && req.get("X-Forwarded-For")) {
+      warned = true;
+      log.warn(
+        "⚠ Requests carry X-Forwarded-For but TRUST_PROXY is 0: behind a reverse proxy, set TRUST_PROXY=1 so that login limits apply per client."
+      );
+    }
+    next();
+  };
+}
+
 // Parsing, security headers, origin check, rate limits, then the
 // authentication of the mode: sync token on an agent, session on the main
 // dashboard.
@@ -145,6 +160,7 @@ function applySecurity(app, settings, { auth, failures, limits }) {
   const { agentMode } = settings;
   if (settings.trustProxy > 0) app.set("trust proxy", settings.trustProxy);
   app.disable("x-powered-by");
+  if (settings.trustProxy === 0) app.use(warnUntrustedProxy());
   app.use(express.json({ limit: "1mb", strict: true }));
   app.use(securityHeaders);
   app.use(verifyRequestOrigin);
@@ -153,6 +169,7 @@ function applySecurity(app, settings, { auth, failures, limits }) {
   app.use("/api/status", limits.reads);
   app.use("/api/sync/metrics", limits.reads);
   app.use("/api/host-metrics", limits.reads);
+  app.use("/api/replication/metrics", limits.reads);
 
   // Agents expose only token-authenticated APIs, never browser sessions.
   if (agentMode) {
@@ -168,7 +185,8 @@ function applySecurity(app, settings, { auth, failures, limits }) {
       password: settings.password,
       auth,
       failures,
-      rateLimit: limits.writes
+      rateLimit: limits.writes,
+      log
     });
   }
   app.use(requestLog(log));
@@ -196,9 +214,10 @@ function registerRoutes(app, settings, version, services) {
     request: httpClient.apiRequest,
     assess: agentProtocol.assess,
     token: settings.syncToken,
-    timeout: STATUS_TIMEOUT
+    timeout: STATUS_TIMEOUT,
+    cacheMs: settings.hostMetricsInterval
   });
-  registerConfigRoutes(app, {
+  const { flushUsage } = registerConfigRoutes(app, {
     readConfig,
     writeConfig: config => configRepository.write(config),
     revision: config => configRepository.revision(config),
@@ -208,7 +227,7 @@ function registerRoutes(app, settings, version, services) {
     restoreSecrets: (incoming, current) => widgetCore.restoreSecrets(incoming, current),
     logger: log
   });
-  registerIconRoutes(app, { iconsDir: settings.iconsDir, log });
+  registerIconRoutes(app, { iconsDir: settings.iconsDir, agentMode, log });
   registerThemeRoutes(app, {
     nativeDir: settings.themesNativeDir,
     customDir: settings.themesCustomDir,
@@ -232,6 +251,7 @@ function registerRoutes(app, settings, version, services) {
 
   app.use(notFound);
   app.use(errorHandler(log));
+  return { flushUsage };
 }
 
 function createApp() {
@@ -242,7 +262,7 @@ function createApp() {
 
   const app = express();
   applySecurity(app, settings, services);
-  registerRoutes(app, settings, version, services);
+  const { flushUsage } = registerRoutes(app, settings, version, services);
 
   // Once the widget schemas are known: secrets still stored in clear text
   // (installs that ran without a master key) are encrypted on disk.
@@ -264,7 +284,8 @@ function createApp() {
         widgetCore,
         statusMonitor,
         log,
-        onWidgetsLoaded: encryptStoredSecrets
+        onWidgetsLoaded: encryptStoredSecrets,
+        onShutdown: flushUsage
       })
   };
 }

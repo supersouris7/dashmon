@@ -18,6 +18,7 @@ function setStatus(status, state, text) {
 const TEST_FAILURES = {
   token_missing: "agentTokenMissing",
   unauthorized: "agentUnauthorized",
+  not_agent: "agentNotAgent",
   invalid_url: "agentInvalidUrl",
   invalid_response: "agentInvalidResponse",
   incompatible_protocol: "agentIncompatible"
@@ -100,11 +101,18 @@ function agentUrlInput(entry, syncPairs, status) {
   invalid.className = "host-monitor-hint agent-url-error";
   invalid.textContent = t("agentInvalidUrl");
   invalid.hidden = true;
+  // Over plain HTTP the shared sync token crosses the network in clear.
+  const plain = document.createElement("p");
+  plain.className = "host-monitor-hint agent-url-warning";
+  plain.textContent = t("agentPlainHttp");
+  plain.hidden = true;
   const validate = () => {
     const raw = String(entry.url || "").trim();
-    const ok = !raw || Boolean(agentUrl(raw));
+    const normalized = raw ? agentUrl(raw) : "";
+    const ok = !raw || Boolean(normalized);
     input.setAttribute("aria-invalid", String(!ok));
     invalid.hidden = ok;
+    plain.hidden = !normalized || !normalized.startsWith("http:");
   };
   input.addEventListener("input", () => {
     entry.url = input.value;
@@ -120,7 +128,7 @@ function agentUrlInput(entry, syncPairs, status) {
     syncPairs();
     validate();
   });
-  return { input, invalid, validate };
+  return { input, invalid, plain, validate };
 }
 
 // Rows of the pairing list. The draft and the save remain the responsibility
@@ -169,6 +177,7 @@ export function createPairingList({
     item.append(
       monitoringField(t("agentUrlLabel"), url.input),
       url.invalid,
+      url.plain,
       monitoringField(t("agentTabName"), nameInput),
       monitoringField(t("agentHostLabel"), agentHostSelect(entry, hostChoices, syncPairs)),
       actions

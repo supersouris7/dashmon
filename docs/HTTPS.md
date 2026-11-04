@@ -30,7 +30,10 @@ In the Dashmon stack:
    machine, will be the only one able to reach Dashmon.
 2. Add the `TRUST_PROXY` variable with the value `1`. Without it, Dashmon does
    not know the request arrives over HTTPS: the session cookie is not marked
-   `Secure` and the real client address is lost.
+   `Secure` and the real client address is lost. Every client then shares the
+   proxy address, so a few wrong passwords from anyone block the login for
+   everyone for 15 minutes. Dashmon logs a warning when it sees proxied
+   requests without this variable.
 3. Redeploy the stack.
 
 With Docker Compose, the two lines should look like this:
@@ -304,6 +307,7 @@ extra mount.
 | --- | --- |
 | `502 Bad Gateway` | Is Dashmon running? `curl http://127.0.0.1:8080/healthz`. Is the published port really `127.0.0.1:8080:8080`? |
 | `413 Request Entity Too Large` | Increase `client_max_body_size` in nginx (12 MB recommended for PNG icons). |
+| "Too many attempts" for everyone | `TRUST_PROXY=1` is missing: all clients share the proxy address. The logs name the blocked address (`… blocked for N s`). |
 | Login loop or cookie not `Secure` | `TRUST_PROXY=1` is missing, or `X-Forwarded-Proto $scheme` is missing in nginx. Redeploy Dashmon after adding the variable. |
 | "Welcome to nginx" page | The default site is still active: `sudo rm -f /etc/nginx/sites-enabled/default`, then reload nginx. |
 | Certbot fails | The name must point to the server and port 80 must be reachable from the Internet. Check the DNS and the firewall. |

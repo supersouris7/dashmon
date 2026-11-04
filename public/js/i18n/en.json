@@ -48,6 +48,8 @@
   "agentTesting": "Testing…",
   "agentConnected": "Connection successful.",
   "agentTokenMissing": "The main instance has no sync token.",
+  "agentNotAgent": "This address does not answer as a Dashmon agent: the token was not sent to it.",
+  "agentPlainHttp": "HTTP address: the sync token crosses the network in clear. Prefer HTTPS.",
   "agentUnauthorized": "The agent rejected the sync token.",
   "agentInvalidUrl": "Invalid agent address.",
   "agentInvalidResponse": "The response is not from a compatible agent.",

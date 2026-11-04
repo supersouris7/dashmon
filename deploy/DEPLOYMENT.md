@@ -140,12 +140,16 @@ examples):
 | Path | Content |
 | --- | --- |
 | `config.json` | Dashboards, applications, categories, hosts, web links, theme, language, click counters; widget passwords encrypted |
+| `config.json.bak` | The previous valid version, restored automatically if `config.json` is found empty or damaged (power cut) |
+| `sessions.json` | Open browser sessions (logging out removes one) |
 | `icons/` | PNG images uploaded in **Settings → Dashboard → Images** |
 | `themes/` | Imported custom themes |
 | `*.dump`, `*.json` | Supervision reports written by the cron scripts |
 
 Back up this volume, and keep `DASHMON_MASTER_KEY` with the backup: without it
-the widget passwords cannot be decrypted. **Settings → Backup → Import /
+the widget passwords cannot be decrypted. Both configuration files are
+readable by their owner only (`node` in the image). Click counters are written
+in groups, at most every 30 seconds and at shutdown, to spare SD cards. **Settings → Backup → Import /
 Export** exports the configuration alone, without any password.
 
 ## 4. Portainer stacks

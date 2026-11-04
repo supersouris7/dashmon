@@ -35,7 +35,9 @@ async function start(mode, port, folder) {
       DASHMON_MODE: mode,
       DASHMON_PASSWORD: mode === "agent" ? "" : password,
       DASHMON_SYNC_TOKEN: token,
-      DASHMON_MASTER_KEY: crypto.randomBytes(32).toString("hex")
+      DASHMON_MASTER_KEY: crypto.randomBytes(32).toString("hex"),
+      // Shortest interval: the agent metrics cached by the primary expire fast.
+      HOST_METRICS_INTERVAL: "5"
     },
     stdio: "ignore"
   });
@@ -240,8 +242,18 @@ async function main() {
   });
   assert.equal(response.status, 400);
   assert.equal((await response.json()).reason, "invalid_url");
+  // A fake agent: /readyz says "agent", the metrics answer fakeStatus. With
+  // fakeRole set to something else, the address is not an agent and must
+  // never receive the sync token.
   let fakeStatus = 401;
-  const fake = http.createServer((_req, res) => {
+  let fakeRole = "agent";
+  const tokensSeen = [];
+  const fake = http.createServer((req, res) => {
+    if (req.headers["x-dashmon-sync-token"]) tokensSeen.push(req.url);
+    if (req.url === "/readyz") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ ok: true, role: fakeRole }));
+    }
     res.writeHead(fakeStatus, { "Content-Type": "application/json" });
     res.end("{}");
   });
@@ -258,6 +270,11 @@ async function main() {
     fakeStatus = 200;
     response = await fetch(primary + "/api/agents/test", options);
     assert.equal((await response.json()).reason, "invalid_response");
+    fakeRole = "primary";
+    tokensSeen.length = 0;
+    response = await fetch(primary + "/api/agents/test", options);
+    assert.equal((await response.json()).reason, "not_agent");
+    assert.deepEqual(tokensSeen, []);
   } finally {
     await new Promise(resolve => fake.close(resolve));
   }
@@ -388,6 +405,13 @@ async function main() {
     children[0].once("exit", resolve);
     children[0].kill("SIGTERM");
   });
+  // Within the interval the cached answer is served; once it expires the
+  // stopped agent shows as unavailable.
+  response = await fetch(primary + "/api/replication/metrics", {
+    headers: { Authorization: auth }
+  });
+  assert.equal((await response.json()).instances[0].status, "available");
+  await new Promise(resolve => setTimeout(resolve, 5100));
   response = await fetch(primary + "/api/replication/metrics", {
     headers: { Authorization: auth }
   });

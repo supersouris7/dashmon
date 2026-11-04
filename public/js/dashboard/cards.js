@@ -73,7 +73,7 @@ export function appendTileIcon(card, service) {
     return;
   }
   const icon = document.createElement("img");
-  icon.className = "fortune-icon";
+  icon.className = "service-image";
   icon.src = service.icon;
   icon.alt = "";
   icon.onerror = () => {

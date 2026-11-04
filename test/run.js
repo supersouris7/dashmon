@@ -7,6 +7,7 @@ const { spawnSync } = require("child_process");
 
 const SUITES = [
   "docker.test.js",
+  "dockerfile.test.js",
   "widgets.test.js",
   "frontend.test.js",
   "agent.test.js",
@@ -35,9 +36,11 @@ const SUITES = [
   "import-cycles.test.js",
   "settings.test.js",
   "config-repository.test.js",
+  "config-store.test.js",
   "themes.test.js",
   "widget-secrets.test.js",
   "auth.test.js",
+  "session-routes.test.js",
   "editor-drag.test.js",
   "editor-draft.test.js"
 ];

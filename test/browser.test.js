@@ -135,6 +135,17 @@ async function main() {
   await call("Page.enable");
   await call("Page.navigate", { url: base + "/login.html" });
   await wait(800);
+  // The theme is applied before the first paint: the preload script is a file
+  // the Content-Security-Policy accepts, not an inline script it would block.
+  await evaluate("localStorage.setItem('dashmon.theme', 'light')");
+  await call("Page.navigate", { url: base + "/login.html" });
+  await wait(800);
+  assert.equal(await evaluate("document.documentElement.dataset.theme"), "light");
+  assert.equal(
+    await evaluate("document.querySelector('#loginBtn').textContent"),
+    (await evaluate("navigator.language")).startsWith("fr") ? "Connexion" : "Sign in"
+  );
+  await evaluate("localStorage.removeItem('dashmon.theme')");
   const login = await evaluate(
     `fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:${JSON.stringify(password)}})}).then(r=>r.status)`
   );

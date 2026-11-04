@@ -1198,15 +1198,10 @@ async function main() {
   const editorSrcForSpecial = editorSource();
   const serverSrcForSpecial =
     readSource("lib", "status", "monitor.js") + readSource("lib", "config", "normalize.js");
-  ok(
-    "fortune : enregistree cote serveur",
-    /fortune:sanitizeFortune\(config\)/.test(serverSrcForSpecial)
-  );
+  // Cote serveur, le reglage fortune est verifie par son comportement :
+  // config-fields.test.js et config-normalize.test.js.
 
-  ok(
-    "config : ecriture atomique",
-    /fs\.renameSync\(temporary,this\.file\)/.test(readSource("lib", "config", "store.js"))
-  );
+  // L'ecriture durable de config.json est testee dans config-store.test.js.
 
   // Le genre par service n'existe plus.
   ok(

@@ -48,6 +48,8 @@
   "agentTesting": "Test en cours…",
   "agentConnected": "Connexion réussie.",
   "agentTokenMissing": "Jeton de synchronisation absent sur le principal.",
+  "agentNotAgent": "Cette adresse ne répond pas comme un agent Dashmon : le jeton ne lui a pas été envoyé.",
+  "agentPlainHttp": "Adresse en HTTP : le jeton de synchronisation circule en clair sur le réseau. Préférez HTTPS.",
   "agentUnauthorized": "Jeton refusé par l’agent.",
   "agentInvalidUrl": "Adresse de l’agent invalide.",
   "agentInvalidResponse": "La réponse ne provient pas d’un agent compatible.",

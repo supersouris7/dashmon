@@ -20,17 +20,15 @@ ENV PORT=8080
 ENV DATA_DIR=/app/data
 ENV CONFIG_FILE=/app/data/config.json
 
-# SHA du commit qui a produit l'image, injecte par la CI. L'interface
-# l'affiche a cote du numero de version, ce qui permet de verifier d'un
-# coup d'oeil quelle version tourne reellement apres un "docker pull".
-# "unknown" pour une construction locale, l'interface n'affiche alors rien.
+# SHA of the commit that produced the image, injected by the CI. The interface
+# shows it next to the version number, so a glance tells which build really
+# runs after a "docker pull". "unknown" for a local build: nothing is shown.
 ARG DASHMON_COMMIT=unknown
 ENV DASHMON_COMMIT=$DASHMON_COMMIT
 
-# Version de release, injectee elle aussi par la CI a partir du tag v*. Elle
-# alimente le pied de page de l'interface, pour que "docker pull" affiche la
-# version reellement publiee plutot que le champ "version" du paquet, qui reste
-# fige entre deux releases. Vide sur un build depuis main.
+# Release version, also injected by the CI from the v* tag. It feeds the footer
+# of the interface, so it shows the published version rather than the package
+# "version" field, frozen between two releases. Empty on a build from main.
 ARG DASHMON_RELEASE=
 ENV DASHMON_RELEASE=$DASHMON_RELEASE
 
@@ -39,8 +37,8 @@ ENV ICONS_DIR=/app/data/icons
 COPY --from=build --chown=node:node /app/ ./
 RUN mkdir -p /app/data/icons /app/data/themes && chown -R node:node /app/data
 
-# Supprime le npm global embarqué : il contient des dépendances vulnérables
-# non utilisées au runtime en production.
+# Removes the bundled global npm: it carries vulnerable dependencies that the
+# production runtime never uses.
 RUN rm -rf /usr/local/lib/node_modules/npm \
     /usr/local/lib/node_modules/corepack \
     /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
@@ -48,7 +46,8 @@ RUN rm -rf /usr/local/lib/node_modules/npm \
 EXPOSE 8080
 USER node
 
+# Asks the port the server really listens on (PORT), not a fixed 8080.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:8080/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+  CMD node -e "fetch('http://127.0.0.1:'+(Number(process.env.PORT)||8080)+'/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 CMD ["node","server.js"]

@@ -210,7 +210,9 @@ const MAX_THEME_CSS_BYTES = 65536;
 
 function sanitizeThemeCss(css) {
   const s = String(css || "").slice(0, MAX_THEME_CSS_BYTES);
-  let out = s.replace(/<\s*\/?style/gi, "");
+  // No CSS escape: "\75 rl(" would otherwise spell url( past the filters.
+  let out = s.replace(/\\/g, "");
+  out = out.replace(/<\s*\/?style/gi, "");
   out = out.replace(/@(import|charset|font-face)\b/gi, "");
   out = out.replace(/url\s*\(/gi, "none");
   out = out.replace(

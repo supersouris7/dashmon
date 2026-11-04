@@ -151,7 +151,11 @@ writable by the container UID `1000`.
    **Settings → Dashboard → Hosts**): the agent's supervision cards reuse its
    color and icon. Without a host, the pairing still works but the cards keep
    their default appearance.
-2. Click **Test connection**, then **Save**. This agent appears by name under
+2. Click **Test connection**, then **Save**. The test first checks, without
+   the sync token, that the address answers as a Dashmon agent; the token is
+   sent only then, so a typo never hands it to another machine. An `http://`
+   address shows a warning: the token then crosses the network in clear,
+   prefer HTTPS ([docs/HTTPS.md](HTTPS.md)). This agent appears by name under
    **Supervision**, next to **Local** (the primary). Select its name to configure
    it without leaving the primary. Both use the same form: general settings,
    WireGuard, SMART, APT, OpenCode and Claude Code, with setup help in each

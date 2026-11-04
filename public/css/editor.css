@@ -231,6 +231,9 @@ body.modal-open {
 .agent-url-error {
   color: var(--error);
 }
+.agent-url-warning {
+  color: var(--warning);
+}
 .agent-editor-actions {
   display: flex;
   flex-wrap: wrap;

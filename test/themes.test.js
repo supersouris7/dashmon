@@ -30,6 +30,9 @@ const theme = normalizeTheme({
 assert.equal(theme.id, "evil");
 assert.equal(theme.variables.accent, "red body{display:none".replace(/[{}]/g, ""));
 assert.ok(!/url\(|@import|behavior:|<\/?style/i.test(theme.css));
+// CSS escapes cannot spell a forbidden word ("\75" is "u").
+const escaped = normalizeTheme({ id: "esc", variables, css: "a{background:\\75 rl(https://x)}" });
+assert.ok(!/\\/.test(escaped.css), escaped.css);
 
 // Native themes stay readable (WCAG contrast): text 4.5:1, status colours
 // 3:1 on the surfaces, borders visible. Every status colour is defined, so no

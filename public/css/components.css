@@ -798,7 +798,7 @@ body.is-refreshing .widget-status {
   background: var(--surface-2);
 }
 
-#dashboard.small-icons .fortune-icon {
+#dashboard.small-icons .service-image {
   width: 28px;
   height: 22px;
   min-width: 28px;
