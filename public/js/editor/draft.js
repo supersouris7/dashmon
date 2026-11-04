@@ -1,5 +1,5 @@
 import { sanitizeTileColor } from "../config/sanitize.js";
-import { normalizeSpecialTile, normalizeLinkCounter } from "../config/normalize.js";
+import { normalizeLinkCounter } from "../config/normalize.js";
 import { normalizeWidgetConfig } from "../widget-registry.js";
 import { serializeHostMonitoring } from "./host-monitoring-draft.js";
 
@@ -87,15 +87,5 @@ export function prepareEditorDraft(state) {
       counter: normalizeLinkCounter(link.counter)
     }))
     .filter(link => link.name && link.url);
-  const specialCategory =
-    state.editSpecialTile && categories.some(c => c.name === state.editSpecialTile.category)
-      ? state.editSpecialTile.category
-      : categories[0]?.name || "Autres";
-  const specialTile = state.editSpecialTile
-    ? normalizeSpecialTile(
-        { type: state.editSpecialTile.type, category: specialCategory },
-        categories
-      )
-    : null;
-  return { dashboards, categories, hosts, services, webLinks, specialTile, removedNames };
+  return { dashboards, categories, hosts, services, webLinks, removedNames };
 }

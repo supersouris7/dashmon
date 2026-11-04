@@ -150,7 +150,7 @@ async function main() {
   }
 
   // Example data: added next to what exists, never twice, only documentation
-  // addresses, and an existing special tile is kept.
+  // addresses, and the Fortune Cookie bar turns on.
   {
     const { withDemo, demoData } = await import(
       pathToFileURL(path.join(JS_DIR, "config", "demo.js")).href
@@ -161,15 +161,14 @@ async function main() {
       dashboards: [{ id: "main", name: "Dashboard", icon: "fa-solid fa-grip" }],
       hosts: [
         { id: "dashmon-local", name: "Dashmon", monitoring: { type: "local", enabled: true } }
-      ],
-      specialTile: null
+      ]
     };
     const once = withDemo(empty, "fr");
     const twice = withDemo({ ...empty, ...once }, "fr");
     check(
       "exemple : applications, categories et hotes ajoutes",
-      [once.services.length, once.categories.length, once.hosts.length, once.specialTile?.type],
-      [9, 3, 4, "fortune"]
+      [once.services.length, once.categories.length, once.hosts.length, once.fortune],
+      [9, 3, 4, true]
     );
     check(
       "exemple : rien n'est ajoute deux fois",
@@ -202,8 +201,6 @@ async function main() {
         )
       )
     );
-    const kept = withDemo({ ...empty, specialTile: { type: "fortune", category: "Perso" } }, "en");
-    check("exemple : tuile speciale existante gardee", kept.specialTile.category, "Perso");
   }
 
   const toolbar = await import(pathToFileURL(path.join(JS_DIR, "toolbar.js")).href);
@@ -1063,7 +1060,7 @@ async function main() {
     stateModule.sanitizeTileColor("#abc") === ""
   );
 
-  // --- 5. Tuile fortune : phrase du jour, clic, expiration -----------------
+  // --- 5. Barre fortune : phrase du jour, clic, fermeture, expiration ------
   // Le module touche localStorage a la lecture seule, jamais a l'import, donc
   // il se teste hors navigateur avec un stockage simule.
   const fortuneSaved = new Map();
@@ -1137,6 +1134,24 @@ async function main() {
     );
 
     // Un fichier tri defaillant ne doit pas casser le rendu.
+    // Fermee par la croix : jusqu'a minuit, puis de retour ; « Rafraichir » la
+    // fait revenir aussitot.
+    const day = fortune.dayStamp(new Date(2026, 10, 4));
+    ok("fortune : ouverte par defaut", !fortune.fortuneClosedToday(day));
+    fortune.closeFortune(day);
+    ok("fortune : fermee pour la journee", fortune.fortuneClosedToday(day));
+    ok(
+      "fortune : de retour le lendemain",
+      !fortune.fortuneClosedToday(fortune.dayStamp(new Date(2026, 10, 5)))
+    );
+    fortune.reopenFortune();
+    ok("fortune : rafraichir la fait revenir", !fortune.fortuneClosedToday(day));
+    check(
+      "fortune : retour a minuit pile",
+      fortune.msUntilMidnight(new Date(2026, 10, 4, 23, 59, 30)),
+      30000
+    );
+
     fortune.setFortunes([{ id: "x" }, null, { fr: "seule" }]);
     ok(
       "fortune : un fichier invalide est filtre",
@@ -1163,53 +1178,29 @@ async function main() {
     else globalThis.localStorage = fortuneRealStorage;
   }
 
-  // --- 6. La tuile speciale traverse les listes blanches -------------------
-  // Une tuile speciale est unique et vit hors des services. Le type est verifie
-  // contre une liste blanche, et la categorie est obligatoire (defaut sinon).
+  // --- 6. La barre fortune remplace la tuile speciale ---------------------
   const specialState = await importStateModules();
-
-  ok(
-    "tuile speciale : normalisee par state.js",
-    JSON.stringify(
-      specialState.normalizeConfig({
-        categories: [{ name: "Divers" }],
-        specialTile: { type: "fortune", category: "Divers" }
-      }).specialTile
-    ),
-    JSON.stringify({ type: "fortune", category: "Divers" })
+  check("fortune : desactivee par defaut", specialState.normalizeConfig({}).fortune, false);
+  check(
+    "fortune : une ancienne tuile active la barre",
+    specialState.normalizeConfig({ specialTile: { type: "fortune", category: "Divers" } }).fortune,
+    true
   );
-
-  ok(
-    "tuile speciale : type inconnu ignore",
-    specialState.normalizeConfig({ specialTile: { type: "bidon" } }).specialTile === null
+  check(
+    "fortune : le choix explicite l'emporte",
+    specialState.normalizeConfig({ fortune: false, specialTile: { type: "fortune" } }).fortune,
+    false
   );
-
   ok(
-    "tuile speciale : categorie obligatoire, 'Autres' sinon",
-    specialState.normalizeConfig({ specialTile: { type: "fortune" } }).specialTile.category,
-    "Autres"
+    "fortune : plus de tuile speciale dans la config",
+    !("specialTile" in specialState.normalizeConfig({ specialTile: { type: "fortune" } }))
   );
-
-  ok(
-    "tuile speciale : la premiere categorie sert de defaut",
-    specialState.normalizeConfig({
-      categories: [{ name: "Divers" }],
-      specialTile: { type: "fortune" }
-    }).specialTile.category,
-    "Divers"
-  );
-
   const editorSrcForSpecial = editorSource();
   const serverSrcForSpecial =
     readSource("lib", "status", "monitor.js") + readSource("lib", "config", "normalize.js");
-
   ok(
-    "tuile speciale : conservee a l'enregistrement (editeur)",
-    /state\.specialTile=cleanedSpecialTile/.test(editorSrcForSpecial)
-  );
-  ok(
-    "tuile speciale : conservee a l'enregistrement (serveur)",
-    /specialTile:sanitizeSpecialTile\(config\.specialTile,categories\)/.test(serverSrcForSpecial)
+    "fortune : enregistree cote serveur",
+    /fortune:sanitizeFortune\(config\)/.test(serverSrcForSpecial)
   );
 
   ok(
@@ -1217,10 +1208,9 @@ async function main() {
     /fs\.renameSync\(temporary,this\.file\)/.test(readSource("lib", "config", "store.js"))
   );
 
-  // Le genre par service n'existe plus : la tuile fortune est une tuile
-  // speciale unique, pas un service.
+  // Le genre par service n'existe plus.
   ok(
-    "tuile speciale : le champ kind par service a disparu",
+    "services : le champ kind par service a disparu",
     !/kind:service\.kind/.test(editorSrcForSpecial) && !/kind:svc\.kind/.test(serverSrcForSpecial)
   );
 

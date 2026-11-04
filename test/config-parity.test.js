@@ -26,7 +26,7 @@ const server = createConfigNormalizer({
 // Champs dont la valeur ne depend que de l'entree, des deux cotes.
 const SAME_KEYS = [
   "dashboards",
-  "specialTile",
+  "fortune",
   "replication",
   "collapsed",
   "viewMode",

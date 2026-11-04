@@ -77,7 +77,8 @@ public/js/
   state.js             shared state (config, editor drafts, view preferences)
   api.js               reads and writes of the configuration
   render.js            dashboard rendering: visible services, groups, collapse
-  dashboard/           tiles (cards.js), sections, web links banner, toolbar
+  dashboard/           tiles (cards.js), sections, web links banner, Fortune
+                       Cookie bar (fortune-bar.js), toolbar
                        buttons (view-controls.js), search and group labels
                        (query.js)
   supervision.js       supervision page and metrics refresh

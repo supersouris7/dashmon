@@ -11,7 +11,6 @@ export function createSection(
   categoryName,
   categoryServices,
   groupType = "category",
-  specialCard = null,
   // Called when the section is folded or unfolded by a click on its header.
   onToggle = () => {}
 ) {
@@ -78,10 +77,6 @@ export function createSection(
 
   const cards = document.createElement("div");
   cards.className = "cards";
-
-  // The special tile opens its section: it comes before the services, even
-  // when no service fills the group.
-  if (specialCard) cards.appendChild(specialCard);
 
   [...categoryServices].sort(compareServices).forEach(s => cards.appendChild(createCard(s)));
 

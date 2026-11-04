@@ -125,32 +125,29 @@ A service with an imported image:
 
 The `icons/portainer.png` PNG was imported through **Settings → Dashboard → Images**.
 
-## Special tile
+## Fortune Cookie
 
-Dashmon can carry a single special tile, enabled in **Settings → Dashboard →
-Special tile**. A special tile is not a service: it has no URL, no status check and
-no widget. Today the only type is **Fortune Cookie**, which shows a phrase a day
-and draws another phrase on click.
-
-Toggle it with the checkbox, then pick the category it lives in. The category is
-mandatory; without one it falls back to the first category (or "Autres").
+The **Fortune Cookie** bar shows a phrase of the day under the web links bar.
+Turn it on or off in **Settings → Appearance → Theme**: the choice is saved in
+`config.json` and applies to every browser.
 
 ```json
-"specialTile": { "type": "fortune", "category": "Divers" }
+"fortune": true
 ```
 
-- One special tile in total: enabling one replaces any other. It shows on the
-  dashboard its category belongs to.
-- `category` chooses the section the tile is displayed in. In host view it joins
-  the "no host" group.
-- The tile has no name and no icon of its own, hence nothing to set beyond the
-  checkbox and the category.
+- A click on the phrase draws another one, with a little confetti.
+- The cross at the far right hides the bar until midnight (the reader's local
+  time). **Refresh statuses** in the `⋮` menu brings it back at once.
+- The bar steps aside during a search, and is hidden on phones and tablets
+  (under 800 px), like the web links bar.
+- Older configurations with the special tile `"specialTile": { "type":
+  "fortune" }` turn the bar on; the tile itself no longer exists.
 
-**How the phrase is chosen.** The day of the reader (local, not UTC) and the tile
-identity (its type, `fortune`) are hashed into an index, so the phrase is stable
-for the whole day. A click overrides that choice in the browser, tagged with the
-day that produced it: the next day the tag no longer matches, the tile falls back
-to the phrase of the day.
+**How the phrase is chosen.** The day of the reader (local, not UTC) and the
+bar identity (`fortune`) are hashed into an index, so the phrase is stable for
+the whole day. A click overrides that choice in the browser, tagged with the day
+that produced it: the next day the tag no longer matches, the bar falls back to
+the phrase of the day.
 
 Phrases live in `public/fortune-messages.json`, with `fr` and `en` text per
 entry. Adding an entry there needs no code change. If a language is missing on

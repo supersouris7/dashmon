@@ -738,6 +738,66 @@ body.is-refreshing .widget-status {
   display: none;
 }
 
+/* Fortune Cookie bar, under the web links: same look as the banner, the quote
+   of the day, a cross at the far right (fortune-bar.js). */
+.fortune-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px max(26px, calc((100vw - 1280px) / 2)) 0;
+  padding: 6px 6px 6px 16px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  box-shadow: var(--shadow);
+}
+.fortune-bar[hidden] {
+  display: none;
+}
+.fortune-quote {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-size: 14px;
+}
+.fortune-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: left;
+  cursor: pointer;
+}
+.fortune-text:focus-visible,
+.fortune-close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.fortune-close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.fortune-close:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
 #dashboard.small-icons .fortune-icon {
   width: 28px;
   height: 22px;
@@ -747,9 +807,10 @@ body.is-refreshing .widget-status {
 }
 
 /* Smartphone et tablette : l'interface est epuree. Le bandeau des liens web
-   disparait. */
+   et la barre fortune disparaissent. */
 @media (max-width: 800px) {
-  .web-links-section {
+  .web-links-section,
+  .fortune-bar {
     display: none;
   }
   .search-box {

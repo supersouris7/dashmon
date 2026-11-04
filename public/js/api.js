@@ -25,7 +25,7 @@ export function saveConfig(immediate = false, { replaceUsage = false } = {}) {
       dashboards: state.dashboards,
       hosts: state.hosts,
       replication: state.replication,
-      specialTile: state.specialTile,
+      fortune: state.fortune,
       theme: state.theme,
       language: state.languageSetting,
       usageCounts: state.usageCounts,

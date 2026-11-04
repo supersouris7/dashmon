@@ -1,11 +1,9 @@
-// Dashboard tiles: service cards (icon, title, status pill, widget) and the
-// fortune tile.
+// Dashboard tiles: service cards (icon, title, status pill, widget).
 import { t } from "../i18n.js";
 import { state, FALLBACK_HOST, getCategory, serviceUsageKey } from "../state.js";
 import { effectiveStatus, statusIcon } from "../status.js";
 import { renderWidget, hasWidget, widgetStatusKey } from "../widget-registry.js";
 import { sanitizeTileColor } from "../config/sanitize.js";
-import { fortuneText, loadFortunes, pickFortune } from "../fortune.js";
 import { bumpUsage } from "../api.js";
 
 export function safeHref(url) {
@@ -86,83 +84,6 @@ export function appendTileIcon(card, service) {
     card.prepend(fallback);
   };
   card.appendChild(icon);
-}
-
-// Fortune tile: no title, no pill, no link. The icon and the quote of the day
-// are enough; a click draws another quote for the day. "key" is the stable
-// identity of the tile (here the special type).
-export function createFortuneCard(key) {
-  const card = document.createElement("div");
-  card.className = "card fortune";
-  card.tabIndex = 0;
-  card.setAttribute("role", "button");
-  card.title = t("fortuneHint");
-
-  // Same treatment as a service icon: `.service-icon` without background or
-  // border, unlike `.service-fallback`, which frames a glyph.
-  const icon = document.createElement("img");
-  icon.className = "service-icon";
-  icon.src = "images/fortunecookie.png";
-  icon.alt = "Fortune Cookie";
-  icon.onerror = () => {
-    icon.remove();
-    const fallback = document.createElement("div");
-    fallback.className = "service-fallback";
-    fallback.innerHTML = '<i class="fa-solid fa-cookie-bite"></i>';
-    card.prepend(fallback);
-  };
-  card.appendChild(icon);
-
-  const text = document.createElement("div");
-  text.className = "fortune-text";
-  card.appendChild(text);
-
-  const paint = () => {
-    text.textContent = fortuneText(key, state.language);
-  };
-  paint();
-
-  // The quotes load asynchronously: on the first render the list may be empty,
-  // and the tile fills itself as soon as the file arrives.
-  loadFortunes().then(() => {
-    if (card.isConnected) paint();
-  });
-
-  const confetti = () => {
-    if (
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    )
-      return;
-    const colors = ["#ff8a1f", "#ff4d6d", "#3cf59b", "#6d8ed1", "#d76cff"];
-    for (let index = 0; index < 28; index++) {
-      const particle = document.createElement("i");
-      particle.className = "fortune-confetti";
-      particle.style.left = `${18 + Math.round(Math.random() * 64)}%`;
-      particle.style.top = `${18 + Math.round(Math.random() * 62)}%`;
-      particle.style.setProperty("--x", `${Math.round((Math.random() - 0.5) * 460)}px`);
-      particle.style.setProperty("--y", `${Math.round((Math.random() - 0.45) * 300)}px`);
-      particle.style.setProperty("--r", `${Math.round((Math.random() - 0.5) * 540)}deg`);
-      particle.style.setProperty("--size", `${8 + Math.round(Math.random() * 6)}px`);
-      particle.style.background = colors[index % colors.length];
-      particle.style.color = colors[index % colors.length];
-      particle.addEventListener("animationend", () => particle.remove(), { once: true });
-      card.appendChild(particle);
-    }
-  };
-
-  const next = event => {
-    if (event) event.preventDefault();
-    text.textContent = pickFortune(key, state.language);
-    confetti();
-  };
-  card.addEventListener("click", next);
-  card.addEventListener("keydown", event => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    next(event);
-  });
-
-  return card;
 }
 
 export function createCard(service) {

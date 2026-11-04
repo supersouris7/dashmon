@@ -468,40 +468,6 @@ body.modal-open {
   border-top: 1px solid var(--border);
 }
 
-.widget-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-}
-
-.widget-toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.widget-toggle input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--accent);
-  cursor: pointer;
-}
-
-.special-tile-icon {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-}
-
-.special-tile-category {
-  min-width: 180px;
-  max-width: 260px;
-}
-
 @media (max-width: 560px) {
   .widget-cfg-field {
     grid-template-columns: 1fr;

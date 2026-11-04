@@ -177,6 +177,31 @@ async function main() {
   );
   assert.equal(await evaluate("document.activeElement.id"), "search");
   await evaluate("document.querySelector('#searchBtn').click()");
+  // Fortune Cookie bar: turned on in the theme panel, closed until midnight by
+  // its cross, brought back by "Refresh statuses".
+  assert.equal(await evaluate("document.querySelector('#fortuneBar').hidden"), true);
+  await evaluate(
+    "{localStorage.removeItem('dashmon.fortuneClosed');const s=document.querySelector('#fortuneSelect');s.value='on';s.dispatchEvent(new Event('change'))}"
+  );
+  await wait(600);
+  assert.equal(
+    await evaluate(
+      "!document.querySelector('#fortuneBar').hidden && document.querySelector('#fortuneText').textContent.length > 0"
+    ),
+    true
+  );
+  await evaluate("document.querySelector('#fortuneCloseBtn').click()");
+  assert.equal(await evaluate("document.querySelector('#fortuneBar').hidden"), true);
+  assert.match(
+    await evaluate("localStorage.getItem('dashmon.fortuneClosed')"),
+    /^\d{4}-\d{2}-\d{2}$/
+  );
+  await evaluate("document.querySelector('#menuRefreshBtn').click()");
+  assert.equal(await evaluate("document.querySelector('#fortuneBar').hidden"), false);
+  await evaluate(
+    "{const s=document.querySelector('#fortuneSelect');s.value='off';s.dispatchEvent(new Event('change'))}"
+  );
+  assert.equal(await evaluate("document.querySelector('#fortuneBar').hidden"), true);
   assert.equal(await evaluate("!!document.querySelector('#menuSettingsBtn')"), true);
   assert.equal(
     await evaluate(

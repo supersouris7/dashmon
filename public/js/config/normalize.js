@@ -129,22 +129,12 @@ export function normalizeViewPrefs(cfg = {}) {
   };
 }
 
-// Special tiles of the dashboard: only one can be active at a time, hence a
-// single object rather than a list. "fortune" is the only one so far.
-export const SPECIAL_TILE_TYPES = Object.freeze(["fortune"]);
-
-// The category is mandatory: without one, the first defined category is
-// used, or "Autres" when there is none. A special tile of unknown type is
-// ignored rather than rendered anyhow.
-export function normalizeSpecialTile(raw, categories) {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
-  const type = typeof raw.type === "string" ? raw.type : "";
-  if (!SPECIAL_TILE_TYPES.includes(type)) return null;
-  const names = (Array.isArray(categories) ? categories : [])
-    .map(cat => cat && cat.name)
-    .filter(Boolean);
-  const category = sanitizeText(raw.category, 100) || names[0] || "Autres";
-  return { type, category };
+// Fortune Cookie bar, under the web links. Older configurations had it as a
+// "special tile": that tile turns the bar on.
+export function normalizeFortune(cfg) {
+  if (typeof cfg.fortune === "boolean") return cfg.fortune;
+  const tile = cfg.specialTile;
+  return !!tile && typeof tile === "object" && tile.type === "fortune";
 }
 
 // Counters of the web links banner: a link may show a public number (GitHub
@@ -335,9 +325,7 @@ export function normalizeConfig(cfg = {}) {
     })),
     categories: normalizedCategories,
     dashboards: normalizedDashboards,
-    // Single special tile of the dashboard (quote of the day...), placed in a
-    // category. Absent: none.
-    specialTile: normalizeSpecialTile(cfg.specialTile, normalizedCategories),
+    fortune: normalizeFortune(cfg),
     hosts:
       Array.isArray(cfg.hosts) && cfg.hosts.length
         ? cfg.hosts.slice(0, 51).map(host => ({

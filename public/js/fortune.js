@@ -1,27 +1,25 @@
-// "Fortune Cookie" tile: one quote per day, without title or pill.
+// Fortune Cookie bar: one quote per day, under the web links.
 //
-// The quote of the day is deterministic: it derives from the day and the tile
-// identity, never from randomness at load time. The same tile shows the same
-// quote all day, and a reload does not change it.
-//
-// The identity is the special tile type ("fortune"), so there is a single
-// memory per dashboard. An object identity is still accepted so that older
-// calls keep working.
+// The quote of the day is deterministic: it derives from the day and the bar
+// identity ("fortune"), never from randomness at load time. The bar shows the
+// same quote all day, and a reload does not change it.
 //
 // A click draws another quote. That choice is remembered in the browser along
 // with the day that produced it: the next day the memory is invalidated and
-// the tile goes back to the quote of the day. As with view preferences,
-// storage may be unavailable; the tile still works, only the remembered click
-// is lost.
+// the bar goes back to the quote of the day. Closing the bar is remembered the
+// same way, until the reader's next midnight. As with view preferences,
+// storage may be unavailable; the bar still works, only the memory is lost.
 
 const STORAGE_KEY = "dashmon.fortune";
+const CLOSED_KEY = "dashmon.fortuneClosed";
 const MESSAGES_URL = "/fortune-messages.json";
 
 let messages = [];
 let loading = null;
+let closedInSession = "";
 
-// Stable identity of a tile: the type when given as is, otherwise the
-// name / host / category concatenation (older calls).
+// Stable identity: the string given as is, otherwise the name / host /
+// category concatenation (older calls).
 function asKey(identity) {
   if (typeof identity === "string") return identity;
   return [
@@ -177,4 +175,40 @@ export function pickFortune(identity, language, day = dayStamp()) {
   const next = (current + 1 + offset) % messages.length;
   writeOverride(key, next, day);
   return phraseOf(messages[next], language);
+}
+
+// The bar closed by its cross stays hidden for the rest of the day.
+export function fortuneClosedToday(day = dayStamp()) {
+  if (closedInSession === day) return true;
+  try {
+    return storage()?.getItem(CLOSED_KEY) === day;
+  } catch (_error) {
+    return false;
+  }
+}
+
+export function closeFortune(day = dayStamp()) {
+  closedInSession = day;
+  try {
+    storage()?.setItem(CLOSED_KEY, day);
+  } catch (_error) {
+    // Storage disabled: the bar stays closed until the page is reloaded.
+  }
+}
+
+// "Refresh statuses" brings the bar back.
+export function reopenFortune() {
+  closedInSession = "";
+  try {
+    storage()?.removeItem(CLOSED_KEY);
+  } catch (_error) {
+    // Nothing remembered, nothing to forget.
+  }
+}
+
+// Milliseconds until the reader's next midnight, when the bar comes back
+// with a new quote.
+export function msUntilMidnight(now = new Date()) {
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  return next.getTime() - now.getTime();
 }

@@ -1,29 +1,23 @@
-// Dashboard rendering: which services are visible (dashboard, search, special
-// tile), how they are grouped (category or host), and the collapse and status
+// Dashboard rendering: which services are visible (dashboard, search), how
+// they are grouped (category or host), and the collapse and status
 // updates. Cards, sections, web links and toolbar buttons live in dashboard/.
 import {
   state,
-  getCategory,
   getDashboard,
   compareServices,
   serviceMatchesSearch,
   FALLBACK_HOST
 } from "./state.js";
-import { sanitizeUrl, sanitizeTileColor } from "./config/sanitize.js";
+import { sanitizeUrl } from "./config/sanitize.js";
 import { normalize } from "./util.js";
 import { t } from "./i18n.js";
 import { effectiveStatus, statusIcon } from "./status.js";
 import { dashboard, searchInput, searchStatus, collapseAllBtn } from "./dom.js";
 import { updateWebLinkCounters, renderWebLinks } from "./dashboard/web-links.js";
-import {
-  statusTitle,
-  applyWidgetStatus,
-  tileColorFor,
-  createFortuneCard,
-  createCard
-} from "./dashboard/cards.js";
+import { statusTitle, applyWidgetStatus, tileColorFor, createCard } from "./dashboard/cards.js";
 import { createSection, reorderDashboardSections } from "./dashboard/sections.js";
 import { searchQuery } from "./dashboard/query.js";
+import { updateFortuneBar } from "./dashboard/fortune-bar.js";
 
 // Actions of the welcome shown on an empty dashboard, provided by app.js.
 let welcomeActions = null;
@@ -92,44 +86,12 @@ function groupFallbackName() {
   return state.groupMode === "host" ? FALLBACK_HOST : "Autres";
 }
 
-// Special tile: one per dashboard, placed in the chosen category. When
-// grouping by host it joins the "no host" group. It follows the active
-// dashboard and stays out of search results.
-function specialTileVisible() {
-  if (!state.specialTile || searchQuery()) return false;
-  return categoryDashboardId(state.specialTile.category) === currentDashboardId();
-}
-
-function specialGroupName() {
-  if (!specialTileVisible()) return "";
-  return state.groupMode === "host" ? FALLBACK_HOST : state.specialTile.category || "Autres";
-}
-
-function createSpecialCard() {
-  const tile = state.specialTile;
-  if (!tile) return null;
-  if (tile.type === "fortune") return createFortuneCard(tile.type);
-  return null;
-}
-
-// Colour of the special tile in the flat view: same rule as services,
-// resolved on the group hosting it.
-function specialTileColor() {
-  if (state.groupMode === "host") {
-    const host = state.hosts.find(item => item.name === FALLBACK_HOST);
-    return sanitizeTileColor((host || {}).color);
-  }
-  return sanitizeTileColor((getCategory(state.specialTile.category) || {}).color);
-}
-
 function getVisibleGroupNames() {
   const filtered = state.services.filter(serviceMatchesQuery);
   const field = state.groupMode === "host" ? "host" : "category";
   const names = [
     ...new Set(filtered.map(service => (service[field] || "").trim() || groupFallbackName()))
   ];
-  const extra = specialGroupName();
-  if (extra && !names.includes(extra)) names.push(extra);
   return names;
 }
 
@@ -147,24 +109,23 @@ function sortGroupNames(names) {
 
 export function render() {
   renderWebLinks();
+  updateFortuneBar();
   dashboard.dataset.view = state.viewMode;
   dashboard.dataset.categoryColumns = state.categoryColumns;
   dashboard.dataset.tileColumns = state.tileColumns;
   dashboard.classList.toggle("small-icons", state.smallIcons);
 
   const filtered = state.services.filter(serviceMatchesQuery);
-  const specialGroup = specialGroupName();
-  const special = specialGroup ? createSpecialCard() : null;
 
   dashboard.innerHTML = "";
   announceSearch(filtered.length);
 
-  if (!state.services.length && !special && !searchQuery()) {
+  if (!state.services.length && !searchQuery()) {
     dashboard.appendChild(createWelcome());
     return;
   }
 
-  if (!filtered.length && !special) {
+  if (!filtered.length) {
     const empty = document.createElement("div");
     empty.className = "empty";
     empty.textContent = searchQuery()
@@ -177,15 +138,6 @@ export function render() {
   if (state.viewMode === "plain") {
     const cards = document.createElement("div");
     cards.className = "cards";
-
-    if (special) {
-      const color = specialTileColor();
-      if (color) {
-        special.classList.add("tinted");
-        special.style.setProperty("--tile-color", color);
-      }
-      cards.appendChild(special);
-    }
 
     [...filtered].sort(compareServices).forEach(service => {
       const card = createCard(service);
@@ -205,26 +157,14 @@ export function render() {
   if (state.groupMode === "host") {
     sortGroupNames(getVisibleGroupNames()).forEach((hostName, index) => {
       const items = filtered.filter(s => ((s.host || "").trim() || FALLBACK_HOST) === hostName);
-      const section = createSection(
-        hostName,
-        items,
-        "host",
-        specialGroup === hostName ? special : null,
-        updateCollapseAllButton
-      );
+      const section = createSection(hostName, items, "host", updateCollapseAllButton);
       section.dataset.rank = String(index);
       dashboard.appendChild(section);
     });
   } else {
     sortGroupNames(getVisibleGroupNames()).forEach((categoryName, index) => {
       const items = filtered.filter(s => (s.category || "Autres") === categoryName);
-      const section = createSection(
-        categoryName,
-        items,
-        "category",
-        specialGroup === categoryName ? special : null,
-        updateCollapseAllButton
-      );
+      const section = createSection(categoryName, items, "category", updateCollapseAllButton);
       section.dataset.rank = String(index);
       markOtherDashboard(section, categoryName);
       dashboard.appendChild(section);

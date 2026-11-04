@@ -49,12 +49,12 @@ import { confirmDanger } from "./editor/confirm.js";
 import { renderHostEditor } from "./editor/hosts.js";
 import { renderDashboardEditor } from "./editor/dashboards.js";
 import { renderCategoryEditor } from "./editor/categories.js";
-import { renderWidgetsEditor } from "./editor/widgets.js";
 import { renderWebLinksEditor } from "./editor/web-links.js";
 import { renderServiceEditor } from "./editor/services.js";
 import { closeImageLibrary } from "./images.js";
 import { loadWidgetRegistry } from "./widget-registry.js";
 import { menuRightOffset } from "./toolbar.js";
+import { updateFortuneBar, showFortuneAgain } from "./dashboard/fortune-bar.js";
 import {
   searchInput,
   searchBtn,
@@ -74,6 +74,7 @@ import {
   menuRefreshBtn,
   menuLogoutBtn,
   themeSelect,
+  fortuneSelect,
   languageSelect,
   resetUsageBtn,
   importThemeBtn,
@@ -104,7 +105,7 @@ async function loadConfig() {
     state.dashboards = cfg.dashboards;
     state.hosts = cfg.hosts;
     state.replication = cfg.replication;
-    state.specialTile = cfg.specialTile;
+    state.fortune = cfg.fortune;
     // Screen layout: this browser wins; the server config only provides the
     // initial value (first load, or a brand new browser).
     const viewPrefs = normalizeViewPrefs(Object.assign(pickViewPrefs(cfg), loadViewPrefs()));
@@ -224,6 +225,7 @@ function openSettings() {
     themeSelect.value = state.theme;
   }
   languageSelect.value = state.languageSetting;
+  fortuneSelect.value = state.fortune ? "on" : "off";
   openModeSelect.value = state.openMode === "new" ? "new" : "same";
   gridSelects.forEach(select => (select.value = state[select.dataset.gridPref]));
   updateThemeManageUI();
@@ -312,6 +314,7 @@ setWelcomeActions({
 
 menuRefreshBtn.addEventListener("click", () => {
   closeTopMenu();
+  showFortuneAgain();
   manualRefresh();
 });
 
@@ -329,6 +332,13 @@ themeSelect.addEventListener("change", () => {
   updateThemeManageUI();
 });
 
+// Fortune Cookie bar: a shared setting, applied at once like the theme.
+fortuneSelect.addEventListener("change", () => {
+  state.fortune = fortuneSelect.value === "on";
+  updateFortuneBar();
+  patchConfig({ fortune: state.fortune });
+});
+
 languageSelect.addEventListener("change", () => {
   state.languageSetting = ["fr", "en"].includes(languageSelect.value) ? languageSelect.value : "";
   state.language = resolveLanguage(state.languageSetting);
@@ -341,7 +351,7 @@ languageSelect.addEventListener("change", () => {
   renderDashboardEditor();
   renderHostEditor();
   renderWebLinksEditor();
-  renderWidgetsEditor();
+  updateFortuneBar();
   patchConfig({ language: state.languageSetting });
 });
 

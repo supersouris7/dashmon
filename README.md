@@ -35,7 +35,8 @@ you stop guessing whether *that* thing is working.
 - **Two languages** — English and French, throughout the interface. A new
   install follows the browser language until you pick one.
 - **Learns your habits** — services you open often float to the top.
-- **A special tile** — a quote of the day, placed in the category of your choice.
+- **Fortune Cookie** — a quote of the day in a bar under the web links, closed
+  until tomorrow with one click.
 
 Node.js / Express, a single runtime dependency. Runs anywhere Docker
 runs, on **amd64 and arm64**.

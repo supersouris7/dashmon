@@ -245,6 +245,13 @@
       <section id="webLinksSection" class="web-links-section">
         <div id="webLinksList" class="web-links-list"></div>
       </section>
+      <section id="fortuneBar" class="fortune-bar" aria-label="Fortune Cookie" hidden>
+        <i class="fa-solid fa-quote-left fortune-quote" aria-hidden="true"></i>
+        <button id="fortuneText" class="fortune-text" type="button"></button>
+        <button id="fortuneCloseBtn" class="fortune-close" type="button">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </section>
     </header>
 
     <main>
@@ -286,10 +293,6 @@
               <button class="edit-tab active" type="button" data-panel="servicesPanel">
                 <i class="fa-solid fa-cubes"></i>
                 <span id="editorTabApplications">Applications</span>
-              </button>
-              <button class="edit-tab" type="button" data-panel="widgetsPanel">
-                <i class="fa-solid fa-star"></i>
-                <span id="editorTabWidgets">Tuile spéciale</span>
               </button>
               <button class="edit-tab" type="button" data-panel="webLinksPanel">
                 <i class="fa-solid fa-globe"></i>
@@ -381,11 +384,6 @@
               <i class="fa-solid fa-plus"></i>&nbsp; <span id="addServiceLabel">Application</span>
             </button>
           </div>
-        </div>
-
-        <div id="widgetsPanel" class="edit-panel">
-          <h2 class="settings-panel-title" data-title-key="tabWidgets"></h2>
-          <div id="widgetsEditor" class="edit-list"></div>
         </div>
 
         <div id="categoriesPanel" class="edit-panel">
@@ -514,6 +512,14 @@
                 <option value="polar">Nuit polaire</option>
                 <option value="matrix">Matrix</option>
                 <option value="high-contrast">Contraste élevé</option>
+              </select>
+            </label>
+
+            <label class="appearance-field">
+              <span id="fortuneFieldLabel">Fortune Cookie</span>
+              <select id="fortuneSelect" class="edit-select">
+                <option id="fortuneOnOption" value="on">Activé</option>
+                <option id="fortuneOffOption" value="off">Désactivé</option>
               </select>
             </label>
 

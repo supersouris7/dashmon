@@ -5,7 +5,6 @@ import { t } from "../i18n.js";
 import { createIconPicker } from "./icon-picker.js";
 import { confirmDelete } from "./confirm.js";
 import { renderServiceEditor } from "./services.js";
-import { renderWidgetsEditor } from "./widgets.js";
 import { createColorPicker } from "./color-picker.js";
 import { makeDraggable } from "./drag.js";
 import { setDeleteIcon } from "./icon-button.js";
@@ -41,9 +40,6 @@ export function renderCategoryEditor() {
           service.category = next;
         }
       });
-      if (state.editSpecialTile && state.editSpecialTile.category === previous) {
-        state.editSpecialTile.category = next;
-      }
     });
 
     const picker = createIconPicker(category, index);
@@ -78,12 +74,8 @@ export function renderCategoryEditor() {
       state.editServices.forEach(service => {
         if (service.category === removedName) service.category = "Autres";
       });
-      if (state.editSpecialTile && state.editSpecialTile.category === removedName) {
-        state.editSpecialTile.category = state.editCategories[0]?.name || "Autres";
-      }
       renderCategoryEditor();
       renderServiceEditor();
-      renderWidgetsEditor();
     });
 
     row.append(

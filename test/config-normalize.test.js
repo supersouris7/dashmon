@@ -33,7 +33,8 @@ assert.equal(config.hosts[0].monitoring.enabled, true);
 // Tab icon of the local supervision tab: kept when set, absent otherwise.
 assert.equal(config.hosts[0].tabIcon, "fa-solid fa-house");
 assert.equal("tabIcon" in config.hosts[1], false);
-assert.equal(config.specialTile.type, "fortune");
+assert.equal(config.fortune, true);
+assert.equal("specialTile" in config, false);
 assert.equal(config.webLinks[0].url, "https://exemple.lan/");
 assert.equal(config.usageCounts.item, 3);
 assert.equal(config.language, "fr");

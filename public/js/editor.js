@@ -47,7 +47,6 @@ import { closeWidgetConfig } from "./editor/widget-config.js";
 import { withDemo } from "./config/demo.js";
 import { renderServiceEditor } from "./editor/services.js";
 import { renderWebLinksEditor } from "./editor/web-links.js";
-import { renderWidgetsEditor } from "./editor/widgets.js";
 import { renderCategoryEditor } from "./editor/categories.js";
 import { renderDashboardEditor } from "./editor/dashboards.js";
 import { monitoringField, renderHostEditor, createHostDraft } from "./editor/hosts.js";
@@ -72,7 +71,7 @@ function editorSnapshot() {
     dashboards: state.editDashboards,
     hosts: state.editHosts,
     webLinks: state.editWebLinks,
-    specialTile: state.editSpecialTile,
+    demoFortune,
     replication: state.replication,
     pairingDraft,
     agents: agentSettings.snapshot()
@@ -99,7 +98,7 @@ export function openEditor() {
   state.editDashboards = clone(state.dashboards);
   state.editHosts = clone(state.hosts);
   state.editWebLinks = clone(state.webLinks);
-  state.editSpecialTile = clone(state.specialTile);
+  demoFortune = false;
   state.replication = normalizeConfig({ replication: state.replication }).replication;
   replicationAtOpen = clone(state.replication);
   editorSearch.value = "";
@@ -110,7 +109,6 @@ export function openEditor() {
   renderDashboardEditor();
   renderHostEditor();
   renderWebLinksEditor();
-  renderWidgetsEditor();
   renderReplicationEditor();
   editorTitle.textContent = t("settings");
   activateEditorPanel("servicesPanel");
@@ -246,7 +244,6 @@ function refreshEditorDrafts() {
   state.editDashboards = clone(state.dashboards);
   state.editHosts = clone(state.hosts);
   state.editWebLinks = clone(state.webLinks);
-  state.editSpecialTile = clone(state.specialTile);
   pairingDraft = replicationEntries(state.replication);
   renderServiceEditor();
   renderCategoryEditor();
@@ -254,11 +251,12 @@ function refreshEditorDrafts() {
   renderHostEditor();
   renderLocalSettings();
   renderWebLinksEditor();
-  renderWidgetsEditor();
   renderReplicationEditor();
 }
 
 let importedConfigDraft = null;
+// Set by "Load the example": the Fortune Cookie bar turns on with the save.
+let demoFortune = false;
 
 importConfigBtn.addEventListener("click", () => configImportInput.click());
 
@@ -284,13 +282,11 @@ configImportInput.addEventListener("change", async () => {
     state.editDashboards = clone(imported.dashboards);
     state.editHosts = clone(imported.hosts);
     state.editWebLinks = clone(imported.webLinks);
-    state.editSpecialTile = clone(imported.specialTile);
     renderServiceEditor();
     renderCategoryEditor();
     renderDashboardEditor();
     renderHostEditor();
     renderWebLinksEditor();
-    renderWidgetsEditor();
     importExportStatus.textContent = t("importReady");
   } catch (error) {
     console.error("Import de configuration impossible", error);
@@ -306,19 +302,18 @@ demoConfigBtn.addEventListener("click", () => {
       services: state.editServices,
       categories: state.editCategories,
       dashboards: state.editDashboards,
-      hosts: state.editHosts,
-      specialTile: state.editSpecialTile
+      hosts: state.editHosts
     },
     state.language
   );
   state.editServices = merged.services;
   state.editCategories = merged.categories;
   state.editHosts = merged.hosts;
-  state.editSpecialTile = merged.specialTile;
+  // The bar is a shared setting, applied with the rest of the draft.
+  demoFortune = merged.fortune;
   renderServiceEditor();
   renderCategoryEditor();
   renderHostEditor();
-  renderWidgetsEditor();
   importExportStatus.textContent = t("demoReady");
 });
 
@@ -422,7 +417,6 @@ async function applyEditorChanges() {
       hosts: cleanedHosts,
       services: cleanedServices,
       webLinks: cleanedWebLinks,
-      specialTile: cleanedSpecialTile,
       removedNames
     } = prepareEditorDraft(state);
 
@@ -471,16 +465,18 @@ async function applyEditorChanges() {
     state.dashboards = cleanedDashboards;
     state.hosts = cleanedHosts;
     state.webLinks = cleanedWebLinks;
-    state.specialTile = cleanedSpecialTile;
 
     // Fields without a form in the editor come from the imported file. View
     // preferences stay specific to the browser.
     if (importedConfigDraft) {
       state.theme = importedConfigDraft.theme;
+      state.fortune = importedConfigDraft.fortune;
       state.languageSetting = importedConfigDraft.language;
       state.language = resolveLanguage(importedConfigDraft.language);
       state.usageCounts = { ...importedConfigDraft.usageCounts };
     }
+    if (demoFortune) state.fortune = true;
+    demoFortune = false;
 
     // The active dashboard may have been deleted or renamed: bring it back to an
     // existing dashboard before redrawing.

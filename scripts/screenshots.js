@@ -227,7 +227,7 @@ async function writeConfig(file) {
         widget: TILES[name].widget ? { type: TILES[name].widget } : null
       };
     }),
-    specialTile: demo.specialTile,
+    fortune: demo.fortune,
     theme: "dark",
     language: "en",
     viewMode: "columns",

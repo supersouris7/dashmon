@@ -43,13 +43,13 @@ export function demoData(language) {
       service("Gotify", "Mini PC", label.tools, "http://gotify.exemple.lan"),
       service("Duplicati", "Mini PC", label.tools, "http://duplicati.exemple.lan:8200")
     ],
-    specialTile: { type: "fortune", category: label.tools }
+    fortune: true
   };
 }
 
 // Adds the example to a configuration without touching what is already there:
-// a category, host or application whose name exists is kept as it is, and an
-// existing special tile stays. The categories go to the first dashboard.
+// a category, host or application whose name exists is kept as it is. The
+// categories go to the first dashboard, and the Fortune Cookie bar turns on.
 export function withDemo(config, language) {
   const demo = demoData(language);
   const has = (list, name) => list.some(item => item && item.name === name);
@@ -66,13 +66,12 @@ export function withDemo(config, language) {
     services,
     categories,
     dashboards: config.dashboards,
-    hosts,
-    specialTile: config.specialTile || demo.specialTile
+    hosts
   });
   return {
     services: merged.services,
     categories: merged.categories,
     hosts: merged.hosts,
-    specialTile: merged.specialTile
+    fortune: demo.fortune
   };
 }
