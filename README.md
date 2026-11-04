@@ -11,6 +11,8 @@ backup, your blocked queries, your current rating.
 No account, no cloud, no database. One small Node.js container, one page, and
 you stop guessing whether *that* thing is working.
 
+![Dashmon with the example data, dark theme](docs/images/dashboard-dark.png)
+
 - **Several dashboards, one page** — split your lab across named dashboards, each
   with its own icon; group by category or by host, search, three view modes
   (rows / columns / full), small or large icons.
@@ -28,7 +30,8 @@ you stop guessing whether *that* thing is working.
   its local metrics from the main dashboard, without copying its configuration.
 - **Themes** — five built in (dark, light, polar night, Matrix, high contrast),
   plus your own custom themes and CSS.
-- **Two languages** — English and French, throughout the interface.
+- **Two languages** — English and French, throughout the interface. A new
+  install follows the browser language until you pick one.
 - **Learns your habits** — services you open often float to the top.
 
 Node.js / Express, a single runtime dependency. Runs anywhere Docker
@@ -95,13 +98,21 @@ publishing Docker images.
 
 ## First steps
 
+A new install opens on a welcome screen. **Load the example** fills the
+dashboard with nine fictional applications on three machines (addresses under
+`exemple.lan`), to see what Dashmon looks like before adding your own; delete
+them like any other application. The same example is offered in **Settings →
+Backup → Import / Export**.
+
 1. Open **Settings → Dashboard → Applications** and add your services (name, URL, icon, category, host).
 2. Set each service's **monitoring dot**: green for a monitored service whose
    outage is critical, orange for monitored but non-critical, grey for no check.
 3. Give a service a **widget** — that's where the live numbers appear.
 4. Add hosts to organize services by machine, with their own icons and colors.
-5. Pick a theme under **Settings → Appearance → Theme**, and the language under
-   **Settings → Appearance → Preferences**.
+5. Pick a theme under **Settings → Appearance → Theme**. The language follows the
+   browser; to fix it, use **Settings → Appearance → Preferences**.
+
+![Settings, Applications panel](docs/images/settings.png)
 
 Config, icons and themes live in the `dashmon-data` volume (`/app/data`) — back
 that volume up, and keep `DASHMON_MASTER_KEY` somewhere safe: widget passwords
@@ -109,7 +120,8 @@ are encrypted with it and never sent back to the browser.
 
 Web links live in a banner under the toolbar. They are edited in **Settings →
 Dashboard → Web links**; showing or hiding the banner is set in **Settings →
-Appearance → Preferences** and remembered by each browser.
+Appearance → Preferences** and remembered by each browser. A new install starts
+with two links, the Dashmon project and the Awesome Self-Hosted catalogue.
 
 ### What lives where
 

@@ -72,7 +72,7 @@
   "imagesDeletePartial": "{count} image(s) n’ont pas pu être supprimée(s).",
   "importBtn": "Importer",
   "exportBtn": "Exporter",
-  "importExportHint": "Exportez la configuration complète de Dashmon dans un fichier JSON, ou importez-en une. Une configuration importée ne s’applique qu’après Enregistrer.",
+  "importExportHint": "Exportez la configuration complète de Dashmon dans un fichier JSON, ou importez-en une. L’exemple ajoute quelques applications fictives pour découvrir Dashmon. Un import ou l’exemple ne s’applique qu’après Enregistrer.",
   "importReady": "Configuration importée. Cliquez sur Enregistrer pour la sauvegarder.",
   "cancelBtn": "Annuler",
   "saveBtn": "Enregistrer",
@@ -331,5 +331,12 @@
   "introDashboards": "Chaque dashboard est un onglet de la barre du haut. Une catégorie appartient à un seul dashboard, où elle s’affiche avec ses applications.",
   "introCategories": "Les catégories regroupent les applications. Choisissez pour chacune son dashboard, son icône et sa couleur ; glissez une ligne pour changer l’ordre.",
   "introHosts": "Les hôtes sont les machines qui font tourner vos applications. Leur icône et leur couleur servent au regroupement par hôte et aux cartes de supervision.",
-  "introWebLinks": "Les liens web s’affichent dans le bandeau sous la barre d’outils. Un compteur peut y ajouter les étoiles GitHub, les pulls Docker Hub ou les abonnés YouTube."
+  "introWebLinks": "Les liens web s’affichent dans le bandeau sous la barre d’outils. Un compteur peut y ajouter les étoiles GitHub, les pulls Docker Hub ou les abonnés YouTube.",
+  "languageAuto": "Automatique (langue du navigateur)",
+  "welcomeTitle": "Bienvenue dans Dashmon",
+  "welcomeText": "Votre dashboard est vide. Ajoutez vos applications pour les ouvrir en un clic et voir si elles répondent, ou chargez un exemple pour voir à quoi ressemble un dashboard rempli.",
+  "welcomeAdd": "Ajouter une application",
+  "welcomeDemo": "Charger l’exemple",
+  "demoBtn": "Ajouter l’exemple",
+  "demoReady": "Exemple ajouté : neuf applications fictives sur trois machines. Cliquez sur Enregistrer pour le garder ; supprimez-les comme toute autre application."
 }

@@ -3,13 +3,15 @@
 import { state } from "./state.js";
 import { normalizeConfig, normalizeViewPrefs, normalizeGridColumns } from "./config/normalize.js";
 import { isTypingTarget } from "./util.js";
-import { patchConfig, setConfigRevision } from "./api.js";
+import { patchConfig, saveConfig, setConfigRevision } from "./api.js";
+import { withDemo } from "./config/demo.js";
 import { loadViewPrefs, pickViewPrefs, saveViewPrefs } from "./view-prefs.js";
 import {
   render,
   getCollapseAllState,
   updateCollapseAllButton,
-  updateStatusIndicators
+  updateStatusIndicators,
+  setWelcomeActions
 } from "./render.js";
 import {
   updateViewButton,
@@ -22,6 +24,7 @@ import {
 import {
   t,
   applyLanguage,
+  resolveLanguage,
   setThemeLabelsUpdater,
   setCollapseButtonUpdater,
   setSupervisionUpdater,
@@ -127,7 +130,8 @@ async function loadConfig() {
       ? viewPrefs.dashboardId
       : cfg.dashboards[0]?.id || state.dashboardId;
     state.theme = cfg.theme;
-    state.language = cfg.language;
+    state.languageSetting = cfg.language;
+    state.language = resolveLanguage(cfg.language);
     state.usageCounts = cfg.usageCounts;
     state.webLinks = cfg.webLinks;
     state.webLinksSeedVersion = cfg.webLinksSeedVersion;
@@ -236,7 +240,7 @@ function openSettings() {
   if ([...themeSelect.options].some(option => option.value === state.theme)) {
     themeSelect.value = state.theme;
   }
-  languageSelect.value = state.language;
+  languageSelect.value = state.languageSetting;
   openModeSelect.value = state.openMode === "new" ? "new" : "same";
   gridSelects.forEach(select => (select.value = state[select.dataset.gridPref]));
   updateThemeManageUI();
@@ -312,6 +316,17 @@ collapseAllBtn.addEventListener("click", () => {
 
 menuSettingsBtn.addEventListener("click", openSettings);
 
+// Welcome of an empty dashboard: the example is added and saved at once, there
+// is nothing to overwrite.
+setWelcomeActions({
+  openSettings,
+  loadDemo() {
+    Object.assign(state, withDemo(state, state.language));
+    render();
+    saveConfig(true);
+  }
+});
+
 menuRefreshBtn.addEventListener("click", () => {
   closeTopMenu();
   manualRefresh();
@@ -332,7 +347,8 @@ themeSelect.addEventListener("change", () => {
 });
 
 languageSelect.addEventListener("change", () => {
-  state.language = languageSelect.value === "fr" ? "fr" : "en";
+  state.languageSetting = ["fr", "en"].includes(languageSelect.value) ? languageSelect.value : "";
+  state.language = resolveLanguage(state.languageSetting);
   applyLanguage();
   updateViewButton();
   updateIconsButton();
@@ -343,7 +359,7 @@ languageSelect.addEventListener("change", () => {
   renderHostEditor();
   renderWebLinksEditor();
   renderWidgetsEditor();
-  patchConfig({ language: state.language });
+  patchConfig({ language: state.languageSetting });
 });
 
 // This button is the only control of the small icons mode.

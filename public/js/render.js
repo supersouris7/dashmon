@@ -25,6 +25,42 @@ import {
 import { createSection, reorderDashboardSections } from "./dashboard/sections.js";
 import { searchQuery } from "./dashboard/query.js";
 
+// Actions of the welcome shown on an empty dashboard, provided by app.js.
+let welcomeActions = null;
+export function setWelcomeActions(actions) {
+  welcomeActions = actions;
+}
+
+// First screen of a new install: what Dashmon is for and the two ways to
+// start, adding an application or loading the example.
+function createWelcome() {
+  const welcome = document.createElement("section");
+  welcome.className = "empty welcome";
+  const title = document.createElement("h2");
+  title.textContent = t("welcomeTitle");
+  const text = document.createElement("p");
+  text.textContent = t("welcomeText");
+  const actions = document.createElement("div");
+  actions.className = "action-group";
+  for (const [key, icon, action, primary] of [
+    ["welcomeAdd", "fa-plus", "openSettings", true],
+    ["welcomeDemo", "fa-wand-magic-sparkles", "loadDemo", false]
+  ]) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "action-btn" + (primary ? " primary" : "");
+    button.dataset.welcome = action;
+    const glyph = document.createElement("i");
+    glyph.className = "fa-solid " + icon;
+    glyph.setAttribute("aria-hidden", "true");
+    button.append(glyph, document.createTextNode(" " + t(key)));
+    button.addEventListener("click", () => welcomeActions?.[action]());
+    actions.appendChild(button);
+  }
+  welcome.append(title, text, actions);
+  return welcome;
+}
+
 // Active dashboard, bounded to an existing id: a preference from another
 // browser pointing at a deleted dashboard must not empty the screen.
 export function currentDashboardId() {
@@ -122,6 +158,11 @@ export function render() {
 
   dashboard.innerHTML = "";
   announceSearch(filtered.length);
+
+  if (!state.services.length && !special && !searchQuery()) {
+    dashboard.appendChild(createWelcome());
+    return;
+  }
 
   if (!filtered.length && !special) {
     const empty = document.createElement("div");

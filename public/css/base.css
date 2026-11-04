@@ -680,6 +680,32 @@ main {
   color: var(--muted);
 }
 
+/* Welcome of an empty dashboard. "Add an application" opens the settings,
+   which do not exist on a phone: the button is hidden there. */
+.welcome {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.welcome h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 20px;
+}
+
+.welcome p {
+  max-width: 520px;
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+
+@media (max-width: 700px) {
+  .welcome [data-welcome="openSettings"] {
+    display: none;
+  }
+}
+
 .app-footer {
   margin-top: 44px;
   text-align: center;

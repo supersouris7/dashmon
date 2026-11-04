@@ -31,7 +31,8 @@ agent-server.js      agent mode entry point
 lib/
   config/            environment variables (settings.js), config.json
                      (store.js, repository.js), validation (normalize.js,
-                     fields.js), startup migrations, encrypted secrets
+                     fields.js), startup migrations (default web links),
+                     encrypted secrets
   http/              outgoing HTTP client (client.js), authentication,
                      protections (headers, origin, rate limits, agent token),
                      request log, errors
@@ -90,7 +91,8 @@ public/js/
                        confirm.js); shared local/agent monitoring form in
                        host-settings.js
   config/              config schema (normalize.js), value checks (sanitize.js),
-                       icon list
+                       icon list, example data (demo.js), language choice
+                       (language.js)
   i18n.js, i18n/       interface texts, one JSON file per language
   widget-registry.js   loads the widgets published by the server
   pages.js, themes.js, view-prefs.js, images.js, fortune.js, metrics.js...

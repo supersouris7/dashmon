@@ -39,7 +39,9 @@ export const state = {
   openMode: "same",
   groupMode: "category",
   theme: "dark",
+  // Effective language, and the saved setting ("" follows the browser).
   language: "en",
+  languageSetting: "",
   sortMode: "alphabetical",
   usageCounts: {},
   webLinks: [],

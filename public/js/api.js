@@ -27,7 +27,7 @@ export function saveConfig(immediate = false, { replaceUsage = false } = {}) {
       replication: state.replication,
       specialTile: state.specialTile,
       theme: state.theme,
-      language: state.language,
+      language: state.languageSetting,
       usageCounts: state.usageCounts,
       webLinks: state.webLinks,
       webLinksSeedVersion: state.webLinksSeedVersion

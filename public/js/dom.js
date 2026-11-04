@@ -48,6 +48,7 @@ export const addDashboardBtn = document.getElementById("addDashboardBtn");
 export const addHostBtn = document.getElementById("addHostBtn");
 export const addWebLinkBtn = document.getElementById("addWebLinkBtn");
 export const exportConfigBtn = document.getElementById("exportConfigBtn");
+export const demoConfigBtn = document.getElementById("demoConfigBtn");
 export const importConfigBtn = document.getElementById("importConfigBtn");
 export const configImportInput = document.getElementById("configImportInput");
 export const importExportStatus = document.getElementById("importExportStatus");

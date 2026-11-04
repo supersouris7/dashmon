@@ -131,6 +131,81 @@ async function main() {
       .concat(Object.values(texts.en))
       .every(v => typeof v === "string" && v.trim())
   );
+  // Language: an explicit choice wins, otherwise the browser decides.
+  {
+    const { resolveLanguage } = await import(
+      pathToFileURL(path.join(JS_DIR, "config", "language.js")).href
+    );
+    check(
+      "langue : choix explicite, sinon navigateur",
+      [
+        resolveLanguage("fr", ["en-US"]),
+        resolveLanguage("en", ["fr-FR"]),
+        resolveLanguage("", ["fr-CA", "en"]),
+        resolveLanguage("", ["de-DE", "fr"]),
+        resolveLanguage("", [])
+      ],
+      ["fr", "en", "fr", "en", "en"]
+    );
+  }
+
+  // Example data: added next to what exists, never twice, only documentation
+  // addresses, and an existing special tile is kept.
+  {
+    const { withDemo, demoData } = await import(
+      pathToFileURL(path.join(JS_DIR, "config", "demo.js")).href
+    );
+    const empty = {
+      services: [],
+      categories: [],
+      dashboards: [{ id: "main", name: "Dashboard", icon: "fa-solid fa-grip" }],
+      hosts: [
+        { id: "dashmon-local", name: "Dashmon", monitoring: { type: "local", enabled: true } }
+      ],
+      specialTile: null
+    };
+    const once = withDemo(empty, "fr");
+    const twice = withDemo({ ...empty, ...once }, "fr");
+    check(
+      "exemple : applications, categories et hotes ajoutes",
+      [once.services.length, once.categories.length, once.hosts.length, once.specialTile?.type],
+      [9, 3, 4, "fortune"]
+    );
+    check(
+      "exemple : rien n'est ajoute deux fois",
+      [twice.services.length, twice.categories.length, twice.hosts.length],
+      [9, 3, 4]
+    );
+    ok(
+      "exemple : l'hote local est garde",
+      once.hosts[0].id === "dashmon-local" && once.hosts[0].monitoring?.enabled === true
+    );
+    ok(
+      "exemple : categories rangees dans le premier dashboard",
+      once.categories.every(category => category.dashboardId === "main")
+    );
+    ok(
+      "exemple : chaque application pointe sur un hote et une categorie de l'exemple",
+      once.services.every(
+        service =>
+          once.hosts.some(host => host.name === service.host) &&
+          once.categories.some(category => category.name === service.category)
+      )
+    );
+    ok(
+      "exemple : adresses de documentation uniquement, sans supervision",
+      ["en", "fr"].every(language =>
+        demoData(language).services.every(
+          service =>
+            /^https?:\/\/([a-z0-9-]+\.exemple\.lan|192\.0\.2\.\d+)(:\d+)?$/.test(service.url) &&
+            service.monitor === false
+        )
+      )
+    );
+    const kept = withDemo({ ...empty, specialTile: { type: "fortune", category: "Perso" } }, "en");
+    check("exemple : tuile speciale existante gardee", kept.specialTile.category, "Perso");
+  }
+
   const toolbar = await import(pathToFileURL(path.join(JS_DIR, "toolbar.js")).href);
   check(
     "toolbar : recherche dans la barre si assez de place",

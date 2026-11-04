@@ -466,6 +466,10 @@
                 <i class="fa-solid fa-download"></i>&nbsp;
                 <span id="exportConfigLabel">Exporter</span>
               </button>
+              <button id="demoConfigBtn" class="action-btn" type="button">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>&nbsp;
+                <span id="demoConfigLabel">Add the example</span>
+              </button>
             </div>
           </div>
         </div>
@@ -531,6 +535,7 @@
             <label class="appearance-field">
               <span id="languageFieldLabel">Langue</span>
               <select id="languageSelect" class="edit-select">
+                <option id="languageAutoOption" value="">Automatic (browser language)</option>
                 <option value="fr">Français</option>
                 <option value="en">English</option>
               </select>

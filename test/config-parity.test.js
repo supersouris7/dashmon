@@ -157,8 +157,6 @@ async function main() {
     const fromClient = client.normalizeConfig(structuredClone(raw));
     check(`parite : memes champs (${label})`, () => {
       for (const key of SAME_KEYS) {
-        // Sans liste fournie, le navigateur propose des liens d'exemple.
-        if (key === "webLinks" && !Array.isArray(raw.webLinks)) continue;
         assert.deepStrictEqual(fromClient[key], fromServer[key], key);
       }
     });

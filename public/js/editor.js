@@ -4,7 +4,7 @@
 import { state } from "./state.js";
 import { normalizeConfig } from "./config/normalize.js";
 import { clone } from "./util.js";
-import { t, applyLanguage, setSettingsUpdater } from "./i18n.js";
+import { t, applyLanguage, setSettingsUpdater, resolveLanguage } from "./i18n.js";
 import { saveConfig, fetchConfig, configConflict } from "./api.js";
 import { saveViewPrefs } from "./view-prefs.js";
 import { render } from "./render.js";
@@ -37,12 +37,14 @@ import {
   cancelBtn,
   saveBtn,
   exportConfigBtn,
+  demoConfigBtn,
   importConfigBtn,
   configImportInput,
   importExportStatus,
   replicationEditor
 } from "./dom.js";
 import { closeWidgetConfig } from "./editor/widget-config.js";
+import { withDemo } from "./config/demo.js";
 import { renderServiceEditor } from "./editor/services.js";
 import { renderWebLinksEditor } from "./editor/web-links.js";
 import { renderWidgetsEditor } from "./editor/widgets.js";
@@ -296,6 +298,30 @@ configImportInput.addEventListener("change", async () => {
   }
 });
 
+// The example joins the draft: it applies on Save, like an import, and keeps
+// what the draft already holds.
+demoConfigBtn.addEventListener("click", () => {
+  const merged = withDemo(
+    {
+      services: state.editServices,
+      categories: state.editCategories,
+      dashboards: state.editDashboards,
+      hosts: state.editHosts,
+      specialTile: state.editSpecialTile
+    },
+    state.language
+  );
+  state.editServices = merged.services;
+  state.editCategories = merged.categories;
+  state.editHosts = merged.hosts;
+  state.editSpecialTile = merged.specialTile;
+  renderServiceEditor();
+  renderCategoryEditor();
+  renderHostEditor();
+  renderWidgetsEditor();
+  importExportStatus.textContent = t("demoReady");
+});
+
 exportConfigBtn.addEventListener("click", async () => {
   try {
     const config = await fetchConfig();
@@ -451,7 +477,8 @@ async function applyEditorChanges() {
     // preferences stay specific to the browser.
     if (importedConfigDraft) {
       state.theme = importedConfigDraft.theme;
-      state.language = importedConfigDraft.language;
+      state.languageSetting = importedConfigDraft.language;
+      state.language = resolveLanguage(importedConfigDraft.language);
       state.usageCounts = { ...importedConfigDraft.usageCounts };
     }
 

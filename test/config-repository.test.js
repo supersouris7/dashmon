@@ -29,7 +29,7 @@ assert.equal(ensureLocalHost({}, { agentMode: true }).hosts[0].name, "Agent");
 // Start-up on an empty data folder: folders, bundled config, default links.
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-config-"));
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-root-"));
-fs.writeFileSync(path.join(root, "config.json"), JSON.stringify({ hosts: [{ name: "x" }] }));
+fs.copyFileSync(path.join(__dirname, "..", "config.json"), path.join(root, "config.json"));
 const settings = {
   rootDir: root,
   dataDir: dir,
@@ -47,8 +47,15 @@ try {
   runStartupMigrations(settings, repository);
   assert.ok(fs.existsSync(settings.iconsDir));
   const config = repository.read();
+  // The bundled config.json: no application, the default links, and no
+  // language, so the interface follows the browser.
   assert.deepEqual(config.webLinks, DEFAULT_WEB_LINKS);
-  assert.ok(config.hosts.every(host => /^(host-[0-9a-f]{12}|dashmon-local)$/.test(host.id)));
+  assert.deepEqual([config.services, config.categories], [[], []]);
+  assert.equal(config.language, undefined);
+  assert.deepEqual(
+    config.hosts.map(host => host.id),
+    ["dashmon-local"]
+  );
 
   // Retired settings are hidden; an emptied link list is respected.
   repository.write({ ...config, favicon: "x", webLinks: [] });

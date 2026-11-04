@@ -72,7 +72,7 @@
   "imagesDeletePartial": "{count} image(s) could not be deleted.",
   "importBtn": "Import",
   "exportBtn": "Export",
-  "importExportHint": "Export the complete Dashmon configuration to a JSON file, or import one. An imported configuration only applies after Save.",
+  "importExportHint": "Export the complete Dashmon configuration to a JSON file, or import one. The example adds a few fictional applications to discover Dashmon. An import or the example only applies after Save.",
   "importReady": "Configuration imported. Click Save to store it.",
   "cancelBtn": "Cancel",
   "saveBtn": "Save",
@@ -331,5 +331,12 @@
   "introDashboards": "Each dashboard is a tab of the top bar. A category belongs to one dashboard, where it is shown with its applications.",
   "introCategories": "Categories group the applications. Choose the dashboard, icon and color of each; drag a row to change the order.",
   "introHosts": "Hosts are the machines that run your applications. Their icon and color are used when grouping by host and on the supervision cards.",
-  "introWebLinks": "Web links are shown in the banner under the toolbar. A counter can add GitHub stars, Docker Hub pulls or YouTube subscribers."
+  "introWebLinks": "Web links are shown in the banner under the toolbar. A counter can add GitHub stars, Docker Hub pulls or YouTube subscribers.",
+  "languageAuto": "Automatic (browser language)",
+  "welcomeTitle": "Welcome to Dashmon",
+  "welcomeText": "Your dashboard is empty. Add your applications to reach them in one click and see whether they respond, or load an example to see what a filled dashboard looks like.",
+  "welcomeAdd": "Add an application",
+  "welcomeDemo": "Load the example",
+  "demoBtn": "Add the example",
+  "demoReady": "Example added: nine fictional applications on three machines. Click Save to keep it; delete them like any other application."
 }

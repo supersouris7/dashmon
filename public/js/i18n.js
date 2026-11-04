@@ -32,13 +32,15 @@ import {
 
 // Interface texts, one JSON file per language: easy to read, complete or
 // translate without touching code. Both files must have the same keys
-// (checked by test/frontend.test.js); a missing text falls back to French,
-// then to the key itself.
+// (checked by test/frontend.test.js); a missing text falls back to English,
+// the default language, then to the key itself.
 const UI_TEXT = { fr, en };
 
 export function t(key) {
-  return UI_TEXT[state.language]?.[key] || UI_TEXT.fr[key] || key;
+  return UI_TEXT[state.language]?.[key] || UI_TEXT.en[key] || key;
 }
+
+export { resolveLanguage } from "./config/language.js";
 
 export function applyLanguage() {
   document.documentElement.lang = state.language;
@@ -66,6 +68,7 @@ export function applyLanguage() {
 
   themeFieldLabel.textContent = t("themeActive");
   languageFieldLabel.textContent = t("language");
+  document.getElementById("languageAutoOption").textContent = t("languageAuto");
   usageFieldLabel.textContent = t("usageLabel");
   resetUsageBtn.querySelector("span").textContent = t("resetUsage");
   searchInput.placeholder = t("search");
@@ -119,6 +122,7 @@ export function applyLanguage() {
     ["addWebLinkLabel", "addWebLink"],
     ["importConfigLabel", "importBtn"],
     ["exportConfigLabel", "exportBtn"],
+    ["demoConfigLabel", "demoBtn"],
     ["uploadPngLabel", "importBtn"],
     ["manageUploadLabel", "addImages"],
     ["manageDeleteLabel", "deleteSelection"],

@@ -30,13 +30,6 @@ export const DEFAULT_DASHBOARDS = [{ id: "main", name: "Dashboard", icon: "fa-so
 // Reserved id: "supervision" is a separate page, never a dashboard.
 export const RESERVED_DASHBOARD_IDS = Object.freeze(["supervision"]);
 
-export const DEFAULT_WEB_LINKS = [
-  { name: "YouTube", url: "https://www.youtube.com", icon: "fa-brands fa-youtube" },
-  { name: "Outlook", url: "https://outlook.office.com", icon: "fa-solid fa-envelope" },
-  { name: "Google Drive", url: "https://drive.google.com", icon: "fa-brands fa-google-drive" },
-  { name: "GitHub", url: "https://github.com", icon: "fa-brands fa-github" }
-];
-
 // Same rule as the server: only boolean flags, keys bounded to 200 characters
 // and 500 entries.
 export function normalizeCollapsed(collapsed) {
@@ -362,12 +355,11 @@ export function normalizeConfig(cfg = {}) {
     replication: normalizeReplication(cfg.replication),
     theme:
       typeof cfg.theme === "string" && cfg.theme.trim() ? cfg.theme.trim().slice(0, 64) : "dark",
-    language: cfg.language === "fr" ? "fr" : "en",
+    // "" follows the browser language (see resolveLanguage in i18n.js).
+    language: cfg.language === "fr" || cfg.language === "en" ? cfg.language : "",
     usageCounts: normalizeUsageCounts(cfg.usageCounts),
-    webLinks: (Array.isArray(cfg.webLinks)
-      ? clone(cfg.webLinks).slice(0, 100)
-      : clone(DEFAULT_WEB_LINKS)
-    ).map(link => ({
+    // The default links are seeded by the server (lib/config/migrations.js).
+    webLinks: (Array.isArray(cfg.webLinks) ? clone(cfg.webLinks).slice(0, 100) : []).map(link => ({
       name: sanitizeText(link.name, 100),
       url: sanitizeUrl(link.url),
       icon: sanitizeIconClass(link.icon),
