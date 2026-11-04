@@ -214,6 +214,40 @@ async function main() {
     check("mosaique : colonnes comptees", masonry.trackCount("413.3px 413.3px 413.3px"), 3);
     check("mosaique : aucune colonne", masonry.trackCount("none"), 1);
   }
+  {
+    const { placeColumns, rowSpan } = await import(
+      pathToFileURL(path.join(JS_DIR, "dashboard", "columns-layout.js")).href
+    );
+    // 4 px rows plus the 10 px gap below the category.
+    check("colonnes : rangees d'une categorie de 90 px", rowSpan(90), 25);
+    // In order, each category into the least tall column (leftmost on a tie).
+    const tall = rowSpan(400);
+    const short = rowSpan(40);
+    check(
+      "colonnes : mosaique dans l'ordre, colonne la moins haute",
+      placeColumns([400, 40, 200, 40, 40], 3).map(item => item.column),
+      [0, 1, 2, 1, 1]
+    );
+    // Folding the first category keeps every column: only rows move.
+    const kept = placeColumns([40, 40, 200, 40, 40], 3, [0, 1, 2, 1, 1]);
+    check(
+      "colonnes : un repli ne change pas de colonne",
+      kept.map(item => item.column),
+      [0, 1, 2, 1, 1]
+    );
+    check("colonnes : la suivante remonte dans sa colonne", kept[3].start, short);
+    check(
+      "colonnes : rangee de depart apres la precedente",
+      placeColumns([400, 40], 1)[1].start,
+      tall
+    );
+    // A column count that changed gets a fresh choice.
+    check(
+      "colonnes : colonne hors grille rechoisie",
+      placeColumns([40, 40], 1, [0, 2]).map(item => item.column),
+      [0, 0]
+    );
+  }
   const toolbar = await import(pathToFileURL(path.join(JS_DIR, "toolbar.js")).href);
   {
     const { foldText, serviceMatchesSearch } = await importStateModules();

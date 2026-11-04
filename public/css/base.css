@@ -488,6 +488,12 @@ main {
   gap: 10px 18px;
   align-items: start;
 }
+/* Mosaic (dashboard/columns-layout.js): thin rows without gap, each category
+   placed in its column and spanning the rows its height needs. */
+#dashboard[data-view="columns"].mosaic {
+  grid-auto-rows: 4px;
+  row-gap: 0;
+}
 
 #dashboard[data-view="columns"] .section {
   margin-bottom: 0;

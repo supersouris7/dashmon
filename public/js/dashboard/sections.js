@@ -1,11 +1,11 @@
-// Dashboard sections (one per category or host) and their animated
-// reordering when a section is collapsed or expanded.
+// Dashboard sections (one per category or host). Folding one keeps it in
+// place (columns-layout.js).
 import { state, getCategory, compareServices } from "../state.js";
 import { sanitizeTileColor, sanitizeIconClass } from "../config/sanitize.js";
 import { groupLabel, searchQuery } from "./query.js";
 import { saveViewPrefs } from "../view-prefs.js";
 import { createCard } from "./cards.js";
-import { dashboard } from "../dom.js";
+import { toggleSectionInPlace } from "./columns-layout.js";
 
 export function createSection(
   categoryName,
@@ -56,20 +56,8 @@ export function createSection(
     onToggle();
     saveViewPrefs({ collapsed: state.collapsed });
 
-    if (collapsing) {
-      reorderDashboardSections(
-        true,
-        null,
-        () => {
-          section.classList.add("collapsed");
-        },
-        section
-      );
-    } else {
-      reorderDashboardSections(true, section, () => {
-        section.classList.remove("collapsed");
-      });
-    }
+    // In place: the category keeps its position, the ones below move up.
+    toggleSectionInPlace(section, collapsing);
   });
 
   const body = document.createElement("div");
@@ -83,80 +71,4 @@ export function createSection(
   body.appendChild(cards);
   section.append(header, body);
   return section;
-}
-
-function prefersReducedMotion() {
-  return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
-function sectionHomeRank(section) {
-  const rank = Number(section.dataset.rank);
-  return Number.isFinite(rank) ? rank : 0;
-}
-
-function getDashboardSections() {
-  return [...dashboard.children].filter(
-    node => node && node.classList && node.classList.contains("section")
-  );
-}
-
-export function reorderDashboardSections(
-  animate = false,
-  forceExpand = null,
-  onDone = null,
-  forceCollapse = null
-) {
-  const sections = getDashboardSections();
-  if (sections.length < 2) {
-    if (onDone) onDone();
-    return;
-  }
-
-  const ordered = [...sections].sort((a, b) => {
-    const ac = (a.classList.contains("collapsed") || a === forceCollapse) && a !== forceExpand;
-    const bc = (b.classList.contains("collapsed") || b === forceCollapse) && b !== forceExpand;
-    if (ac !== bc) return ac ? 1 : -1;
-    return sectionHomeRank(a) - sectionHomeRank(b);
-  });
-
-  const alreadyOrdered = ordered.every((s, i) => s === sections[i]);
-  if (alreadyOrdered) {
-    if (onDone) onDone();
-    return;
-  }
-
-  if (!animate || prefersReducedMotion()) {
-    sections.forEach(s => s.remove());
-    ordered.forEach(s => dashboard.appendChild(s));
-    if (onDone) onDone();
-    return;
-  }
-
-  const first = new Map(ordered.map(s => [s, s.getBoundingClientRect()]));
-  sections.forEach(s => s.remove());
-  ordered.forEach(s => dashboard.appendChild(s));
-  const last = new Map(ordered.map(s => [s, s.getBoundingClientRect()]));
-
-  ordered.forEach(s => {
-    const f = first.get(s);
-    const l = last.get(s);
-    s.style.transition = "none";
-    s.style.transform = `translate(${f.left - l.left}px, ${f.top - l.top}px)`;
-  });
-
-  void dashboard.offsetHeight;
-
-  requestAnimationFrame(() => {
-    ordered.forEach(s => {
-      s.style.transition = "transform 360ms cubic-bezier(0.22, 0.61, 0.36, 1)";
-      s.style.transform = "";
-    });
-    setTimeout(() => {
-      ordered.forEach(s => {
-        s.style.transition = "";
-        s.style.transform = "";
-      });
-      if (onDone) onDone();
-    }, 400);
-  });
 }

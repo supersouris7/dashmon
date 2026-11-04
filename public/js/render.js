@@ -15,7 +15,8 @@ import { effectiveStatus, statusIcon } from "./status.js";
 import { dashboard, searchInput, searchStatus, collapseAllBtn } from "./dom.js";
 import { updateWebLinkCounters, renderWebLinks } from "./dashboard/web-links.js";
 import { statusTitle, applyWidgetStatus, tileColorFor, createCard } from "./dashboard/cards.js";
-import { createSection, reorderDashboardSections } from "./dashboard/sections.js";
+import { createSection } from "./dashboard/sections.js";
+import { layoutColumns } from "./dashboard/columns-layout.js";
 import { searchQuery } from "./dashboard/query.js";
 import { updateFortuneBar } from "./dashboard/fortune-bar.js";
 
@@ -108,6 +109,11 @@ function sortGroupNames(names) {
 }
 
 export function render() {
+  drawDashboard();
+  layoutColumns();
+}
+
+function drawDashboard() {
   renderWebLinks();
   updateFortuneBar();
   dashboard.dataset.view = state.viewMode;
@@ -171,7 +177,6 @@ export function render() {
     });
   }
 
-  reorderDashboardSections(false);
   updateCollapseAllButton();
 }
 
