@@ -1,5 +1,6 @@
 // Same monitoring form for the primary and agents; only their save differs.
 import { t } from "../i18n.js";
+import { SPEEDTEST_DEFAULT_INTERVAL, SPEEDTEST_INTERVALS } from "../config/normalize.js";
 
 function hint(key) {
   const text = document.createElement("p");
@@ -38,9 +39,11 @@ function input(box, key, value, change, placeholder) {
   control.maxLength =
     key === "agentHostName"
       ? 100
-      : key === "smartDisks" || key === "networkInterfaces"
+      : key === "smartDisks"
         ? 2000
-        : 200;
+        : key === "speedtestServer"
+          ? 300
+          : 200;
   if (placeholder) control.placeholder = t(placeholder);
   control.addEventListener("input", () => change(control.value));
   field(box, key, control);
@@ -106,7 +109,7 @@ function wireguardSection(form, monitoring) {
   help(wg, "wireguardHelpIntro", "WIREGUARD.md");
 }
 
-// List filter (SMART disks, network interfaces): typed by hand, or picked
+// List filter (SMART disks): typed by hand, or picked
 // among the names the host reported. An empty list means the default set.
 function filterSection(form, monitoring, spec) {
   const box = section(form, spec.title, spec.icon);
@@ -187,25 +190,34 @@ function smartSection(form, monitoring, metrics) {
   });
 }
 
-// Physical and VPN interfaces are shown by default, the others on request.
-const DEFAULT_INTERFACE = /^(eth|en|wl|ww|usb|em\d|p\d|wg|tun|tailscale|zt|nordlynx|proton)/;
-
-function networkSection(form, monitoring, metrics) {
-  filterSection(form, monitoring, {
-    title: "tabNetwork",
-    icon: "fa-solid fa-network-wired",
-    key: "network",
-    field: "interfaces",
-    show: "networkShow",
-    input: "networkInterfaces",
-    placeholder: "phNetworkInterfaces",
-    detectedLabel: "networkDetected",
-    detected: Array.isArray(metrics?.network?.detected) ? metrics.network.detected : [],
-    isDefault: name => DEFAULT_INTERFACE.test(name),
-    max: 32,
-    helpKey: "networkHelp",
-    file: "NETWORK.md"
+// Speed test: on/off, how often, and the server (empty: Cloudflare).
+function speedtestSection(form, monitoring) {
+  const box = section(form, "tabSpeedtest", "fa-solid fa-gauge-high");
+  toggle(box, monitoring, "speedtest", "speedtestShow");
+  const select = document.createElement("select");
+  select.className = "edit-input";
+  select.name = "speedtestInterval";
+  for (const minutes of SPEEDTEST_INTERVALS) {
+    const option = document.createElement("option");
+    option.value = String(minutes);
+    option.textContent = t("speedtestEvery" + minutes);
+    select.appendChild(option);
+  }
+  select.value = String(monitoring.speedtest?.interval ?? SPEEDTEST_DEFAULT_INTERVAL);
+  select.addEventListener("change", () => {
+    monitoring.speedtest = { ...monitoring.speedtest, interval: Number(select.value) };
   });
+  field(box, "speedtestInterval", select);
+  input(
+    box,
+    "speedtestServer",
+    monitoring.speedtest?.server,
+    value => {
+      monitoring.speedtest = { ...monitoring.speedtest, server: value.trim() };
+    },
+    "phSpeedtestServer"
+  );
+  help(box, "speedtestHelp", "SPEEDTEST.md");
 }
 
 // Reports with only an on/off switch and a setup guide.
@@ -237,7 +249,7 @@ export function renderHostSettings(container, { config, metrics, onRename = () =
   form.appendChild(hint("hostSettingsSaveHint"));
   generalSection(form, config, onRename);
   wireguardSection(form, monitoring);
-  networkSection(form, monitoring, metrics);
+  speedtestSection(form, monitoring);
   smartSection(form, monitoring, metrics);
   for (const [title, icon, key, label, helpKey, file] of REPORT_SECTIONS) {
     const box = section(form, title, icon);

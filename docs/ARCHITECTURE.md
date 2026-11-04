@@ -42,9 +42,9 @@ lib/
                      its routes
   widgets/           widget registry, schema, storage and core
   status/            status loop of the monitored services
-  host/              machine measurements (CPU, RAM, disk, network
-                     throughput sampled every 10 s) and WireGuard,
-                     SMART, APT, OpenCode and Claude Code reports
+  host/              machine measurements (CPU, RAM, disk, scheduled
+                     speed test) and WireGuard, SMART, APT, OpenCode
+                     and Claude Code reports
   agent/             protocol, identity and agent pairing
   themes.js          theme validation
   version.js         version label and mount detection
@@ -83,7 +83,7 @@ public/js/
                        buttons (view-controls.js), search and group labels
                        (query.js)
   supervision.js       supervision page and metrics refresh
-  supervision/         one file per card (host, network, WireGuard, SMART, APT,
+  supervision/         one file per card (host, speed test, WireGuard, SMART, APT,
                        coding agents: OpenCode and Claude Code), shared
                        card behaviour (cards.js), mosaic layout (masonry.js),
                        texts (format.js) and the

@@ -18,7 +18,7 @@ import { visibleSmartDisks, smartCard } from "./supervision/smart-card.js";
 import { aptUpdatesCard } from "./supervision/apt-card.js";
 import { USAGE_SOURCES, usageCard } from "./supervision/usage-card.js";
 import { layoutMasonry } from "./supervision/masonry.js";
-import { networkCard } from "./supervision/network-card.js";
+import { speedtestCard } from "./supervision/speedtest-card.js";
 
 // Interval injected by the server (HOST_METRICS_INTERVAL). HTML served
 // without substitution (tests, local file) falls back to 60 s.
@@ -89,7 +89,8 @@ export function renderSupervision() {
           name: metric.name || linked?.name || t("hostName"),
           icon: "fa-solid fa-microchip",
           color: sanitizeTileColor(linked?.color),
-          monitoring: { enabled: true, type: metric.type }
+          monitoring: { enabled: true, type: metric.type },
+          agentUrl: selected.url
         };
       })
     : state.hosts.filter(host => host.monitoring && host.monitoring.enabled === true);
@@ -130,11 +131,11 @@ export function renderSupervision() {
     const interfaces = visibleInterfaces(host, metrics);
     if (hasWireguardDump(host, metrics)) wgCards.push(wireguardCard(host, metrics, interfaces));
   });
-  // Network right after the host and its VPN: both describe its links.
+  // Speed test right after the host and its VPN: both describe its links.
   monitored.forEach(host => {
     const metrics = byId.get(host.id);
-    if (metrics?.ok && metrics.network && host.monitoring?.network?.enabled !== false)
-      grid.appendChild(networkCard(host, metrics));
+    if (metrics?.ok && metrics.speedtest?.available)
+      grid.appendChild(speedtestCard(host, metrics, { onRun: runSpeedtest }));
   });
   wgCards.forEach(card => grid.appendChild(card));
   monitored.forEach(host => {
@@ -161,6 +162,26 @@ export function renderSupervision() {
   supervisionList.append(grid);
   layoutMasonry(grid);
   updateSmartCollapseButton();
+}
+
+// Speed test asked from a card: on this instance, or on the agent the card
+// belongs to. Answers "ok", "too_soon" or "failed".
+export async function runSpeedtest(host) {
+  try {
+    const response = host.agentUrl
+      ? await fetch("/api/agents/speedtest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: host.agentUrl })
+        })
+      : await fetch("/api/host-metrics/speedtest", { method: "POST" });
+    if (response.status === 429) return "too_soon";
+    if (!response.ok) return "failed";
+  } catch (_error) {
+    return "failed";
+  }
+  await refreshHostMetrics();
+  return "ok";
 }
 
 let metricsInflight = false;

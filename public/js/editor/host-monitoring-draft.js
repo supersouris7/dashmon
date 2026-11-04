@@ -1,4 +1,8 @@
-import { HOST_MONITORING_TYPES } from "../config/normalize.js";
+import {
+  HOST_MONITORING_TYPES,
+  SPEEDTEST_DEFAULT_INTERVAL,
+  normalizeSpeedtestPrefs
+} from "../config/normalize.js";
 
 // Working values: no monitoring is enabled without an explicit action.
 export function blankMonitoring() {
@@ -8,7 +12,7 @@ export function blankMonitoring() {
     path: "",
     wireguard: { enabled: true, interface: "" },
     smart: { enabled: true, disks: [] },
-    network: { enabled: true, interfaces: [] },
+    speedtest: { enabled: true, interval: SPEEDTEST_DEFAULT_INTERVAL, server: "" },
     aptUpdates: { enabled: true },
     opencode: { enabled: true },
     claude: { enabled: true }
@@ -45,21 +49,10 @@ export function serializeHostMonitoring(m) {
     const prefs = { enabled: smart.enabled !== false, disks };
     if (!prefs.enabled || prefs.disks.length) out.smart = prefs;
   }
-  const net = m.network && typeof m.network === "object" ? m.network : null;
-  if (net) {
-    const interfaces = [
-      ...new Set(
-        (Array.isArray(net.interfaces) ? net.interfaces : [])
-          .map(value =>
-            String(value || "")
-              .trim()
-              .slice(0, 32)
-          )
-          .filter(Boolean)
-      )
-    ].slice(0, 32);
-    const prefs = { enabled: net.enabled !== false, interfaces };
-    if (!prefs.enabled || prefs.interfaces.length) out.network = prefs;
+  if (m.speedtest && typeof m.speedtest === "object") {
+    const prefs = normalizeSpeedtestPrefs(m.speedtest);
+    if (!prefs.enabled || prefs.interval !== SPEEDTEST_DEFAULT_INTERVAL || prefs.server)
+      out.speedtest = prefs;
   }
   const apt =
     m.aptUpdates && typeof m.aptUpdates === "object"
@@ -74,7 +67,7 @@ export function serializeHostMonitoring(m) {
     out.path ||
     out.wireguard ||
     out.smart ||
-    out.network ||
+    out.speedtest ||
     out.aptUpdates ||
     out.opencode ||
     out.claude;

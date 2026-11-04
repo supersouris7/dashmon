@@ -39,8 +39,6 @@ services:
       CLAUDE_REPORT_FILE: ${CLAUDE_REPORT_FILE:-}
     volumes:
       - dashmon-data:/app/data
-      # Network card: the host counters, read-only (Linux hosts).
-      - /proc/1/net/dev:/host/net/dev:ro
     # DNS resolution of local names (.lan, .home…) for the status dots and the
     # widgets (Uptime Kuma included). Docker does not know your LAN DNS: set
     # DASHMON_DNS in your stack (an IP address, not a name). 127.0.0.11 is

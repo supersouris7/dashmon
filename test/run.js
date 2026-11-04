@@ -18,7 +18,7 @@ const SUITES = [
   "replication-config.test.js",
   "config-patch.test.js",
   "local-metrics.test.js",
-  "network.test.js",
+  "speedtest.test.js",
   "sanitize.test.js",
   "secrets.test.js",
   "confirm-dialog.test.js",

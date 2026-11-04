@@ -28,6 +28,7 @@ async function start(mode, port, folder) {
   const child = spawn(process.execPath, ["server.js"], {
     cwd: root,
     env: {
+      SPEEDTEST_SCHEDULE: "off",
       ...process.env,
       PORT: String(port),
       DATA_DIR: folder,
@@ -348,6 +349,14 @@ async function main() {
   assert.ok(remote.revision);
   assert.equal(JSON.stringify(remote).includes(token), false);
   remote.config.monitoring.path = "/";
+  // Speed test against a local server that fails at once: the whole chain
+  // (primary -> agent -> test server -> history) runs in a few milliseconds.
+  const speedServer = http.createServer((_req, res) => res.writeHead(500).end());
+  await new Promise(resolve => speedServer.listen(0, loopback, resolve));
+  remote.config.monitoring.speedtest = {
+    interval: 0,
+    server: `http://${loopback}:${speedServer.address().port}/backend/`
+  };
   const remoteWrite = {
     method: "PUT",
     headers: { Authorization: auth, "Content-Type": "application/json" },
@@ -383,6 +392,30 @@ async function main() {
   assert.equal(data.instances[0].status, "available");
   assert.equal(data.instances[0].hosts[0].name, "Agent");
   assert.ok(data.instances[0].lastSuccessAt);
+  assert.equal(data.instances[0].hosts[0].speedtest.last, null);
+  assert.equal(data.instances[0].hosts[0].speedtest.server, "librespeed");
+  // Speed test on the agent, asked through the primary: saved peers only.
+  const speedtestCall = url =>
+    fetch(primary + "/api/agents/speedtest", {
+      method: "POST",
+      headers: { Authorization: auth, "Content-Type": "application/json" },
+      body: JSON.stringify({ url })
+    });
+  assert.equal((await speedtestCall("https://exemple.lan")).status, 404);
+  assert.equal((await fetch(agent + "/api/sync/speedtest", { method: "POST" })).status, 401);
+  response = await speedtestCall(agent);
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    (({ ok, error, server }) => ({ ok, error, server }))((await response.json()).result),
+    { ok: false, error: "http_500", server: "librespeed" }
+  );
+  assert.equal((await speedtestCall(agent)).status, 429);
+  data = await (
+    await fetch(primary + "/api/replication/metrics", { headers: { Authorization: auth } })
+  ).json();
+  assert.equal(data.instances[0].hosts[0].speedtest.last.error, "http_500");
+  assert.equal(data.instances[0].hosts[0].speedtest.history.length, 1);
+  speedServer.close();
   const now = Date.now();
   assert.equal(protocol.assess({ hosts: [] }, { now }).legacy, true);
   const old = {

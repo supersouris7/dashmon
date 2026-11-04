@@ -74,6 +74,7 @@ const FIXTURES = {
           path: "/host",
           wireguard: { enabled: true, interface: "wg0" },
           smart: { enabled: true, disks: ["/dev/sda", "/dev/sda"] },
+          speedtest: { interval: 360, server: "http://speed.exemple.lan/backend/" },
           aptUpdates: { enabled: false },
           opencode: { enabled: false },
           claude: { enabled: true }
@@ -177,7 +178,7 @@ async function main() {
         "aptUpdates",
         "claude",
         "enabled",
-        "network",
+        "speedtest",
         "opencode",
         "path",
         "smart",

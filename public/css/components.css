@@ -1554,102 +1554,127 @@ body[data-page="supervision"] #collapseAllBtn {
     monospace;
 }
 
-/* Network card (supervision/network-card.js): one line per interface with
-   its current rates; the peak, the volume and the graph of the hour open
-   with the card. */
-.supervision-card-network {
+/* Speed test card (supervision/speedtest-card.js): the last download,
+   upload and latency, the graph of the last 24 hours; opened, the details
+   and the graph of the last 7 days. */
+.supervision-card-speedtest {
   cursor: pointer;
 }
-.supervision-card-network:focus-visible {
+.supervision-card-speedtest:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-.supervision-card-network.is-healthy .supervision-health-state i {
+.supervision-card-speedtest.is-healthy .supervision-health-state i {
   color: var(--success);
 }
-.supervision-card-network.expanded > .supervision-head .supervision-smart-chevron {
+.supervision-card-speedtest.is-warning .supervision-health-state i {
+  color: var(--warning);
+}
+.supervision-card-speedtest.expanded > .supervision-head .supervision-smart-chevron {
   transform: rotate(180deg);
 }
-.network-interface + .network-interface {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-}
-.network-title {
-  display: flex;
-  align-items: baseline;
+.speedtest-figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
-  min-width: 0;
-  font-size: 13px;
 }
-.network-title > strong {
+.speedtest-figure {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 6px;
+  align-items: baseline;
+  min-width: 0;
+}
+.speedtest-figure i {
+  grid-row: span 2;
+  font-size: 12px;
+}
+.speedtest-figure strong {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
-.network-kind {
-  padding: 0 6px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+.speedtest-figure span {
+  grid-column: 2;
   color: var(--muted);
   font-size: 11px;
 }
-.network-rates {
-  display: inline-flex;
-  gap: 10px;
-  margin-left: auto;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.network-rx {
+.speedtest-down i {
   color: var(--accent);
 }
-.network-tx {
+.speedtest-up i {
   color: var(--success);
 }
-.network-details {
-  display: none;
-}
-.supervision-card-network.expanded .network-details {
-  display: grid;
-  gap: 4px;
-  margin-top: 8px;
-}
-.network-row {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
+.speedtest-ping i {
   color: var(--muted);
-  font-size: 12px;
 }
-.network-graph {
+.speedtest-graph {
   width: 100%;
-  height: 60px;
-  margin-top: 4px;
+  height: 48px;
+  margin-top: 10px;
   border-bottom: 1px solid var(--border);
 }
-.network-graph polyline {
+.speedtest-graph polyline {
   fill: none;
   stroke-width: 1.5;
   stroke-linejoin: round;
 }
-.network-line-rx {
+.speedtest-line-down {
   stroke: var(--accent);
+  fill: var(--accent);
 }
-.network-line-tx {
+.speedtest-line-up {
   stroke: var(--success);
+  fill: var(--success);
 }
-.network-hint {
-  margin: 0;
+.speedtest-graph-week,
+.supervision-card-speedtest.expanded .speedtest-graph-day {
+  display: none;
+}
+.supervision-card-speedtest.expanded .speedtest-graph-week {
+  display: block;
+  height: 64px;
+}
+.speedtest-details {
+  display: none;
+}
+.supervision-card-speedtest.expanded .speedtest-details {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+.speedtest-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   color: var(--muted);
   font-size: 12px;
-  line-height: 1.5;
 }
-.network-hint code {
-  display: block;
-  margin-top: 6px;
+.speedtest-value {
+  margin-left: auto;
   color: var(--text);
-  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: pre;
+}
+.speedtest-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.speedtest-run {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.speedtest-message {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 /* Coding agents (OpenCode, Claude Code): today's tokens and the last 30 days stay visible; the details

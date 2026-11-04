@@ -26,7 +26,6 @@ Or directly:
 docker run -d --name dashmon --read-only --cap-drop=ALL --security-opt=no-new-privileges:true \
   -p 127.0.0.1:8080:8080 \
   -v dashmon-data:/app/data \
-  -v /proc/1/net/dev:/host/net/dev:ro \
   -e DASHMON_PASSWORD -e DASHMON_MASTER_KEY \
   supersouris7/dashmon:latest
 ```
@@ -95,7 +94,7 @@ See `.env.example`. The most important:
 | `HOST_METRICS_INTERVAL` | `60` | Seconds between two reads of the host resources (minimum 5, maximum 3600) |
 | `DOCKER_SOCKET` | `/var/run/docker.sock` | Socket read by the Docker widget in local mode |
 | `DOCKER_API_VERSION` | `v1.41` | Docker Engine API version used by the Docker widget |
-| `NETWORK_DEV_FILE` | `/host/net/dev` | Network counters of the host, mounted from `/proc/1/net/dev` ([guide](../docs/NETWORK.md)) |
+| `SPEEDTEST_SCHEDULE` | `on` | `off` turns off the automatic speed tests; tests asked by hand still run ([guide](../docs/SPEEDTEST.md)) |
 
 Supervision reports are read from fixed paths, never chosen in the interface:
 `WIREGUARD_DUMP_FILE`, `SMART_DUMP_FILE`, `APT_UPDATES_REPORT_FILE`,
@@ -192,8 +191,6 @@ services:
       DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:-}
     volumes:
       - dashmon-data:/app/data
-      # Network card: the host counters, read-only (Linux hosts).
-      - /proc/1/net/dev:/host/net/dev:ro
 
 volumes:
   dashmon-data:
@@ -229,8 +226,6 @@ services:
       DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:?Set DASHMON_SYNC_TOKEN}
     volumes:
       - dashmon-agent-data:/app/data
-      # Network card: the host counters, read-only (Linux hosts).
-      - /proc/1/net/dev:/host/net/dev:ro
       # Optional: mount the host filesystem read-only, then select /host
       # as the disk path in the agent settings on the primary.
       # - /:/host:ro
@@ -449,7 +444,7 @@ script refreshes it with cron and removes private key material before Dashmon
 reads it. See [the WireGuard guide](../docs/WIREGUARD.md) for installation,
 names and bind mounts. SMART and APT have their own local guides:
 [SMART](../docs/SMART.md), [APT updates](../docs/APT_UPDATES.md),
-[network throughput](../docs/NETWORK.md),
+[speed test](../docs/SPEEDTEST.md),
 [OpenCode statistics](../docs/OPENCODE.md) and
 [Claude Code statistics](../docs/CLAUDE_CODE.md).
 

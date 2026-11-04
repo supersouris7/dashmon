@@ -41,6 +41,7 @@ async function main() {
     spawn(process.execPath, ["server.js"], {
       cwd: root,
       env: {
+        SPEEDTEST_SCHEDULE: "off",
         ...process.env,
         PORT: String(appPort),
         DATA_DIR: dataDir,
@@ -71,6 +72,7 @@ async function main() {
     spawn(process.execPath, ["server.js"], {
       cwd: root,
       env: {
+        SPEEDTEST_SCHEDULE: "off",
         ...process.env,
         PORT: String(agentPort),
         DATA_DIR: agentData,
@@ -436,7 +438,10 @@ async function main() {
     await evaluate("document.querySelector('[data-panel=localHostPanel]').textContent.trim()"),
     "Local"
   );
-  for (const name of ["wireguard", "network", "smart", "aptUpdates", "opencode", "claude"]) {
+  await evaluate(
+    "(()=>{const s=document.querySelector('#localHostEditor [name=speedtestInterval]');s.value='15';s.dispatchEvent(new Event('change',{bubbles:true}));})()"
+  );
+  for (const name of ["wireguard", "speedtest", "smart", "aptUpdates", "opencode", "claude"]) {
     const changed = await evaluate(
       `(()=>{const input=document.querySelector('#localHostEditor [name=${name}]');const before=input.checked;input.click();return input.checked!==before;})()`
     );
@@ -460,13 +465,13 @@ async function main() {
   );
   assert.deepEqual(
     await evaluate(
-      "fetch('/api/config').then(r=>r.json()).then(c=>{const host=c.hosts.find(h=>h.monitoring?.enabled&&h.monitoring.type==='local');return {name:host.name,tab:host.tabIcon,wireguard:host.monitoring.wireguard.enabled,network:host.monitoring.network.enabled,smart:host.monitoring.smart,apt:host.monitoring.aptUpdates.enabled,opencode:host.monitoring.opencode.enabled,claude:host.monitoring.claude.enabled}})"
+      "fetch('/api/config').then(r=>r.json()).then(c=>{const host=c.hosts.find(h=>h.monitoring?.enabled&&h.monitoring.type==='local');return {name:host.name,tab:host.tabIcon,wireguard:host.monitoring.wireguard.enabled,speedtest:host.monitoring.speedtest,smart:host.monitoring.smart,apt:host.monitoring.aptUpdates.enabled,opencode:host.monitoring.opencode.enabled,claude:host.monitoring.claude.enabled}})"
     ),
     {
       name: "Hote principal",
       tab: "fa-solid fa-house",
       wireguard: false,
-      network: false,
+      speedtest: { enabled: false, interval: 15, server: "" },
       smart: { enabled: false, disks: ["/dev/sdb"] },
       apt: false,
       opencode: false,

@@ -71,7 +71,7 @@ export const VIEW_PREF_KEYS = Object.freeze([
   "supervisionAptExpanded",
   "supervisionOpencodeExpanded",
   "supervisionClaudeExpanded",
-  "supervisionNetworkExpanded",
+  "supervisionSpeedtestExpanded",
   "categoryColumns",
   "tileColumns",
   "supervisionColumns"
@@ -124,7 +124,7 @@ export function normalizeViewPrefs(cfg = {}) {
     supervisionAptExpanded: normalizeExpandedKeys(cfg.supervisionAptExpanded),
     supervisionOpencodeExpanded: normalizeExpandedKeys(cfg.supervisionOpencodeExpanded),
     supervisionClaudeExpanded: normalizeExpandedKeys(cfg.supervisionClaudeExpanded),
-    supervisionNetworkExpanded: normalizeExpandedKeys(cfg.supervisionNetworkExpanded),
+    supervisionSpeedtestExpanded: normalizeExpandedKeys(cfg.supervisionSpeedtestExpanded),
     categoryColumns: normalizeGridColumns(cfg.categoryColumns),
     tileColumns: normalizeGridColumns(cfg.tileColumns),
     supervisionColumns: normalizeGridColumns(cfg.supervisionColumns)
@@ -215,7 +215,7 @@ export function normalizeHostMonitoring(raw) {
     path: sanitizeText(raw.path, 200),
     wireguard: normalizeWireguardPrefs(raw.wireguard),
     smart: normalizeSmartPrefs(raw.smart),
-    network: normalizeNetworkPrefs(raw.network),
+    speedtest: normalizeSpeedtestPrefs(raw.speedtest),
     aptUpdates: normalizeAptUpdatesPrefs(raw.aptUpdates),
     opencode: normalizeAptUpdatesPrefs(raw.opencode),
     claude: normalizeAptUpdatesPrefs(raw.claude)
@@ -233,17 +233,28 @@ export function normalizeWireguardPrefs(raw) {
   };
 }
 
-// Network card: shown by default, with an optional filter on interface names
-// (empty: the physical and VPN interfaces).
-export function normalizeNetworkPrefs(raw) {
+// Speed test card: on by default, every hour (minutes; 0 = on request only),
+// against Cloudflare unless a LibreSpeed backend is given. Same rules as
+// lib/config/fields.js.
+export const SPEEDTEST_INTERVALS = Object.freeze([0, 15, 60, 360, 1440]);
+export const SPEEDTEST_DEFAULT_INTERVAL = 60;
+
+export function normalizeSpeedtestPrefs(raw) {
   const src = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
-  const interfaces = Array.isArray(src.interfaces)
-    ? [...new Set(src.interfaces.map(value => sanitizeText(value, 32)).filter(Boolean))].slice(
-        0,
-        32
-      )
-    : [];
-  return { enabled: src.enabled !== false, interfaces };
+  const interval = Number(src.interval);
+  return {
+    enabled: src.enabled !== false,
+    interval: SPEEDTEST_INTERVALS.includes(interval) ? interval : SPEEDTEST_DEFAULT_INTERVAL,
+    server: speedtestServer(src.server)
+  };
+}
+
+function speedtestServer(value) {
+  try {
+    const url = new URL(String(value || "").trim());
+    if (url.protocol === "http:" || url.protocol === "https:") return url.href.slice(0, 300);
+  } catch (_error) {}
+  return "";
 }
 
 // SMART preference: section shown by default, with an optional filter on

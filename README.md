@@ -25,9 +25,9 @@ you stop guessing whether *that* thing is working.
 - **Real status monitoring** — an up/down dot per URL, refreshed automatically;
   a non-critical service shows orange instead of red.
 - **Host supervision** — a dedicated page per machine: CPU, memory, disk and
-  temperature, network throughput per interface (direct and VPN), WireGuard
-  peers, SMART health of each disk, the last APT
-  updates, and your OpenCode and Claude Code usage (models, tokens, tools).
+  temperature, an hourly speed test of each host's link (download, upload,
+  latency), WireGuard peers, SMART health of each disk, the last APT updates,
+  and your OpenCode and Claude Code usage (models, tokens, tools).
   → [screenshots](#screenshots)
 - **Supervision agents** — deploy a lightweight agent on another host and view
   its local metrics from the main dashboard, without copying its configuration.
@@ -80,7 +80,6 @@ echo "$DASHMON_MASTER_KEY"
 docker run -d --name dashmon --read-only --cap-drop=ALL --security-opt=no-new-privileges:true \
   -p 127.0.0.1:8080:8080 \
   -v dashmon-data:/app/data \
-  -v /proc/1/net/dev:/host/net/dev:ro \
   -e DASHMON_PASSWORD -e DASHMON_MASTER_KEY \
   supersouris7/dashmon
 ```
@@ -168,7 +167,7 @@ PNG logos for many self-hosted apps.
 | **[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)** | Installation, environment and troubleshooting. |
 | **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** | Primary and agent setup, Portainer and Compose stacks. |
 | **[docs/HTTPS.md](docs/HTTPS.md)** | HTTPS with nginx: copy-paste configuration, Let's Encrypt or local certificate. |
-| **[docs/NETWORK.md](docs/NETWORK.md)** | Network throughput card: the one volume to mount. |
+| **[docs/SPEEDTEST.md](docs/SPEEDTEST.md)** | Speed test card: schedule, data used, own LibreSpeed server. |
 | **[docs/WIREGUARD.md](docs/WIREGUARD.md)** | WireGuard dump and cron script. |
 | **[docs/SMART.md](docs/SMART.md)** / **[docs/APT_UPDATES.md](docs/APT_UPDATES.md)** | SMART and APT supervision, local or on an agent. |
 | **[docs/OPENCODE.md](docs/OPENCODE.md)** / **[docs/CLAUDE_CODE.md](docs/CLAUDE_CODE.md)** | OpenCode and Claude Code statistics: models, tokens, tools. |

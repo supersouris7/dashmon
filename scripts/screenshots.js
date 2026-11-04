@@ -270,46 +270,40 @@ function fakeStatus(config) {
   return status;
 }
 
-// One hour of made-up throughput, every 10 s: a smooth daily load with a
-// few bursts (a backup, a film streamed over the VPN).
-function fakeNetwork() {
+// A week of made-up hourly speed tests on a 1 Gb/s fibre: a little slower in
+// the evening, one failed test.
+function fakeSpeedtest() {
   const now = Date.now();
-  const series = (base, wave, bursts) =>
-    Array.from({ length: 360 }, (_value, index) => {
-      const burst = bursts.some(([from, to]) => index >= from && index < to) ? 6 : 1;
-      return Math.round((base + wave * Math.sin(index / 17) ** 2) * burst);
-    });
-  const iface = (name, kind, rx, tx, totals) => ({
-    name,
-    kind,
-    rx: rx[rx.length - 1],
-    tx: tx[tx.length - 1],
-    peakRx: Math.max(...rx),
-    peakTx: Math.max(...tx),
-    totalRx: totals[0],
-    totalTx: totals[1],
-    history: rx.map((value, index) => [now - (359 - index) * 10000, value, tx[index]])
+  const hour = 3600000;
+  const history = Array.from({ length: 7 * 24 }, (_value, index) => {
+    const at = now - (7 * 24 - 1 - index) * hour - 20 * 60000;
+    if (index === 100) return [at, null, null, null];
+    const evening = Math.sin(((index % 24) / 24) * Math.PI) ** 4;
+    const noise = ((index * 37) % 11) / 11;
+    return [
+      at,
+      Math.round(118e6 - evening * 30e6 - noise * 6e6),
+      Math.round(73e6 - evening * 12e6 - noise * 4e6),
+      Math.round((7.5 + evening * 6 + noise * 2) * 10) / 10
+    ];
   });
+  const last = history[history.length - 1];
   return {
     available: true,
-    intervalMs: 10000,
-    detected: ["eth0", "wg0"],
-    interfaces: [
-      iface(
-        "eth0",
-        "physical",
-        series(900000, 1400000, [[120, 150]]),
-        series(150000, 300000, [[240, 262]]),
-        [412 * GIB, 96 * GIB]
-      ),
-      iface(
-        "wg0",
-        "vpn",
-        series(60000, 120000, [[300, 330]]),
-        series(400000, 900000, [[300, 330]]),
-        [18 * GIB, 61 * GIB]
-      )
-    ]
+    running: false,
+    interval: 60,
+    server: "cloudflare",
+    nextAt: last[0] + hour,
+    last: {
+      at: last[0],
+      ok: true,
+      server: "cloudflare",
+      download: last[1],
+      upload: last[2],
+      latencyMs: last[3],
+      jitterMs: 1.2
+    },
+    history
   };
 }
 
@@ -327,7 +321,7 @@ function fakeHostMetrics(real) {
       cpuModel: "Intel N100",
       cpuCores: 4,
       ramTotal: 16 * GIB,
-      network: fakeNetwork()
+      speedtest: fakeSpeedtest()
     }))
   };
 }
@@ -649,6 +643,7 @@ async function main() {
         cwd: ROOT,
         stdio: "ignore",
         env: {
+          SPEEDTEST_SCHEDULE: "off",
           PATH: process.env.PATH,
           PORT: String(port),
           DATA_DIR: data,
