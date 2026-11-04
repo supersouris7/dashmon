@@ -16,21 +16,21 @@ services:
       DATA_DIR: /app/data
       CONFIG_FILE: /app/data/config.json
       ICONS_DIR: /app/data/icons
-      # Protège les API en HTTP Basic Auth. Obligatoire : le conteneur écoute
-      # sur son réseau Docker, même si le port hôte reste limité à loopback.
-      DASHMON_PASSWORD: ${DASHMON_PASSWORD:?Définissez DASHMON_PASSWORD dans .env}
-      # 1 uniquement si nginx inverse-proxy le HTTPS derrière
+      # Login password of the dashboard. Mandatory: the container listens on its
+      # Docker network, even when the host port stays limited to loopback.
+      DASHMON_PASSWORD: ${DASHMON_PASSWORD:?Set DASHMON_PASSWORD in .env}
+      # 1 only if nginx terminates HTTPS in front of the container
       TRUST_PROXY: ${TRUST_PROXY:-0}
-      # 1 uniquement si vos hôtes surveillés ont des certificats auto-signés
+      # 1 only if your monitored hosts use self-signed certificates
       DASHBOARD_INSECURE_TLS: ${DASHBOARD_INSECURE_TLS:-0}
-      # Bundle PEM d'autorités privées monté en lecture seule (voir §7 de
-      # deploy/DEPLOYMENT.md) : /certs/ca-bundle.pem
+      # PEM bundle of private authorities, mounted read-only (see section 8 of
+      # deploy/DEPLOYMENT.md): /certs/ca-bundle.pem
       NODE_EXTRA_CA_CERTS: ${NODE_EXTRA_CA_CERTS:-}
-      # Chiffre les mots de passe des widgets (ex. Duplicati) dans config.json.
-      # Obligatoire : Dashmon refuse de démarrer sans clé. Conservez-la à part.
-      DASHMON_MASTER_KEY: ${DASHMON_MASTER_KEY:?Définissez DASHMON_MASTER_KEY dans .env (openssl rand -hex 32)}
+      # Encrypts the widget passwords (e.g. Duplicati) in config.json.
+      # Mandatory: Dashmon refuses to start without it. Keep it somewhere safe.
+      DASHMON_MASTER_KEY: ${DASHMON_MASTER_KEY:?Set DASHMON_MASTER_KEY in .env (openssl rand -hex 32)}
       DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:-}
-      # Supervision des hôtes et rapports locaux (voir deploy/DEPLOYMENT.md).
+      # Host supervision and local reports (see deploy/DEPLOYMENT.md).
       HOST_METRICS_INTERVAL: ${HOST_METRICS_INTERVAL:-60}
       WIREGUARD_DUMP_FILE: ${WIREGUARD_DUMP_FILE:-}
       SMART_DUMP_FILE: ${SMART_DUMP_FILE:-}
@@ -39,14 +39,14 @@ services:
       CLAUDE_REPORT_FILE: ${CLAUDE_REPORT_FILE:-}
     volumes:
       - dashmon-data:/app/data
-    # Résolution DNS des noms locaux (.lan, .home…) pour les pastilles d'état et
-    # les widgets (Uptime Kuma compris). Docker ne connaît pas votre DNS LAN :
-    # renseignez DASHMON_DNS dans votre pile (adresse IP, pas un nom). 127.0.0.11
-    # est le résolveur interne de Docker : la valeur par défaut équivaut à ne
-    # rien régler. Voir deploy/DEPLOYMENT.md §6.
+    # DNS resolution of local names (.lan, .home…) for the status dots and the
+    # widgets (Uptime Kuma included). Docker does not know your LAN DNS: set
+    # DASHMON_DNS in your stack (an IP address, not a name). 127.0.0.11 is
+    # Docker's internal resolver: the default value changes nothing. See
+    # section 7 of deploy/DEPLOYMENT.md.
     dns:
       - ${DASHMON_DNS:-127.0.0.11}
-    # Bundle d'autorités privées pour les certificats de vos services :
+    # Bundle of private authorities for the certificates of your services:
     #   - /opt/dashmon/ca-bundle.pem:/certs/ca-bundle.pem:ro
 
 volumes:

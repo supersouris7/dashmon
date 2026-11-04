@@ -6,6 +6,7 @@
     "start": "node server.js",
     "test": "node test/run.js",
     "test:browser": "node test/browser.test.js",
+    "screenshots": "node scripts/screenshots.js",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

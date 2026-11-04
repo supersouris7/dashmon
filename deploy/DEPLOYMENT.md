@@ -26,15 +26,19 @@ Or directly:
 docker run -d --name dashmon --read-only --cap-drop=ALL --security-opt=no-new-privileges:true \
   -p 127.0.0.1:8080:8080 \
   -v dashmon-data:/app/data \
-  -e DASHMON_PASSWORD \
+  -e DASHMON_PASSWORD -e DASHMON_MASTER_KEY \
   supersouris7/dashmon:latest
 ```
 
-Set `DASHMON_PASSWORD` in your shell environment before running the command.
+Set `DASHMON_PASSWORD` and `DASHMON_MASTER_KEY` in your shell environment before
+running the command (see [Widget secrets](#widget-secrets-duplicati)): the
+dashboard refuses to start without them.
 
 → http://localhost:8080
 
-On first start, `config.json` (sample services) is copied to `/app/data` if missing.
+On first start, an empty `config.json` is created in `/app/data`. The dashboard
+opens on a welcome screen that offers to add an application or to load an
+example with fictional applications.
 
 ### Docker widget (optional socket)
 
@@ -86,6 +90,16 @@ See `.env.example`. The most important:
 | `DASHBOARD_INSECURE_TLS` | empty | `1` if your monitored hosts use self-signed certificates |
 | `DASHMON_MASTER_KEY` | **required** (main dashboard) | AES-256-GCM master key encrypting widget secrets (e.g. Duplicati password) in `config.json`. Not needed by agents |
 | `DASHMON_SYNC_TOKEN` | empty | Shared secret authorizing the main dashboard to read agent metrics |
+| `DASHMON_MODE` | empty | `agent` runs a supervision agent instead of the dashboard (requires `DASHMON_SYNC_TOKEN`) |
+| `HOST_METRICS_INTERVAL` | `60` | Seconds between two reads of the host resources (minimum 5, maximum 3600) |
+| `DOCKER_SOCKET` | `/var/run/docker.sock` | Socket read by the Docker widget in local mode |
+| `DOCKER_API_VERSION` | `v1.41` | Docker Engine API version used by the Docker widget |
+
+Supervision reports are read from fixed paths, never chosen in the interface:
+`WIREGUARD_DUMP_FILE`, `SMART_DUMP_FILE`, `APT_UPDATES_REPORT_FILE`,
+`OPENCODE_REPORT_FILE` and `CLAUDE_REPORT_FILE` default to `wireguard.dump`,
+`smart.json`, `apt-updates.json`, `opencode.json` and `claude.json` in
+`/app/data`. Their guides are listed in [Host supervision](#9-host-supervision).
 
 ### Widget secrets (Duplicati…)
 
@@ -120,7 +134,21 @@ Behaviour:
 
 ## 3. Data
 
-## Portainer stacks
+Everything Dashmon keeps lives in the `/app/data` volume (`dashmon-data` in the
+examples):
+
+| Path | Content |
+| --- | --- |
+| `config.json` | Dashboards, applications, categories, hosts, web links, theme, language, click counters; widget passwords encrypted |
+| `icons/` | PNG images uploaded in **Settings → Dashboard → Images** |
+| `themes/` | Imported custom themes |
+| `*.dump`, `*.json` | Supervision reports written by the cron scripts |
+
+Back up this volume, and keep `DASHMON_MASTER_KEY` with the backup: without it
+the widget passwords cannot be decrypted. **Settings → Backup → Import /
+Export** exports the configuration alone, without any password.
+
+## 4. Portainer stacks
 
 These examples can be pasted into **Stacks → Add stack → Web editor** in
 Portainer. Add the named values under **Environment variables** in the stack
@@ -253,7 +281,7 @@ Backup: `docker cp dashmon:/app/data ./backup-data` (container stopped).
 > its owner once:
 > `docker run --rm -v dashmon-data:/d alpine chown -R 1000:1000 /d`
 
-## 4. nginx (optional)
+## 5. nginx (optional)
 
 A full example: `deploy/nginx.example.conf`. If you use it, set `TRUST_PROXY=1`
 and enable `client_max_body_size` in nginx for image imports.
@@ -262,12 +290,12 @@ For a step-by-step, copy-paste guide (host nginx, Let's Encrypt, local
 certificates, Docker variant and troubleshooting), see
 [docs/HTTPS.md](../docs/HTTPS.md).
 
-## 5. Verification
+## 6. Verification
 
 - `docker inspect --format '{{.State.Health.Status}}' dashmon` → `healthy`
 - `curl http://localhost:8080/healthz` → `{"ok":true}`
 
-## 6. Monitoring LAN domains (.lan, .local…)
+## 7. Monitoring LAN domains (.lan, .local…)
 
 Status checks run *inside* the container. Docker's embedded DNS only forwards to
 the resolvers configured on the host, so names that exist only on your LAN DNS
@@ -295,7 +323,7 @@ DASHMON_DNS=192.0.2.53
    `127.0.0.11` is Docker's embedded resolver, so leaving `DASHMON_DNS` empty
    behaves exactly as before.
 
-3. Restart (`docker compose up -d`) and check the status pills turn green.
+3. Restart (`docker compose up -d`) and check the status dots turn green.
 
 > **This setting lives in the container definition, not in the image.** Anything
 > that recreates the container — `docker compose up`, Portainer's *Pull and
@@ -303,7 +331,7 @@ DASHMON_DNS=192.0.2.53
 > it is still in your stack definition. That is exactly why it is driven by an
 > environment variable here: environment values are part of the stack, so they
 > survive a redeploy, while a `dns:` entry edited once on the running container
-> does not. If the pills that were green turn red after a redeploy — Uptime Kuma
+> does not. If the dots that were green turn red after a redeploy — Uptime Kuma
 > going dark is the usual first symptom — the resolver is the first thing to
 > check:
 >
@@ -325,7 +353,7 @@ Without a LAN DNS that knows the names, add explicit `extra_hosts` entries inste
 Checks connect to your LAN directly (over the bridge network), so make sure the
 monitored machines answer on their LAN IP — reverse proxies included.
 
-## 7. Private CA certificates
+## 8. Private CA certificates
 
 Status checks run inside the container, so Node must trust the authority that
 signed the certificates of your monitored services. When it does not, the check
@@ -393,7 +421,7 @@ in its reverse proxy configuration, or add the intermediate to `ca-bundle.pem`.
 certificates. It disables verification for **every** outgoing request, including
 public sites, so prefer a bundle.
 
-## 8. Host supervision
+## 9. Host supervision
 
 The *Supervision* page always shows the local host's CPU, memory, disk and
 temperature as observed by the container. Configure the disk path in the
@@ -431,6 +459,6 @@ are normal when a path does not exist or `/sys` is not exposed.
 
 ## Notes
 
-- No embedded secrets: the bundled `config.json` only contains public examples. Widget passwords are
+- No embedded secrets: the bundled `config.json` is empty. Widget passwords are
   AES-256-GCM encrypted with `DASHMON_MASTER_KEY` and never sent to the browser.
 - Logs: `docker logs dashmon`.

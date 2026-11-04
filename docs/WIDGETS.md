@@ -17,7 +17,7 @@ It applies immediately, no restart.
 | [Lichess](#lichess) | ELO rating and one-month evolution | username, variant |
 | [Uptime Kuma](#uptime-kuma) | Public status-page monitors | URL, one or two slugs |
 | [Ping](#ping) | TCP reachability | host, port (optional) |
-| [web](#web-the-default-one) | Up / down dot for a plain link | *nothing* |
+| [web](#web--the-default-one) | Up / down dot for a plain link | *nothing* |
 
 GitHub, Docker Hub and YouTube are **not** tile widgets: they power the counters
 of the **web-links banner**. See [Web-link counters](#web-link-counters).

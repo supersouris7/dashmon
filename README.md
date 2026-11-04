@@ -3,6 +3,8 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Platforms](https://img.shields.io/badge/docker-amd64%20%7C%20arm64-4f8f89.svg)
 
+![Dashmon: the dashboard with live widgets, host supervision and the phone view](docs/images/hero.png)
+
 **Your whole homelab on a single screen.** Dashmon lists every service you run,
 shows at a glance whether it is up, and — for the tools you actually care about —
 puts a **live metric right on the tile**: your running containers, your last
@@ -10,8 +12,6 @@ backup, your blocked queries, your current rating.
 
 No account, no cloud, no database. One small Node.js container, one page, and
 you stop guessing whether *that* thing is working.
-
-![Dashmon with the example data, dark theme](docs/images/dashboard-dark.png)
 
 - **Several dashboards, one page** — split your lab across named dashboards, each
   with its own icon; group by category or by host, search, three view modes
@@ -21,11 +21,12 @@ you stop guessing whether *that* thing is working.
   → [widget catalog](docs/WIDGETS.md)
 - **Web-link counters** — show GitHub stars, Docker Hub pulls or YouTube
   subscribers right in the web-links banner, e.g. *GitHub (109)*.
-- **Real status monitoring** — an up/down pill per URL, refreshed automatically.
-- **Host supervision** — a dedicated page with CPU, memory, disk and temperature
-  from Dashmon itself or its supervision agents. WireGuard peers can be read from
-  a local `wg show all dump` file; the **Settings → Supervision** section
-  configures hosts and peer display.
+- **Real status monitoring** — an up/down dot per URL, refreshed automatically;
+  a non-critical service shows orange instead of red.
+- **Host supervision** — a dedicated page per machine: CPU, memory, disk and
+  temperature, WireGuard peers, SMART health of each disk, the last APT
+  updates, and your OpenCode and Claude Code usage (models, tokens, tools).
+  → [screenshots](#screenshots)
 - **Supervision agents** — deploy a lightweight agent on another host and view
   its local metrics from the main dashboard, without copying its configuration.
 - **Themes** — five built in (dark, light, polar night, Matrix, high contrast),
@@ -33,11 +34,42 @@ you stop guessing whether *that* thing is working.
 - **Two languages** — English and French, throughout the interface. A new
   install follows the browser language until you pick one.
 - **Learns your habits** — services you open often float to the top.
+- **A special tile** — a quote of the day, placed in the category of your choice.
 
 Node.js / Express, a single runtime dependency. Runs anywhere Docker
 runs, on **amd64 and arm64**.
 
 ---
+
+## Screenshots
+
+Every picture below comes from the built-in example, with made-up values: no
+real homelab was harmed. They are regenerated with `npm run screenshots`.
+
+**Live widgets on every tile** — containers, backups, blocked queries, downloads,
+notifications, status pages:
+
+![Dashboard with a widget on each tile](docs/images/dashboard.png)
+
+**One page per machine** — resources, VPN peers, disk health, system updates and
+AI coding usage, side by side:
+
+![Supervision page of a host](docs/images/supervision.png)
+
+**Five themes built in**, and your own on top:
+
+![Light, Polar night, Matrix and High contrast themes](docs/images/themes.png)
+
+<table>
+  <tr>
+    <td width="66%"><strong>Everything is set in the interface</strong> — no YAML
+    to write: applications, categories, hosts, widgets, themes.<br><br>
+    <img src="docs/images/settings.png" alt="Settings, Applications panel"></td>
+    <td width="34%"><strong>At home on a phone</strong> — the same dashboard,
+    one column.<br><br>
+    <img src="docs/images/mobile.png" alt="Dashboard on a phone"></td>
+  </tr>
+</table>
 
 ## Widgets
 
@@ -112,8 +144,6 @@ Backup → Import / Export**.
 5. Pick a theme under **Settings → Appearance → Theme**. The language follows the
    browser; to fix it, use **Settings → Appearance → Preferences**.
 
-![Settings, Applications panel](docs/images/settings.png)
-
 Config, icons and themes live in the `dashmon-data` volume (`/app/data`) — back
 that volume up, and keep `DASHMON_MASTER_KEY` somewhere safe: widget passwords
 are encrypted with it and never sent back to the browser.
@@ -150,7 +180,7 @@ PNG logos for many self-hosted apps.
 | --- | --- |
 | **[docs/WIDGETS.md](docs/WIDGETS.md)** | Widgets and web-link counters. |
 | **[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)** | Installation, environment and troubleshooting. |
-| **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** | Principal and agent setup, Portainer and Compose stacks. |
+| **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** | Primary and agent setup, Portainer and Compose stacks. |
 | **[docs/HTTPS.md](docs/HTTPS.md)** | HTTPS with nginx: copy-paste configuration, Let's Encrypt or local certificate. |
 | **[docs/WIREGUARD.md](docs/WIREGUARD.md)** | WireGuard dump and cron script. |
 | **[docs/SMART.md](docs/SMART.md)** / **[docs/APT_UPDATES.md](docs/APT_UPDATES.md)** | SMART and APT supervision, local or on an agent. |
@@ -158,11 +188,11 @@ PNG logos for many self-hosted apps.
 | **[CUSTOMIZATION.md](CUSTOMIZATION.md)** | Themes and icons. |
 | **[docs/EXTENDING.md](docs/EXTENDING.md)** | Widget development. |
 | **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | Code organization, for contributors. |
-| **[deploy/MAINTAINER.md](deploy/MAINTAINER.md)** | Image build and publication. |
+| **[deploy/MAINTAINER.md](deploy/MAINTAINER.md)** | Image build and publication, screenshots. |
 
 > Monitoring URLs that use LAN names such as `portainer.exemple.lan`? Docker's resolver does
 > not know your LAN DNS out of the box. Give the container your resolver or hosts —
-> see the [DNS section](deploy/DEPLOYMENT.md#6-monitoring-lan-domains-lan-local).
+> see the [DNS section](deploy/DEPLOYMENT.md#7-monitoring-lan-domains-lan-local).
 
 ## Requests, bugs, ideas
 

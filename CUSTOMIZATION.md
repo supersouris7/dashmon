@@ -97,12 +97,12 @@ In the editor, click the icon of the item to open the picker and choose one.
 
 ### Images (services)
 
-A service card renders an image, not a font icon: its `icon` is a path or URL.
-
-- Imported PNG from your library → `icons/<filename>` (relative, served by the
-  app), or
-- any direct image URL. [Dashboard Icons](https://dashboardicons.com/) provides
-  plain PNG logos for many self-hosted apps.
+A service card renders an image, not a font icon: its `icon` is a PNG imported
+into your library, referenced as `icons/<filename>` and served by the app. An
+external image URL is not accepted: the browser never loads a picture from
+another site. [Dashboard Icons](https://dashboardicons.com/) provides plain PNG
+logos for many self-hosted apps, ready to import. Without an image, the card
+shows a generic icon.
 
 **Importing a PNG:**
 
@@ -117,7 +117,7 @@ then *Delete selection*.
 
 ### Example
 
-From the built-in sample configuration:
+A service with an imported image:
 
 ```json
 { "name": "Portainer", "url": "https://portainer.exemple.lan", "icon": "icons/portainer.png", "monitor": true }

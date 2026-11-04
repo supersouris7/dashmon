@@ -28,6 +28,8 @@ in `lib/` starts with a comment describing its role.
 ```text
 server.js            application assembly
 agent-server.js      agent mode entry point
+scripts/
+  screenshots.js     regenerates docs/images from fictional data
 lib/
   config/            environment variables (settings.js), config.json
                      (store.js, repository.js), validation (normalize.js,

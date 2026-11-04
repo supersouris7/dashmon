@@ -22,8 +22,26 @@ Required repository secrets:
 
 ```bash
 docker build -t supersouris7/dashmon:unstable .
-docker run --rm -p 8080:8080 supersouris7/dashmon:unstable
+docker run --rm -p 127.0.0.1:8080:8080 \
+  -e DASHMON_PASSWORD=test -e DASHMON_MASTER_KEY="$(openssl rand -hex 32)" \
+  supersouris7/dashmon:unstable
 ```
+
+## Screenshots
+
+The pictures of the README and of `docs/images/` are regenerated from fictional
+data, never from a real installation:
+
+```bash
+CHROMIUM_BIN=chromium npm run screenshots
+```
+
+[`scripts/screenshots.js`](../scripts/screenshots.js) starts a throwaway Dashmon
+on a temporary folder with the built-in example, fictional supervision reports
+and a widget on each tile. The browser answers the status and host metrics
+requests itself with made-up values, so nothing of the machine running the
+script appears. Check the pictures before committing them. The script needs
+Chromium and is never run in CI.
 
 ## Manual push (emergency only)
 

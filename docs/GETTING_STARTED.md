@@ -209,7 +209,7 @@ installed on the hosts.
 | Port already in use | `sudo ss -ltnp`; change the left-hand port in `ports`. |
 | Agent unreachable | Check its port, the firewall and the address from the primary. |
 | Token rejected | Check that `DASHMON_SYNC_TOKEN` is identical on both stacks, then redeploy. |
-| Certificate or DNS error | See [DNS and certificates](../deploy/DEPLOYMENT.md#6-monitoring-lan-domains-lan-local). |
+| Certificate or DNS error | See [DNS and certificates](../deploy/DEPLOYMENT.md#7-monitoring-lan-domains-lan-local). |
 | No SMART, APT or WireGuard data | Check the script and the container name on the host concerned. |
 | Mounted folder not writable | The container uses UID `1000`; check the folder owner and permissions. |
 

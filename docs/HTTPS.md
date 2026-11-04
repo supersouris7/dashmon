@@ -230,7 +230,7 @@ agent is also served over HTTPS:
   `https://agent.exemple.lan:8443`; without a scheme, Dashmon adds `http://`;
 - the agent certificate must be trusted by the **primary**. For an internal
   authority, mount its certificate and set `NODE_EXTRA_CA_CERTS`
-  (see [Private CA certificates](../deploy/DEPLOYMENT.md#7-private-ca-certificates));
+  (see [Private CA certificates](../deploy/DEPLOYMENT.md#8-private-ca-certificates));
 - avoid `DASHBOARD_INSECURE_TLS=1`, which disables verification for all
   outgoing traffic from the primary.
 
