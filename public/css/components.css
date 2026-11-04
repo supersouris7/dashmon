@@ -1554,6 +1554,104 @@ body[data-page="supervision"] #collapseAllBtn {
     monospace;
 }
 
+/* Network card (supervision/network-card.js): one line per interface with
+   its current rates; the peak, the volume and the graph of the hour open
+   with the card. */
+.supervision-card-network {
+  cursor: pointer;
+}
+.supervision-card-network:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.supervision-card-network.is-healthy .supervision-health-state i {
+  color: var(--success);
+}
+.supervision-card-network.expanded > .supervision-head .supervision-smart-chevron {
+  transform: rotate(180deg);
+}
+.network-interface + .network-interface {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.network-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+}
+.network-title > strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.network-kind {
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.network-rates {
+  display: inline-flex;
+  gap: 10px;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.network-rx {
+  color: var(--accent);
+}
+.network-tx {
+  color: var(--success);
+}
+.network-details {
+  display: none;
+}
+.supervision-card-network.expanded .network-details {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+.network-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.network-graph {
+  width: 100%;
+  height: 60px;
+  margin-top: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.network-graph polyline {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.network-line-rx {
+  stroke: var(--accent);
+}
+.network-line-tx {
+  stroke: var(--success);
+}
+.network-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.network-hint code {
+  display: block;
+  margin-top: 6px;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
 /* Coding agents (OpenCode, Claude Code): today's tokens and the last 30 days stay visible; the details
    (period, models, tokens, tools, activity) open with the card, which then
    takes two columns on a wide screen to keep the model lines readable. */

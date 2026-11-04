@@ -270,6 +270,49 @@ function fakeStatus(config) {
   return status;
 }
 
+// One hour of made-up throughput, every 10 s: a smooth daily load with a
+// few bursts (a backup, a film streamed over the VPN).
+function fakeNetwork() {
+  const now = Date.now();
+  const series = (base, wave, bursts) =>
+    Array.from({ length: 360 }, (_value, index) => {
+      const burst = bursts.some(([from, to]) => index >= from && index < to) ? 6 : 1;
+      return Math.round((base + wave * Math.sin(index / 17) ** 2) * burst);
+    });
+  const iface = (name, kind, rx, tx, totals) => ({
+    name,
+    kind,
+    rx: rx[rx.length - 1],
+    tx: tx[tx.length - 1],
+    peakRx: Math.max(...rx),
+    peakTx: Math.max(...tx),
+    totalRx: totals[0],
+    totalTx: totals[1],
+    history: rx.map((value, index) => [now - (359 - index) * 10000, value, tx[index]])
+  });
+  return {
+    available: true,
+    intervalMs: 10000,
+    detected: ["eth0", "wg0"],
+    interfaces: [
+      iface(
+        "eth0",
+        "physical",
+        series(900000, 1400000, [[120, 150]]),
+        series(150000, 300000, [[240, 262]]),
+        [412 * GIB, 96 * GIB]
+      ),
+      iface(
+        "wg0",
+        "vpn",
+        series(60000, 120000, [[300, 330]]),
+        series(400000, 900000, [[300, 330]]),
+        [18 * GIB, 61 * GIB]
+      )
+    ]
+  };
+}
+
 function fakeHostMetrics(real) {
   return {
     ...real,
@@ -283,7 +326,8 @@ function fakeHostMetrics(real) {
       os: "Debian GNU/Linux 13 (trixie)",
       cpuModel: "Intel N100",
       cpuCores: 4,
-      ramTotal: 16 * GIB
+      ramTotal: 16 * GIB,
+      network: fakeNetwork()
     }))
   };
 }

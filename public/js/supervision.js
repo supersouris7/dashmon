@@ -18,6 +18,7 @@ import { visibleSmartDisks, smartCard } from "./supervision/smart-card.js";
 import { aptUpdatesCard } from "./supervision/apt-card.js";
 import { USAGE_SOURCES, usageCard } from "./supervision/usage-card.js";
 import { layoutMasonry } from "./supervision/masonry.js";
+import { networkCard } from "./supervision/network-card.js";
 
 // Interval injected by the server (HOST_METRICS_INTERVAL). HTML served
 // without substitution (tests, local file) falls back to 60 s.
@@ -128,6 +129,12 @@ export function renderSupervision() {
     const metrics = byId.get(host.id);
     const interfaces = visibleInterfaces(host, metrics);
     if (hasWireguardDump(host, metrics)) wgCards.push(wireguardCard(host, metrics, interfaces));
+  });
+  // Network right after the host and its VPN: both describe its links.
+  monitored.forEach(host => {
+    const metrics = byId.get(host.id);
+    if (metrics?.ok && metrics.network && host.monitoring?.network?.enabled !== false)
+      grid.appendChild(networkCard(host, metrics));
   });
   wgCards.forEach(card => grid.appendChild(card));
   monitored.forEach(host => {

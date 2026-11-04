@@ -82,6 +82,8 @@ services:
       DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:-}
     volumes:
       - dashmon-data:/app/data
+      # Network card: the host counters, read-only (Linux hosts).
+      - /proc/1/net/dev:/host/net/dev:ro
 
 volumes:
   dashmon-data:
@@ -128,6 +130,8 @@ services:
       DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:?Set DASHMON_SYNC_TOKEN}
     volumes:
       - dashmon-agent-data:/app/data
+      # Network card: the host counters, read-only (Linux hosts).
+      - /proc/1/net/dev:/host/net/dev:ro
       # Optional: host disk, read-only.
       # - /:/host:ro
 

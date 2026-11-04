@@ -96,6 +96,23 @@ export function bytesText(value) {
   return rounded.toString().replace(".", fr ? "," : ".") + " " + units[index];
 }
 
+// Network rate, received in bytes per second, shown in bits per second with
+// decimal units, as link speeds and ISP offers are written.
+export function rateText(bytesPerSecond) {
+  if (isMissing(bytesPerSecond)) return "—";
+  const n = Number(bytesPerSecond) * 8;
+  if (!Number.isFinite(n) || n < 0) return "—";
+  const units = ["b/s", "kb/s", "Mb/s", "Gb/s"];
+  let shown = n,
+    index = 0;
+  while (shown >= 1000 && index < units.length - 1) {
+    shown /= 1000;
+    index++;
+  }
+  const rounded = shown >= 100 || index === 0 ? Math.round(shown) : Math.round(shown * 10) / 10;
+  return rounded.toString().replace(".", state.language === "fr" ? "," : ".") + " " + units[index];
+}
+
 export function smartNumberText(value) {
   const n = Number(value);
   return Number.isFinite(n) && n >= 0

@@ -9,7 +9,7 @@ import { sanitizeTileColor } from "../config/sanitize.js";
 
 export const EXPANDABLE_CARDS =
   ".supervision-card-smart,.supervision-card-host.has-details,.supervision-card-apt.has-details," +
-  ".supervision-card-usage";
+  ".supervision-card-usage,.supervision-card-network";
 
 // A card is identified by instance and host: the same machine seen from the
 // main dashboard and from an agent keeps two separate states.
@@ -40,7 +40,8 @@ export function setAllSmartDetails(expanded) {
     supervisionHostExpanded: [],
     supervisionAptExpanded: [],
     supervisionOpencodeExpanded: [],
-    supervisionClaudeExpanded: []
+    supervisionClaudeExpanded: [],
+    supervisionNetworkExpanded: []
   };
   supervisionList.querySelectorAll(EXPANDABLE_CARDS).forEach(card => {
     card.classList.toggle("expanded", expanded);
@@ -50,6 +51,7 @@ export function setAllSmartDetails(expanded) {
     if (card.dataset.aptKey) fields.supervisionAptExpanded.push(card.dataset.aptKey);
     if (card.dataset.opencodeKey) fields.supervisionOpencodeExpanded.push(card.dataset.opencodeKey);
     if (card.dataset.claudeKey) fields.supervisionClaudeExpanded.push(card.dataset.claudeKey);
+    if (card.dataset.networkKey) fields.supervisionNetworkExpanded.push(card.dataset.networkKey);
   });
   for (const [field, keys] of Object.entries(fields)) {
     const merged = new Set(Array.isArray(state[field]) ? state[field] : []);
@@ -64,7 +66,8 @@ export function setAllSmartDetails(expanded) {
     supervisionHostExpanded: state.supervisionHostExpanded,
     supervisionAptExpanded: state.supervisionAptExpanded,
     supervisionOpencodeExpanded: state.supervisionOpencodeExpanded,
-    supervisionClaudeExpanded: state.supervisionClaudeExpanded
+    supervisionClaudeExpanded: state.supervisionClaudeExpanded,
+    supervisionNetworkExpanded: state.supervisionNetworkExpanded
   });
 }
 

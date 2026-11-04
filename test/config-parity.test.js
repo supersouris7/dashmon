@@ -173,7 +173,17 @@ async function main() {
     assert.equal(hosts[0].monitoring, null);
     assert.deepStrictEqual(
       Object.keys(hosts[1].monitoring).sort(),
-      ["aptUpdates", "claude", "enabled", "opencode", "path", "smart", "type", "wireguard"].sort()
+      [
+        "aptUpdates",
+        "claude",
+        "enabled",
+        "network",
+        "opencode",
+        "path",
+        "smart",
+        "type",
+        "wireguard"
+      ].sort()
     );
   });
   if (failures) process.exit(1);

@@ -35,7 +35,12 @@ function input(box, key, value, change, placeholder) {
   control.className = "edit-input";
   control.name = key;
   control.value = value || "";
-  control.maxLength = key === "agentHostName" ? 100 : key === "smartDisks" ? 2000 : 200;
+  control.maxLength =
+    key === "agentHostName"
+      ? 100
+      : key === "smartDisks" || key === "networkInterfaces"
+        ? 2000
+        : 200;
   if (placeholder) control.placeholder = t(placeholder);
   control.addEventListener("input", () => change(control.value));
   field(box, key, control);
@@ -101,70 +106,106 @@ function wireguardSection(form, monitoring) {
   help(wg, "wireguardHelpIntro", "WIREGUARD.md");
 }
 
-// Disk filter: typed by hand, or picked among the disks the host reported.
-// No disk selected means every disk is shown.
-function smartSection(form, monitoring, metrics) {
-  const smart = section(form, "tabSmart", "fa-solid fa-database");
-  toggle(smart, monitoring, "smart", "smartShowDisks");
+// List filter (SMART disks, network interfaces): typed by hand, or picked
+// among the names the host reported. An empty list means the default set.
+function filterSection(form, monitoring, spec) {
+  const box = section(form, spec.title, spec.icon);
+  toggle(box, monitoring, spec.key, spec.show);
   const choices = document.createElement("div");
   choices.className = "smart-disk-choices";
-  const detected = [
-    ...new Set(
-      (Array.isArray(metrics?.smart) ? metrics.smart : []).map(item => item?.device).filter(Boolean)
-    )
-  ];
-  const disks = input(
-    smart,
-    "smartDisks",
-    (monitoring.smart?.disks || []).join(", "),
+  const detected = [...new Set(spec.detected.filter(Boolean))];
+  const selection = () => monitoring[spec.key]?.[spec.field] || [];
+  const update = list => {
+    monitoring[spec.key] = { ...monitoring[spec.key], [spec.field]: list.slice(0, spec.max) };
+  };
+  const text = input(
+    box,
+    spec.input,
+    selection().join(", "),
     value => {
-      monitoring.smart = {
-        ...monitoring.smart,
-        disks: [
-          ...new Set(
-            value
-              .split(/[,\n]/)
-              .map(item => item.trim())
-              .filter(Boolean)
-          )
-        ].slice(0, 20)
-      };
+      update([
+        ...new Set(
+          value
+            .split(/[,\n]/)
+            .map(item => item.trim())
+            .filter(Boolean)
+        )
+      ]);
       renderChoices();
     },
-    "phSmartDisks"
+    spec.placeholder
   );
   function renderChoices() {
     choices.replaceChildren();
     if (!detected.length) return;
     const label = document.createElement("span");
-    label.textContent = t("smartDetectedDisks");
+    label.textContent = t(spec.detectedLabel);
     choices.appendChild(label);
-    for (const device of detected) {
-      const selectedDisks = monitoring.smart?.disks || [];
-      const selected = !selectedDisks.length || selectedDisks.includes(device);
+    for (const name of detected) {
+      const current = selection();
+      const selected = spec.isDefault
+        ? current.length
+          ? current.includes(name)
+          : spec.isDefault(name)
+        : !current.length || current.includes(name);
       const button = document.createElement("button");
       button.type = "button";
       button.className = "smart-disk-choice" + (selected ? " active" : "");
       button.setAttribute("aria-pressed", String(selected));
-      button.textContent = device;
+      button.textContent = name;
       button.addEventListener("click", () => {
-        monitoring.smart = {
-          ...monitoring.smart,
-          disks: !selectedDisks.length
-            ? detected.filter(value => value !== device)
-            : selected
-              ? selectedDisks.filter(value => value !== device)
-              : [...selectedDisks, device].slice(0, 20)
-        };
-        disks.value = monitoring.smart.disks.join(", ");
+        // From the default set, the first click turns it into an explicit list.
+        const base = current.length
+          ? current
+          : detected.filter(value => (spec.isDefault ? spec.isDefault(value) : true));
+        update(selected ? base.filter(value => value !== name) : [...base, name]);
+        text.value = selection().join(", ");
         renderChoices();
       });
       choices.appendChild(button);
     }
   }
   renderChoices();
-  smart.appendChild(choices);
-  help(smart, "smartHelpIntro", "SMART.md");
+  box.appendChild(choices);
+  help(box, spec.helpKey, spec.file);
+}
+
+function smartSection(form, monitoring, metrics) {
+  filterSection(form, monitoring, {
+    title: "tabSmart",
+    icon: "fa-solid fa-database",
+    key: "smart",
+    field: "disks",
+    show: "smartShowDisks",
+    input: "smartDisks",
+    placeholder: "phSmartDisks",
+    detectedLabel: "smartDetectedDisks",
+    detected: (Array.isArray(metrics?.smart) ? metrics.smart : []).map(item => item?.device),
+    max: 20,
+    helpKey: "smartHelpIntro",
+    file: "SMART.md"
+  });
+}
+
+// Physical and VPN interfaces are shown by default, the others on request.
+const DEFAULT_INTERFACE = /^(eth|en|wl|ww|usb|em\d|p\d|wg|tun|tailscale|zt|nordlynx|proton)/;
+
+function networkSection(form, monitoring, metrics) {
+  filterSection(form, monitoring, {
+    title: "tabNetwork",
+    icon: "fa-solid fa-network-wired",
+    key: "network",
+    field: "interfaces",
+    show: "networkShow",
+    input: "networkInterfaces",
+    placeholder: "phNetworkInterfaces",
+    detectedLabel: "networkDetected",
+    detected: Array.isArray(metrics?.network?.detected) ? metrics.network.detected : [],
+    isDefault: name => DEFAULT_INTERFACE.test(name),
+    max: 32,
+    helpKey: "networkHelp",
+    file: "NETWORK.md"
+  });
 }
 
 // Reports with only an on/off switch and a setup guide.
@@ -196,6 +237,7 @@ export function renderHostSettings(container, { config, metrics, onRename = () =
   form.appendChild(hint("hostSettingsSaveHint"));
   generalSection(form, config, onRename);
   wireguardSection(form, monitoring);
+  networkSection(form, monitoring, metrics);
   smartSection(form, monitoring, metrics);
   for (const [title, icon, key, label, helpKey, file] of REPORT_SECTIONS) {
     const box = section(form, title, icon);

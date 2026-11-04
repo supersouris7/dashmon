@@ -71,6 +71,7 @@ export const VIEW_PREF_KEYS = Object.freeze([
   "supervisionAptExpanded",
   "supervisionOpencodeExpanded",
   "supervisionClaudeExpanded",
+  "supervisionNetworkExpanded",
   "categoryColumns",
   "tileColumns",
   "supervisionColumns"
@@ -123,6 +124,7 @@ export function normalizeViewPrefs(cfg = {}) {
     supervisionAptExpanded: normalizeExpandedKeys(cfg.supervisionAptExpanded),
     supervisionOpencodeExpanded: normalizeExpandedKeys(cfg.supervisionOpencodeExpanded),
     supervisionClaudeExpanded: normalizeExpandedKeys(cfg.supervisionClaudeExpanded),
+    supervisionNetworkExpanded: normalizeExpandedKeys(cfg.supervisionNetworkExpanded),
     categoryColumns: normalizeGridColumns(cfg.categoryColumns),
     tileColumns: normalizeGridColumns(cfg.tileColumns),
     supervisionColumns: normalizeGridColumns(cfg.supervisionColumns)
@@ -213,6 +215,7 @@ export function normalizeHostMonitoring(raw) {
     path: sanitizeText(raw.path, 200),
     wireguard: normalizeWireguardPrefs(raw.wireguard),
     smart: normalizeSmartPrefs(raw.smart),
+    network: normalizeNetworkPrefs(raw.network),
     aptUpdates: normalizeAptUpdatesPrefs(raw.aptUpdates),
     opencode: normalizeAptUpdatesPrefs(raw.opencode),
     claude: normalizeAptUpdatesPrefs(raw.claude)
@@ -228,6 +231,19 @@ export function normalizeWireguardPrefs(raw) {
     enabled: src.enabled !== false,
     interface: sanitizeText(src.interface, 50)
   };
+}
+
+// Network card: shown by default, with an optional filter on interface names
+// (empty: the physical and VPN interfaces).
+export function normalizeNetworkPrefs(raw) {
+  const src = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  const interfaces = Array.isArray(src.interfaces)
+    ? [...new Set(src.interfaces.map(value => sanitizeText(value, 32)).filter(Boolean))].slice(
+        0,
+        32
+      )
+    : [];
+  return { enabled: src.enabled !== false, interfaces };
 }
 
 // SMART preference: section shown by default, with an optional filter on

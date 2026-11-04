@@ -8,6 +8,7 @@ export function blankMonitoring() {
     path: "",
     wireguard: { enabled: true, interface: "" },
     smart: { enabled: true, disks: [] },
+    network: { enabled: true, interfaces: [] },
     aptUpdates: { enabled: true },
     opencode: { enabled: true },
     claude: { enabled: true }
@@ -44,6 +45,22 @@ export function serializeHostMonitoring(m) {
     const prefs = { enabled: smart.enabled !== false, disks };
     if (!prefs.enabled || prefs.disks.length) out.smart = prefs;
   }
+  const net = m.network && typeof m.network === "object" ? m.network : null;
+  if (net) {
+    const interfaces = [
+      ...new Set(
+        (Array.isArray(net.interfaces) ? net.interfaces : [])
+          .map(value =>
+            String(value || "")
+              .trim()
+              .slice(0, 32)
+          )
+          .filter(Boolean)
+      )
+    ].slice(0, 32);
+    const prefs = { enabled: net.enabled !== false, interfaces };
+    if (!prefs.enabled || prefs.interfaces.length) out.network = prefs;
+  }
   const apt =
     m.aptUpdates && typeof m.aptUpdates === "object"
       ? { enabled: m.aptUpdates.enabled !== false }
@@ -54,6 +71,12 @@ export function serializeHostMonitoring(m) {
   if (m.claude && typeof m.claude === "object" && m.claude.enabled === false)
     out.claude = { enabled: false };
   const meaningful =
-    out.path || out.wireguard || out.smart || out.aptUpdates || out.opencode || out.claude;
+    out.path ||
+    out.wireguard ||
+    out.smart ||
+    out.network ||
+    out.aptUpdates ||
+    out.opencode ||
+    out.claude;
   return !out.enabled && !meaningful ? undefined : out;
 }
