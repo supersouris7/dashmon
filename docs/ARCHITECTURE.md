@@ -84,7 +84,8 @@ public/js/
   supervision.js       supervision page and metrics refresh
   supervision/         one file per card (host, WireGuard, SMART, APT,
                        coding agents: OpenCode and Claude Code), shared
-                       card behaviour (cards.js), texts (format.js) and the
+                       card behaviour (cards.js), mosaic layout (masonry.js),
+                       texts (format.js) and the
                        supervised instances (instances.js)
   editor.js            settings page: navigation tree, save, import / export
   editor/              one file per panel (services, widgets, categories,

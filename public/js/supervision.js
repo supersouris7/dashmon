@@ -17,6 +17,7 @@ import {
 import { visibleSmartDisks, smartCard } from "./supervision/smart-card.js";
 import { aptUpdatesCard } from "./supervision/apt-card.js";
 import { USAGE_SOURCES, usageCard } from "./supervision/usage-card.js";
+import { layoutMasonry } from "./supervision/masonry.js";
 
 // Interval injected by the server (HOST_METRICS_INTERVAL). HTML served
 // without substitution (tests, local file) falls back to 60 s.
@@ -151,6 +152,7 @@ export function renderSupervision() {
     });
   }
   supervisionList.append(grid);
+  layoutMasonry(grid);
   updateSmartCollapseButton();
 }
 

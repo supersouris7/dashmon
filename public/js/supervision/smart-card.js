@@ -116,6 +116,11 @@ export function smartCard(host, metrics, disks) {
     toggleDetails();
   });
 
+  // With several disks, the opened card spans two columns and lays the disks
+  // side by side (components.css).
+  if (disks.length > 1) card.classList.add("multi-disk");
+  const list = document.createElement("div");
+  list.className = "supervision-smart-disks";
   disks.forEach(disk => {
     const section = document.createElement("section");
     section.className = "supervision-smart-disk";
@@ -199,7 +204,8 @@ export function smartCard(host, metrics, disks) {
       smartDetailRow(t("smartTemperature"), disk.temperature, "temperature")
     );
     section.appendChild(details);
-    card.appendChild(section);
+    list.appendChild(section);
   });
+  card.appendChild(list);
   return card;
 }

@@ -203,6 +203,17 @@ async function main() {
     );
   }
 
+  {
+    const masonry = await import(
+      pathToFileURL(path.join(JS_DIR, "supervision", "masonry.js")).href
+    );
+    // A card spans the 4 px rows of its height plus the 16 px gap below it.
+    check("mosaique : rangees d'une carte de 100 px", masonry.masonrySpan(100), 29);
+    check("mosaique : hauteur fractionnaire arrondie au-dessus", masonry.masonrySpan(100.2), 30);
+    check("mosaique : carte encore invisible", masonry.masonrySpan(0), 1);
+    check("mosaique : colonnes comptees", masonry.trackCount("413.3px 413.3px 413.3px"), 3);
+    check("mosaique : aucune colonne", masonry.trackCount("none"), 1);
+  }
   const toolbar = await import(pathToFileURL(path.join(JS_DIR, "toolbar.js")).href);
   {
     const { foldText, serviceMatchesSearch } = await importStateModules();

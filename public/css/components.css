@@ -943,13 +943,18 @@ body[data-page="supervision"] #collapseAllBtn {
 
 .supervision-grid {
   display: grid;
-  /* Les cartes ne grossissent pas pour remplir une ligne incomplete. La grille
-     centre les colonnes utiles et le DOM place chaque carte dans la premiere
-     case libre, y compris les details WireGuard et SMART. */
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 360px));
-  justify-content: center;
+  /* Full width, aligned on the toolbar: as many columns of 320 px or more as
+     fit. auto-fill keeps the column width when there are few cards. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   align-items: start;
   gap: 16px;
+}
+/* Mosaic (supervision/masonry.js): thin rows without gap, each card spans the
+   rows its height needs; "dense" fills a hole beside a wide card. */
+.supervision-grid.masonry {
+  grid-auto-rows: 4px;
+  grid-auto-flow: row dense;
+  row-gap: 0;
 }
 
 .supervision-card {
@@ -1569,8 +1574,30 @@ body[data-page="supervision"] #collapseAllBtn {
   transform: rotate(180deg);
 }
 @media (min-width: 900px) {
-  .supervision-card-usage.expanded {
+  .supervision-card-usage.expanded,
+  .supervision-card-smart.expanded.multi-disk {
     grid-column: span 2;
+  }
+  /* With three columns, two would leave the third empty beside a tall card:
+     an opened coding agent card takes the whole row. */
+  .supervision-grid[data-tracks="3"] .supervision-card-usage.expanded {
+    grid-column: 1 / -1;
+  }
+  /* Opened with several disks: two disks per row. */
+  .supervision-card-smart.expanded.multi-disk .supervision-smart-disks {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
+  }
+  .supervision-card-smart.expanded.multi-disk .supervision-smart-disk + .supervision-smart-disk {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+  .supervision-card-smart.expanded.multi-disk .supervision-smart-disk:nth-child(n + 3) {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
   }
 }
 .usage-age {
