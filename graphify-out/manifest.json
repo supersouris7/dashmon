@@ -133,9 +133,9 @@
     "semantic_hash": ""
   },
   "public/js/render.js": {
-    "mtime": 1793796709.6444852,
-    "seen": 1793796949.3629594,
-    "ast_hash": "085f81314c79464dacb45273194cfcf9",
+    "mtime": 1793809421.581136,
+    "seen": 1793809608.9300342,
+    "ast_hash": "55b8869ebf0f42ab238a2fae55f577d8",
     "semantic_hash": ""
   },
   "public/js/state.js": {
@@ -223,9 +223,9 @@
     "semantic_hash": ""
   },
   "test/frontend.test.js": {
-    "mtime": 1793808246.9354484,
-    "seen": 1793808567.7029667,
-    "ast_hash": "3a98bf4976ecbf82f6f553dd8dbe6c8b",
+    "mtime": 1793809458.557446,
+    "seen": 1793809608.9301825,
+    "ast_hash": "45c77a10c105639120bd582d1e81287e",
     "semantic_hash": ""
   },
   "test/run.js": {
@@ -1057,9 +1057,9 @@
     "semantic_hash": ""
   },
   "public/js/dashboard/sections.js": {
-    "mtime": 1793796663.0681717,
-    "seen": 1793796949.3620298,
-    "ast_hash": "afa67337c53b1b34c674b0ddca041ac4",
+    "mtime": 1793809421.581136,
+    "seen": 1793809608.92992,
+    "ast_hash": "6c89bc3ef8108a803c3e6ffc74154a55",
     "semantic_hash": ""
   },
   "public/js/dashboard/view-controls.js": {
@@ -1474,6 +1474,12 @@
     "mtime": 1793808381.9444814,
     "seen": 1793808567.7032652,
     "ast_hash": "679d41ed1674abcaa13945866c5fb90c",
+    "semantic_hash": ""
+  },
+  "public/js/dashboard/columns-layout.js": {
+    "mtime": 1793809478.1496098,
+    "seen": 1793809608.9299078,
+    "ast_hash": "d43dd55c9de17551d047a6085857224c",
     "semantic_hash": ""
   },
   "package-lock.json": {
