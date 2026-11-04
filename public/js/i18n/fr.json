@@ -116,6 +116,7 @@
   "close": "Fermer",
   "search": "app, catégories, hôtes…",
   "searchLabel": "Rechercher dans les dashboards",
+  "searchOpen": "Rechercher (/)",
   "searchClear": "Effacer la recherche",
   "searchNoResult": "Aucun résultat pour « {query} ».",
   "searchResults": "{count} résultats",

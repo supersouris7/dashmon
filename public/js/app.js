@@ -54,9 +54,10 @@ import { renderWebLinksEditor } from "./editor/web-links.js";
 import { renderServiceEditor } from "./editor/services.js";
 import { closeImageLibrary } from "./images.js";
 import { loadWidgetRegistry } from "./widget-registry.js";
-import { hideToolbarSearch, menuRightOffset } from "./toolbar.js";
+import { menuRightOffset } from "./toolbar.js";
 import {
   searchInput,
+  searchBtn,
   searchClearBtn,
   dashboard,
   viewBtn,
@@ -171,43 +172,27 @@ function setToolbarHeight() {
 }
 
 const toolbar = document.querySelector(".toolbar");
-const pageSwitch = document.getElementById("pageSwitchGroup");
-const searchBox = searchInput.closest(".search-box");
-const toolbarActions = toolbar.querySelector(".toolbar-actions");
-// On a phone, or when the tabs leave it too little room, the search gets its
-// own line under the toolbar, at full width: it is never hidden.
-function placeSearchBox(below) {
-  if (below && searchBox.parentElement === toolbar) {
-    toolbar.after(searchBox);
-    searchBox.classList.add("below-toolbar");
-  } else if (!below && searchBox.parentElement !== toolbar) {
-    toolbarActions.before(searchBox);
-    searchBox.classList.remove("below-toolbar");
+const searchBox = document.getElementById("searchBox");
+// The search is a magnifier button at the head of the actions: it opens a line
+// of its own under the toolbar, at full width. Closing it clears the filter, so
+// no tile stays hidden by a search that can no longer be seen.
+function setSearchOpen(open) {
+  searchBox.hidden = !open;
+  searchBtn.setAttribute("aria-expanded", String(open));
+  if (open) {
+    searchInput.focus();
+    return;
+  }
+  if (searchBox.contains(document.activeElement)) searchBtn.focus();
+  if (searchInput.value) {
+    clearTimeout(renderTimer);
+    searchInput.value = "";
+    searchBox.classList.remove("has-value");
+    render();
   }
 }
+searchBtn.addEventListener("click", () => setSearchOpen(searchBox.hidden));
 function updateToolbarLayout() {
-  const mobile = window.innerWidth <= 800;
-  const styles = getComputedStyle(toolbar);
-  const gap = parseFloat(styles.columnGap) || 0;
-  const available =
-    toolbar.clientWidth -
-    (parseFloat(styles.paddingLeft) || 0) -
-    (parseFloat(styles.paddingRight) || 0);
-  const buttons = [...pageSwitch.children].filter(button => button.getClientRects().length);
-  const nav =
-    buttons.reduce((sum, button) => sum + button.getBoundingClientRect().width, 0) +
-    Math.max(0, buttons.length - 1) * (parseFloat(getComputedStyle(pageSwitch).columnGap) || 0);
-  const actions = [viewBtn, iconsBtn, collapseAllBtn, moreBtn].filter(
-    button => button.getClientRects().length
-  );
-  const actionWidth = actions.reduce(
-    (sum, button) => sum + button.getBoundingClientRect().width,
-    0
-  );
-  const compact =
-    !mobile && hideToolbarSearch(available, nav, actionWidth, gap * (actions.length + 1));
-  toolbar.classList.toggle("compact-search", compact);
-  placeSearchBox(mobile || compact);
   if (topMenu.classList.contains("show")) positionTopMenu();
 }
 function positionTopMenu() {
@@ -224,8 +209,6 @@ const headerObserver = new ResizeObserver(setToolbarHeight);
 headerObserver.observe(document.querySelector(".toolbar"));
 const toolbarObserver = new ResizeObserver(updateToolbarLayout);
 toolbarObserver.observe(toolbar);
-toolbarObserver.observe(pageSwitch);
-new MutationObserver(updateToolbarLayout).observe(pageSwitch, { childList: true });
 
 // No settings on a phone: the entry is hidden (components.css, same width),
 // and settings left open close when the screen becomes that narrow.
@@ -473,15 +456,12 @@ document.addEventListener("keydown", e => {
     return;
   }
 
-  if (
-    e.key === "/" &&
-    state.page === "dashboard" &&
-    searchInput.getClientRects().length &&
-    !isTypingTarget(document.activeElement) &&
-    !modalBackdrop.classList.contains("show")
-  ) {
+  const shortcut =
+    (e.key === "/" && !isTypingTarget(document.activeElement)) ||
+    (e.key.toLowerCase() === "k" && (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey);
+  if (shortcut && state.page === "dashboard" && !modalBackdrop.classList.contains("show")) {
     e.preventDefault();
-    searchInput.focus();
+    setSearchOpen(true);
   }
 });
 

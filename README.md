@@ -14,7 +14,8 @@ No account, no cloud, no database. One small Node.js container, one page, and
 you stop guessing whether *that* thing is working.
 
 - **Several dashboards, one page** — split your lab across named dashboards, each
-  with its own icon; group by category or by host, search, three view modes
+  with its own icon; group by category or by host, search across all dashboards
+  (magnifier, `/` or Ctrl+K), three view modes
   (rows / columns / full), small or large icons.
 - **Live widgets, not just green/red dots** — Docker, Duplicati, AdGuard, Gotify,
   qBittorrent, MeTube, Lichess, Uptime Kuma and Ping report straight onto the tile.

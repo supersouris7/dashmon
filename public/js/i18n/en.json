@@ -116,6 +116,7 @@
   "close": "Close",
   "search": "app, categories, hosts…",
   "searchLabel": "Search the dashboards",
+  "searchOpen": "Search (/)",
   "searchClear": "Clear the search",
   "searchNoResult": "No result for “{query}”.",
   "searchResults": "{count} results",

@@ -153,6 +153,30 @@ async function main() {
       "dark"
     );
   }
+  // Search: the magnifier opens a line under the toolbar, closing it clears it.
+  assert.equal(await evaluate("document.querySelector('#searchBox').hidden"), true);
+  await evaluate("document.querySelector('#searchBtn').click()");
+  assert.equal(
+    await evaluate(
+      "!document.querySelector('#searchBox').hidden && document.activeElement.id === 'search' && document.querySelector('#searchBtn').getAttribute('aria-expanded')"
+    ),
+    "true"
+  );
+  await evaluate(
+    "document.querySelector('#search').value='x';document.querySelector('#search').dispatchEvent(new Event('input'))"
+  );
+  await evaluate("document.querySelector('#searchBtn').click()");
+  assert.equal(
+    await evaluate(
+      "document.querySelector('#searchBox').hidden && document.querySelector('#search').value === '' && document.activeElement.id"
+    ),
+    "searchBtn"
+  );
+  await evaluate(
+    "document.dispatchEvent(new KeyboardEvent('keydown',{key:'k',ctrlKey:true,bubbles:true}))"
+  );
+  assert.equal(await evaluate("document.activeElement.id"), "search");
+  await evaluate("document.querySelector('#searchBtn').click()");
   assert.equal(await evaluate("!!document.querySelector('#menuSettingsBtn')"), true);
   assert.equal(
     await evaluate(

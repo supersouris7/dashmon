@@ -747,20 +747,19 @@ body.is-refreshing .widget-status {
 }
 
 /* Smartphone et tablette : l'interface est epuree. Le bandeau des liens web
-   disparait. La recherche passe sur sa propre ligne sous la barre d'outils
-   (app.js la deplace). */
+   disparait. */
 @media (max-width: 800px) {
   .web-links-section {
     display: none;
   }
-  .search-box.below-toolbar {
+  .search-box {
     margin: 0 14px 4px;
   }
-  .search-box.below-toolbar .search-key {
+  .search-box .search-key {
     display: none;
   }
   /* 16 px : en dessous, iOS zoome sur le champ a la saisie. */
-  .search-box.below-toolbar .search {
+  .search-box .search {
     font-size: 16px;
   }
   /* Cible tactile de 40 px, l'icone garde sa taille. */
@@ -775,11 +774,11 @@ body.is-refreshing .widget-status {
 }
 @media (max-width: 560px) {
   /* Petit ecran : tout passe a 40 px, comme les boutons de la barre. */
-  .search-box.below-toolbar {
+  .search-box {
     height: 40px;
     margin: 0 12px 2px;
   }
-  .search-box.below-toolbar .search {
+  .search-box .search {
     height: 40px;
     min-height: 40px;
   }
@@ -869,6 +868,7 @@ body[data-page="supervision"] #dashboard {
 
 /* Les commandes ci-dessous ne s'appliquent qu'au tableau de bord. */
 body[data-page="supervision"] .search-box,
+body[data-page="supervision"] #searchBtn,
 body[data-page="supervision"] #viewBtn,
 body[data-page="supervision"] #iconsBtn {
   display: none;
@@ -878,19 +878,6 @@ body[data-page="supervision"] #iconsBtn {
    tout a droite, directement avant le menu « ... ». */
 body[data-page="supervision"] #collapseAllBtn {
   margin-left: auto;
-}
-
-/* Quand la recherche disparait, les actions du dashboard restent elles aussi
-   alignees a droite. Sur mobile le groupe d'actions gere deja cet alignement. */
-@media (min-width: 701px) {
-  body[data-page="dashboard"] .toolbar.compact-search #viewBtn {
-    margin-left: auto;
-  }
-}
-@media (min-width: 701px) and (max-width: 800px) {
-  body[data-page="dashboard"] .toolbar #viewBtn {
-    margin-left: auto;
-  }
 }
 
 .supervision-grid {

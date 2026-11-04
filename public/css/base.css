@@ -143,19 +143,26 @@ main {
   outline-offset: 2px;
 }
 
+/* Search line, opened by the magnifier button (app.js): full width under the
+   toolbar, aligned on its content. */
 .search-box {
-  flex: 1 1 140px;
-  max-width: 340px;
-  margin-left: auto;
   position: relative;
-  min-width: 0;
   height: 46px;
-}
-/* No room left in the toolbar (app.js): the search gets its own line under
-   it, aligned on the toolbar content. */
-.search-box.below-toolbar {
-  max-width: none;
   margin: 0 max(26px, calc((100vw - 1280px) / 2)) 10px;
+}
+.search-box[hidden] {
+  display: none;
+}
+
+/* The magnifier opens the actions, pushed to the right by its automatic
+   margin; pressed while the search line is open. */
+.toolbar #searchBtn {
+  margin-left: auto;
+}
+#searchBtn[aria-expanded="true"] {
+  background: var(--surface-2);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .search-box > i {

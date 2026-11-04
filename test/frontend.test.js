@@ -207,16 +207,6 @@ async function main() {
   }
 
   const toolbar = await import(pathToFileURL(path.join(JS_DIR, "toolbar.js")).href);
-  check(
-    "toolbar : recherche dans la barre si assez de place",
-    toolbar.hideToolbarSearch(900, 400, 160, 50),
-    false
-  );
-  check(
-    "toolbar : recherche sous la barre si les onglets prennent la place",
-    toolbar.hideToolbarSearch(700, 400, 160, 50),
-    true
-  );
   {
     const { foldText, serviceMatchesSearch } = await importStateModules();
     check("recherche : accents et casse ignores", foldText(" Sécurité Hôte "), "securite hote");
@@ -228,11 +218,17 @@ async function main() {
   check("toolbar : menu a gauche recadre", toolbar.menuRightOffset(-80, 150, 800), -88);
   check("toolbar : menu bien place inchange", toolbar.menuRightOffset(500, 730, 800), 0);
   check("toolbar : menu a droite recadre", toolbar.menuRightOffset(600, 830, 800), 38);
-  const toolbarCss = readSource("public", "css", "components.css");
+  const indexHtml = readSource("public", "index.html");
+  const toolbarHtml = indexHtml.slice(indexHtml.indexOf('class="toolbar"'));
   ok(
-    "toolbar : actions du dashboard alignees a droite sans recherche",
-    contains(toolbarCss, ".toolbar.compact-search #viewBtn{margin-left:auto}") &&
-      contains(toolbarCss, ".toolbar #viewBtn{margin-left:auto}")
+    "toolbar : la loupe ouvre les actions, la recherche est sous la barre",
+    toolbarHtml.indexOf('id="searchBtn"') < toolbarHtml.indexOf('id="viewBtn"') &&
+      toolbarHtml.indexOf('id="searchBox"') > toolbarHtml.indexOf('id="topMenu"') &&
+      /id="searchBox"[^>]*hidden/.test(toolbarHtml)
+  );
+  ok(
+    "toolbar : la loupe aligne les actions a droite",
+    contains(readSource("public", "css", "base.css"), ".toolbar #searchBtn{margin-left:auto}")
   );
 
   // La carte APT partage la commande globale et conserve son etat au refresh.
