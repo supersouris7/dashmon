@@ -151,9 +151,9 @@
     "semantic_hash": ""
   },
   "public/js/supervision.js": {
-    "mtime": 1793626128.5922701,
-    "seen": 1793627410.6429527,
-    "ast_hash": "ea463f293c73fd9671f8ba8c68b69c22",
+    "mtime": 1793801964.390878,
+    "seen": 1793802226.14596,
+    "ast_hash": "16829b87ddfa445a3a1283ece67fb856",
     "semantic_hash": ""
   },
   "public/js/themes.js": {
@@ -223,9 +223,9 @@
     "semantic_hash": ""
   },
   "test/frontend.test.js": {
-    "mtime": 1793799898.009796,
-    "seen": 1793800192.8123715,
-    "ast_hash": "7feb53e0d6e4f23aa501d82ba50aaa88",
+    "mtime": 1793802129.3562024,
+    "seen": 1793802226.1461577,
+    "ast_hash": "0e541f6673b5fdb1c36e6b5b3f0f1e78",
     "semantic_hash": ""
   },
   "test/run.js": {
@@ -703,9 +703,9 @@
     "semantic_hash": ""
   },
   "docs/ARCHITECTURE.md": {
-    "mtime": 1793800171.4839547,
-    "seen": 1793800192.8126042,
-    "ast_hash": "f8cdbe61179c08c610b237ff8297f5f7",
+    "mtime": 1793802135.5162516,
+    "seen": 1793802226.1464596,
+    "ast_hash": "8a11f8afd3dd1a022d1ecf4eb7dd515c",
     "semantic_hash": ""
   },
   ".prettierrc.json": {
@@ -1201,9 +1201,9 @@
     "semantic_hash": ""
   },
   "public/js/supervision/smart-card.js": {
-    "mtime": 1793361497.4901717,
-    "seen": 1793365386.7159553,
-    "ast_hash": "bab50cda0f499fff4dc322758ac57c42",
+    "mtime": 1793801964.390878,
+    "seen": 1793802226.1460059,
+    "ast_hash": "88d01a4a3570f6a6e8947515f1671d3b",
     "semantic_hash": ""
   },
   "public/js/supervision/wireguard-card.js": {
@@ -1369,8 +1369,8 @@
     "semantic_hash": ""
   },
   "docs/images/settings.png": {
-    "mtime": 1793800040.5869265,
-    "seen": 1793800192.8126457,
+    "mtime": 1793802100.7759733,
+    "seen": 1793802226.1465137,
     "ast_hash": "3e5fdb83d9f7e2235f142822e16f42e7",
     "semantic_hash": ""
   },
@@ -1381,26 +1381,26 @@
     "semantic_hash": ""
   },
   "docs/images/dashboard.png": {
-    "mtime": 1793800025.2788057,
-    "seen": 1793800192.8126395,
+    "mtime": 1793802085.4878507,
+    "seen": 1793802226.1465046,
     "ast_hash": "56e9c631780a831675abcf2a5af0747a",
     "semantic_hash": ""
   },
   "docs/images/mobile.png": {
-    "mtime": 1793800056.9990559,
-    "seen": 1793800192.8126423,
-    "ast_hash": "c202441e736d463e8040d53c2da78d00",
+    "mtime": 1793802117.2081048,
+    "seen": 1793802226.1465094,
+    "ast_hash": "e0ee1c4614f4626df58c0464428af80a",
     "semantic_hash": ""
   },
   "docs/images/supervision.png": {
-    "mtime": 1793800030.266845,
-    "seen": 1793800192.8126516,
-    "ast_hash": "2d32570fd4676d852b14c32c2e006023",
+    "mtime": 1793802090.4918907,
+    "seen": 1793802226.1465218,
+    "ast_hash": "a273178ed5b71fe4d8e31a49264de02b",
     "semantic_hash": ""
   },
   "docs/images/themes.png": {
-    "mtime": 1793800056.0750487,
-    "seen": 1793800192.8126543,
+    "mtime": 1793802116.2880976,
+    "seen": 1793802226.1465256,
     "ast_hash": "8db66c47f84eb328123c7862e5f7c39f",
     "semantic_hash": ""
   },
@@ -1411,9 +1411,9 @@
     "semantic_hash": ""
   },
   "docs/images/supervision-detailed.png": {
-    "mtime": 1793800064.3671138,
-    "seen": 1793800192.8126488,
-    "ast_hash": "86072c02b53708ec8e1c3b1813b41bc1",
+    "mtime": 1793802096.5879397,
+    "seen": 1793802226.1465178,
+    "ast_hash": "f54757594c907369b3504868689d2f8f",
     "semantic_hash": ""
   },
   "public/js/dashboard/fortune-bar.js": {
@@ -1444,6 +1444,12 @@
     "mtime": 1793799960.502293,
     "seen": 1793800192.8124182,
     "ast_hash": "0dabb87972f97ffe26ae21f82a1f04fd",
+    "semantic_hash": ""
+  },
+  "public/js/supervision/masonry.js": {
+    "mtime": 1793802056.6556194,
+    "seen": 1793802226.146,
+    "ast_hash": "a8da512e169f245dfbc18f756a371569",
     "semantic_hash": ""
   },
   "package-lock.json": {
