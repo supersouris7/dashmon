@@ -45,34 +45,13 @@ runs, on **amd64 and arm64**.
 
 ## Screenshots
 
-Every picture comes from the built-in example with made-up values; the logos are
-from [Dashboard Icons](https://dashboardicons.com/). They are regenerated with
-`npm run screenshots`.
-
-**Live widgets on every tile** — containers, backups, blocked queries, downloads,
-notifications, status pages:
-
 ![Dashboard with a widget on each tile](docs/images/dashboard.png)
-
-**One page per machine** — resources, VPN peers, disk health, system updates and
-AI coding usage. Folded, each card gives its verdict at a glance:
 
 ![Supervision page, cards folded](docs/images/supervision.png)
 
-<details>
-<summary><strong>Unfolded, every card shows the details</strong> (SMART attributes,
-update runs, models, tokens, tools, 30-day activity)</summary>
-
 ![Supervision page, every card unfolded](docs/images/supervision-detailed.png)
 
-</details>
-
-**On a phone** — the same dashboard and supervision, one column:
-
 ![Dashboard, supervision and details on a phone](docs/images/mobile.png)
-
-**Everything is set in the interface** — applications, categories, hosts,
-widgets, themes; no YAML to write:
 
 ![Settings, Applications panel](docs/images/settings.png)
 
