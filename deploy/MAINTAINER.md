@@ -38,7 +38,8 @@ CHROMIUM_BIN=chromium npm run screenshots
 
 [`scripts/screenshots.js`](../scripts/screenshots.js) starts a throwaway Dashmon
 on a temporary folder with the built-in example, fictional supervision reports
-and a widget on each tile. The browser answers the status and host metrics
+and a widget on each tile. Its only download is the application logos, from
+[Dashboard Icons](https://dashboardicons.com/) at a fixed version. The browser answers the status and host metrics
 requests itself with made-up values, so nothing of the machine running the
 script appears. Check the pictures before committing them. The script needs
 Chromium and is never run in CI.

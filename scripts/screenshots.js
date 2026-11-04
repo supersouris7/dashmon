@@ -7,8 +7,9 @@
 // applications, fictional supervision reports (WireGuard, SMART, APT,
 // OpenCode, Claude Code) and a widget on each tile. The browser answers
 // /api/status and /api/host-metrics itself, with made-up values: nothing of
-// the machine running the script shows up, and no real service is contacted
-// for the pictures. Maintainers only: never run in CI.
+// the machine running the script shows up. The only download is the logos of
+// the applications, from Dashboard Icons (the PNG set the README recommends),
+// at a fixed version. Maintainers only: never run in CI.
 const crypto = require("crypto");
 const fs = require("fs");
 const net = require("net");
@@ -21,47 +22,51 @@ const ROOT = path.join(__dirname, "..");
 const OUT = path.join(ROOT, "docs", "images");
 const HOST = "127.0.0.1";
 const NOW = Math.floor(Date.now() / 1000);
+// Dashboard Icons at a fixed commit: the pictures do not change by themselves.
+const ICONS_URL =
+  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@83f32e08257b66fbd971ac8d7645f5b38d52e85d/png/";
 const GIB = 1024 ** 3;
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 // --- Fictional data ---------------------------------------------------------
 
-// Icon and live value of each example application. The values follow the
-// shapes the widgets receive from their server side (widgets/<id>/).
+// Logo (Dashboard Icons name) and live value of each example application. The
+// values follow the shapes the widgets receive from their server side
+// (widgets/<id>/).
 const TILES = {
-  Jellyfin: { icon: ["fa-solid fa-film", "#7b5cff", "#00a4dc"] },
+  Jellyfin: { icon: "jellyfin" },
   qBittorrent: {
-    icon: ["fa-solid fa-download", "#2f67ba", "#56a7ff"],
+    icon: "qbittorrent",
     widget: "qbittorrent",
     info: { downloadSpeed: 12.6 * 1024 ** 2, uploadSpeed: 1.4 * 1024 ** 2, connected: true }
   },
   MeTube: {
-    icon: ["fa-brands fa-youtube", "#d81b1b", "#ff5a4f"],
+    icon: "metube",
     widget: "metube",
     info: { completed: 128, active: 2, queued: 3 }
   },
   "AdGuard Home": {
-    icon: ["fa-solid fa-shield-halved", "#2e9d5b", "#68d391"],
+    icon: "adguard-home",
     widget: "adguard",
     info: { queries: 48213, ratio: 17.6, avgMs: 4 }
   },
   "Uptime Kuma": {
-    icon: ["fa-solid fa-heart-pulse", "#3bb26b", "#9be15d"],
+    icon: "uptime-kuma",
     widget: "uptimekuma",
     info: { pages: [{ name: "Homelab", up: 14, total: 14, healthy: true }] }
   },
-  Router: {
-    icon: ["fa-solid fa-route", "#c76b1c", "#ffb547"],
+  OpenWrt: {
+    icon: "openwrt",
     widget: "ping",
     info: { state: "up" }
   },
   Portainer: {
-    icon: ["fa-brands fa-docker", "#0d6cbf", "#3fb5ff"],
+    icon: "portainer-alt",
     widget: "docker",
     info: { containers: { active: 23, total: 23 }, updated: { count: 21, total: 23 } }
   },
   Gotify: {
-    icon: ["fa-solid fa-bell", "#2a7fd4", "#7cc4ff"],
+    icon: "gotify",
     widget: "gotify",
     info: {
       latest: {
@@ -73,7 +78,7 @@ const TILES = {
     }
   },
   Duplicati: {
-    icon: ["fa-solid fa-cloud-arrow-up", "#1f6f8b", "#4fc3dc"],
+    icon: "duplicati",
     widget: "duplicati",
     info: { ok: true, lastAttemptAt: (NOW - 3 * 3600) * 1000 }
   }
@@ -129,7 +134,7 @@ function usagePeriod(scale, days, list) {
     models,
     tools: {
       usage: [
-        { name: "Bash", calls: Math.round(310 * scale), failed: Math.round(9 * scale) },
+        { name: "Bash", calls: Math.round(310 * scale), failed: Math.round(2 * scale) },
         { name: "Read", calls: Math.round(260 * scale), failed: 0 },
         { name: "Edit", calls: Math.round(140 * scale), failed: Math.round(2 * scale) }
       ]
@@ -211,11 +216,17 @@ async function writeConfig(file) {
       },
       ...demo.hosts.filter(host => host.name !== "NAS")
     ],
-    services: demo.services.map(service => ({
-      ...service,
-      monitor: true,
-      widget: TILES[service.name]?.widget ? { type: TILES[service.name].widget } : null
-    })),
+    // The router of the example runs OpenWrt here, for its logo.
+    services: demo.services.map(service => {
+      const name = service.name === "Router" ? "OpenWrt" : service.name;
+      return {
+        ...service,
+        name,
+        monitor: true,
+        icon: "icons/" + TILES[name].icon + ".png",
+        widget: TILES[name].widget ? { type: TILES[name].widget } : null
+      };
+    }),
     specialTile: demo.specialTile,
     theme: "dark",
     language: "en",
@@ -392,55 +403,14 @@ async function interceptApis(browser) {
   });
 }
 
-// Draws each tile icon with Font Awesome on a gradient square and uploads it
-// like a user would, then points the applications at their image.
-async function makeIcons(browser) {
-  const icons = Object.fromEntries(Object.entries(TILES).map(([name, tile]) => [name, tile.icon]));
-  await browser.run(`(async () => {
-    await document.fonts.ready;
-    const icons = ${JSON.stringify(icons)};
-    const config = await (await fetch("/api/config")).json();
-    for (const service of config.services) {
-      const [glyphClass, from, to] = icons[service.name];
-      const probe = document.createElement("i");
-      probe.className = glyphClass;
-      document.body.appendChild(probe);
-      const style = getComputedStyle(probe, "::before");
-      const glyph = style.content.replace(/"/g, "");
-      const font = style.fontWeight + " 104px " + style.fontFamily;
-      probe.remove();
-      await document.fonts.load(font, glyph);
-      const canvas = document.createElement("canvas");
-      canvas.width = canvas.height = 192;
-      const g = canvas.getContext("2d");
-      const fill = g.createLinearGradient(0, 0, 192, 192);
-      fill.addColorStop(0, from);
-      fill.addColorStop(1, to);
-      g.fillStyle = fill;
-      g.beginPath();
-      g.roundRect(0, 0, 192, 192, 44);
-      g.fill();
-      g.fillStyle = "#fff";
-      g.font = font;
-      g.textAlign = "center";
-      g.textBaseline = "middle";
-      g.fillText(glyph, 96, 100);
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
-      const file = service.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".png";
-      const response = await fetch("/api/icons", {
-        method: "POST",
-        headers: { "Content-Type": "image/png", "X-File-Name": file },
-        body: blob
-      });
-      const saved = await response.json();
-      service.icon = "icons/" + (saved.file || saved.name || file);
-    }
-    await fetch("/api/config", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ services: config.services })
-    });
-  })()`);
+// The logos go straight into the icons folder, as if imported by the user.
+async function downloadIcons(dir) {
+  fs.mkdirSync(dir, { recursive: true });
+  for (const { icon } of Object.values(TILES)) {
+    const response = await fetch(ICONS_URL + icon + ".png");
+    if (!response.ok) throw new Error(`Logo ${icon}: HTTP ${response.status}`);
+    fs.writeFileSync(path.join(dir, icon + ".png"), Buffer.from(await response.arrayBuffer()));
+  }
 }
 
 // --- Pictures -----------------------------------------------------------------
@@ -460,7 +430,7 @@ async function viewport(browser, width, height, scale = 1) {
   });
 }
 
-async function show(browser, base, { theme = "dark", page = "dashboard" } = {}) {
+async function show(browser, base, { theme = "dark", page = "dashboard", expanded = false } = {}) {
   await browser.run(`fetch("/api/config", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -481,7 +451,26 @@ async function show(browser, base, { theme = "dark", page = "dashboard" } = {}) 
       await new Promise(resolve => setTimeout(resolve, 1500));
     })()`);
   }
+  if (expanded) {
+    await browser.run(`document.querySelector("#collapseAllBtn").click()`);
+    await wait(600);
+  }
 }
+
+// Height of the whole page, to show a long page in one picture.
+async function fullHeight(browser, width, scale = 1) {
+  const height = await browser.run(`Math.ceil(document.documentElement.scrollHeight)`);
+  await viewport(browser, width, height, scale);
+  await wait(400);
+}
+
+const THEMES = [
+  ["dark", "Dark"],
+  ["light", "Light"],
+  ["polar", "Polar night"],
+  ["matrix", "Matrix"],
+  ["high-contrast", "High contrast"]
+];
 
 // Pictures of the application, kept in a temporary folder for the
 // compositions, except those the documentation shows as they are.
@@ -491,18 +480,20 @@ async function takePictures(browser, base, temp) {
     raw[name] = await shoot(browser, path.join(own ? OUT : temp, name + ".png"));
   };
   // Heights cut at the content: no empty band under the tiles.
-  await viewport(browser, 1440, 660);
-  await show(browser, base);
-  await keep("dashboard", true);
-  for (const theme of ["light", "polar", "matrix", "high-contrast"]) {
+  await viewport(browser, 1600, 660);
+  for (const [theme] of THEMES) {
     await show(browser, base, { theme });
     await keep("theme-" + theme);
   }
+  await viewport(browser, 1440, 660);
+  await show(browser, base);
+  await keep("dashboard", true);
   await viewport(browser, 1440, 780);
   await show(browser, base, { page: "supervision" });
   await keep("supervision", true);
-  await show(browser, base, { theme: "light", page: "supervision" });
-  await keep("supervision-light");
+  await show(browser, base, { page: "supervision", expanded: true });
+  await fullHeight(browser, 1440);
+  await keep("supervision-detailed", true);
   await viewport(browser, 1440, 900);
   await show(browser, base);
   await browser.run(`(async () => {
@@ -512,12 +503,19 @@ async function takePictures(browser, base, temp) {
   await keep("settings", true);
   await viewport(browser, 390, 844, 2);
   await show(browser, base);
-  await keep("mobile", true);
+  await keep("phone-dashboard");
+  await show(browser, base, { page: "supervision" });
+  await keep("phone-supervision");
+  await show(browser, base, { page: "supervision", expanded: true });
+  await browser.run(`document.querySelector(".supervision-card-smart, [data-smart-key]")
+    ?.scrollIntoView({ block: "start" })`);
+  await wait(400);
+  await keep("phone-detailed");
   return raw;
 }
 
-// A page made of pictures, captured in turn: the 3D stack of the README and
-// the grid of themes.
+// A page made of pictures, captured in turn: the themes cut diagonally and
+// the phones.
 async function compose(browser, name, width, height, html) {
   await viewport(browser, width, height);
   await browser.call("Page.navigate", { url: "about:blank" });
@@ -530,60 +528,61 @@ async function compose(browser, name, width, height, html) {
 
 const dataUrl = file => "data:image/png;base64," + fs.readFileSync(file).toString("base64");
 
-function heroHtml(raw) {
+// The same dashboard in the five themes, one diagonal band each.
+function themesHtml(raw, width = 1600, height = 660) {
+  // Each boundary crosses the line of the labels at a fifth of the width, so
+  // every band shows the same room there; the outer bands run off the picture.
+  const slant = 240;
+  const labelY = height - 50;
+  const step = width / THEMES.length;
+  const at = (k, y) => k * step + (slant * (labelY - y)) / height;
+  const bands = THEMES.map(([theme, label], k) => {
+    const clip = `polygon(${at(k, 0)}px 0, ${at(k + 1, 0)}px 0, ${at(k + 1, height)}px ${height}px, ${at(k, height)}px ${height}px)`;
+    return `<img src="${dataUrl(raw["theme-" + theme])}" style="clip-path: ${clip}">
+      <span class="label" style="left: ${(k + 0.5) * step}px; top: ${labelY}px">${label}</span>`;
+  }).join("");
+  const lines = THEMES.slice(1)
+    .map(
+      (_theme, index) =>
+        `<line x1="${at(index + 1, 0)}" y1="0" x2="${at(index + 1, height)}" y2="${height}"/>`
+    )
+    .join("");
   return `<!doctype html><html><head><style>
-  html, body { margin: 0; width: 1600px; height: 900px; overflow: hidden; }
-  body {
-    background:
-      radial-gradient(760px 480px at 80% 22%, rgba(64, 196, 255, 0.30), transparent 70%),
-      radial-gradient(760px 560px at 8% 96%, rgba(124, 92, 255, 0.34), transparent 70%),
-      linear-gradient(135deg, #0a0f1f 0%, #111a33 55%, #082231 100%);
+  html, body { margin: 0; width: ${width}px; height: ${height}px; overflow: hidden; background: #000; }
+  img { position: absolute; inset: 0; width: ${width}px; height: ${height}px; }
+  svg { position: absolute; inset: 0; }
+  line { stroke: rgba(255, 255, 255, 0.85); stroke-width: 3; filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.8)); }
+  .label {
+    position: absolute; transform: translate(-50%, -50%);
+    padding: 7px 16px; border-radius: 999px; white-space: nowrap;
+    background: rgba(8, 12, 22, 0.92); color: #fff;
+    font: 600 17px system-ui, sans-serif; letter-spacing: 0.02em;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.18);
   }
-  .stage { position: absolute; inset: 0; perspective: 2200px; perspective-origin: 40% 40%; }
-  img { position: absolute; display: block; }
-  .shot { border-radius: 14px; }
-  .back {
-    left: 610px; top: 44px; width: 930px;
-    transform: rotateY(-20deg) rotateX(7deg);
-    opacity: 0.94;
-    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
-  }
-  .front {
-    left: 60px; top: 300px; width: 1120px;
-    transform: rotateY(-20deg) rotateX(7deg);
-    box-shadow: 0 60px 140px rgba(0, 0, 0, 0.78), 0 0 90px rgba(80, 180, 255, 0.28),
-      0 0 0 1px rgba(255, 255, 255, 0.14);
-  }
-  .phone {
-    left: 1255px; top: 300px; width: 240px; border-radius: 34px;
-    border: 9px solid #04060c;
-    transform: rotateY(-20deg) rotateX(7deg);
-    box-shadow: 0 50px 110px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.18);
-  }
-  </style></head><body><div class="stage">
-    <img class="shot back" src="${dataUrl(raw["supervision-light"])}">
-    <img class="shot front" src="${dataUrl(raw.dashboard)}">
-    <img class="phone" src="${dataUrl(raw.mobile)}">
-  </div></body></html>`;
+  </style></head><body>${bands}
+  <svg width="${width}" height="${height}">${lines}</svg></body></html>`;
 }
 
-function themesHtml(raw) {
-  const tile = (theme, label) =>
-    `<figure><img src="${dataUrl(raw["theme-" + theme] || raw.dashboard)}"><figcaption>${label}</figcaption></figure>`;
+// Three phones side by side: dashboard, supervision folded and detailed.
+function phonesHtml(raw) {
+  const phone = (name, label) => `<figure>
+    <img src="${dataUrl(raw[name])}"><figcaption>${label}</figcaption></figure>`;
   return `<!doctype html><html><head><style>
-  html, body { margin: 0; width: 1600px; height: 860px; overflow: hidden; }
+  html, body { margin: 0; width: 1600px; height: 1000px; overflow: hidden; }
   body {
-    display: grid; grid-template-columns: 1fr 1fr; align-content: center; gap: 30px 32px;
-    padding: 0 40px;
-    box-sizing: border-box; background: linear-gradient(135deg, #0b1020, #13213a);
-    font: 600 22px system-ui, sans-serif; color: #e8eefc;
+    display: flex; justify-content: center; align-items: center; gap: 70px;
+    background: linear-gradient(160deg, #161b26, #0d1018);
+    font: 600 22px system-ui, sans-serif; color: #e9edf5;
   }
-  figure { margin: 0; display: grid; gap: 12px; }
-  img { width: 100%; border-radius: 10px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55); }
-  figcaption { text-align: center; }
+  figure { margin: 0; display: grid; justify-items: center; gap: 22px; }
+  img {
+    width: 380px; border-radius: 46px; border: 11px solid #05070b;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  }
   </style></head><body>
-    ${tile("light", "Light")}${tile("polar", "Polar night")}
-    ${tile("matrix", "Matrix")}${tile("high-contrast", "High contrast")}
+    ${phone("phone-dashboard", "Dashboard")}
+    ${phone("phone-supervision", "Supervision")}
+    ${phone("phone-detailed", "Details")}
   </body></html>`;
 }
 
@@ -597,6 +596,7 @@ async function main() {
     fs.mkdirSync(data, { recursive: true });
     writeReports(data);
     await writeConfig(path.join(data, "config.json"));
+    await downloadIcons(path.join(data, "icons"));
     const password = crypto.randomBytes(16).toString("hex");
     const port = await freePort();
     const base = `http://${HOST}:${port}`;
@@ -636,11 +636,10 @@ async function main() {
     await interceptApis(browser);
     await browser.call("Page.navigate", { url: base + "/" });
     await wait(1500);
-    await makeIcons(browser);
     fs.mkdirSync(OUT, { recursive: true });
     const raw = await takePictures(browser, base, temp);
-    await compose(browser, "hero", 1600, 900, heroHtml(raw));
-    await compose(browser, "themes", 1600, 860, themesHtml(raw));
+    await compose(browser, "themes", 1600, 660, themesHtml(raw));
+    await compose(browser, "mobile", 1600, 1000, phonesHtml(raw));
     browser.close();
     console.log("Screenshots written to " + path.relative(ROOT, OUT));
   } finally {

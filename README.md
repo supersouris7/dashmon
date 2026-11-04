@@ -3,7 +3,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Platforms](https://img.shields.io/badge/docker-amd64%20%7C%20arm64-4f8f89.svg)
 
-![Dashmon: the dashboard with live widgets, host supervision and the phone view](docs/images/hero.png)
+![Dashmon in its five themes: dark, light, polar night, Matrix and high contrast](docs/images/themes.png)
 
 **Your whole homelab on a single screen.** Dashmon lists every service you run,
 shows at a glance whether it is up, and — for the tools you actually care about —
@@ -43,8 +43,9 @@ runs, on **amd64 and arm64**.
 
 ## Screenshots
 
-Every picture below comes from the built-in example, with made-up values: no
-real homelab was harmed. They are regenerated with `npm run screenshots`.
+Every picture comes from the built-in example with made-up values; the logos are
+from [Dashboard Icons](https://dashboardicons.com/). They are regenerated with
+`npm run screenshots`.
 
 **Live widgets on every tile** — containers, backups, blocked queries, downloads,
 notifications, status pages:
@@ -52,24 +53,26 @@ notifications, status pages:
 ![Dashboard with a widget on each tile](docs/images/dashboard.png)
 
 **One page per machine** — resources, VPN peers, disk health, system updates and
-AI coding usage, side by side:
+AI coding usage. Folded, each card gives its verdict at a glance:
 
-![Supervision page of a host](docs/images/supervision.png)
+![Supervision page, cards folded](docs/images/supervision.png)
 
-**Five themes built in**, and your own on top:
+<details>
+<summary><strong>Unfolded, every card shows the details</strong> (SMART attributes,
+update runs, models, tokens, tools, 30-day activity)</summary>
 
-![Light, Polar night, Matrix and High contrast themes](docs/images/themes.png)
+![Supervision page, every card unfolded](docs/images/supervision-detailed.png)
 
-<table>
-  <tr>
-    <td width="66%"><strong>Everything is set in the interface</strong> — no YAML
-    to write: applications, categories, hosts, widgets, themes.<br><br>
-    <img src="docs/images/settings.png" alt="Settings, Applications panel"></td>
-    <td width="34%"><strong>At home on a phone</strong> — the same dashboard,
-    one column.<br><br>
-    <img src="docs/images/mobile.png" alt="Dashboard on a phone"></td>
-  </tr>
-</table>
+</details>
+
+**On a phone** — the same dashboard and supervision, one column:
+
+![Dashboard, supervision and details on a phone](docs/images/mobile.png)
+
+**Everything is set in the interface** — applications, categories, hosts,
+widgets, themes; no YAML to write:
+
+![Settings, Applications panel](docs/images/settings.png)
 
 ## Widgets
 
