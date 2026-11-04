@@ -48,15 +48,15 @@
     "semantic_hash": ""
   },
   "docker-compose.yml": {
-    "mtime": 1793544949.7195425,
-    "seen": 1793545270.55357,
-    "ast_hash": "404bee94a1fc66b6c7dbd0219744ac35",
+    "mtime": 1793786279.1850026,
+    "seen": 1793786412.3402205,
+    "ast_hash": "1d716638546069d9a37f6a63093ec418",
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1793625840.570158,
-    "seen": 1793627410.642797,
-    "ast_hash": "4912b5fa8ee35eb3bb306f20ece8cc53",
+    "mtime": 1793786306.069237,
+    "seen": 1793786412.3404055,
+    "ast_hash": "6dd782ef1634f022fb79256ab29530d6",
     "semantic_hash": ""
   },
   "public/fortune-messages.json": {
@@ -499,27 +499,27 @@
     "semantic_hash": ""
   },
   "CUSTOMIZATION.md": {
-    "mtime": 1793630750.696073,
-    "seen": 1793630855.1070607,
-    "ast_hash": "46b800c70e945a2852f3e4cafba4a130",
+    "mtime": 1793786306.069237,
+    "seen": 1793786412.3409097,
+    "ast_hash": "71882db338778311d80e9fc4cd74275f",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1793784697.5209005,
-    "seen": 1793784786.0243697,
-    "ast_hash": "85bd78556041ccbdcf9f1d5eb393d695",
+    "mtime": 1793786306.069237,
+    "seen": 1793786412.3409128,
+    "ast_hash": "7f28da43f5f1a469dbedc5d712b81934",
     "semantic_hash": ""
   },
   "deploy/DEPLOYMENT.md": {
-    "mtime": 1793630750.696073,
-    "seen": 1793630855.1070669,
-    "ast_hash": "84e614aa8abf8a3d55956d6c1a056d13",
+    "mtime": 1793786306.069237,
+    "seen": 1793786412.3409157,
+    "ast_hash": "a2e283ed0e3185dd6d8ff21f2b1ea695",
     "semantic_hash": ""
   },
   "deploy/MAINTAINER.md": {
-    "mtime": 1793289968.2739625,
-    "seen": 1793347788.9375505,
-    "ast_hash": "6749be5febf7dcc57694ce60e49574ae",
+    "mtime": 1793786306.069237,
+    "seen": 1793786412.3409185,
+    "ast_hash": "075d9f019f1a245fe6d548bd014a3762",
     "semantic_hash": ""
   },
   "docs/APT_UPDATES.md": {
@@ -535,9 +535,9 @@
     "semantic_hash": ""
   },
   "docs/HTTPS.md": {
-    "mtime": 1793630750.696073,
-    "seen": 1793630855.1070895,
-    "ast_hash": "494d064a82cfafaa5d4325563c0e695d",
+    "mtime": 1793786249.5887876,
+    "seen": 1793786412.3409374,
+    "ast_hash": "8dc1b424780182a41f8cfaf8ae072861",
     "semantic_hash": ""
   },
   "docs/SMART.md": {
@@ -547,9 +547,9 @@
     "semantic_hash": ""
   },
   "docs/WIDGETS.md": {
-    "mtime": 1793368799.101708,
-    "seen": 1793369160.6280115,
-    "ast_hash": "1c596c7c33fe91a390066eac29eb8f73",
+    "mtime": 1793786249.5887876,
+    "seen": 1793786412.340947,
+    "ast_hash": "967e82d01524bbdff49bdbaa4bd2928f",
     "semantic_hash": ""
   },
   "docs/WIREGUARD.md": {
@@ -709,9 +709,9 @@
     "semantic_hash": ""
   },
   "docs/ARCHITECTURE.md": {
-    "mtime": 1793784706.2049758,
-    "seen": 1793784786.0243828,
-    "ast_hash": "d72ac4557c5c04e4c26029d3a47ffa78",
+    "mtime": 1793786306.0732372,
+    "seen": 1793786412.3409247,
+    "ast_hash": "3745e6c8345bf5f2ac2bbd367a597d57",
     "semantic_hash": ""
   },
   ".prettierrc.json": {
@@ -1363,9 +1363,9 @@
     "semantic_hash": ""
   },
   "docs/GETTING_STARTED.md": {
-    "mtime": 1793630750.696073,
-    "seen": 1793630855.1070862,
-    "ast_hash": "52f991998d7b2a2bddf662ec2a8ca930",
+    "mtime": 1793786249.5887876,
+    "seen": 1793786412.3409348,
+    "ast_hash": "29e721586205dfd1d03907b09aa62ffc",
     "semantic_hash": ""
   },
   "public/js/config/demo.js": {
@@ -1380,16 +1380,46 @@
     "ast_hash": "5e928cb154e3b9838d675927f6349b72",
     "semantic_hash": ""
   },
-  "docs/images/dashboard-dark.png": {
-    "mtime": 1793784684.2047846,
-    "seen": 1793784786.0244184,
-    "ast_hash": "26f7db0b28e28926c258c6a9a01140a7",
+  "docs/images/settings.png": {
+    "mtime": 1793786359.4057093,
+    "seen": 1793786412.3409681,
+    "ast_hash": "2af09c09cf8c8911ea7f0d3f233c66c0",
     "semantic_hash": ""
   },
-  "docs/images/settings.png": {
-    "mtime": 1793784684.2087846,
-    "seen": 1793784786.0244212,
-    "ast_hash": "fd4ae1af467a05e9338b0e7464d08a25",
+  "scripts/screenshots.js": {
+    "mtime": 1793786307.3572485,
+    "seen": 1793786412.3406372,
+    "ast_hash": "dde87c420b9ef65dece2ec41de62ff4f",
+    "semantic_hash": ""
+  },
+  "docs/images/dashboard.png": {
+    "mtime": 1793786331.3334618,
+    "seen": 1793786412.3409593,
+    "ast_hash": "42f59773970deaf198f5dc8cbce42495",
+    "semantic_hash": ""
+  },
+  "docs/images/hero.png": {
+    "mtime": 1793786364.0097497,
+    "seen": 1793786412.340962,
+    "ast_hash": "8bc0714f5b8d1c0d091bb68965e4ca25",
+    "semantic_hash": ""
+  },
+  "docs/images/mobile.png": {
+    "mtime": 1793786363.0017407,
+    "seen": 1793786412.3409648,
+    "ast_hash": "561a9eb2cb1030ef50ce03b7c6ecb1f9",
+    "semantic_hash": ""
+  },
+  "docs/images/supervision.png": {
+    "mtime": 1793786350.2056284,
+    "seen": 1793786412.3409708,
+    "ast_hash": "a534794222e1eb58136bbb4f12d47669",
+    "semantic_hash": ""
+  },
+  "docs/images/themes.png": {
+    "mtime": 1793786364.8417568,
+    "seen": 1793786412.3409736,
+    "ast_hash": "a26dd9014bd5ceed1c3dee60dcf68151",
     "semantic_hash": ""
   },
   "package-lock.json": {
