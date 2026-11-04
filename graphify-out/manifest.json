@@ -223,9 +223,9 @@
     "semantic_hash": ""
   },
   "test/frontend.test.js": {
-    "mtime": 1793784535.3794484,
-    "seen": 1793784786.0241578,
-    "ast_hash": "fe2a79ec80332f4b821e600ddff2a668",
+    "mtime": 1793787720.4324255,
+    "seen": 1793788200.2997122,
+    "ast_hash": "776338619935fd34a81cb888aacaf0cb",
     "semantic_hash": ""
   },
   "test/run.js": {
@@ -505,9 +505,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1793786306.069237,
-    "seen": 1793786412.3409128,
-    "ast_hash": "7f28da43f5f1a469dbedc5d712b81934",
+    "mtime": 1793787984.9904,
+    "seen": 1793788200.3000643,
+    "ast_hash": "83e0bb1054d1f21ffd89143cfc706151",
     "semantic_hash": ""
   },
   "deploy/DEPLOYMENT.md": {
@@ -517,15 +517,15 @@
     "semantic_hash": ""
   },
   "deploy/MAINTAINER.md": {
-    "mtime": 1793786306.069237,
-    "seen": 1793786412.3409185,
-    "ast_hash": "075d9f019f1a245fe6d548bd014a3762",
+    "mtime": 1793788065.1149964,
+    "seen": 1793788200.3000724,
+    "ast_hash": "b52bf2335e5c605648f866133175e318",
     "semantic_hash": ""
   },
   "docs/APT_UPDATES.md": {
-    "mtime": 1793630750.696073,
-    "seen": 1793630855.1070733,
-    "ast_hash": "5feb82997be9d16ad83ed3b06823d90c",
+    "mtime": 1793787769.2687907,
+    "seen": 1793788200.300076,
+    "ast_hash": "9334a3f3dc9edf9239c54c9eeffcf0c2",
     "semantic_hash": ""
   },
   "docs/EXTENDING.md": {
@@ -1177,21 +1177,21 @@
     "semantic_hash": ""
   },
   "public/js/i18n/en.json": {
-    "mtime": 1793784485.518982,
-    "seen": 1793784786.0240114,
-    "ast_hash": "327e479473ebd3fbc59fe2b6a10aef42",
+    "mtime": 1793787720.4324255,
+    "seen": 1793788200.299509,
+    "ast_hash": "b4e71cb552cba49e91db1df2dc620b77",
     "semantic_hash": ""
   },
   "public/js/i18n/fr.json": {
-    "mtime": 1793784485.518982,
-    "seen": 1793784786.0240145,
-    "ast_hash": "65a27544c8176050acbbed24cfb5196a",
+    "mtime": 1793787720.4324255,
+    "seen": 1793788200.2995145,
+    "ast_hash": "49da65675d2234accb83e4483d7b53b1",
     "semantic_hash": ""
   },
   "public/js/supervision/apt-card.js": {
-    "mtime": 1793625820.5100105,
-    "seen": 1793627410.6429558,
-    "ast_hash": "3a47d80cfb7c65c85ff4c3590c2a1a52",
+    "mtime": 1793787720.4284253,
+    "seen": 1793788200.299553,
+    "ast_hash": "4056da47d301948f717a224e7295fb0b",
     "semantic_hash": ""
   },
   "public/js/supervision/cards.js": {
@@ -1381,45 +1381,51 @@
     "semantic_hash": ""
   },
   "docs/images/settings.png": {
-    "mtime": 1793786359.4057093,
-    "seen": 1793786412.3409681,
-    "ast_hash": "2af09c09cf8c8911ea7f0d3f233c66c0",
+    "mtime": 1793788106.4153035,
+    "seen": 1793788200.3001313,
+    "ast_hash": "466bdc670f051865fa5215def48ef035",
     "semantic_hash": ""
   },
   "scripts/screenshots.js": {
-    "mtime": 1793786307.3572485,
-    "seen": 1793786412.3406372,
-    "ast_hash": "dde87c420b9ef65dece2ec41de62ff4f",
+    "mtime": 1793788065.0949962,
+    "seen": 1793788200.299634,
+    "ast_hash": "103e229ab409982413d1c38241448b68",
     "semantic_hash": ""
   },
   "docs/images/dashboard.png": {
-    "mtime": 1793786331.3334618,
-    "seen": 1793786412.3409593,
-    "ast_hash": "42f59773970deaf198f5dc8cbce42495",
-    "semantic_hash": ""
-  },
-  "docs/images/hero.png": {
-    "mtime": 1793786364.0097497,
-    "seen": 1793786412.340962,
-    "ast_hash": "8bc0714f5b8d1c0d091bb68965e4ca25",
+    "mtime": 1793788091.1271899,
+    "seen": 1793788200.3001237,
+    "ast_hash": "ba0a7a2663b031fd6f87cdeb4d9daac2",
     "semantic_hash": ""
   },
   "docs/images/mobile.png": {
-    "mtime": 1793786363.0017407,
-    "seen": 1793786412.3409648,
-    "ast_hash": "561a9eb2cb1030ef50ce03b7c6ecb1f9",
+    "mtime": 1793788122.8274255,
+    "seen": 1793788200.3001277,
+    "ast_hash": "8cebf04186ed9d6b329f173f160f9895",
     "semantic_hash": ""
   },
   "docs/images/supervision.png": {
-    "mtime": 1793786350.2056284,
-    "seen": 1793786412.3409708,
-    "ast_hash": "a534794222e1eb58136bbb4f12d47669",
+    "mtime": 1793788096.0872266,
+    "seen": 1793788200.300139,
+    "ast_hash": "2899fcc227268375fd08c53f665f3a49",
     "semantic_hash": ""
   },
   "docs/images/themes.png": {
-    "mtime": 1793786364.8417568,
-    "seen": 1793786412.3409736,
-    "ast_hash": "a26dd9014bd5ceed1c3dee60dcf68151",
+    "mtime": 1793788121.9194188,
+    "seen": 1793788200.300143,
+    "ast_hash": "4828cc2c242b406d233ace05d4187bfb",
+    "semantic_hash": ""
+  },
+  "public/js/supervision/apt-health.js": {
+    "mtime": 1793787720.4004252,
+    "seen": 1793788200.2995572,
+    "ast_hash": "c8ea74234b3e05f47906539499390cf7",
+    "semantic_hash": ""
+  },
+  "docs/images/supervision-detailed.png": {
+    "mtime": 1793788102.2352724,
+    "seen": 1793788200.3001351,
+    "ast_hash": "b7017150a2dde8badf11f1e72b5920a7",
     "semantic_hash": ""
   },
   "package-lock.json": {
