@@ -218,7 +218,6 @@
   "supervisionAptUpdates": "APT",
   "supervisionAptTitle": "Updates",
   "aptUpdatesUpToDate": "Up to date",
-  "aptUpdatesOutdated": "Not up to date",
   "aptUpdatesPackagesInstalled": "packages installed",
   "aptUpdatesFailed": "APT update failed",
   "aptUpdatesErrorDetail": "Failure details",

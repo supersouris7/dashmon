@@ -282,10 +282,31 @@ async function main() {
   ok(
     "APT : statut a jour/pas a jour avec coche comme la sante de l'hote",
     contains(aptSource, 'className="supervision-health"') &&
-      contains(aptSource, "fa-solid fa-circle-check") &&
-      contains(aptSource, "aptUpdatesOutdated") &&
+      contains(aptSource, "aptHealth(report)") &&
       !contains(aptSource, "supervision-apt-dot")
   );
+  {
+    const { aptHealth } = await import(
+      pathToFileURL(path.join(JS_DIR, "supervision", "apt-health.js")).href
+    );
+    check(
+      "APT : paquets installes = a jour, seuls l'echec et le redemarrage alertent",
+      [
+        aptHealth(null).label,
+        aptHealth({ status: "success", updated: 7 }).label,
+        aptHealth({ status: "success", updated: 0 }).label,
+        aptHealth({ status: "success", updated: 3, rebootRequired: true }).label,
+        aptHealth({ status: "failed", updated: 3 }).label
+      ],
+      [
+        "aptUpdatesNoReport",
+        "aptUpdatesUpToDate",
+        "aptUpdatesUpToDate",
+        "aptUpdatesRebootRequired",
+        "aptUpdatesFailed"
+      ]
+    );
+  }
   ok(
     "APT : prochain passage sous le dernier passage",
     aptSource.indexOf(squash("aptUpdatesNextRun")) > aptSource.indexOf(squash("aptUpdatesLastRun"))

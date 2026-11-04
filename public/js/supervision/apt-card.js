@@ -1,5 +1,5 @@
-// APT updates card: last report written by deploy/apt-updates.sh (pending
-// updates, security updates, reboot required).
+// APT updates card: last report written by deploy/apt-updates.sh (installed
+// updates, failure, reboot required).
 import {
   applyHostColor,
   cardKey,
@@ -9,6 +9,7 @@ import {
 } from "./cards.js";
 import { t } from "../i18n.js";
 import { smartNumberText, reportDateText } from "./format.js";
+import { aptHealth } from "./apt-health.js";
 
 export function aptUpdatesCard(host, metrics) {
   const report = metrics?.aptUpdates;
@@ -17,21 +18,8 @@ export function aptUpdatesCard(host, metrics) {
   const updated = Number(report?.updated) || 0;
   const reboot = report?.rebootRequired === true;
   // Same presentation as the host health: an icon and an explicit label rather
-  // than a coloured dot. A pending update or a required reboot is a warning,
-  // not a failure.
-  const health = !report
-    ? { level: "unknown", label: "aptUpdatesNoReport", icon: "fa-solid fa-circle-question" }
-    : failed
-      ? { level: "critical", label: "aptUpdatesFailed", icon: "fa-solid fa-triangle-exclamation" }
-      : updated > 0
-        ? { level: "warning", label: "aptUpdatesOutdated", icon: "fa-solid fa-circle-exclamation" }
-        : reboot
-          ? {
-              level: "warning",
-              label: "aptUpdatesRebootRequired",
-              icon: "fa-solid fa-circle-exclamation"
-            }
-          : { level: "healthy", label: "aptUpdatesUpToDate", icon: "fa-solid fa-circle-check" };
+  // than a coloured dot.
+  const health = aptHealth(report);
   card.className = "supervision-card supervision-card-apt is-" + health.level;
   applyHostColor(card, host);
   const head = document.createElement("div");

@@ -88,9 +88,10 @@ The report is written before the reboot request, with the state
 ## Dashmon supervision
 
 The local host is always monitored. Open **Settings → Supervision → Local**, then **APT updates**.
-The card shows an explicit status, **Up to date** or
-**Not up to date**, with the same health icon as the host card, then the number
-of installed updates. The chevron expands the last run, the next planned run and
+The card shows an explicit status with the same health icon as the host card:
+**Up to date** after a successful run (the script installed the updates),
+**Reboot required** when the installed updates need a restart, **APT update
+failed** when the run failed. Then comes the number of updates the last run installed. The chevron expands the last run, the next planned run and
 a warning when a reboot is required.
 
 On failure, open **Failure details** on the card: the report gives the step

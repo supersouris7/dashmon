@@ -218,7 +218,6 @@
   "supervisionAptUpdates": "APT",
   "supervisionAptTitle": "Mises à jour",
   "aptUpdatesUpToDate": "À jour",
-  "aptUpdatesOutdated": "Pas à jour",
   "aptUpdatesPackagesInstalled": "paquets installés",
   "aptUpdatesFailed": "Échec de la mise à jour APT",
   "aptUpdatesErrorDetail": "Détail de l’échec",
