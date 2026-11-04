@@ -758,7 +758,7 @@ body.is-refreshing .widget-status {
 }
 .fortune-quote {
   flex: 0 0 auto;
-  color: var(--accent);
+  color: var(--text);
   font-size: 14px;
 }
 .fortune-text {
