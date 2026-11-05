@@ -181,21 +181,21 @@
     "semantic_hash": ""
   },
   "public/themes/dark.json": {
-    "mtime": 1793615250.5535395,
-    "seen": 1793615385.4763472,
-    "ast_hash": "1d779ac4c5c2ae95389413d617a0ebd0",
+    "mtime": 1793882796.4094918,
+    "seen": 1793882973.6810532,
+    "ast_hash": "a26699db8b1e8770afac217b6e763d8e",
     "semantic_hash": ""
   },
   "public/themes/light.json": {
-    "mtime": 1793615250.5535395,
-    "seen": 1793615385.476351,
-    "ast_hash": "74fc0091958d88ba7cc260ec449bb05d",
+    "mtime": 1793882796.4094918,
+    "seen": 1793882973.6810596,
+    "ast_hash": "61cf7e31104901eb67b407c8d531ec54",
     "semantic_hash": ""
   },
   "public/themes/matrix.json": {
-    "mtime": 1793615250.5535395,
-    "seen": 1793615385.476355,
-    "ast_hash": "fd782d05a47e429b9919a81b9051d69a",
+    "mtime": 1793882796.4094918,
+    "seen": 1793882973.6810625,
+    "ast_hash": "ce5c156d101de72854d387a576fa2517",
     "semantic_hash": ""
   },
   "server.js": {
@@ -499,15 +499,15 @@
     "semantic_hash": ""
   },
   "CUSTOMIZATION.md": {
-    "mtime": 1793796819.7812307,
-    "seen": 1793796949.3633394,
-    "ast_hash": "c3f52dafe946c5593371c861b79d8947",
+    "mtime": 1793882796.4174917,
+    "seen": 1793882973.6813672,
+    "ast_hash": "bb548c2bb55ee6c74d21bfcb806e423f",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1793873934.9442997,
-    "seen": 1793874074.9313843,
-    "ast_hash": "38b85e13d103f5434f2458d1f33add9f",
+    "mtime": 1793882796.4174917,
+    "seen": 1793882973.6813698,
+    "ast_hash": "123a11209d5962e21c17155e6f6811a6",
     "semantic_hash": ""
   },
   "deploy/DEPLOYMENT.md": {
@@ -1147,9 +1147,9 @@
     "semantic_hash": ""
   },
   "public/js/editor/services.js": {
-    "mtime": 1793626242.6851048,
-    "seen": 1793627410.6429007,
-    "ast_hash": "7a314b74885f98349f243f78b71cd67c",
+    "mtime": 1793882796.4134917,
+    "seen": 1793882973.6809413,
+    "ast_hash": "435fbafc2c908e1a395613761c5ad502",
     "semantic_hash": ""
   },
   "public/js/editor/web-links.js": {
@@ -1165,15 +1165,15 @@
     "semantic_hash": ""
   },
   "public/js/i18n/en.json": {
-    "mtime": 1793873876.8878696,
-    "seen": 1793874074.9309697,
-    "ast_hash": "1ffb5d8f635e56468de450d36b880f9b",
+    "mtime": 1793882796.4174917,
+    "seen": 1793882973.6809623,
+    "ast_hash": "8f3aaba1a8bebeea418b54ef5185bd7b",
     "semantic_hash": ""
   },
   "public/js/i18n/fr.json": {
-    "mtime": 1793873876.8918695,
-    "seen": 1793874074.9309723,
-    "ast_hash": "6c0d8ea6f71185832cce91a0bc0038b9",
+    "mtime": 1793882796.4174917,
+    "seen": 1793882973.6809654,
+    "ast_hash": "9515ff38333aee4f51786d5780917fea",
     "semantic_hash": ""
   },
   "public/js/supervision/apt-card.js": {
@@ -1267,9 +1267,9 @@
     "semantic_hash": ""
   },
   "public/js/supervision/usage-card.js": {
-    "mtime": 1793626328.1417296,
-    "seen": 1793627410.6429768,
-    "ast_hash": "ee64c7b07f91f1aa3ae202f8fa0d6aa6",
+    "mtime": 1793882796.4134917,
+    "seen": 1793882973.6810298,
+    "ast_hash": "c9edbe746e1ae17af7f10b401f5fc650",
     "semantic_hash": ""
   },
   "test/claude-stats.test.js": {
@@ -1285,15 +1285,15 @@
     "semantic_hash": ""
   },
   "public/themes/high-contrast.json": {
-    "mtime": 1793615890.9347034,
-    "seen": 1793616030.061911,
-    "ast_hash": "a4cbd99ce3292a70ab7cee081c6a48f7",
+    "mtime": 1793882796.4094918,
+    "seen": 1793882973.6810563,
+    "ast_hash": "bff68386cd69f3de8be5e39ddcdd3903",
     "semantic_hash": ""
   },
   "public/themes/polar.json": {
-    "mtime": 1793615890.9347034,
-    "seen": 1793616030.0619218,
-    "ast_hash": "f87fe4a2a74b547073f99c5b37d5f1ce",
+    "mtime": 1793882796.4094918,
+    "seen": 1793882973.6810653,
+    "ast_hash": "4ae313abef835e05d43788f16ff6b3c0",
     "semantic_hash": ""
   },
   ".github/dependabot.yml": {
@@ -1369,8 +1369,8 @@
     "semantic_hash": ""
   },
   "docs/images/settings.png": {
-    "mtime": 1793881948.4391081,
-    "seen": 1793882001.9367278,
+    "mtime": 1793882851.8939593,
+    "seen": 1793882973.681429,
     "ast_hash": "3e5fdb83d9f7e2235f142822e16f42e7",
     "semantic_hash": ""
   },
@@ -1381,27 +1381,27 @@
     "semantic_hash": ""
   },
   "docs/images/dashboard.png": {
-    "mtime": 1793881979.123321,
-    "seen": 1793882001.936717,
-    "ast_hash": "56e9c631780a831675abcf2a5af0747a",
+    "mtime": 1793882836.1658273,
+    "seen": 1793882973.681423,
+    "ast_hash": "c307bd92b2ac741196934fc39b817605",
     "semantic_hash": ""
   },
   "docs/images/mobile.png": {
-    "mtime": 1793881979.127321,
-    "seen": 1793882001.9367228,
-    "ast_hash": "c1d2b88a24c61d9e770da4fa61dacef5",
+    "mtime": 1793882869.0581026,
+    "seen": 1793882973.6814256,
+    "ast_hash": "c5358a39d068034c8196326171fdec60",
     "semantic_hash": ""
   },
   "docs/images/supervision.png": {
-    "mtime": 1793881965.295225,
-    "seen": 1793882001.9367378,
-    "ast_hash": "982316a3aaba247231b96322e9aaac5a",
+    "mtime": 1793882841.1738694,
+    "seen": 1793882973.6814349,
+    "ast_hash": "9506a28bad5778597e1016595ff53fd9",
     "semantic_hash": ""
   },
   "docs/images/themes.png": {
-    "mtime": 1793881979.127321,
-    "seen": 1793882001.9367425,
-    "ast_hash": "8db66c47f84eb328123c7862e5f7c39f",
+    "mtime": 1793882868.1540952,
+    "seen": 1793882973.6814377,
+    "ast_hash": "daeb54cf8f1dc2cf995e0ea8f1ea50c8",
     "semantic_hash": ""
   },
   "public/js/supervision/apt-health.js": {
@@ -1411,9 +1411,9 @@
     "semantic_hash": ""
   },
   "docs/images/supervision-detailed.png": {
-    "mtime": 1793881965.295225,
-    "seen": 1793882001.936733,
-    "ast_hash": "294807739a31dfb414fa14bcdf3a5cb3",
+    "mtime": 1793882847.4899223,
+    "seen": 1793882973.6814318,
+    "ast_hash": "1f52ab3a81dbffcadc9ea027e6299d2d",
     "semantic_hash": ""
   },
   "public/js/dashboard/fortune-bar.js": {
@@ -1423,9 +1423,9 @@
     "semantic_hash": ""
   },
   "public/js/preload.js": {
-    "mtime": 1793799655.1798344,
-    "seen": 1793800192.8122182,
-    "ast_hash": "45036c6f9539e8920ca865746227771b",
+    "mtime": 1793882796.4134917,
+    "seen": 1793882973.6809826,
+    "ast_hash": "ae0c191f44305a9d84f79e07ebb42f93",
     "semantic_hash": ""
   },
   "test/config-store.test.js": {
