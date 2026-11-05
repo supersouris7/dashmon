@@ -547,9 +547,9 @@
     "semantic_hash": ""
   },
   "docs/WIDGETS.md": {
-    "mtime": 1793873973.4925852,
-    "seen": 1793874074.9314237,
-    "ast_hash": "5a878443ab6a496d85676db80c4a1317",
+    "mtime": 1793881805.1221192,
+    "seen": 1793882001.9366975,
+    "ast_hash": "af51c67741536258acae1da31d65a4af",
     "semantic_hash": ""
   },
   "docs/WIREGUARD.md": {
@@ -1369,8 +1369,8 @@
     "semantic_hash": ""
   },
   "docs/images/settings.png": {
-    "mtime": 1793820947.403533,
-    "seen": 1793821018.6748948,
+    "mtime": 1793881948.4391081,
+    "seen": 1793882001.9367278,
     "ast_hash": "3e5fdb83d9f7e2235f142822e16f42e7",
     "semantic_hash": ""
   },
@@ -1381,26 +1381,26 @@
     "semantic_hash": ""
   },
   "docs/images/dashboard.png": {
-    "mtime": 1793820931.4554186,
-    "seen": 1793821018.674888,
+    "mtime": 1793881979.123321,
+    "seen": 1793882001.936717,
     "ast_hash": "56e9c631780a831675abcf2a5af0747a",
     "semantic_hash": ""
   },
   "docs/images/mobile.png": {
-    "mtime": 1793820964.835658,
-    "seen": 1793821018.6748912,
+    "mtime": 1793881979.127321,
+    "seen": 1793882001.9367228,
     "ast_hash": "c1d2b88a24c61d9e770da4fa61dacef5",
     "semantic_hash": ""
   },
   "docs/images/supervision.png": {
-    "mtime": 1793820936.543455,
-    "seen": 1793821018.674901,
+    "mtime": 1793881965.295225,
+    "seen": 1793882001.9367378,
     "ast_hash": "982316a3aaba247231b96322e9aaac5a",
     "semantic_hash": ""
   },
   "docs/images/themes.png": {
-    "mtime": 1793820963.70765,
-    "seen": 1793821018.674904,
+    "mtime": 1793881979.127321,
+    "seen": 1793882001.9367425,
     "ast_hash": "8db66c47f84eb328123c7862e5f7c39f",
     "semantic_hash": ""
   },
@@ -1411,8 +1411,8 @@
     "semantic_hash": ""
   },
   "docs/images/supervision-detailed.png": {
-    "mtime": 1793820942.8955007,
-    "seen": 1793821018.674898,
+    "mtime": 1793881965.295225,
+    "seen": 1793882001.936733,
     "ast_hash": "294807739a31dfb414fa14bcdf3a5cb3",
     "semantic_hash": ""
   },
@@ -1489,21 +1489,21 @@
     "semantic_hash": ""
   },
   "test/opencode-widget.test.js": {
-    "mtime": 1793873973.3965845,
-    "seen": 1793874074.9311664,
-    "ast_hash": "15aa3844713e0cf1163d8d8c0fd169ff",
+    "mtime": 1793881805.1221192,
+    "seen": 1793882001.9363055,
+    "ast_hash": "a18edd0175475a263579a3c8ad6ccdd1",
     "semantic_hash": ""
   },
   "widgets/opencode/client.mjs": {
-    "mtime": 1793873973.3965845,
-    "seen": 1793874074.9313185,
-    "ast_hash": "c51c3ed80397482bfc5d208740a35bc0",
+    "mtime": 1793881805.1221192,
+    "seen": 1793882001.936536,
+    "ast_hash": "b517e79e5247e8abf0c21c1d81db27b8",
     "semantic_hash": ""
   },
   "widgets/opencode/manifest.json": {
-    "mtime": 1793873973.3965845,
-    "seen": 1793874074.9313214,
-    "ast_hash": "9d7c647f456ef9b64393c2766e867540",
+    "mtime": 1793881831.7903023,
+    "seen": 1793882001.936542,
+    "ast_hash": "41555d1fdf2c8ae3c32240017c33b72c",
     "semantic_hash": ""
   },
   "widgets/opencode/server.js": {
