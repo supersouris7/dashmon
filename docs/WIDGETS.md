@@ -205,9 +205,9 @@ tried.
 
 ## OpenCode
 
-**Shows** today's tokens, then the tokens of the last 30 days and the most used
-model, e.g. *245.4K tokens* and *30 d: 5.4M · claude-sonnet-5-5*. The tooltip
-adds the sessions, the cost when there is one, and the date of the report.
+**Shows** today's tokens, then the tokens of the last 30 days, e.g.
+*245.4K tokens* and *30 d: 5.4M*. The tooltip adds the most used model, the
+sessions, the cost when there is one, and the date of the report.
 
 The numbers come from the report the **Supervision** page already reads: install
 the statistics script first ([OpenCode guide](OPENCODE.md)). Nothing is asked

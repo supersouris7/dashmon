@@ -135,8 +135,9 @@ function ctx(host, service) {
   });
   assert.equal(fresh.badge, "245 tokens");
   assert.equal(fresh.badgeClass, "ok");
-  assert.equal(fresh.time, "days30 5400 · big");
+  assert.equal(fresh.time, "days30 5400");
   assert.match(fresh.title, /via NAS agent/);
+  assert.match(fresh.title, /\nbig\n/);
   assert.match(fresh.title, /\$3/);
   const old = view({ found: true, stale: true, fetchedAt: 1, today: {}, month: {} });
   assert.equal(old.badgeClass, "pending");

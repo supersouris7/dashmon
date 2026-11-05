@@ -1,4 +1,5 @@
-// OpenCode tile: today's tokens, then the last 30 days and the main model. An
+// OpenCode tile: today's tokens, then those of the last 30 days; the model,
+// sessions and cost are in the tooltip. An
 // old report keeps its figures, greyed, with its date in the tooltip.
 
 function costText(value, lang) {
@@ -28,9 +29,9 @@ export function render(ctx) {
   const today = info.today || {};
   const month = info.month || {};
   const monthLine = `${t("days30")} ${formatCompactNumber(month.tokens || 0)}`;
-  const time = info.model ? `${monthLine} · ${info.model}` : monthLine;
   const details = [
     `${t("name")}${origin}`,
+    ...(info.model ? [info.model] : []),
     `${t("today")} ${formatCompactNumber(today.tokens || 0)} ${t("tokens")}, ${today.sessions || 0} ${t("sessions")}`,
     `${monthLine} ${t("tokens")}, ${month.sessions || 0} ${t("sessions")}` +
       (month.cost > 0 ? `, ${t("cost")} ${costText(month.cost, lang)}` : "")
@@ -43,7 +44,7 @@ export function render(ctx) {
   return {
     badge: `${formatCompactNumber(today.tokens || 0)} ${t("tokens")}`,
     badgeClass: info.stale ? "pending" : today.tokens > 0 ? "ok" : "",
-    time,
+    time: monthLine,
     timeClass: info.stale ? "pending" : "",
     title: details.join("\n")
   };

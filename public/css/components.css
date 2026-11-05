@@ -474,7 +474,9 @@ body.is-refreshing .widget-status {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 150px;
+  /* A share of the tile (container query unit): a wider tile shows more of
+     the line, the application name keeps the rest. */
+  max-width: 55cqi;
 }
 
 .widget-time.delta-up {
