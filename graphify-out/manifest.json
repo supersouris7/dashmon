@@ -175,9 +175,9 @@
     "semantic_hash": ""
   },
   "public/js/widget-registry.js": {
-    "mtime": 1793625816.3219798,
-    "seen": 1793627410.6429996,
-    "ast_hash": "4ab67c27ecf854edfa88de847dea712b",
+    "mtime": 1793882417.338394,
+    "seen": 1793882565.2086353,
+    "ast_hash": "7ffe351e3992b88d3270654442aeb73f",
     "semantic_hash": ""
   },
   "public/themes/dark.json": {
@@ -223,9 +223,9 @@
     "semantic_hash": ""
   },
   "test/frontend.test.js": {
-    "mtime": 1793873918.8601806,
-    "seen": 1793874074.931146,
-    "ast_hash": "0fb1b6ef69b172faeb7a1e4a439ee9ba",
+    "mtime": 1793882471.710778,
+    "seen": 1793882565.2087235,
+    "ast_hash": "3a554fd95673c299c567f0f208eecebf",
     "semantic_hash": ""
   },
   "test/run.js": {
@@ -529,9 +529,9 @@
     "semantic_hash": ""
   },
   "docs/EXTENDING.md": {
-    "mtime": 1793873791.3512352,
-    "seen": 1793874074.9314044,
-    "ast_hash": "285767b0a2389062f4e3081f5230d0fd",
+    "mtime": 1793882424.2304425,
+    "seen": 1793882565.2090058,
+    "ast_hash": "a475312d662dfbeb74c1fede8a418c1c",
     "semantic_hash": ""
   },
   "docs/HTTPS.md": {
@@ -1051,9 +1051,9 @@
     "semantic_hash": ""
   },
   "public/js/dashboard/cards.js": {
-    "mtime": 1793799883.4496799,
-    "seen": 1793800192.8120918,
-    "ast_hash": "919efbbec67f6f6ffbc34c56aca06de8",
+    "mtime": 1793882417.3423939,
+    "seen": 1793882565.20844,
+    "ast_hash": "b61e366c300a494422fcf52367eee89d",
     "semantic_hash": ""
   },
   "public/js/dashboard/sections.js": {
@@ -1489,21 +1489,21 @@
     "semantic_hash": ""
   },
   "test/opencode-widget.test.js": {
-    "mtime": 1793881805.1221192,
-    "seen": 1793882001.9363055,
-    "ast_hash": "a18edd0175475a263579a3c8ad6ccdd1",
+    "mtime": 1793882417.3423939,
+    "seen": 1793882565.2087445,
+    "ast_hash": "2ba214f3dd93b3636bfd5b442dbee089",
     "semantic_hash": ""
   },
   "widgets/opencode/client.mjs": {
-    "mtime": 1793881805.1221192,
-    "seen": 1793882001.936536,
-    "ast_hash": "b517e79e5247e8abf0c21c1d81db27b8",
+    "mtime": 1793882417.3423939,
+    "seen": 1793882565.2089186,
+    "ast_hash": "f09a3d6a9697ac94d80afd9d0ae516e5",
     "semantic_hash": ""
   },
   "widgets/opencode/manifest.json": {
-    "mtime": 1793881831.7903023,
-    "seen": 1793882001.936542,
-    "ast_hash": "41555d1fdf2c8ae3c32240017c33b72c",
+    "mtime": 1793882417.362394,
+    "seen": 1793882565.208922,
+    "ast_hash": "9090cfbeb4a3fa02eed1d62707736493",
     "semantic_hash": ""
   },
   "widgets/opencode/server.js": {
