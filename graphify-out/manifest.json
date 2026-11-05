@@ -223,9 +223,9 @@
     "semantic_hash": ""
   },
   "test/frontend.test.js": {
-    "mtime": 1793820426.855796,
-    "seen": 1793821018.674612,
-    "ast_hash": "71c78a2d3538167bab29798f350173e7",
+    "mtime": 1793870585.404057,
+    "seen": 1793870670.774068,
+    "ast_hash": "1b0c81045ce32b61086614b1a0101ba4",
     "semantic_hash": ""
   },
   "test/run.js": {
