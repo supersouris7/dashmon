@@ -377,5 +377,7 @@
   "welcomeAdd": "Ajouter une application",
   "welcomeDemo": "Charger l’exemple",
   "demoBtn": "Ajouter l’exemple",
-  "demoReady": "Exemple ajouté : neuf applications fictives sur trois machines. Cliquez sur Enregistrer pour le garder ; supprimez-les comme toute autre application."
+  "demoReady": "Exemple ajouté : neuf applications fictives sur trois machines. Cliquez sur Enregistrer pour le garder ; supprimez-les comme toute autre application.",
+  "widgetHostAuto": "Automatique : l’hôte de la tuile, sinon cette instance",
+  "widgetHostLocal": "Local (cette instance)"
 }

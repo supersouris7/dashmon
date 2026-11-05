@@ -95,6 +95,34 @@ export function commitWidgetConfig() {
   svc.widget = next;
 }
 
+// "host" field: automatic, this instance, or one of the paired agents. A
+// stored agent that is no longer paired stays listed, so it is not lost
+// silently.
+function hostSelect(draft, field) {
+  const input = document.createElement("select");
+  input.className = "edit-select";
+  const replication = state.replication || {};
+  const agents = Array.isArray(replication.secondaries) ? replication.secondaries : [];
+  const current = String(draft[field.key] == null ? "" : draft[field.key]);
+  const choices = [
+    ["", t("widgetHostAuto")],
+    ["local", t("widgetHostLocal")],
+    ...agents.map(url => [url, (replication.agentNames || {})[url] || url])
+  ];
+  if (current && !choices.some(([value]) => value === current)) choices.push([current, current]);
+  for (const [value, label] of choices) {
+    const node = document.createElement("option");
+    node.value = value;
+    node.textContent = label;
+    input.appendChild(node);
+  }
+  input.value = current;
+  input.addEventListener("change", () => {
+    draft[field.key] = input.value;
+  });
+  return input;
+}
+
 // A form field, built from the manifest declaration.
 function buildWidgetField(meta, field, draft, onVisibilityChange) {
   const wrap = document.createElement("label");
@@ -107,7 +135,9 @@ function buildWidgetField(meta, field, draft, onVisibilityChange) {
   const placeholder = fieldPlaceholder(meta, field, state.language);
   let input;
 
-  if (field.type === "select") {
+  if (field.type === "host") {
+    input = hostSelect(draft, field);
+  } else if (field.type === "select") {
     input = document.createElement("select");
     input.className = "edit-select";
     (field.options || []).forEach(option => {

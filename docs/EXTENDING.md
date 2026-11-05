@@ -63,7 +63,8 @@ unknown code.
 | `probe` | `true`: the returned `up`/`down` status drives the tile color |
 
 Accepted field types: `text`, `secret`, `select` (+ `options`), `number`
-(+ `min`/`max`), `checkbox`. A field can be conditional with
+(+ `min`/`max`), `checkbox`, `host` (a supervised host: empty for automatic,
+`local`, or the address of a paired agent; read with `ctx.supervision`). A field can be conditional with
 `"when": { "key": "mode", "equals": "tcp" }`: it only appears when another field
 has that value.
 

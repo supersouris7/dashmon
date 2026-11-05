@@ -1,0 +1,61 @@
+{
+  "id": "opencode",
+  "version": "1.0.0",
+  "label": {
+    "fr": "OpenCode",
+    "en": "OpenCode"
+  },
+  "description": {
+    "fr": "Tokens du jour et des 30 derniers jours, lus dans le rapport de supervision",
+    "en": "Tokens of the day and of the last 30 days, read from the supervision report"
+  },
+  "interval": 300000,
+  "cacheKey": "service",
+  "server": "server.js",
+  "client": "client.mjs",
+  "strings": {
+    "fr": {
+      "name": "OpenCode",
+      "host": "Hôte supervisé",
+      "tokens": "tokens",
+      "days30": "30 j :",
+      "noReport": "Aucun rapport",
+      "noReportHint": "Installez le script de statistiques : docs/OPENCODE.md",
+      "stale": "rapport ancien",
+      "reportOf": "rapport du",
+      "sessions": "sessions",
+      "today": "aujourd’hui :",
+      "cost": "coût",
+      "via": "via",
+      "unpaired": "Agent non appairé",
+      "unreachable": "Agent injoignable",
+      "error": "OpenCode"
+    },
+    "en": {
+      "name": "OpenCode",
+      "host": "Supervised host",
+      "tokens": "tokens",
+      "days30": "30 d:",
+      "noReport": "No report",
+      "noReportHint": "Install the statistics script: docs/OPENCODE.md",
+      "stale": "old report",
+      "reportOf": "report of",
+      "sessions": "sessions",
+      "today": "today:",
+      "cost": "cost",
+      "via": "via",
+      "unpaired": "Agent not paired",
+      "unreachable": "Agent unreachable",
+      "error": "OpenCode"
+    }
+  },
+  "config": [
+    {
+      "key": "host",
+      "type": "host",
+      "label": "host",
+      "default": "",
+      "maxLength": 300
+    }
+  ]
+}

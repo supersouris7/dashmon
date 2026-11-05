@@ -68,6 +68,12 @@ The card shows up by itself with the first report. To hide it, open
 **Settings → Supervision**, choose the host, then uncheck **Show OpenCode
 statistics** in the **OpenCode** section.
 
+## On an application tile
+
+The same figures can show on the OpenCode tile of the dashboard: give the
+service the **OpenCode** widget (chosen by itself for a service named
+OpenCode). See [the widget catalog](WIDGETS.md#opencode).
+
 ## Bind mount variant
 
 If your user cannot reach Docker, mount a host folder into the container. The

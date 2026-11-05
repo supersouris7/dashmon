@@ -46,6 +46,8 @@ const { notFound, errorHandler } = require("./lib/http/errors");
 const { WidgetCore } = require("./lib/widgets/core");
 const { createStatusMonitor } = require("./lib/status/monitor");
 const { createHostMetrics } = require("./lib/host/metrics");
+const { createUsageSource } = require("./lib/host/usage-source");
+const { readUsageReport } = require("./lib/host/usage-report");
 const { registerSessionRoutes } = require("./lib/routes/session");
 const { registerSystemRoutes } = require("./lib/routes/system");
 const { registerWidgetRoutes } = require("./lib/routes/widgets");
@@ -207,7 +209,7 @@ function registerRoutes(app, settings, version, services) {
   registerSystemRoutes(app, { settings, version, readConfig });
   registerWidgetRoutes(app, { widgetCore });
 
-  registerAgentRoutes(app, {
+  const { readAgents } = registerAgentRoutes(app, {
     readConfig,
     sanitizeReplication: pairing.sanitizeReplication,
     sanitizeSyncUrl: pairing.sanitizeSyncUrl,
@@ -251,7 +253,7 @@ function registerRoutes(app, settings, version, services) {
 
   app.use(notFound);
   app.use(errorHandler(log));
-  return { flushUsage };
+  return { flushUsage, readAgents };
 }
 
 function createApp() {
@@ -262,7 +264,15 @@ function createApp() {
 
   const app = express();
   applySecurity(app, settings, services);
-  const { flushUsage } = registerRoutes(app, settings, version, services);
+  const { flushUsage, readAgents } = registerRoutes(app, settings, version, services);
+  // Supervision reports offered to the widgets (OpenCode tile).
+  widgetCore.supervision = createUsageSource({
+    readConfig,
+    readAgents,
+    sanitizeReplication: services.pairing.sanitizeReplication,
+    readLocal: kind =>
+      readUsageReport(kind === "claude" ? settings.claudeReportFile : settings.opencodeReportFile)
+  });
 
   // Once the widget schemas are known: secrets still stored in clear text
   // (installs that ran without a master key) are encrypted on disk.

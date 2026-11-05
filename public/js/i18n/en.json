@@ -377,5 +377,7 @@
   "welcomeAdd": "Add an application",
   "welcomeDemo": "Load the example",
   "demoBtn": "Add the example",
-  "demoReady": "Example added: nine fictional applications on three machines. Click Save to keep it; delete them like any other application."
+  "demoReady": "Example added: nine fictional applications on three machines. Click Save to keep it; delete them like any other application.",
+  "widgetHostAuto": "Automatic: the host of the tile, otherwise this instance",
+  "widgetHostLocal": "Local (this instance)"
 }

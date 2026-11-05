@@ -437,6 +437,7 @@ async function main() {
     "gotify",
     "lichess",
     "metube",
+    "opencode",
     "ping",
     "qbittorrent",
     "uptimekuma",
@@ -450,9 +451,10 @@ async function main() {
     [
       registry.suggestedWidgetId("MeTube"),
       registry.suggestedWidgetId("me tube"),
-      registry.suggestedWidgetId("application inconnue")
+      registry.suggestedWidgetId("application inconnue"),
+      registry.suggestedWidgetId("opencode")
     ],
-    ["metube", "metube", ""]
+    ["metube", "metube", "", "opencode"]
   );
   // Les sources des compteurs de liens (GitHub, Docker Hub, YouTube) sont aussi
   // internes au moteur : elles ne doivent pas apparaitre dans le menu des
@@ -467,6 +469,7 @@ async function main() {
       "gotify",
       "lichess",
       "metube",
+      "opencode",
       "ping",
       "qbittorrent",
       "uptimekuma"

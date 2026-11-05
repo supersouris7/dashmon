@@ -76,6 +76,7 @@ async function main() {
     "gotify",
     "lichess",
     "metube",
+    "opencode",
     "ping",
     "qbittorrent",
     "uptimekuma",
@@ -123,6 +124,7 @@ async function main() {
       "gotify",
       "lichess",
       "metube",
+      "opencode",
       "ping",
       "qbittorrent",
       "uptimekuma"
@@ -528,6 +530,7 @@ async function main() {
       "gotify",
       "lichess",
       "metube",
+      "opencode",
       "ping",
       "qbittorrent",
       "uptimekuma",

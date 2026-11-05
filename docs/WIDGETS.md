@@ -17,6 +17,7 @@ It applies immediately, no restart.
 | [Lichess](#lichess) | ELO rating and one-month evolution | username, variant |
 | [Uptime Kuma](#uptime-kuma) | Public status-page monitors | URL, one or two slugs |
 | [Ping](#ping) | TCP reachability | host, port (optional) |
+| [OpenCode](#opencode) | Tokens of the day and of the last 30 days | supervised host (optional) |
 | [web](#web--the-default-one) | Up / down dot for a plain link | *nothing* |
 
 GitHub, Docker Hub and YouTube are **not** tile widgets: they power the counters
@@ -201,6 +202,27 @@ service reachable?", without touching the image or the container's permissions.
 Port 80 on a machine that does not serve HTTP therefore shows red even though
 the machine is up — which is why the error names the port that was actually
 tried.
+
+## OpenCode
+
+**Shows** today's tokens, then the tokens of the last 30 days and the most used
+model, e.g. *245.4K tokens* and *30 d: 5.4M · claude-sonnet-5-5*. The tooltip
+adds the sessions, the cost when there is one, and the date of the report.
+
+The numbers come from the report the **Supervision** page already reads: install
+the statistics script first ([OpenCode guide](OPENCODE.md)). Nothing is asked
+of OpenCode itself.
+
+A service named **OpenCode** gets this widget by itself in the editor.
+
+**Configuration**
+
+- **Supervised host** — *Automatic* (default): the agent paired with the host
+  of the tile when it has a report, otherwise this instance. Or choose **Local**,
+  or one of the paired agents.
+
+A report older than 6 hours keeps its figures, greyed: the cron job has
+probably stopped. Without a report, the tile says **No report**.
 
 ## web — the default one
 
