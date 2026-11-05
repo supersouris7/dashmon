@@ -199,9 +199,9 @@
     "semantic_hash": ""
   },
   "server.js": {
-    "mtime": 1793799829.3012462,
-    "seen": 1793800192.8123071,
-    "ast_hash": "e450d4aab6a718b1e98527af728d4799",
+    "mtime": 1793873824.5274813,
+    "seen": 1793874074.9310822,
+    "ast_hash": "a49478f7027d072470de81bdca4df58b",
     "semantic_hash": ""
   },
   "test/agent.test.js": {
@@ -223,21 +223,21 @@
     "semantic_hash": ""
   },
   "test/frontend.test.js": {
-    "mtime": 1793870585.404057,
-    "seen": 1793870670.774068,
-    "ast_hash": "1b0c81045ce32b61086614b1a0101ba4",
+    "mtime": 1793873918.8601806,
+    "seen": 1793874074.931146,
+    "ast_hash": "0fb1b6ef69b172faeb7a1e4a439ee9ba",
     "semantic_hash": ""
   },
   "test/run.js": {
-    "mtime": 1793820426.8637962,
-    "seen": 1793821018.6746464,
-    "ast_hash": "a73b0a827ce260245470613b2bd7b073",
+    "mtime": 1793873906.368088,
+    "seen": 1793874074.9311843,
+    "ast_hash": "dca4680bf1915bd9ae3b8090df4852e2",
     "semantic_hash": ""
   },
   "test/widgets.test.js": {
-    "mtime": 1793625820.5100105,
-    "seen": 1793627410.6431422,
-    "ast_hash": "2d294e9eab33dc0ad6b3f3d6d4a3901d",
+    "mtime": 1793873918.8361804,
+    "seen": 1793874074.9312181,
+    "ast_hash": "19717987a042e514ba6b01ec200b570d",
     "semantic_hash": ""
   },
   "widgets/_template/client.mjs": {
@@ -505,9 +505,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1793820819.9866188,
-    "seen": 1793821018.6748362,
-    "ast_hash": "2f8714131733451a90e72bbedb87b77c",
+    "mtime": 1793873934.9442997,
+    "seen": 1793874074.9313843,
+    "ast_hash": "38b85e13d103f5434f2458d1f33add9f",
     "semantic_hash": ""
   },
   "deploy/DEPLOYMENT.md": {
@@ -529,9 +529,9 @@
     "semantic_hash": ""
   },
   "docs/EXTENDING.md": {
-    "mtime": 1793359816.5638983,
-    "seen": 1793365386.7162688,
-    "ast_hash": "4154ecfc8cd533ec6e121487d9437f4d",
+    "mtime": 1793873791.3512352,
+    "seen": 1793874074.9314044,
+    "ast_hash": "285767b0a2389062f4e3081f5230d0fd",
     "semantic_hash": ""
   },
   "docs/HTTPS.md": {
@@ -547,9 +547,9 @@
     "semantic_hash": ""
   },
   "docs/WIDGETS.md": {
-    "mtime": 1793786249.5887876,
-    "seen": 1793786412.340947,
-    "ast_hash": "967e82d01524bbdff49bdbaa4bd2928f",
+    "mtime": 1793873973.4925852,
+    "seen": 1793874074.9314237,
+    "ast_hash": "5a878443ab6a496d85676db80c4a1317",
     "semantic_hash": ""
   },
   "docs/WIREGUARD.md": {
@@ -895,9 +895,9 @@
     "semantic_hash": ""
   },
   "lib/routes/agents.js": {
-    "mtime": 1793820596.4930143,
-    "seen": 1793821018.674225,
-    "ast_hash": "404d436f5d8107ebe42af770edecb4f1",
+    "mtime": 1793873807.1913528,
+    "seen": 1793874074.93077,
+    "ast_hash": "6f0cc11c57b1b210121fe295fa8b20fe",
     "semantic_hash": ""
   },
   "lib/routes/config.js": {
@@ -979,15 +979,15 @@
     "semantic_hash": ""
   },
   "lib/widgets/core.js": {
-    "mtime": 1793357737.557988,
-    "seen": 1793358178.4969635,
-    "ast_hash": "a4188818a93a9123aed116dbb6704e54",
+    "mtime": 1793873824.5274813,
+    "seen": 1793874074.9308207,
+    "ast_hash": "4b67259be733199115ea6d4f456ac3f3",
     "semantic_hash": ""
   },
   "lib/widgets/registry.js": {
-    "mtime": 1793356106.8726277,
-    "seen": 1793358178.4969661,
-    "ast_hash": "028acaa3a41da0e718d9626df092ba70",
+    "mtime": 1793873791.3512352,
+    "seen": 1793874074.930824,
+    "ast_hash": "c3fc514d05b51467241b3469911466f8",
     "semantic_hash": ""
   },
   "lib/widgets/schema.js": {
@@ -1159,21 +1159,21 @@
     "semantic_hash": ""
   },
   "public/js/editor/widget-config.js": {
-    "mtime": 1793362074.6709993,
-    "seen": 1793365386.7158983,
-    "ast_hash": "bcb51cdaf51625e74a01c712eb75ed52",
+    "mtime": 1793873876.8758695,
+    "seen": 1793874074.930956,
+    "ast_hash": "0991f44901ede792f9239b8d1e76cf18",
     "semantic_hash": ""
   },
   "public/js/i18n/en.json": {
-    "mtime": 1793820535.2645748,
-    "seen": 1793821018.674438,
-    "ast_hash": "26d8ea7429bb4fb38cfb73caf8059fa3",
+    "mtime": 1793873876.8878696,
+    "seen": 1793874074.9309697,
+    "ast_hash": "1ffb5d8f635e56468de450d36b880f9b",
     "semantic_hash": ""
   },
   "public/js/i18n/fr.json": {
-    "mtime": 1793820535.2685747,
-    "seen": 1793821018.6744409,
-    "ast_hash": "a7b973a83a272029217fb5458eb533bb",
+    "mtime": 1793873876.8918695,
+    "seen": 1793874074.9309723,
+    "ast_hash": "6c0d8ea6f71185832cce91a0bc0038b9",
     "semantic_hash": ""
   },
   "public/js/supervision/apt-card.js": {
@@ -1249,9 +1249,9 @@
     "semantic_hash": ""
   },
   "docs/OPENCODE.md": {
-    "mtime": 1793630727.0238495,
-    "seen": 1793630855.1070924,
-    "ast_hash": "7f5662895cac4f525ba0675f44f74ae3",
+    "mtime": 1793873934.9442997,
+    "seen": 1793874074.9314144,
+    "ast_hash": "4b6fb9d86755314534498ec465623450",
     "semantic_hash": ""
   },
   "deploy/claude-stats.sh": {
@@ -1480,6 +1480,36 @@
     "mtime": 1793820813.0265687,
     "seen": 1793821018.6748712,
     "ast_hash": "4025b904a03f98b5180123a1acb4407e",
+    "semantic_hash": ""
+  },
+  "lib/host/usage-source.js": {
+    "mtime": 1793873861.007752,
+    "seen": 1793874074.9307115,
+    "ast_hash": "9537b8493da4fa73585d614d06d2abd1",
+    "semantic_hash": ""
+  },
+  "test/opencode-widget.test.js": {
+    "mtime": 1793873973.3965845,
+    "seen": 1793874074.9311664,
+    "ast_hash": "15aa3844713e0cf1163d8d8c0fd169ff",
+    "semantic_hash": ""
+  },
+  "widgets/opencode/client.mjs": {
+    "mtime": 1793873973.3965845,
+    "seen": 1793874074.9313185,
+    "ast_hash": "c51c3ed80397482bfc5d208740a35bc0",
+    "semantic_hash": ""
+  },
+  "widgets/opencode/manifest.json": {
+    "mtime": 1793873973.3965845,
+    "seen": 1793874074.9313214,
+    "ast_hash": "9d7c647f456ef9b64393c2766e867540",
+    "semantic_hash": ""
+  },
+  "widgets/opencode/server.js": {
+    "mtime": 1793873859.4477403,
+    "seen": 1793874074.9313245,
+    "ast_hash": "85cc68f1075903ce356d4723d3cedec4",
     "semantic_hash": ""
   },
   "package-lock.json": {
