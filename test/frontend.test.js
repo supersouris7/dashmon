@@ -269,8 +269,12 @@ async function main() {
       /id="searchBox"[^>]*hidden/.test(toolbarHtml)
   );
   ok(
-    "toolbar : la loupe aligne les actions a droite",
-    contains(readSource("public", "css", "base.css"), ".toolbar #searchBtn{margin-left:auto}")
+    "toolbar : actions groupees a droite, onglets en dessous si la place manque",
+    contains(readSource("public", "css", "base.css"), "flex-wrap:wrap-reverse") &&
+      contains(
+        readSource("public", "css", "base.css"),
+        ".toolbar-actions{display:flex;flex:0 0 auto;align-items:center;gap:10px;margin-left:auto;}"
+      )
   );
 
   // La carte APT partage la commande globale et conserve son etat au refresh.

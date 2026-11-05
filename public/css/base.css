@@ -63,9 +63,12 @@ main {
   margin: -26px -26px 24px;
 }
 
+/* When the tabs and the actions no longer fit on one line, the actions stay
+   on the top line, on the right, and the tabs go to the line below, on the
+   left: wrap-reverse shows the last line (the actions) first. */
 .toolbar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: wrap-reverse;
   justify-content: flex-start;
   align-items: center;
   gap: 10px;
@@ -80,7 +83,11 @@ main {
 }
 
 .toolbar-actions {
-  display: contents;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
 }
 .mobile-page-menu {
   display: none;
@@ -154,11 +161,7 @@ main {
   display: none;
 }
 
-/* The magnifier opens the actions, pushed to the right by its automatic
-   margin; pressed while the search line is open. */
-.toolbar #searchBtn {
-  margin-left: auto;
-}
+/* Pressed while the search line is open. */
 #searchBtn[aria-expanded="true"] {
   background: var(--surface-2);
   border-color: var(--accent);
@@ -742,22 +745,12 @@ main {
     padding-left: 0;
     padding-right: 0;
   }
-  /* Barre d'outils sur une seule ligne : les onglets de dashboard defilent
-     horizontalement si besoin, au lieu de passer a la ligne. */
   .toolbar {
-    flex-wrap: nowrap;
     gap: 8px;
     padding: 10px 14px;
   }
-  .page-switch {
-    flex: 1 1 auto;
-    flex-wrap: nowrap;
-    min-width: 0;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .page-switch::-webkit-scrollbar {
-    display: none;
+  .toolbar-actions {
+    gap: 8px;
   }
   .page-btn {
     flex: 0 0 auto;
