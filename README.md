@@ -3,7 +3,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Platforms](https://img.shields.io/badge/docker-amd64%20%7C%20arm64-4f8f89.svg)
 
-![Dashmon in its five themes: dark, light, polar night, Matrix and high contrast](docs/images/themes.png)
+![Dashmon in its five themes: dark, light, Matrix, polar night and high contrast](docs/images/themes.png)
 
 **Your whole homelab on a single screen.** Dashmon lists every service you run,
 shows at a glance whether it is up, and — for the tools you actually care about —

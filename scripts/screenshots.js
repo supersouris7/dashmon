@@ -505,8 +505,8 @@ async function fullHeight(browser, width, scale = 1) {
 const THEMES = [
   ["dark", "Dark"],
   ["light", "Light"],
-  ["polar", "Polar night"],
   ["matrix", "Matrix"],
+  ["polar", "Polar night"],
   ["high-contrast", "High contrast"]
 ];
 
@@ -566,39 +566,23 @@ async function compose(browser, name, width, height, html) {
 
 const dataUrl = file => "data:image/png;base64," + fs.readFileSync(file).toString("base64");
 
-// The same dashboard in the five themes, one diagonal band each.
+// The same dashboard in the five themes, one diagonal band each, side by
+// side with no separator and no caption.
 function themesHtml(raw, width = 1600, height = 660) {
-  // Each boundary crosses the line of the labels at a fifth of the width, so
+  // Each boundary crosses the bottom of the tiles at a fifth of the width, so
   // every band shows the same room there; the outer bands run off the picture.
   const slant = 240;
-  const labelY = height - 50;
+  const middleY = height - 50;
   const step = width / THEMES.length;
-  const at = (k, y) => k * step + (slant * (labelY - y)) / height;
-  const bands = THEMES.map(([theme, label], k) => {
+  const at = (k, y) => k * step + (slant * (middleY - y)) / height;
+  const bands = THEMES.map(([theme], k) => {
     const clip = `polygon(${at(k, 0)}px 0, ${at(k + 1, 0)}px 0, ${at(k + 1, height)}px ${height}px, ${at(k, height)}px ${height}px)`;
-    return `<img src="${dataUrl(raw["theme-" + theme])}" style="clip-path: ${clip}">
-      <span class="label" style="left: ${(k + 0.5) * step}px; top: ${labelY}px">${label}</span>`;
+    return `<img src="${dataUrl(raw["theme-" + theme])}" style="clip-path: ${clip}">`;
   }).join("");
-  const lines = THEMES.slice(1)
-    .map(
-      (_theme, index) =>
-        `<line x1="${at(index + 1, 0)}" y1="0" x2="${at(index + 1, height)}" y2="${height}"/>`
-    )
-    .join("");
   return `<!doctype html><html><head><style>
   html, body { margin: 0; width: ${width}px; height: ${height}px; overflow: hidden; background: #000; }
   img { position: absolute; inset: 0; width: ${width}px; height: ${height}px; }
-  svg { position: absolute; inset: 0; }
-  line { stroke: rgba(255, 255, 255, 0.85); stroke-width: 3; filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.8)); }
-  .label {
-    position: absolute; transform: translate(-50%, -50%);
-    padding: 7px 16px; border-radius: 999px; white-space: nowrap;
-    background: rgba(8, 12, 22, 0.92); color: #fff;
-    font: 600 17px system-ui, sans-serif; letter-spacing: 0.02em;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.18);
-  }
-  </style></head><body>${bands}
-  <svg width="${width}" height="${height}">${lines}</svg></body></html>`;
+  </style></head><body>${bands}</body></html>`;
 }
 
 // Three phones side by side: dashboard, supervision folded and detailed.
