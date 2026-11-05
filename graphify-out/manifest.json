@@ -505,9 +505,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1793882796.4174917,
-    "seen": 1793882973.6813698,
-    "ast_hash": "123a11209d5962e21c17155e6f6811a6",
+    "mtime": 1793883509.3352015,
+    "seen": 1793883622.072372,
+    "ast_hash": "c26f4605301f28a968d98391b2dda2e0",
     "semantic_hash": ""
   },
   "deploy/DEPLOYMENT.md": {
@@ -1369,39 +1369,39 @@
     "semantic_hash": ""
   },
   "docs/images/settings.png": {
-    "mtime": 1793882851.8939593,
-    "seen": 1793882973.681429,
+    "mtime": 1793883574.4797027,
+    "seen": 1793883622.0724316,
     "ast_hash": "3e5fdb83d9f7e2235f142822e16f42e7",
     "semantic_hash": ""
   },
   "scripts/screenshots.js": {
-    "mtime": 1793820796.338449,
-    "seen": 1793821018.6745467,
-    "ast_hash": "dd60ea1e4754994625765c6008929c13",
+    "mtime": 1793883509.3352015,
+    "seen": 1793883622.0720644,
+    "ast_hash": "7cdb580c2ac750cfdfc35f45e44ba4b8",
     "semantic_hash": ""
   },
   "docs/images/dashboard.png": {
-    "mtime": 1793882836.1658273,
-    "seen": 1793882973.681423,
+    "mtime": 1793883574.4757028,
+    "seen": 1793883622.0724247,
     "ast_hash": "c307bd92b2ac741196934fc39b817605",
     "semantic_hash": ""
   },
   "docs/images/mobile.png": {
-    "mtime": 1793882869.0581026,
-    "seen": 1793882973.6814256,
+    "mtime": 1793883574.4797027,
+    "seen": 1793883622.072428,
     "ast_hash": "c5358a39d068034c8196326171fdec60",
     "semantic_hash": ""
   },
   "docs/images/supervision.png": {
-    "mtime": 1793882841.1738694,
-    "seen": 1793882973.6814349,
+    "mtime": 1793883574.4837027,
+    "seen": 1793883622.0724378,
     "ast_hash": "9506a28bad5778597e1016595ff53fd9",
     "semantic_hash": ""
   },
   "docs/images/themes.png": {
-    "mtime": 1793882868.1540952,
-    "seen": 1793882973.6814377,
-    "ast_hash": "daeb54cf8f1dc2cf995e0ea8f1ea50c8",
+    "mtime": 1793883573.215693,
+    "seen": 1793883622.0724406,
+    "ast_hash": "08ca4920a3a35baf722c1be89a74c8a6",
     "semantic_hash": ""
   },
   "public/js/supervision/apt-health.js": {
@@ -1411,8 +1411,8 @@
     "semantic_hash": ""
   },
   "docs/images/supervision-detailed.png": {
-    "mtime": 1793882847.4899223,
-    "seen": 1793882973.6814318,
+    "mtime": 1793883574.4837027,
+    "seen": 1793883622.0724347,
     "ast_hash": "1f52ab3a81dbffcadc9ea027e6299d2d",
     "semantic_hash": ""
   },
