@@ -177,7 +177,7 @@ function modelList(models, showCost) {
   return list;
 }
 
-// Most used tools; a failure count turns the line orange.
+// Most used tools; a failure count turns the line yellow.
 function toolList(tools) {
   const list = element("div", "usage-tools");
   for (const tool of [...tools].sort((a, b) => b.calls - a.calls).slice(0, 8)) {

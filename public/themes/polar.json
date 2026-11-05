@@ -16,7 +16,7 @@
     "danger": "#e06c7a",
     "success": "#4fd6a4",
     "error": "#ff6b81",
-    "warning": "#ffb454",
+    "warning": "#f5c518",
     "shadow": "0 2px 8px rgba(0,0,0,.45)"
   },
   "css": "[data-theme=\"polar\"] .service-icon{\n  filter:none !important;\n  opacity:1;\n}"

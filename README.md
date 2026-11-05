@@ -24,7 +24,7 @@ you stop guessing whether *that* thing is working.
 - **Web-link counters** — show GitHub stars, Docker Hub pulls or YouTube
   subscribers right in the web-links banner, e.g. *GitHub (109)*.
 - **Real status monitoring** — an up/down dot per URL, refreshed automatically;
-  a non-critical service shows orange instead of red.
+  a non-critical service shows yellow instead of red.
 - **Host supervision** — a dedicated page per machine: CPU, memory, disk and
   temperature, an hourly speed test of each host's link (download, upload,
   latency), WireGuard peers, SMART health of each disk, the last APT updates,
@@ -124,7 +124,7 @@ Backup → Import / Export**.
 
 1. Open **Settings → Dashboard → Applications** and add your services (name, URL, icon, category, host).
 2. Set each service's **monitoring dot**: green for a monitored service whose
-   outage is critical, orange for monitored but non-critical, grey for no check.
+   outage is critical, yellow for monitored but non-critical, grey for no check.
 3. Give a service a **widget** — that's where the live numbers appear.
 4. Add hosts to organize services by machine, with their own icons and colors.
 5. Pick a theme under **Settings → Appearance → Theme**. The language follows the

@@ -16,7 +16,7 @@
     "danger": "#ff6b6b",
     "success": "#3dff7a",
     "error": "#ff6b6b",
-    "warning": "#ffa64d",
+    "warning": "#ffe14d",
     "shadow": "none"
   },
   "css": "[data-theme=\"high-contrast\"] .page-btn[aria-pressed=\"true\"] {\n  background: var(--surface-3);\n  box-shadow: inset 0 -3px 0 var(--accent);\n}\n\n[data-theme=\"high-contrast\"] :focus-visible {\n  outline: 2px solid var(--accent);\n  outline-offset: 2px;\n}"

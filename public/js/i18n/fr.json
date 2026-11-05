@@ -99,7 +99,7 @@
   "urlLabel": "URL",
   "iconLabel": "Icône",
   "deleteLabel": "Supprimer",
-  "monitorHelp": "Pastille de supervision. Verte : l’application est surveillée et une panne compte comme critique. Orange : surveillée, non critique. Grise : non surveillée. Cliquez sur la pastille pour changer.",
+  "monitorHelp": "Pastille de supervision. Verte : l’application est surveillée et une panne compte comme critique. Jaune : surveillée, non critique. Grise : non surveillée. Cliquez sur la pastille pour changer.",
   "monitorEnabled": "Supervision activée",
   "monitorDisabled": "Supervision désactivée",
   "monitorSoft": "Supervision non critique",

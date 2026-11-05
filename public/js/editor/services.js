@@ -166,7 +166,7 @@ function imageButton(service, index) {
   return button;
 }
 
-// Monitoring: a coloured dot (green monitored, orange non-critical, grey
+// Monitoring: a coloured dot (green monitored, yellow non-critical, grey
 // off), cycled on click; the info bubble next to it explains the colours.
 function monitorControls(service, index) {
   const monitorState =

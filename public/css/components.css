@@ -451,11 +451,10 @@ body.is-refreshing .widget-status {
 }
 
 /* Failed check (unreachable, refused, error): the same yellow "!" on every
-   tile. light-dark() follows the colour scheme set by themes.js, so the yellow
-   stays readable on light themes too. */
+   tile, in the theme's warning yellow like every other warning. */
 .widget-badge.error {
   gap: 5px;
-  color: light-dark(#8a5a00, #f5c518);
+  color: var(--warning);
   letter-spacing: 0;
 }
 
@@ -533,7 +532,7 @@ body.is-refreshing .widget-status {
   cursor: pointer;
 }
 
-/* Monitoring dot: green monitored, orange non-critical, hollow grey off. */
+/* Monitoring dot: green monitored, yellow non-critical, hollow grey off. */
 .monitor-dot {
   width: 12px;
   height: 12px;
@@ -1132,7 +1131,7 @@ body[data-page="supervision"] #collapseAllBtn {
   transition: width 0.3s ease;
 }
 
-/* Seuils : vert < 70 %, orange < 90 %, rouge au-dela. La piste vide (metrique
+/* Seuils : vert < 70 %, jaune < 90 %, rouge au-dela. La piste vide (metrique
    indisponible) est hachuree pour se distinguer d'une mesure a zero. */
 .supervision-fill.warn {
   background: var(--warning);

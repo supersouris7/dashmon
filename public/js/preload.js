@@ -13,8 +13,9 @@
     let vars = localStorage.getItem("dashmon.themeVars");
     if (theme) root.setAttribute("data-theme", theme);
     if (vars) {
-      // Older warning colour, replaced since.
-      vars = vars.replace(/--warning:\s*#f5c542/gi, "--warning:#ff8a1f");
+      // Former orange warning of the native themes: yellow since, so the
+      // first paint does not flash the old colour.
+      vars = vars.replace(/--warning:\s*#ff8a1f/gi, "--warning:#f5c518");
       const style = document.createElement("style");
       style.textContent = ":root{" + vars + "}";
       document.head.appendChild(style);
