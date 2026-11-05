@@ -46,6 +46,14 @@ export function applyWidgetStatus(wrap, service, info) {
     icon.setAttribute("aria-hidden", "true");
     badge.prepend(icon);
   }
+  if (view.badgeUnit && !view.icon) {
+    // Unit of the value ("tokens"): a narrow tile hides it (components.css),
+    // so the application name is not cut.
+    const unit = document.createElement("span");
+    unit.className = "widget-badge-unit";
+    unit.textContent = " " + view.badgeUnit;
+    badge.appendChild(unit);
+  }
   time.className = "widget-time" + (view.timeClass ? " " + view.timeClass : "");
   time.textContent = view.time || "";
   wrap.title = view.title || "";

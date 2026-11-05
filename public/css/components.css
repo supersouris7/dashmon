@@ -467,6 +467,17 @@ body.is-refreshing .widget-status {
   }
 }
 
+/* Unit of a widget value: dropped on a narrow tile, where the application
+   name needs the room (the tooltip still says it). */
+.widget-badge-unit {
+  white-space: pre;
+}
+@container (max-width: 340px) {
+  .widget-badge-unit {
+    display: none;
+  }
+}
+
 .widget-time {
   font-size: 12px;
   line-height: 1.1;

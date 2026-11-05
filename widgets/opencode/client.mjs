@@ -42,7 +42,8 @@ export function render(ctx) {
     );
   }
   return {
-    badge: `${formatCompactNumber(today.tokens || 0)} ${t("tokens")}`,
+    badge: formatCompactNumber(today.tokens || 0),
+    badgeUnit: t("tokens"),
     badgeClass: info.stale ? "pending" : today.tokens > 0 ? "ok" : "",
     time: monthLine,
     timeClass: info.stale ? "pending" : "",

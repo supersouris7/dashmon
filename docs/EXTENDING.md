@@ -139,6 +139,7 @@ lichess.org returns a 429.
 export function render(ctx){
   return {
     badge: "42",            // 1st line
+    badgeUnit: "tokens",    // optional, after the value; hidden on a narrow tile
     badgeClass: "ok",       // ok | nok | warn | pending | ""
     time: "2 min ago",      // 2nd line (hidden in icon mode)
     timeClass: "",          // warn | delta-up | delta-down | ""

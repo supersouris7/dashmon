@@ -269,6 +269,15 @@ async function main() {
       /id="searchBox"[^>]*hidden/.test(toolbarHtml)
   );
   ok(
+    "widgets : unite de la valeur masquee sur une tuile etroite",
+    contains(
+      readSource("public", "css", "components.css"),
+      "@container (max-width: 340px){.widget-badge-unit{display:none;}}"
+    ) &&
+      readSource("public", "js", "widget-registry.js").includes("badgeUnit") &&
+      readSource("public", "js", "dashboard", "cards.js").includes("widget-badge-unit")
+  );
+  ok(
     "toolbar : actions groupees a droite, onglets en dessous si la place manque",
     contains(readSource("public", "css", "base.css"), "flex-wrap:wrap-reverse") &&
       contains(

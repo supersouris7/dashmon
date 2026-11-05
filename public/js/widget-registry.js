@@ -324,6 +324,7 @@ export function renderWidget(service, info, lang) {
     if (!isPlainObject(view)) return fallback("Rendu invalide");
     return {
       badge: view.badge == null ? "" : String(view.badge),
+      badgeUnit: view.badgeUnit == null ? "" : String(view.badgeUnit),
       badgeClass: view.badgeClass ? String(view.badgeClass) : "",
       time: view.time == null ? "" : String(view.time),
       timeClass: view.timeClass ? String(view.timeClass) : "",

@@ -133,7 +133,8 @@ function ctx(host, service) {
     month: { tokens: 5400, sessions: 40, cost: 3 },
     model: "big"
   });
-  assert.equal(fresh.badge, "245 tokens");
+  assert.equal(fresh.badge, "245");
+  assert.equal(fresh.badgeUnit, "tokens");
   assert.equal(fresh.badgeClass, "ok");
   assert.equal(fresh.time, "days30 5400");
   assert.match(fresh.title, /via NAS agent/);
