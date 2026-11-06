@@ -229,9 +229,9 @@
     "semantic_hash": ""
   },
   "test/run.js": {
-    "mtime": 1793873906.368088,
-    "seen": 1793874074.9311843,
-    "ast_hash": "dca4680bf1915bd9ae3b8090df4852e2",
+    "mtime": 1793964432.536024,
+    "seen": 1793964502.741177,
+    "ast_hash": "57d933a4a68bb7beaa15c0ad4843c9a4",
     "semantic_hash": ""
   },
   "test/widgets.test.js": {
@@ -973,9 +973,9 @@
     "semantic_hash": ""
   },
   "lib/version.js": {
-    "mtime": 1793355730.9659061,
-    "seen": 1793358178.496961,
-    "ast_hash": "86b426c34eb01931c2337329e8676189",
+    "mtime": 1793964432.524024,
+    "seen": 1793964502.7408195,
+    "ast_hash": "130bddb3efdcf33f38c538e3a9982844",
     "semantic_hash": ""
   },
   "lib/widgets/core.js": {
@@ -1510,6 +1510,12 @@
     "mtime": 1793873859.4477403,
     "seen": 1793874074.9313245,
     "ast_hash": "85cc68f1075903ce356d4723d3cedec4",
+    "semantic_hash": ""
+  },
+  "test/version.test.js": {
+    "mtime": 1793964438.0160606,
+    "seen": 1793964502.7412074,
+    "ast_hash": "7f813180d97d5daf570b5a0d07900c54",
     "semantic_hash": ""
   },
   "package-lock.json": {
