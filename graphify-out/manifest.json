@@ -73,9 +73,9 @@
     "semantic_hash": ""
   },
   "public/js/app.js": {
-    "mtime": 1793820426.8477962,
-    "seen": 1793821018.674298,
-    "ast_hash": "45ce61dd045dcd874cfc10266b905b1c",
+    "mtime": 1793962139.897215,
+    "seen": 1793962432.540225,
+    "ast_hash": "edd3f6a6b8c55f49a997366067561e49",
     "semantic_hash": ""
   },
   "public/js/dom.js": {
@@ -223,9 +223,9 @@
     "semantic_hash": ""
   },
   "test/frontend.test.js": {
-    "mtime": 1793882471.710778,
-    "seen": 1793882565.2087235,
-    "ast_hash": "3a554fd95673c299c567f0f208eecebf",
+    "mtime": 1793962367.8707683,
+    "seen": 1793962432.540629,
+    "ast_hash": "a73341e9d7db54e1e775fc1be75bd4a6",
     "semantic_hash": ""
   },
   "test/run.js": {
@@ -1465,9 +1465,9 @@
     "semantic_hash": ""
   },
   "public/js/supervision/speedtest-card.js": {
-    "mtime": 1793820561.1167605,
-    "seen": 1793821018.6745028,
-    "ast_hash": "313f782b23fd9b80cc51e1c8fb63d5a2",
+    "mtime": 1793962163.2173738,
+    "seen": 1793962432.540481,
+    "ast_hash": "77b303aa87853b24579a64690ac666ff",
     "semantic_hash": ""
   },
   "test/speedtest.test.js": {
