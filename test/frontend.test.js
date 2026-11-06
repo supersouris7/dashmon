@@ -268,6 +268,23 @@ async function main() {
       toolbarHtml.indexOf('id="searchBox"') > toolbarHtml.indexOf('id="topMenu"') &&
       /id="searchBox"[^>]*hidden/.test(toolbarHtml)
   );
+  // Marges : une seule marge de page, calculee sans la barre de defilement
+  // (100vw l'inclut et decalait les bandeaux de 7,5 px sur PC).
+  {
+    const raw = file => fs.readFileSync(path.join(ROOT, "public", ...file.split("/")), "utf8");
+    const css = raw("css/base.css") + raw("css/components.css");
+    ok(
+      "mise en page : bandeaux alignes sur le contenu, barre de defilement comprise",
+      !css.includes("100vw - 1280px") &&
+        (css.match(/max\(var\(--page-gutter\), calc\(\(100% - 1280px\) \/ 2\)\)/g) || []).length ===
+          4
+    );
+    ok(
+      "reglages : disponibles sur tablette (600 px et plus)",
+      raw("js/app.js").includes('matchMedia("(max-width: 599px)")') &&
+        !/max-width: 700px\) \{\s*#menuSettingsBtn/.test(css)
+    );
+  }
   ok(
     "widgets : unite de la valeur masquee sur une tuile etroite",
     contains(

@@ -29,6 +29,9 @@
   --error: #ff4d6d;
   --warning: #f5c518;
   --shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+  /* Side margin of the page: the top bar, the banners and the content line up
+     on it. Wider screens centre the content on 1280 px instead. */
+  --page-gutter: 26px;
 }
 
 * {
@@ -73,7 +76,9 @@ main {
   align-items: center;
   gap: 10px;
   box-sizing: border-box;
-  padding: 10px max(26px, calc((100vw - 1280px) / 2));
+  /* 100% rather than 100vw: the width without the scroll bar, the one the
+     content is centred in. */
+  padding: 10px max(var(--page-gutter), calc((100% - 1280px) / 2));
   background: var(--bg);
 }
 
@@ -155,7 +160,7 @@ main {
 .search-box {
   position: relative;
   height: 46px;
-  margin: 0 max(26px, calc((100vw - 1280px) / 2)) 10px;
+  margin: 0 max(var(--page-gutter), calc((100% - 1280px) / 2)) 10px;
 }
 .search-box[hidden] {
   display: none;
@@ -694,7 +699,7 @@ main {
   line-height: 1.45;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 599px) {
   .welcome [data-welcome="openSettings"] {
     display: none;
   }
@@ -745,9 +750,11 @@ main {
     padding-left: 0;
     padding-right: 0;
   }
+  :root {
+    --page-gutter: 14px;
+  }
   .toolbar {
     gap: 8px;
-    padding: 10px 14px;
   }
   .toolbar-actions {
     gap: 8px;
@@ -783,6 +790,9 @@ main {
 }
 
 @media (max-width: 560px) {
+  :root {
+    --page-gutter: 10px;
+  }
   body {
     padding: 10px;
   }

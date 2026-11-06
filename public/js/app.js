@@ -214,7 +214,7 @@ toolbarObserver.observe(toolbar);
 
 // No settings on a phone: the entry is hidden (components.css, same width),
 // and settings left open close when the screen becomes that narrow.
-const PHONE = window.matchMedia("(max-width: 700px)");
+const PHONE = window.matchMedia("(max-width: 599px)");
 PHONE.addEventListener("change", event => {
   if (event.matches && modalBackdrop.classList.contains("show")) requestCloseEditor();
 });

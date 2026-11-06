@@ -115,6 +115,20 @@
   display: block;
 }
 
+/* Very wide screen: the panel content stops at 1100 px instead of stretching
+   its fields across the whole width. */
+.settings-page .edit-panel,
+.settings-page .editor-footer {
+  padding-right: max(24px, calc(100% - 1124px));
+}
+
+/* Tablet: a narrower tree leaves the room to the panel. */
+@media (max-width: 1024px) {
+  .settings-page .modal {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 800px) {
   .settings-page .editor-footer {
     flex-wrap: wrap;

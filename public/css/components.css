@@ -81,7 +81,17 @@
   padding-left: 36px;
 }
 
-@media (max-width: 700px) {
+/* Narrow panel (tablet): the search takes its own line, the two filters
+   share the next one; very narrow, one per line. */
+@container (max-width: 640px) {
+  .editor-filterbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .editor-search {
+    grid-column: 1 / -1;
+  }
+}
+@container (max-width: 400px) {
   .editor-filterbar {
     grid-template-columns: 1fr;
   }
@@ -116,6 +126,18 @@
       "image name url actions"
       "image category host actions"
       "image widget widget actions";
+  }
+}
+
+/* Tablet panel: name and URL each get a full line, the actions join the
+   widget line, so the fields keep the whole width. */
+@container (max-width: 600px) {
+  .service-row {
+    grid-template-areas:
+      "image name name name"
+      "image url url url"
+      "category category host host"
+      "widget widget widget actions";
   }
 }
 
@@ -736,7 +758,7 @@ body.is-refreshing .widget-status {
 .web-links-section {
   display: flex;
   align-items: center;
-  margin: 0 max(26px, calc((100vw - 1280px) / 2));
+  margin: 0 max(var(--page-gutter), calc((100% - 1280px) / 2));
   padding: 8px 16px;
   color: var(--text);
   background: var(--surface);
@@ -757,7 +779,7 @@ body.is-refreshing .widget-status {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 10px max(26px, calc((100vw - 1280px) / 2)) 0;
+  margin: 10px max(var(--page-gutter), calc((100% - 1280px) / 2)) 0;
   padding: 6px 6px 6px 16px;
   color: var(--text);
   background: var(--surface);
@@ -2033,7 +2055,8 @@ body[data-page="supervision"] #collapseAllBtn {
   /* La navigation et les actions restent accessibles sur petit ecran. */
   .toolbar {
     gap: 6px;
-    padding: 8px 12px;
+    padding-top: 8px;
+    padding-bottom: 8px;
   }
   .toolbar .icon-btn {
     width: 36px;
@@ -2203,8 +2226,9 @@ body[data-page="supervision"] #collapseAllBtn {
   min-width: 110px;
 }
 
-/* No settings on a phone: same width as PHONE in app.js. */
-@media (max-width: 700px) {
+/* No settings on a phone: same width as PHONE in app.js. Tablets keep them,
+   upright (600 px and more) as well as sideways. */
+@media (max-width: 599px) {
   #menuSettingsBtn {
     display: none;
   }

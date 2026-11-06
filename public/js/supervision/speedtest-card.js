@@ -91,6 +91,8 @@ function graph(history, span, className, label) {
   const to = Date.now();
   const from = to - span;
   const shown = history.filter(point => point[0] >= from);
+  // No measurement over the period: no empty frame.
+  if (!shown.some(point => Number.isFinite(point[1]))) return null;
   const max = Math.max(1, ...shown.map(point => Math.max(point[1] || 0, point[2] || 0)));
   const svg = document.createElementNS(SVG, "svg");
   svg.setAttribute("class", "speedtest-graph " + className);
@@ -249,11 +251,12 @@ export function speedtestCard(host, metrics, { onRun } = {}) {
   );
   card.appendChild(figures);
 
-  card.append(
+  for (const node of [
     graph(history, DAY, "speedtest-graph-day", t("speedtestGraphDay")),
     graph(history, 7 * DAY, "speedtest-graph-week", t("speedtestGraphWeek")),
     details(report)
-  );
+  ])
+    if (node) card.appendChild(node);
 
   const actions = element("div", "speedtest-actions");
   const button = element("button", "action-btn speedtest-run");
