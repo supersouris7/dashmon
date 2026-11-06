@@ -736,8 +736,8 @@ body.is-refreshing .widget-status {
 .web-links-section {
   display: flex;
   align-items: center;
-  margin: 0 max(26px, calc((100vw - 1280px) / 2));
-  padding: 8px 16px;
+  margin: 0;
+  padding: 8px max(26px, calc((100vw - 1280px) / 2));
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -757,8 +757,8 @@ body.is-refreshing .widget-status {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 10px max(26px, calc((100vw - 1280px) / 2)) 0;
-  padding: 6px 6px 6px 16px;
+  margin: 10px 0 0;
+  padding: 6px max(26px, calc((100vw - 1280px) / 2));
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border);
