@@ -818,13 +818,9 @@ body.is-refreshing .widget-status {
   object-fit: contain;
 }
 
-/* Smartphone et tablette : l'interface est epuree. Le bandeau des liens web
-   et la barre fortune disparaissent. */
+/* Tablette : on garde le bandeau des liens web et la barre fortune ; seuls les
+   petits ecrans les masquent pour epurer l'interface. */
 @media (max-width: 800px) {
-  .web-links-section,
-  .fortune-bar {
-    display: none;
-  }
   .search-box {
     margin: 0 14px 4px;
   }
@@ -846,6 +842,12 @@ body.is-refreshing .widget-status {
   }
 }
 @media (max-width: 560px) {
+  /* Petit ecran : on epure l'interface, le bandeau des liens web et la
+     barre fortune disparaissent. */
+  .web-links-section,
+  .fortune-bar {
+    display: none;
+  }
   /* Petit ecran : tout passe a 40 px, comme les boutons de la barre. */
   .search-box {
     height: 40px;
