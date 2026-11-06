@@ -210,5 +210,5 @@ keep the copyright notice.
 If Dashmon is useful to you and you'd like to support its development:
 
 <p align="center">
-  <a href="https://ko-fi.com/dashmon">♥ Support the project on Ko-fi</a>
+  <a href="https://ko-fi.com/supersouris7">♥ Support the project on Ko-fi</a>
 </p>
