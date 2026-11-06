@@ -116,34 +116,7 @@
 }
 
 @media (max-width: 800px) {
-  /* Tablette : le menu devient une barre horizontale defilante, le panneau
-     occupe toute la largeur. */
-  .settings-page .modal {
-    grid-template-columns: 1fr;
-    grid-template-rows: 58px auto minmax(0, 1fr) auto;
-  }
-  .settings-page .edit-tabs {
-    grid-column: 1;
-    grid-row: 2;
-    flex-direction: row;
-    flex-wrap: wrap;
-    overflow-x: auto;
-    border-right: 0;
-    border-bottom: 1px solid var(--border);
-    padding: 8px;
-  }
-  .settings-page .edit-tab {
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
-  .settings-page .edit-panel {
-    grid-column: 1;
-    grid-row: 3;
-    padding: 16px;
-  }
   .settings-page .editor-footer {
-    grid-column: 1;
-    grid-row: 4;
     flex-wrap: wrap;
     height: 44px;
     font-size: 16px;
