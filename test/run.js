@@ -19,6 +19,7 @@ const SUITES = [
   "config-patch.test.js",
   "local-metrics.test.js",
   "speedtest.test.js",
+  "version.test.js",
   "opencode-widget.test.js",
   "sanitize.test.js",
   "secrets.test.js",
