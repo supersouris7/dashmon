@@ -7,12 +7,12 @@ do not provide this card.
 
 ## Installation and selection
 
-On each machine to monitor, install Python 3 and GNU coreutils (`du`). Download
-`deploy/directory-sizes.py` from this repository:
+On each machine to monitor, use a POSIX shell, `awk` and GNU coreutils (`du`, `timeout`, `mktemp`) — no Python or extra runtime is needed. Download
+`deploy/directory-sizes.sh` from this repository:
 
 ```sh
-sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/directory-sizes.py -o /usr/local/bin/dashmon-directory-sizes.py
-sudo chmod 755 /usr/local/bin/dashmon-directory-sizes.py
+sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/directory-sizes.sh -o /usr/local/bin/dashmon-directory-sizes.sh
+sudo chmod 755 /usr/local/bin/dashmon-directory-sizes.sh
 ```
 
 In **Settings → Supervision → Local** or **your agent**, open **Directories**.
@@ -24,13 +24,13 @@ Select directories by passing their absolute paths to the script. Quote paths
 containing spaces. For the local Dashmon container:
 
 ```sh
-python3 /usr/local/bin/dashmon-directory-sizes.py /srv/media /srv/backups
+sh /usr/local/bin/dashmon-directory-sizes.sh /srv/media /srv/backups
 ```
 
 For an agent:
 
 ```sh
-python3 /usr/local/bin/dashmon-directory-sizes.py --container dashmon-agent /srv/media /srv/backups
+sh /usr/local/bin/dashmon-directory-sizes.sh --container dashmon-agent /srv/media /srv/backups
 ```
 
 The script reads directories **on the host**, not inside Docker. No media mount
@@ -47,7 +47,7 @@ machine's Supervision page. Up to 50 directories are supported.
 Schedule the same command with cron, for example once per hour:
 
 ```cron
-0 * * * * python3 /usr/local/bin/dashmon-directory-sizes.py --container dashmon-agent /srv/media /srv/backups
+0 * * * * sh /usr/local/bin/dashmon-directory-sizes.sh --container dashmon-agent /srv/media /srv/backups
 ```
 
 Large directories can take time to scan. Each scan is limited to five minutes

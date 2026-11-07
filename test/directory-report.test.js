@@ -18,12 +18,12 @@ assert.equal(
 
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-directories-"));
 try {
-  const directory = path.join(temporary, "files with spaces");
+  const directory = path.join(temporary, 'files with spaces "quotes" \\ accents é');
   fs.mkdirSync(directory);
   fs.writeFileSync(path.join(directory, "sample"), "hello");
   const output = path.join(temporary, "report.json");
-  execFileSync("python3", [
-    path.join(__dirname, "../deploy/directory-sizes.py"),
+  execFileSync("sh", [
+    path.join(__dirname, "../deploy/directory-sizes.sh"),
     "--output",
     output,
     directory,

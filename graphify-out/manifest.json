@@ -1518,12 +1518,6 @@
     "ast_hash": "7f813180d97d5daf570b5a0d07900c54",
     "semantic_hash": ""
   },
-  "deploy/directory-sizes.py": {
-    "mtime": 1794045845.7337337,
-    "seen": 1794045953.0448072,
-    "ast_hash": "a9570045833d3ba94bade41e78f0502a",
-    "semantic_hash": ""
-  },
   "lib/host/directory-report.js": {
     "mtime": 1794045878.9299543,
     "seen": 1794045953.04488,
@@ -1537,15 +1531,21 @@
     "semantic_hash": ""
   },
   "test/directory-report.test.js": {
-    "mtime": 1794046727.579946,
-    "seen": 1794046787.2183712,
-    "ast_hash": "bb249e625987d9ef68d2463bedbc9be9",
+    "mtime": 1794047303.4801235,
+    "seen": 1794047371.3755505,
+    "ast_hash": "333165796bbdd34dba2bc6ae659da790",
     "semantic_hash": ""
   },
   "docs/DIRECTORIES.md": {
-    "mtime": 1794046351.8290915,
-    "seen": 1794046461.7542684,
-    "ast_hash": "04aaf5b06e9939f46e49a458aa4997b5",
+    "mtime": 1794047310.896176,
+    "seen": 1794047371.375859,
+    "ast_hash": "87f3934b638e7ec035f6ed2f0b9127f8",
+    "semantic_hash": ""
+  },
+  "deploy/directory-sizes.sh": {
+    "mtime": 1794047303.4801235,
+    "seen": 1794047371.3750403,
+    "ast_hash": "a62804415cc68aff458f323c1fe51046",
     "semantic_hash": ""
   },
   "package-lock.json": {
