@@ -223,9 +223,9 @@
     "semantic_hash": ""
   },
   "test/frontend.test.js": {
-    "mtime": 1794055339.8371546,
-    "seen": 1794055469.2018952,
-    "ast_hash": "33e012a4084b713ec90b03cde8a71408",
+    "mtime": 1794069669.235737,
+    "seen": 1794069862.9773178,
+    "ast_hash": "0aa111287952441e03da11c58f0fba89",
     "semantic_hash": ""
   },
   "test/run.js": {
@@ -1165,15 +1165,15 @@
     "semantic_hash": ""
   },
   "public/js/i18n/en.json": {
-    "mtime": 1794054507.5881095,
-    "seen": 1794054645.811672,
-    "ast_hash": "c1cbd158e71a040315e45b5135686358",
+    "mtime": 1794069571.6829958,
+    "seen": 1794069862.9771302,
+    "ast_hash": "34fc0e009220c5f64dac140dd74f7068",
     "semantic_hash": ""
   },
   "public/js/i18n/fr.json": {
-    "mtime": 1794054507.5881095,
-    "seen": 1794054645.8116755,
-    "ast_hash": "26a836b8f63687e3101807ba78752399",
+    "mtime": 1794069571.6829958,
+    "seen": 1794069862.9771335,
+    "ast_hash": "25d3cd9770aac33cd073406252a959cb",
     "semantic_hash": ""
   },
   "public/js/supervision/apt-card.js": {
@@ -1369,8 +1369,8 @@
     "semantic_hash": ""
   },
   "docs/images/settings.png": {
-    "mtime": 1793883574.4797027,
-    "seen": 1793883622.0724316,
+    "mtime": 1794069139.1596007,
+    "seen": 1794069862.977622,
     "ast_hash": "3e5fdb83d9f7e2235f142822e16f42e7",
     "semantic_hash": ""
   },
@@ -1381,26 +1381,26 @@
     "semantic_hash": ""
   },
   "docs/images/dashboard.png": {
-    "mtime": 1793883574.4757028,
-    "seen": 1793883622.0724247,
+    "mtime": 1794069139.1516008,
+    "seen": 1794069862.9776156,
     "ast_hash": "c307bd92b2ac741196934fc39b817605",
     "semantic_hash": ""
   },
   "docs/images/mobile.png": {
-    "mtime": 1793883574.4797027,
-    "seen": 1793883622.072428,
+    "mtime": 1794069139.1556008,
+    "seen": 1794069862.9776187,
     "ast_hash": "c5358a39d068034c8196326171fdec60",
     "semantic_hash": ""
   },
   "docs/images/supervision.png": {
-    "mtime": 1793883574.4837027,
-    "seen": 1793883622.0724378,
+    "mtime": 1794069139.163601,
+    "seen": 1794069862.9776282,
     "ast_hash": "9506a28bad5778597e1016595ff53fd9",
     "semantic_hash": ""
   },
   "docs/images/themes.png": {
-    "mtime": 1793883573.215693,
-    "seen": 1793883622.0724406,
+    "mtime": 1794069139.1676009,
+    "seen": 1794069862.977631,
     "ast_hash": "08ca4920a3a35baf722c1be89a74c8a6",
     "semantic_hash": ""
   },
@@ -1411,8 +1411,8 @@
     "semantic_hash": ""
   },
   "docs/images/supervision-detailed.png": {
-    "mtime": 1793883574.4837027,
-    "seen": 1793883622.0724347,
+    "mtime": 1794069139.163601,
+    "seen": 1794069862.9776251,
     "ast_hash": "1f52ab3a81dbffcadc9ea027e6299d2d",
     "semantic_hash": ""
   },
@@ -1519,33 +1519,39 @@
     "semantic_hash": ""
   },
   "lib/host/directory-report.js": {
-    "mtime": 1794048146.3219893,
-    "seen": 1794048359.3466086,
-    "ast_hash": "73332b1cfb6f62919fb094092e79be34",
+    "mtime": 1794069512.950546,
+    "seen": 1794069862.9768417,
+    "ast_hash": "4f0a2c3b328e026826fce7c9248331e5",
     "semantic_hash": ""
   },
   "public/js/supervision/directory-card.js": {
-    "mtime": 1794055800.6441479,
-    "seen": 1794055911.9118717,
-    "ast_hash": "4f7da8057cd95e0e1374076910ddd1be",
+    "mtime": 1794069653.6716192,
+    "seen": 1794069862.9771771,
+    "ast_hash": "815b8011625fe0f93d75b1ba7def06dd",
     "semantic_hash": ""
   },
   "test/directory-report.test.js": {
-    "mtime": 1794048269.9348412,
-    "seen": 1794048359.3470733,
-    "ast_hash": "767404dc139a10051b01cdce315eea38",
+    "mtime": 1794069606.743263,
+    "seen": 1794069862.9773016,
+    "ast_hash": "54e3dd9ca111fd8e78da7faa99a649ff",
     "semantic_hash": ""
   },
   "docs/DIRECTORIES.md": {
-    "mtime": 1794055368.6053383,
-    "seen": 1794055469.202197,
-    "ast_hash": "28223282bd6e5cdd729571b47ea928ad",
+    "mtime": 1794069588.7151256,
+    "seen": 1794069862.9775786,
+    "ast_hash": "5150fddd63ba9885a5d6cade3ff2c40a",
     "semantic_hash": ""
   },
   "deploy/directory-sizes.sh": {
-    "mtime": 1794048137.8419309,
-    "seen": 1794048359.3465395,
-    "ast_hash": "216facbfb67fc5fb44644b56325d88b3",
+    "mtime": 1794069528.6706667,
+    "seen": 1794069862.9767714,
+    "ast_hash": "79e0c5b607b620607176c93148255530",
+    "semantic_hash": ""
+  },
+  "public/js/supervision/directory-health.js": {
+    "mtime": 1794069653.75562,
+    "seen": 1794069862.9771805,
+    "ast_hash": "f673c4ef7da33690aabf44b1bcaa2fc5",
     "semantic_hash": ""
   },
   "package-lock.json": {
