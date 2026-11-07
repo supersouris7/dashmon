@@ -5,6 +5,16 @@ const os = require("os");
 const path = require("path");
 const { execFileSync } = require("child_process");
 const { readDirectoryReport } = require("../lib/host/directory-report");
+const { sanitizeHostMonitoring } = require("../lib/config/fields");
+
+assert.deepEqual(
+  sanitizeHostMonitoring({ enabled: true, directorySizes: { enabled: false } }).directorySizes,
+  { enabled: false }
+);
+assert.equal(
+  sanitizeHostMonitoring({ enabled: true, directorySizes: { enabled: true } }).directorySizes,
+  undefined
+);
 
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-directories-"));
 try {

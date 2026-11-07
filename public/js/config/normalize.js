@@ -217,6 +217,7 @@ export function normalizeHostMonitoring(raw) {
     smart: normalizeSmartPrefs(raw.smart),
     speedtest: normalizeSpeedtestPrefs(raw.speedtest),
     aptUpdates: normalizeAptUpdatesPrefs(raw.aptUpdates),
+    directorySizes: normalizeAptUpdatesPrefs(raw.directorySizes),
     opencode: normalizeAptUpdatesPrefs(raw.opencode),
     claude: normalizeAptUpdatesPrefs(raw.claude)
   };

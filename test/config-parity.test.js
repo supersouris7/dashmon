@@ -177,6 +177,7 @@ async function main() {
       [
         "aptUpdates",
         "claude",
+        "directorySizes",
         "enabled",
         "speedtest",
         "opencode",

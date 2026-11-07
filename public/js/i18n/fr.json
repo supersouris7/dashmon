@@ -1,5 +1,7 @@
 {
   "directorySizesTitle": "Répertoires",
+  "directorySizesShow": "Afficher la taille des répertoires",
+  "directorySizesHelp": "Installez le script sur cette machine avec le guide ci-dessous. Les chemins à mesurer sont choisis dans la commande du script, pas dans le navigateur. La tuile apparaît après le premier rapport.",
   "directorySizesError": "Mesure impossible",
   "settings": "Paramètres",
   "settingsDashboard": "Dashboard",

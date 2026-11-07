@@ -1,17 +1,17 @@
 # Graph Report - dashmon  (2026-11-07)
 
 ## Corpus Check
-- 249 files · ~141,707 words
+- 249 files · ~141,910 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 17 file(s) not represented in the graph (top: (none) 7, .css 6, .example 2)
 
 ## Summary
-- 2440 nodes · 4782 edges · 139 communities (114 shown, 25 thin omitted)
+- 2440 nodes · 4784 edges · 139 communities (114 shown, 25 thin omitted)
 - Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 274 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `afd0c974`
+- Built from commit: `6c096662`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -70,7 +70,7 @@
 - docker.js
 - duplicati/server.js
 - qbittorrent/server.js
-- replication-config.test.js
+- ref_assert
 - screenshots.js
 - security-headers.test.js
 - lichess/client.mjs
@@ -115,7 +115,7 @@
 - smart-report.js
 - .prettierrc.json
 - Storage
-- ref_fs
+- dockerfile.test.js
 - monitor.js
 - updates
 - registerConfigRoutes
@@ -137,7 +137,7 @@
 - docker.test.js
 - confirm-dialog.test.js
 - directory-sizes.py
-- config-parity.test.js
+- wireguard-report.js
 - ping/server.js
 - Add a widget to Dashmon
 - apt.test.js
@@ -242,8 +242,8 @@ Cohesion: 0.07
 Nodes (58): client.mjs, addServiceBtn, serviceEditor, widgetConfig, widgetConfigBody, widgetConfigCloseBtn, widgetConfigSaveBtn, categorySelect() (+50 more)
 
 ### Community 17 - "sanitizeText"
-Cohesion: 0.17
-Nodes (19): HOST_MONITORING_TYPES, sanitizeFortune(), sanitizeHostMonitoring(), sanitizeLinkCounter(), sanitizeSpeedtest(), SPEEDTEST_INTERVALS, WEB_LINK_COUNTER_TYPES, createConfigNormalizer() (+11 more)
+Cohesion: 0.19
+Nodes (20): HOST_MONITORING_TYPES, sanitizeFortune(), sanitizeHostMonitoring(), sanitizeLinkCounter(), sanitizeSpeedtest(), SPEEDTEST_INTERVALS, WEB_LINK_COUNTER_TYPES, createConfigNormalizer() (+12 more)
 
 ### Community 18 - "gotify/manifest.json"
 Cohesion: 0.06
@@ -385,17 +385,17 @@ Nodes (5): check(), computeStatus(), listBackups(), login(), parseDate()
 Cohesion: 0.39
 Nodes (5): check(), cookieOf(), login(), numberOf(), transferInfo()
 
-### Community 54 - "replication-config.test.js"
-Cohesion: 0.24
-Nodes (7): createReplicationConfig(), sanitizeReplication(), associated(), sanitizeSyncUrl(), assert, result, { sanitizeReplication, sanitizeSyncUrl }
+### Community 54 - "ref_assert"
+Cohesion: 0.10
+Nodes (19): createReplicationConfig(), sanitizeReplication(), associated(), sanitizeSyncUrl(), assert, config, normalize, assert (+11 more)
 
 ### Community 56 - "screenshots.js"
 Cohesion: 0.10
 Nodes (38): CLAUDE_MODELS, compose(), crypto, dataUrl(), downloadIcons(), fakeHostMetrics(), fakeSpeedtest(), fakeStatus() (+30 more)
 
 ### Community 57 - "security-headers.test.js"
-Cohesion: 0.16
-Nodes (7): createRateLimiter(), createRequestLimits(), assert, config, normalize, assert, limiter
+Cohesion: 0.28
+Nodes (4): createRateLimiter(), createRequestLimits(), assert, limiter
 
 ### Community 58 - "lichess/client.mjs"
 Cohesion: 0.53
@@ -463,7 +463,7 @@ Nodes (5): Dashmon configuration, Installation, Scheduling, Security, SMART supe
 
 ### Community 91 - "ref_path"
 Cohesion: 0.07
-Nodes (18): assert, path, { pathToFileURL }, assert, path, { pathToFileURL }, assert, path (+10 more)
+Nodes (18): crypto, fs, path, assert, path, { pathToFileURL }, assert, path (+10 more)
 
 ### Community 92 - "js/config/normalize.js"
 Cohesion: 0.08
@@ -486,8 +486,8 @@ Cohesion: 0.40
 Nodes (5): Browser, Checks, Dashmon architecture, Overview, Server
 
 ### Community 97 - "host/metrics.js"
-Cohesion: 0.10
-Nodes (27): CAPABILITIES, PROTOCOL, fs, nonnegativeInteger(), readAptUpdatesReport(), fs, readDirectoryReport(), createHostMetrics() (+19 more)
+Cohesion: 0.09
+Nodes (23): CAPABILITIES, PROTOCOL, fs, nonnegativeInteger(), readAptUpdatesReport(), fs, readDirectoryReport(), createHostMetrics() (+15 more)
 
 ### Community 98 - "claude-stats.test.js"
 Cohesion: 0.17
@@ -533,9 +533,9 @@ Nodes (3): arrowParens, printWidth, trailingComma
 Cohesion: 0.24
 Nodes (4): extraRoot(), fs, path, Storage
 
-### Community 110 - "ref_fs"
-Cohesion: 0.10
-Nodes (16): crypto, fs, path, assert, { execFileSync }, fs, os, path (+8 more)
+### Community 110 - "dockerfile.test.js"
+Cohesion: 0.22
+Nodes (7): assert, dockerfile, fs, http, path, server, { spawn, spawnSync }
 
 ### Community 111 - "monitor.js"
 Cohesion: 0.39
@@ -605,9 +605,9 @@ Nodes (12): assert, check(), eacces(), http, pending, ref(), dockerErrorBody(), 
 Cohesion: 0.40
 Nodes (5): assert, element(), main(), path, { pathToFileURL }
 
-### Community 133 - "config-parity.test.js"
-Cohesion: 0.24
-Nodes (9): assert, check(), FIXTURES, main(), pairing, path, { pathToFileURL }, SAME_KEYS (+1 more)
+### Community 133 - "wireguard-report.js"
+Cohesion: 0.29
+Nodes (9): byteCount(), fs, handshakeSeconds(), normalizePeer(), normalizeWireguard(), readWireguardDump(), assert, filesystem (+1 more)
 
 ### Community 134 - "ping/server.js"
 Cohesion: 0.31
@@ -618,8 +618,8 @@ Cohesion: 0.22
 Nodes (9): Add a widget to Dashmon, If the plugin is missing or broken, Installing a third-party widget, Keeping a value over time, manifest.json, Security rules, server.js, Serving a link: `defaultFor: "link"` (+1 more)
 
 ### Community 136 - "apt.test.js"
-Cohesion: 0.22
-Nodes (7): assert, bin, dir, fs, os, path, { spawnSync }
+Cohesion: 0.14
+Nodes (10): assert, bin, dir, fs, os, path, { spawnSync }, path (+2 more)
 
 ### Community 137 - "request-origin.js"
 Cohesion: 0.39

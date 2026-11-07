@@ -1,5 +1,7 @@
 {
   "directorySizesTitle": "Directories",
+  "directorySizesShow": "Show directory sizes",
+  "directorySizesHelp": "Install the script on this machine using the guide below. Paths to measure are selected in the script command, not in the browser. The card appears after the first report.",
   "directorySizesError": "Measurement failed",
   "settings": "Settings",
   "settingsDashboard": "Dashboard",

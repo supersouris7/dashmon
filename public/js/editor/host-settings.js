@@ -223,6 +223,14 @@ function speedtestSection(form, monitoring) {
 // Reports with only an on/off switch and a setup guide.
 const REPORT_SECTIONS = [
   [
+    "directorySizesTitle",
+    "fa-solid fa-folder-open",
+    "directorySizes",
+    "directorySizesShow",
+    "directorySizesHelp",
+    "DIRECTORIES.md"
+  ],
+  [
     "tabAptUpdates",
     "fa-solid fa-box",
     "aptUpdates",

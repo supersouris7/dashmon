@@ -8,8 +8,17 @@ do not provide this card.
 ## Installation and selection
 
 On each machine to monitor, install Python 3 and GNU coreutils (`du`). Download
-`deploy/directory-sizes.py` from this repository and place it at
-`/usr/local/bin/dashmon-directory-sizes.py`.
+`deploy/directory-sizes.py` from this repository:
+
+```sh
+sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/directory-sizes.py -o /usr/local/bin/dashmon-directory-sizes.py
+sudo chmod 755 /usr/local/bin/dashmon-directory-sizes.py
+```
+
+In **Settings → Supervision → Local** or **your agent**, open **Directories**.
+Keep **Show directory sizes** checked. The installation guide is linked there.
+This switch controls visibility; the directories to scan are selected below,
+on the machine itself, to avoid allowing arbitrary filesystem scans from the web.
 
 Select directories by passing their absolute paths to the script. Quote paths
 containing spaces. For the local Dashmon container:
