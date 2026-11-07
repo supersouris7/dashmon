@@ -17,3 +17,6 @@ Thumbs.db
 
 # Outils locaux de maintenance (scripts de déploiement personnels, IP internes…)
 .opencode/
+
+# graphify : etat local de construction (contient le chemin absolu du depot)
+graphify-out/.graphify_build_state.json
