@@ -1,3 +1,8 @@
+// Directories card: size of the directories chosen in the host settings,
+// measured by deploy/directory-sizes.sh (lib/host/directory-report.js). Each
+// bar is the share of its disk the directory takes, coloured like the Disk
+// bar of the Resources card. Folded: name, bar and size; opened: the path,
+// the share of the disk and the date of the report.
 import {
   applyHostColor,
   cardKey,
@@ -5,12 +10,118 @@ import {
   setExpanded,
   updateSmartCollapseButton
 } from "./cards.js";
-import { bytesText, reportDateText } from "./format.js";
+import { bytesText, metricSeverity, relativeAge, reportDateText } from "./format.js";
 import { t } from "../i18n.js";
+import {
+  directoryErrorKey,
+  directoryHealth,
+  measured,
+  sharePercentText
+} from "./directory-health.js";
+
+const directoryError = directory => t(directoryErrorKey(directory));
+
+// Status line text and icon from the state computed in directory-health.js.
+function verdictOf(report) {
+  const health = directoryHealth(report);
+  const label =
+    health.key === "directorySizesStale"
+      ? t(health.key) + " · " + relativeAge(health.age)
+      : t(health.key)
+          .replace("{count}", String(health.count))
+          .replace("{total}", bytesText(health.total));
+  return {
+    level: health.level,
+    icon:
+      health.level === "healthy" ? "fa-solid fa-circle-check" : "fa-solid fa-circle-exclamation",
+    label
+  };
+}
+
+function element(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function head() {
+  const box = element("div", "supervision-head");
+  const icon = element("i", "fa-solid fa-folder-open");
+  icon.setAttribute("aria-hidden", "true");
+  const chevron = element("i", "fa-solid fa-chevron-down supervision-smart-chevron");
+  chevron.setAttribute("aria-hidden", "true");
+  box.append(
+    icon,
+    element("span", "supervision-name", t("directorySizesTitle")),
+    element("span", "supervision-type", t("directorySizesBadge")),
+    chevron
+  );
+  return box;
+}
+
+function healthLine(verdict) {
+  const status = element("div", "supervision-health");
+  const box = element("span", "supervision-health-state");
+  const icon = element("i", verdict.icon);
+  icon.setAttribute("aria-hidden", "true");
+  box.append(icon, element("strong", "", verdict.label));
+  status.appendChild(box);
+  return status;
+}
+
+function directoryItem(directory) {
+  const item = element("div", "directory-usage");
+  const row = element("div", "directory-summary");
+  const name = element("span", "directory-name", directory.name || directory.path);
+  name.title = directory.path;
+  const size = element(
+    "span",
+    "directory-size",
+    measured(directory) ? bytesText(directory.bytes) : "—"
+  );
+  const track = element("div", "supervision-track");
+  const fill = element("span", "supervision-fill");
+  let share = "";
+  if (measured(directory) && Number.isSafeInteger(directory.capacity) && directory.capacity > 0) {
+    const percent = Math.min(100, (100 * directory.bytes) / directory.capacity);
+    const severity = metricSeverity(percent);
+    if (severity === 1) fill.classList.add("warn");
+    if (severity === 2) fill.classList.add("high");
+    fill.style.width = percent + "%";
+    share = `${sharePercentText(percent)} · ${t("directorySizesCapacity")} ${bytesText(directory.capacity)}`;
+    track.setAttribute("role", "progressbar");
+    track.setAttribute("aria-label", name.textContent);
+    track.setAttribute("aria-valuemin", "0");
+    track.setAttribute("aria-valuemax", "100");
+    track.setAttribute("aria-valuenow", String(Math.round(percent)));
+    track.setAttribute("aria-valuetext", share);
+    track.title = share;
+  } else {
+    track.classList.add("unknown");
+    track.setAttribute(
+      "aria-label",
+      measured(directory) ? name.textContent : directoryError(directory)
+    );
+    if (!measured(directory)) size.title = directoryError(directory);
+  }
+  track.append(fill);
+  row.append(name, track, size);
+  const details = element("div", "directory-details");
+  details.append(
+    element("div", "", directory.path),
+    element("div", "", measured(directory) ? share || "—" : directoryError(directory))
+  );
+  item.append(row, details);
+  return item;
+}
 
 export function directoryCard(host, report) {
-  const card = document.createElement("article");
-  card.className = "supervision-card supervision-card-directories";
+  const verdict = verdictOf(report);
+  const card = element(
+    "article",
+    "supervision-card supervision-card-directories is-" + verdict.level
+  );
   applyHostColor(card, host);
   const key = cardKey(host);
   card.dataset.directoryKey = key;
@@ -30,83 +141,13 @@ export function directoryCard(host, report) {
     event.preventDefault();
     toggle();
   });
-  const head = document.createElement("div");
-  head.className = "supervision-head";
-  const icon = document.createElement("i");
-  icon.className = "fa-solid fa-folder-open";
-  icon.setAttribute("aria-hidden", "true");
-  const title = document.createElement("span");
-  title.className = "supervision-name";
-  title.textContent = t("directorySizesTitle");
-  if (report.updatedAt) title.title = reportDateText(report.updatedAt);
-  head.append(icon, title);
-  const chevron = document.createElement("i");
-  chevron.className = "fa-solid fa-chevron-down directory-chevron";
-  chevron.setAttribute("aria-hidden", "true");
-  head.append(chevron);
-  card.append(head);
-  for (const directory of report.directories.slice(0, 50)) {
-    const item = document.createElement("div");
-    item.className = "directory-usage";
-    const row = document.createElement("div");
-    row.className = "directory-summary";
-    const name = document.createElement("span");
-    name.textContent = directory.name || directory.path;
-    name.title = directory.path;
-    const size = document.createElement("span");
-    size.textContent =
-      Number.isSafeInteger(directory.bytes) && directory.bytes >= 0
-        ? bytesText(directory.bytes)
-        : "—";
-    if (size.textContent === "—") size.title = t("directorySizesError");
-    row.append(name, size);
-    item.append(row);
-    const track = document.createElement("div");
-    track.className = "supervision-track";
-    const fill = document.createElement("span");
-    fill.className = "supervision-fill";
-    if (
-      Number.isSafeInteger(directory.bytes) &&
-      directory.bytes >= 0 &&
-      Number.isSafeInteger(directory.capacity) &&
-      directory.capacity > 0
-    ) {
-      const percent = Math.min(100, (100 * directory.bytes) / directory.capacity);
-      fill.style.width = percent + "%";
-      track.setAttribute("role", "progressbar");
-      track.setAttribute("aria-label", name.textContent);
-      track.setAttribute("aria-valuemin", "0");
-      track.setAttribute("aria-valuemax", "100");
-      track.setAttribute("aria-valuenow", String(Math.round(percent)));
-      const detail =
-        percent.toFixed(1) +
-        "% · " +
-        t("directorySizesCapacity") +
-        " " +
-        bytesText(directory.capacity);
-      track.setAttribute("aria-valuetext", detail);
-      track.title = detail;
-    } else {
-      track.classList.add("unknown");
-      track.setAttribute("aria-label", t("directorySizesError"));
-    }
-    track.append(fill);
-    row.insertBefore(track, size);
-    const details = document.createElement("div");
-    details.className = "directory-details";
-    const path = document.createElement("div");
-    path.textContent = directory.path;
-    const capacity = document.createElement("div");
-    capacity.textContent = track.title || t("directorySizesError");
-    details.append(path, capacity);
-    item.append(details);
-    card.append(item);
-  }
+
+  card.append(head(), healthLine(verdict));
+  const list = element("div", "directory-list");
+  for (const directory of report.directories.slice(0, 50)) list.append(directoryItem(directory));
+  card.append(list);
   if (report.updatedAt) {
-    const date = document.createElement("p");
-    date.className = "directory-details directory-date";
-    date.textContent = reportDateText(report.updatedAt);
-    card.append(date);
+    card.append(element("p", "directory-details directory-date", reportDateText(report.updatedAt)));
   }
   return card;
 }

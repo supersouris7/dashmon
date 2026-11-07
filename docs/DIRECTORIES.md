@@ -45,10 +45,16 @@ To change the selection, edit the machine's settings in Dashmon and save.
 The next script execution uses the new list without editing cron.
 Use the up/down arrow buttons beside each entry to change its position, then
 save. The card follows this order without waiting for the next scan.
+The status line under the title gives the number of directories and their
+total, or a warning: **Not measured: N** when some directories have no size,
+**Old report: check the cron job** when the last report is more than two days
+old.
+
 Each compact row shows the display name, horizontal bar and size on a single
-line. All rows have the same height and aligned columns. Long names
-are truncated instead of overflowing; hover over a name to read its path.
-The bar shows allocated size divided by total filesystem capacity. Click the
+line. All bars start at the same place, after the longest name, so names stay
+whole; only a name too long for the card is shortened (hover to read its
+path). The bar shows allocated size divided by total filesystem capacity: yellow
+from 70 %, red from 90 %, like the Disk bar of the Resources card. Click the
 card (or press Enter/Space) to show each full path, percentage, disk capacity
 and the report date. The primary rows keep the same layout. Expanded state is
 remembered in this browser, separately per machine, and follows Expand/Collapse
@@ -59,16 +65,21 @@ machine's Supervision page. Up to 50 directories are supported.
 
 ## Scheduling
 
-Schedule the same command with cron, for example once per hour:
+Schedule the same command with cron, once a night: measuring large disks reads
+every file entry, so running it more often mostly keeps the disks busy.
 
 ```cron
-0 * * * * sh /usr/local/bin/dashmon-directory-sizes.sh --container dashmon-agent
+30 3 * * * sh /usr/local/bin/dashmon-directory-sizes.sh --container dashmon-agent
 ```
 
 Large directories can take time to scan. Each scan is limited to five minutes
-per directory; a timeout, inaccessible directory or partial read is displayed
-as **Measurement failed**, never as zero. Avoid scheduling overlapping runs.
-The report date remains visible if the scheduled job stops running.
+per directory. A row without a size says why: **Directory not found**,
+**Measurement failed** (timeout, no read access, partial read) or **Not
+measured yet** (added in the settings after the last run); never zero.
+
+Only one measurement runs at a time for a given container or output file: a
+run started while the previous one is still going stops at once, with a
+message, instead of reading the disks twice.
 
 ## Without Docker
 

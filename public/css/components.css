@@ -1154,41 +1154,49 @@ body[data-page="supervision"] #collapseAllBtn {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-.supervision-card-directories .supervision-head {
-  margin-bottom: 6px;
+.supervision-card-directories.is-healthy .supervision-health-state i {
+  color: var(--success);
 }
-.directory-chevron {
-  margin-left: auto;
-  font-size: 11px;
+.supervision-card-directories.is-warning .supervision-health-state i {
+  color: var(--warning);
 }
-.supervision-card-directories.expanded .directory-chevron {
+.supervision-card-directories.expanded > .supervision-head .supervision-smart-chevron {
   transform: rotate(180deg);
 }
-.directory-usage {
+/* The rows share their columns (subgrid): every bar starts at the same place,
+   after the longest name, so names stay whole while bars stay aligned. */
+.directory-list {
   display: grid;
-  gap: 3px;
-  margin-top: 2px;
+  grid-template-columns: minmax(0, max-content) minmax(48px, 1fr) max-content;
+  column-gap: 10px;
+  row-gap: 2px;
+}
+.directory-usage {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
   min-width: 0;
   font-size: 13px;
 }
 .directory-summary {
+  grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(24px, 1.4fr) 7ch;
+  grid-template-columns: subgrid;
   align-items: center;
-  height: 22px;
-  gap: 8px;
+  min-height: 22px;
 }
-.directory-summary > span:first-child {
+.directory-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.directory-summary > span:last-child {
+.directory-size {
   white-space: nowrap;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 .directory-details {
+  grid-column: 1 / -1;
   display: none;
   min-width: 0;
   overflow-wrap: anywhere;

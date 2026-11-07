@@ -37,6 +37,14 @@ try {
   assert.equal(selected.directories.length, 1);
   assert.equal(selected.directories[0].name, "Medias");
   assert.equal(report.directories[1].bytes, null);
+  // The cause written by the script reaches the card.
+  assert.equal(report.directories[1].error, "invalid_directory");
+  assert.equal(report.directories[0].error, null);
+  // A directory added after the last run: not measured yet.
+  const added = readDirectoryReport(output, {
+    entries: [{ name: "Nouveau", path: path.join(temporary, "new") }]
+  });
+  assert.equal(added.directories[0].error, "not_measured");
   const mockBin = path.join(temporary, "bin");
   fs.mkdirSync(mockBin);
   fs.writeFileSync(
@@ -90,8 +98,8 @@ cat > "$DASHMON_TEST_REPORT"
     })
   );
   assert.deepEqual(readDirectoryReport(output).directories, [
-    { path: "/srv/media", bytes: null, capacity: null },
-    { path: "/srv/empty", bytes: 0, capacity: null }
+    { path: "/srv/media", bytes: null, capacity: null, error: "measurement_failed" },
+    { path: "/srv/empty", bytes: 0, capacity: null, error: null }
   ]);
   fs.writeFileSync(output, "invalid");
   assert.equal(readDirectoryReport(output), null);

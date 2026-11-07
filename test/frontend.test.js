@@ -354,6 +354,37 @@ async function main() {
       !contains(aptSource, "supervision-apt-dot")
   );
   {
+    const health = await import(
+      pathToFileURL(path.join(JS_DIR, "supervision", "directory-health.js")).href
+    );
+    const { state } = await import(pathToFileURL(path.join(JS_DIR, "state.js")).href);
+    const language = state.language;
+    state.language = "fr";
+    const now = 1_000_000;
+    check(
+      "repertoires : etat, cause d'echec et pourcentage localise",
+      [
+        health.directoryHealth({ updatedAt: now, directories: [{ bytes: 1 }, { bytes: 2 }] }, now),
+        health.directoryHealth({ updatedAt: now - 3 * 86400, directories: [] }, now).key,
+        health.directoryHealth({ updatedAt: now, directories: [{ bytes: null }] }, now).key,
+        health.directoryErrorKey({ error: "invalid_directory" }),
+        health.directoryErrorKey({ error: "not_measured" }),
+        health.directoryErrorKey({}),
+        health.sharePercentText(47.5).replace(/\s/g, " ")
+      ],
+      [
+        { level: "healthy", key: "directorySizesSummary", count: 2, total: 3 },
+        "directorySizesStale",
+        "directorySizesUnmeasured",
+        "directorySizesErrorMissing",
+        "directorySizesNotMeasured",
+        "directorySizesError",
+        "47,5 %"
+      ]
+    );
+    state.language = language;
+  }
+  {
     const { aptHealth } = await import(
       pathToFileURL(path.join(JS_DIR, "supervision", "apt-health.js")).href
     );

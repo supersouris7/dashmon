@@ -18,6 +18,16 @@ done
 for tool in du timeout awk mktemp; do
   command -v "$tool" >/dev/null || { echo "Missing tool: $tool" >&2; exit 1; }
 done
+# One measurement at a time per target: du on large disks can outlast the
+# cron period, and two runs would only read the disks twice.
+lock_name=$(printf '%s' "${output:-$container}" | tr -c 'A-Za-z0-9._-' '_')
+lock="${TMPDIR:-/tmp}/dashmon-directory-sizes-${lock_name}.lock"
+if ! mkdir "$lock" 2>/dev/null; then
+  echo "Another measurement is already running ($lock); skipped" >&2
+  exit 0
+fi
+trap 'rmdir "$lock" 2>/dev/null' EXIT
+trap 'exit 1' HUP INT TERM
 if [ -n "$output" ]; then
   case "$output" in /*) ;; *) output="$(pwd)/$output" ;; esac
   temporary=$(mktemp "${output}.XXXXXX")
@@ -25,7 +35,7 @@ else
   temporary=$(mktemp "${TMPDIR:-/tmp}/dashmon-directories.XXXXXX")
 fi
 paths=$(mktemp "${TMPDIR:-/tmp}/dashmon-directory-paths.XXXXXX")
-trap 'rm -f "$temporary" "$paths"' EXIT
+trap 'rm -f "$temporary" "$paths"; rmdir "$lock" 2>/dev/null' EXIT
 if [ "$#" -gt 0 ]; then
   printf '%s\n' "$@" > "$paths"
 else
