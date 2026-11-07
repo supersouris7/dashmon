@@ -4,7 +4,7 @@ import { t } from "../i18n.js";
 
 export function directoryCard(host, report) {
   const card = document.createElement("article");
-  card.className = "supervision-card";
+  card.className = "supervision-card supervision-card-directories";
   applyHostColor(card, host);
   const head = document.createElement("div");
   head.className = "supervision-head";
@@ -14,22 +14,25 @@ export function directoryCard(host, report) {
   const title = document.createElement("span");
   title.className = "supervision-name";
   title.textContent = t("directorySizesTitle");
+  if (report.updatedAt) title.title = reportDateText(report.updatedAt);
   head.append(icon, title);
   card.append(head);
   for (const directory of report.directories.slice(0, 50)) {
+    const item = document.createElement("div");
+    item.className = "directory-usage";
     const row = document.createElement("div");
-    row.className = "supervision-host-detail-row";
+    row.className = "directory-summary";
     const name = document.createElement("span");
     name.textContent = directory.name || directory.path;
     name.title = directory.path;
-    name.style.overflowWrap = "anywhere";
     const size = document.createElement("span");
     size.textContent =
       Number.isSafeInteger(directory.bytes) && directory.bytes >= 0
         ? bytesText(directory.bytes)
-        : t("directorySizesError");
+        : "—";
+    if (size.textContent === "—") size.title = t("directorySizesError");
     row.append(name, size);
-    card.append(row);
+    item.append(row);
     const track = document.createElement("div");
     track.className = "supervision-track";
     const fill = document.createElement("span");
@@ -54,19 +57,14 @@ export function directoryCard(host, report) {
         " " +
         bytesText(directory.capacity);
       track.setAttribute("aria-valuetext", detail);
-      size.textContent += " · " + detail;
+      track.title = detail;
     } else {
       track.classList.add("unknown");
       track.setAttribute("aria-label", t("directorySizesError"));
     }
     track.append(fill);
-    card.append(track);
-  }
-  if (report.updatedAt) {
-    const date = document.createElement("p");
-    date.className = "supervision-smart-updated";
-    date.textContent = reportDateText(report.updatedAt);
-    card.append(date);
+    item.append(track);
+    card.append(item);
   }
   return card;
 }

@@ -43,8 +43,13 @@ privileges; do not give it to an untrusted account.
 
 To change the selection, edit the machine's settings in Dashmon and save.
 The next script execution uses the new list without editing cron.
-Each horizontal bar shows the directory's allocated size divided by the total
-capacity of its filesystem; size, percentage and capacity are displayed.
+Use the up/down arrow buttons beside each entry to change its position, then
+save. The card follows this order without waiting for the next scan.
+Each row shows only the display name, size and a horizontal bar. Long names
+are truncated instead of overflowing; hover over a name to read its path.
+The bar shows allocated size divided by total filesystem capacity; percentage
+and capacity are available on hover and to screen readers. The report date is
+available by hovering over the card title.
 Missing capacity is shown as an unknown bar, never as zero occupancy.
 The card appears automatically after the next metrics refresh, on the selected
 machine's Supervision page. Up to 50 directories are supported.

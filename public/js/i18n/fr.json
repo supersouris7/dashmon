@@ -3,6 +3,8 @@
   "directorySizesShow": "Afficher la taille des répertoires",
   "directorySizesHelp": "Ajoutez un nom et un chemin absolu par répertoire, puis enregistrez. Le script installé sur cette machine récupère cette liste à chaque exécution. La barre indique la part du disque occupée par le répertoire.",
   "directorySizesAdd": "Ajouter un répertoire",
+  "directorySizesUp": "Monter le répertoire",
+  "directorySizesDown": "Descendre le répertoire",
   "directorySizesName": "Nom d’affichage",
   "directorySizesPath": "Chemin absolu",
   "directorySizesCapacity": "capacité du disque :",

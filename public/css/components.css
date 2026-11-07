@@ -1146,6 +1146,32 @@ body[data-page="supervision"] #collapseAllBtn {
   background: var(--surface-3);
 }
 
+.supervision-card-directories {
+  min-width: 0;
+}
+.directory-usage {
+  display: grid;
+  gap: 5px;
+  margin-top: 12px;
+  min-width: 0;
+  font-size: 13px;
+}
+.directory-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 10px;
+}
+.directory-summary > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.directory-summary > span:last-child {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 .supervision-fill {
   display: block;
   height: 100%;

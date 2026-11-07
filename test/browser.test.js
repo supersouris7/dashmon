@@ -423,11 +423,92 @@ async function main() {
   )`),
     [{ name: "Films", path: "/srv/media" }]
   );
-  await evaluate(`document.querySelector('#localHostEditor [name=directorySizesPath]')
-    .closest('.host-settings-section').querySelector('button').click()`);
+  await evaluate(`(()=>{
+    [...document.querySelectorAll('#localHostEditor button')]
+      .find(b => b.textContent === 'Add directory' || b.textContent === 'Ajouter un répertoire').click();
+    const row = document.querySelector('#localHostEditor .directory-setting:last-child');
+    for (const [name,value] of [['directorySizesName','Archives'],['directorySizesPath','/srv/backups']]) {
+      const input = row.querySelector('[name='+name+']');
+      input.value = value;
+      input.dispatchEvent(new Event('input',{bubbles:true}));
+    }
+    row.querySelector('[data-move="-1"]').click();
+  })()`);
+  assert.deepEqual(
+    await evaluate(`import('/js/state.js').then(({state})=>
+      state.editHosts.find(h=>h.monitoring?.enabled&&h.monitoring.type==='local').monitoring.directorySizes.entries.map(e=>e.name))`),
+    ["Archives", "Films"],
+    "repertoires : monter conserve les valeurs"
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('#localHostEditor .directory-setting [data-move=\"-1\"]').disabled"
+    ),
+    true
+  );
+  await evaluate(
+    "document.querySelector('#localHostEditor .directory-setting [data-move=\"1\"]').click()"
+  );
+  assert.deepEqual(
+    await evaluate(`import('/js/state.js').then(({state})=>
+      state.editHosts.find(h=>h.monitoring?.enabled&&h.monitoring.type==='local').monitoring.directorySizes.entries.map(e=>e.name))`),
+    ["Films", "Archives"],
+    "repertoires : descendre conserve les valeurs"
+  );
+  // Directory rows stay inside a narrow panel, including the icon controls.
+  assert.equal(
+    await evaluate(`(()=>{
+    const list = document.querySelector('#localHostEditor .directory-settings-list');
+    list.style.width = '240px';
+    const valid = list.scrollWidth <= list.clientWidth;
+    list.style.width = '';
+    return valid;
+  })()`),
+    true,
+    "repertoires : parametres sans debordement"
+  );
+  await evaluate(`(()=>{
+    while(document.querySelector('#localHostEditor .directory-setting .delete-btn'))
+      document.querySelector('#localHostEditor .directory-setting .delete-btn').click();
+  })()`);
   assert.equal(
     await evaluate("!!document.querySelector('#localHostEditor [name=directorySizesPath]')"),
     false
+  );
+  assert.deepEqual(
+    await evaluate(`import('/js/supervision/directory-card.js').then(({directoryCard})=>{
+    const card = directoryCard({}, {updatedAt:1700000000,directories:[
+      {name:'Un nom de répertoire très long '.repeat(10),path:'/srv/media',bytes:1024,capacity:4096},
+      {path:'/srv/backups/'+'dossier'.repeat(100),bytes:0,capacity:4096},
+      {name:'Absent',path:'/srv/missing',bytes:null,capacity:null}
+    ]});
+    card.style.cssText='position:fixed;top:0;left:0;width:220px';
+    document.body.append(card);
+    const rows=[...card.querySelectorAll('.directory-summary')];
+    const result = {
+      fits: card.scrollWidth <= card.clientWidth && [...card.querySelectorAll('*')].every(e=>
+        e.getBoundingClientRect().right <= card.getBoundingClientRect().right+1),
+      sizes:rows.map(r=>r.lastElementChild.textContent),
+      bars:card.querySelectorAll('[role=progressbar]').length,
+      percent:card.querySelector('[role=progressbar]').getAttribute('aria-valuenow'),
+      unknown:card.querySelectorAll('.supervision-track.unknown').length,
+      detailsHidden:!card.textContent.includes('capacity')&&!card.textContent.includes('capacité')&&
+        !card.textContent.includes('25%')&&!card.querySelector('.supervision-smart-updated'),
+      path:rows[0].firstElementChild.title
+    };
+    card.remove();
+    return result;
+  })`),
+    {
+      fits: true,
+      sizes: ["1 kB", "0 B", "—"],
+      bars: 2,
+      percent: "25",
+      unknown: 1,
+      detailsHidden: true,
+      path: "/srv/media"
+    },
+    "repertoires : tuile epuree, accesible et sans debordement a 220 px"
   );
   assert.equal(
     await evaluate("document.querySelectorAll('#localHostEditor .smart-disk-choice').length"),

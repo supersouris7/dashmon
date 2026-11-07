@@ -691,9 +691,9 @@
     "semantic_hash": ""
   },
   "test/browser.test.js": {
-    "mtime": 1794049338.5280414,
-    "seen": 1794049405.487166,
-    "ast_hash": "02545c1acabf482a81920ef74fbe6abf",
+    "mtime": 1794054551.3044143,
+    "seen": 1794054645.8118694,
+    "ast_hash": "a5aaaf659917ec2851a0833d0db4434c",
     "semantic_hash": ""
   },
   "test/editor-draft.test.js": {
@@ -1165,15 +1165,15 @@
     "semantic_hash": ""
   },
   "public/js/i18n/en.json": {
-    "mtime": 1794048137.8419309,
-    "seen": 1794048359.3469024,
-    "ast_hash": "72a78e4606b0b147aa831938833717d9",
+    "mtime": 1794054507.5881095,
+    "seen": 1794054645.811672,
+    "ast_hash": "c1cbd158e71a040315e45b5135686358",
     "semantic_hash": ""
   },
   "public/js/i18n/fr.json": {
-    "mtime": 1794048137.8419309,
-    "seen": 1794048359.3469052,
-    "ast_hash": "4ddf8deb91ade1ea6359ca3cb06a937e",
+    "mtime": 1794054507.5881095,
+    "seen": 1794054645.8116755,
+    "ast_hash": "26a836b8f63687e3101807ba78752399",
     "semantic_hash": ""
   },
   "public/js/supervision/apt-card.js": {
@@ -1231,9 +1231,9 @@
     "semantic_hash": ""
   },
   "public/js/editor/host-settings.js": {
-    "mtime": 1794048146.6259913,
-    "seen": 1794048359.3468583,
-    "ast_hash": "30b439bc2ed06c32111e4e6774d6ed85",
+    "mtime": 1794054551.124413,
+    "seen": 1794054645.811622,
+    "ast_hash": "46eab2cfa1908a931573631166586645",
     "semantic_hash": ""
   },
   "deploy/opencode-stats.sh": {
@@ -1525,9 +1525,9 @@
     "semantic_hash": ""
   },
   "public/js/supervision/directory-card.js": {
-    "mtime": 1794048146.6779919,
-    "seen": 1794048359.34695,
-    "ast_hash": "e5a6915e82b8f749d54725ee489d0f40",
+    "mtime": 1794054507.5681093,
+    "seen": 1794054645.8117251,
+    "ast_hash": "fbb8cf0cfc22cff42e3371f6d287825a",
     "semantic_hash": ""
   },
   "test/directory-report.test.js": {
@@ -1537,9 +1537,9 @@
     "semantic_hash": ""
   },
   "docs/DIRECTORIES.md": {
-    "mtime": 1794048201.8703723,
-    "seen": 1794048359.3473585,
-    "ast_hash": "5708d5beb80dc26b7e9d25090151e2d2",
+    "mtime": 1794054541.5883465,
+    "seen": 1794054645.81229,
+    "ast_hash": "fbf8967f77a644d190ae04c27e7d7f67",
     "semantic_hash": ""
   },
   "deploy/directory-sizes.sh": {

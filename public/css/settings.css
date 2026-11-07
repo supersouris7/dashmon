@@ -247,6 +247,36 @@
   font-weight: 600;
 }
 
+.directory-settings-list {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.directory-setting {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  align-items: end;
+  gap: 8px;
+  min-width: 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-page .host-settings .directory-setting .host-monitor-field {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  min-width: 0;
+}
+.directory-setting input {
+  width: 100%;
+  min-width: 0;
+}
+.directory-setting-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
 .host-settings-help summary {
   color: var(--muted);
   cursor: pointer;

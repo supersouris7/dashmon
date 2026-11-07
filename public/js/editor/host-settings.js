@@ -1,6 +1,8 @@
 // Same monitoring form for the primary and agents; only their save differs.
 import { t } from "../i18n.js";
 import { SPEEDTEST_DEFAULT_INTERVAL, SPEEDTEST_INTERVALS } from "../config/normalize.js";
+import { moveItem } from "./drag.js";
+import { setIconButton, setDeleteIcon } from "./icon-button.js";
 
 function hint(key) {
   const text = document.createElement("p");
@@ -268,15 +270,16 @@ function directorySection(form, monitoring) {
   };
   toggle(box, monitoring, "directorySizes", "directorySizesShow");
   const list = document.createElement("div");
+  list.className = "directory-settings-list";
   const add = document.createElement("button");
   add.type = "button";
   add.className = "action-btn";
   add.textContent = t("directorySizesAdd");
   function render() {
     list.replaceChildren();
-    for (const entry of monitoring.directorySizes.entries) {
+    for (const [index, entry] of monitoring.directorySizes.entries.entries()) {
       const row = document.createElement("div");
-      row.className = "host-settings-section";
+      row.className = "directory-setting";
       input(row, "directorySizesName", entry.name, value => {
         entry.name = value;
       });
@@ -286,17 +289,42 @@ function directorySection(form, monitoring) {
       path.maxLength = 4096;
       path.required = true;
       path.pattern = "/.*";
+      const actions = document.createElement("div");
+      actions.className = "directory-setting-actions";
+      for (const [offset, icon, label] of [
+        [-1, "fa-solid fa-arrow-up", "directorySizesUp"],
+        [1, "fa-solid fa-arrow-down", "directorySizesDown"]
+      ]) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "action-btn";
+        button.dataset.move = String(offset);
+        setIconButton(button, icon, t(label));
+        const next = index + offset;
+        button.disabled = next < 0 || next >= monitoring.directorySizes.entries.length;
+        button.addEventListener("click", () => {
+          moveItem(monitoring.directorySizes.entries, index, next);
+          render();
+          const moved = list.children[next];
+          const control =
+            moved.querySelector(`[data-move="${offset}"]:not(:disabled)`) ||
+            moved.querySelector("input");
+          control.focus();
+        });
+        actions.append(button);
+      }
       const remove = document.createElement("button");
       remove.type = "button";
-      remove.className = "action-btn";
-      remove.textContent = t("deleteLabel");
+      remove.className = "action-btn delete-btn";
+      setDeleteIcon(remove, t("deleteLabel"));
       remove.addEventListener("click", () => {
         monitoring.directorySizes.entries = monitoring.directorySizes.entries.filter(
           item => item !== entry
         );
         render();
       });
-      row.append(remove);
+      actions.append(remove);
+      row.append(actions);
       list.append(row);
     }
     add.disabled = monitoring.directorySizes.entries.length >= 50;

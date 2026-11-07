@@ -3,6 +3,8 @@
   "directorySizesShow": "Show directory sizes",
   "directorySizesHelp": "Add a display name and absolute path for each directory, then save. The script installed on this machine reads this list on every run. The bar shows the directory's share of disk capacity.",
   "directorySizesAdd": "Add directory",
+  "directorySizesUp": "Move directory up",
+  "directorySizesDown": "Move directory down",
   "directorySizesName": "Display name",
   "directorySizesPath": "Absolute path",
   "directorySizesCapacity": "disk capacity:",
