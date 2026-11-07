@@ -104,7 +104,7 @@ export function directoryCard(host, report) {
   }
   if (report.updatedAt) {
     const date = document.createElement("p");
-    date.className = "directory-details supervision-smart-updated";
+    date.className = "directory-details directory-date";
     date.textContent = reportDateText(report.updatedAt);
     card.append(date);
   }

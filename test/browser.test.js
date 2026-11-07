@@ -500,6 +500,7 @@ async function main() {
           Math.abs((name.top+name.height/2)-(bar.top+bar.height/2))<1;
       }),
       heights:[...new Set(rows.map(r=>r.getBoundingClientRect().height))],
+      spacing:rows[1].getBoundingClientRect().top-rows[0].getBoundingClientRect().bottom,
       path:rows[0].firstElementChild.title
     };
     card.click();
@@ -513,6 +514,15 @@ async function main() {
     card.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
     result.keyboard = result.keyboard && card.getAttribute('aria-expanded') === 'true';
     result.expandedFits = card.scrollWidth <= card.clientWidth;
+    result.footerContained = [180,220,360].every(width=>{
+      card.style.width=width+'px';
+      const footer=card.querySelector('.directory-date').getBoundingClientRect();
+      const bounds=card.getBoundingClientRect();
+      const last=card.querySelector('.directory-usage:last-of-type').getBoundingClientRect();
+      return card.scrollWidth<=card.clientWidth &&
+        footer.bottom<=bounds.bottom-parseFloat(getComputedStyle(card).paddingBottom)+1 &&
+        footer.top>=last.bottom && footer.right<=bounds.right;
+    });
     card.click();
     card.remove();
     return result;
@@ -525,11 +535,13 @@ async function main() {
       unknown: 1,
       detailsHidden: true,
       aligned: true,
-      heights: [24],
+      heights: [22],
+      spacing: 2,
       expanded: true,
       remembered: true,
       keyboard: true,
       expandedFits: true,
+      footerContained: true,
       path: "/srv/media"
     },
     "repertoires : lignes alignees, depliage memorise et sans debordement a 220 px"
