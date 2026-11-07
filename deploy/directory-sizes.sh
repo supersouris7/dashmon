@@ -1,6 +1,10 @@
 #!/bin/sh
 # Selected host directories -> atomic Dashmon report (local or agent).
 set -eu
+
+# Version of this script, written into its report: Dashmon flags a report
+# made by an older script (docs/SCRIPTS.md). Raise it on every change.
+SCRIPT_VERSION=1
 container=dashmon
 output=
 while [ "$#" -gt 0 ]; do
@@ -51,7 +55,7 @@ else
     }
   ' > "$paths"
 fi
-printf '{"updatedAt":%s,"directories":[' "$(date +%s)" > "$temporary"
+printf '{"scriptVersion":%s,"updatedAt":%s,"directories":[' "$SCRIPT_VERSION" "$(date +%s)" > "$temporary"
 separator=
 while IFS= read -r directory; do
   bytes=null

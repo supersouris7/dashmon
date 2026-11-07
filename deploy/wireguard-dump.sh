@@ -52,6 +52,10 @@
 # `docker` doit pouvoir joindre le demon.
 set -eu
 
+# Version of this script, written into its report: Dashmon flags a report
+# made by an older script (docs/SCRIPTS.md). Raise it on every change.
+SCRIPT_VERSION=1
+
 CONT_NAME="${DASHMON_CONTAINER:-dashmon}"
 CONT_PATH="${DASHMON_DUMP_CONTAINER_PATH:-/app/data/wireguard.dump}"
 HOST_FILE="${DASHMON_WIREGUARD_DUMP:-}"
@@ -81,6 +85,9 @@ fi
 # (pair), et remplace la cle publique d'un pair connu par son nom lisible. Les
 # noms sont lus dans "$1" (fichier local, vide si aucun).
 dump_filtered() {
+  # First line: the script version, behind an empty interface name, a line
+  # that readers without this field already skip.
+  printf '\tdashmon-script\t%s\n' "$SCRIPT_VERSION"
   wg show all dump | awk -v namesfile="$1" '
     BEGIN {
       FS = "\t"; OFS = "\t"

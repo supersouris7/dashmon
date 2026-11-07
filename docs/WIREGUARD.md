@@ -15,10 +15,12 @@ The script `wireguard-dump.sh` lives in the repository:
 [`deploy/wireguard-dump.sh`](../deploy/wireguard-dump.sh).
 
 ```sh
-sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/wireguard-dump.sh \
-  -o /usr/local/bin/wireguard-dump.sh
-sudo chmod +x /usr/local/bin/wireguard-dump.sh
+sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/wireguard-dump.sh -o /usr/local/bin/dashmon-wireguard-dump.sh
+sudo chmod 755 /usr/local/bin/dashmon-wireguard-dump.sh
 ```
+
+To update it later, run the same two commands again: see
+[Updating the host scripts](SCRIPTS.md).
 
 It must run as **root** (or via `sudo`): `wg` needs `CAP_NET_ADMIN`, and `docker`
 must be able to reach the daemon.
@@ -28,13 +30,13 @@ place Dashmon actually reads — so nothing is written on the host and no volume
 needs a special mount:
 
 ```sh
-sudo /usr/local/bin/wireguard-dump.sh
+sudo /usr/local/bin/dashmon-wireguard-dump.sh
 ```
 
 For an agent installed with the [startup guide](GETTING_STARTED.md), use:
 
 ```sh
-sudo /usr/local/bin/wireguard-dump.sh dashmon-agent
+sudo /usr/local/bin/dashmon-wireguard-dump.sh dashmon-agent
 ```
 
 In **Settings → Supervision → your agent**, enable
@@ -49,8 +51,8 @@ report on the agent's Supervision tab.
 | 2nd | `/app/data/wireguard.dump` | path **inside** the container (`$DASHMON_DUMP_CONTAINER_PATH`) |
 
 ```sh
-sudo /usr/local/bin/wireguard-dump.sh dashmon-prod
-sudo /usr/local/bin/wireguard-dump.sh dashmon /data/wireguard.dump
+sudo /usr/local/bin/dashmon-wireguard-dump.sh dashmon-prod
+sudo /usr/local/bin/dashmon-wireguard-dump.sh dashmon /data/wireguard.dump
 ```
 
 **Host-file variant (bind mount).** If the first argument looks like a path
@@ -60,7 +62,7 @@ the container and `WIREGUARD_DUMP_FILE` pointed at it. `$DASHMON_WIREGUARD_DUMP`
 does the same without an argument.
 
 ```sh
-sudo /usr/local/bin/wireguard-dump.sh /opt/dashmon/wireguard.dump
+sudo /usr/local/bin/dashmon-wireguard-dump.sh /opt/dashmon/wireguard.dump
 ```
 
 If `wg` is inside a container rather than on the host, run the command in that
@@ -135,13 +137,13 @@ argument the script writes into the container's data directory:
 Once per hour:
 
 ```cron
-0 * * * * /usr/local/bin/wireguard-dump.sh
+0 * * * * /usr/local/bin/dashmon-wireguard-dump.sh
 ```
 
 For an agent, use this line instead:
 
 ```cron
-0 * * * * /usr/local/bin/wireguard-dump.sh dashmon-agent
+0 * * * * /usr/local/bin/dashmon-wireguard-dump.sh dashmon-agent
 ```
 
 If your container has another name, find it with `docker ps` and replace
@@ -150,11 +152,11 @@ If your container has another name, find it with `docker ps` and replace
 Once per day, at 03:00:
 
 ```cron
-0 3 * * * /usr/local/bin/wireguard-dump.sh
+0 3 * * * /usr/local/bin/dashmon-wireguard-dump.sh
 ```
 
 (Add the container name as an argument if it is not `dashmon`, e.g.
-`0 * * * * /usr/local/bin/wireguard-dump.sh dashmon-prod`.)
+`0 * * * * /usr/local/bin/dashmon-wireguard-dump.sh dashmon-prod`.)
 
 The more often the file is regenerated, the fresher the handshakes and traffic
 counters. A daily refresh is enough to see *who is configured*, but peers that

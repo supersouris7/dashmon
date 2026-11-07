@@ -169,6 +169,7 @@ PNG logos for many self-hosted apps.
 | **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** | Primary and agent setup, Portainer and Compose stacks. |
 | **[docs/HTTPS.md](docs/HTTPS.md)** | HTTPS with nginx: copy-paste configuration, Let's Encrypt or local certificate. |
 | **[docs/SPEEDTEST.md](docs/SPEEDTEST.md)** | Speed test card: schedule, data used, own LibreSpeed server. |
+| **[docs/SCRIPTS.md](docs/SCRIPTS.md)** | Updating the scripts installed on each host. |
 | **[docs/WIREGUARD.md](docs/WIREGUARD.md)** | WireGuard dump and cron script. |
 | **[docs/SMART.md](docs/SMART.md)** / **[docs/APT_UPDATES.md](docs/APT_UPDATES.md)** | SMART and APT supervision, local or on an agent. |
 | **[docs/OPENCODE.md](docs/OPENCODE.md)** / **[docs/CLAUDE_CODE.md](docs/CLAUDE_CODE.md)** | OpenCode and Claude Code statistics: models, tokens, tools. |

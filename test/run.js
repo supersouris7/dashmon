@@ -20,6 +20,7 @@ const SUITES = [
   "local-metrics.test.js",
   "speedtest.test.js",
   "version.test.js",
+  "script-versions.test.js",
   "opencode-widget.test.js",
   "sanitize.test.js",
   "secrets.test.js",

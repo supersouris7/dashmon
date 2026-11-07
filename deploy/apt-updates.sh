@@ -5,6 +5,10 @@
 # Planifiez-le avec crontab : docs/APT_UPDATES.md.
 set -u
 
+# Version of this script, written into its report: Dashmon flags a report
+# made by an older script (docs/SCRIPTS.md). Raise it on every change.
+SCRIPT_VERSION=1
+
 CONT_NAME="${DASHMON_CONTAINER:-dashmon}"
 CONT_PATH="${DASHMON_APT_REPORT_CONTAINER_PATH:-/app/data/apt-updates.json}"
 HOST_FILE="${DASHMON_APT_REPORT_FILE:-}"
@@ -71,8 +75,8 @@ fi
 FINISHED="$(date +%s)"
 NEXT_RUN=$((FINISHED + INTERVAL_HOURS * 3600))
 {
-  printf '{"status":"%s","updated":%s,"finishedAt":%s,"nextRunAt":%s,"rebootRequired":%s,"rebootRequested":%s' \
-    "$STATUS" "$UPDATED" "$FINISHED" "$NEXT_RUN" "$REBOOT_REQUIRED" "$REBOOT_REQUESTED"
+  printf '{"scriptVersion":%s,"status":"%s","updated":%s,"finishedAt":%s,"nextRunAt":%s,"rebootRequired":%s,"rebootRequested":%s' \
+    "$SCRIPT_VERSION" "$STATUS" "$UPDATED" "$FINISHED" "$NEXT_RUN" "$REBOOT_REQUIRED" "$REBOOT_REQUESTED"
   if [ "$STATUS" = "failed" ]; then
     printf ',"failedStep":"%s","exitCode":%s,"error":"' "$FAILED_STEP" "$EXIT_CODE"
     # L'extrait peut contenir des URL de depots avec identifiants : on les

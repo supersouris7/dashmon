@@ -2301,3 +2301,43 @@ body[data-page="supervision"] #collapseAllBtn {
     display: none;
   }
 }
+
+/* Older host script (supervision/script-notice.js): a yellow notice at the
+   bottom of the card with the command that updates it. */
+.script-notice {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--warning);
+  border-radius: 3px;
+  cursor: default;
+}
+.script-notice-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 12px;
+}
+.script-notice-title i {
+  color: var(--warning);
+}
+.script-notice-title a {
+  margin-left: auto;
+  color: var(--accent);
+}
+.script-notice-command {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.script-notice-command code {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+  user-select: all;
+}

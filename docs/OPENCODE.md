@@ -20,21 +20,25 @@ prompts, the code or the conversations.
 Install the script on the host where OpenCode runs:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/opencode-stats.sh | sudo install -m 755 /dev/stdin /usr/local/bin/opencode-stats.sh
+sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/opencode-stats.sh -o /usr/local/bin/dashmon-opencode-stats.sh
+sudo chmod 755 /usr/local/bin/dashmon-opencode-stats.sh
 ```
+
+To update it later, run the same two commands again: see
+[Updating the host scripts](SCRIPTS.md).
 
 Run it **as your own user**, not with `sudo`: the statistics live in your home
 directory. Writing into the container requires that this user may use Docker
 (member of the `docker` group). A first run on the primary:
 
 ```sh
-/usr/local/bin/opencode-stats.sh
+/usr/local/bin/dashmon-opencode-stats.sh
 ```
 
 For an agent installed with the [startup guide](GETTING_STARTED.md) stack:
 
 ```sh
-DASHMON_CONTAINER=dashmon-agent /usr/local/bin/opencode-stats.sh
+DASHMON_CONTAINER=dashmon-agent /usr/local/bin/dashmon-opencode-stats.sh
 ```
 
 The script writes to `/app/data/opencode.json` in the `dashmon` container by
@@ -51,13 +55,13 @@ is installed elsewhere, set `OPENCODE_BIN=/path/to/opencode`.
 Add this line to **your** crontab with `crontab -e` (not the root crontab):
 
 ```cron
-*/15 * * * * /usr/local/bin/opencode-stats.sh >/dev/null 2>&1
+*/15 * * * * /usr/local/bin/dashmon-opencode-stats.sh >/dev/null 2>&1
 ```
 
 For an **agent**:
 
 ```cron
-*/15 * * * * DASHMON_CONTAINER=dashmon-agent /usr/local/bin/opencode-stats.sh >/dev/null 2>&1
+*/15 * * * * DASHMON_CONTAINER=dashmon-agent /usr/local/bin/dashmon-opencode-stats.sh >/dev/null 2>&1
 ```
 
 The card flags a report older than 6 hours: the job has probably stopped.
@@ -91,7 +95,7 @@ services:
 The cron line then becomes:
 
 ```cron
-*/15 * * * * DASHMON_OPENCODE_REPORT=/srv/dashmon-reports/opencode.json /usr/local/bin/opencode-stats.sh >/dev/null 2>&1
+*/15 * * * * DASHMON_OPENCODE_REPORT=/srv/dashmon-reports/opencode.json /usr/local/bin/dashmon-opencode-stats.sh >/dev/null 2>&1
 ```
 
 The folder must be writable by your user. The read path stays fixed by the

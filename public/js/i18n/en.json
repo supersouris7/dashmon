@@ -396,5 +396,8 @@
   "demoBtn": "Add the example",
   "demoReady": "Example added: nine fictional applications on three machines. Click Save to keep it; delete them like any other application.",
   "widgetHostAuto": "Automatic: the host of the tile, otherwise this instance",
-  "widgetHostLocal": "Local (this instance)"
+  "widgetHostLocal": "Local (this instance)",
+  "scriptOutdated": "Script to update on this host",
+  "scriptGuide": "Guide",
+  "scriptCopy": "Copy the command"
 }

@@ -14,22 +14,25 @@ not install any cron job automatically.
 Install the files on the host that runs Docker:
 
 ```sh
-sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/apt-updates.sh -o /usr/local/sbin/apt-updates.sh
-sudo chmod 755 /usr/local/sbin/apt-updates.sh
+sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/apt-updates.sh -o /usr/local/bin/dashmon-apt-updates.sh
+sudo chmod 755 /usr/local/bin/dashmon-apt-updates.sh
 ```
+
+To update it later, run the same two commands again: see
+[Updating the host scripts](SCRIPTS.md).
 
 **Warning: this command really installs the updates on the host.** It does not
 ask for a reboot unless `DASHMON_APT_REBOOT=1` is set. To run a first pass on
 the primary:
 
 ```sh
-sudo /usr/local/sbin/apt-updates.sh
+sudo /usr/local/bin/dashmon-apt-updates.sh
 ```
 
 For an agent installed with the [startup guide](GETTING_STARTED.md) stack:
 
 ```sh
-sudo env DASHMON_CONTAINER=dashmon-agent /usr/local/sbin/apt-updates.sh
+sudo env DASHMON_CONTAINER=dashmon-agent /usr/local/bin/dashmon-apt-updates.sh
 ```
 
 The script writes to `/app/data/apt-updates.json` in the `dashmon` container by
@@ -45,13 +48,13 @@ through `APT_UPDATES_REPORT_FILE`.
 Add this line to the root crontab with `sudo crontab -e`:
 
 ```cron
-0 3 * * 3 /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
+0 3 * * 3 /usr/local/bin/dashmon-apt-updates.sh >/dev/null 2>&1
 ```
 
 For an **agent**, use this line instead:
 
 ```cron
-0 3 * * 3 DASHMON_CONTAINER=dashmon-agent /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
+0 3 * * 3 DASHMON_CONTAINER=dashmon-agent /usr/local/bin/dashmon-apt-updates.sh >/dev/null 2>&1
 ```
 
 If your container has another name, find it with `docker ps` and adapt the
@@ -61,13 +64,13 @@ Automatic reboot is **disabled**. To allow it only after a successful update
 that requires it, prefix the cron command:
 
 ```cron
-0 3 * * 3 DASHMON_APT_REBOOT=1 /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
+0 3 * * 3 DASHMON_APT_REBOOT=1 /usr/local/bin/dashmon-apt-updates.sh >/dev/null 2>&1
 ```
 
 To allow the reboot on an agent host:
 
 ```cron
-0 3 * * 3 DASHMON_CONTAINER=dashmon-agent DASHMON_APT_REBOOT=1 /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
+0 3 * * 3 DASHMON_CONTAINER=dashmon-agent DASHMON_APT_REBOOT=1 /usr/local/bin/dashmon-apt-updates.sh >/dev/null 2>&1
 ```
 
 Use only one of the proposed APT lines, not several.
@@ -76,7 +79,7 @@ The default interval is **7 days**, which matches the weekly job above. If you
 schedule another rhythm, tell the script so the card shows a correct next run:
 
 ```cron
-0 3 * * * DASHMON_APT_INTERVAL_HOURS=24 /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
+0 3 * * * DASHMON_APT_INTERVAL_HOURS=24 /usr/local/bin/dashmon-apt-updates.sh >/dev/null 2>&1
 ```
 
 The value is a number of hours. The next run is computed from the end of the
@@ -121,7 +124,7 @@ services:
 The cron line then becomes:
 
 ```cron
-0 3 * * 3 DASHMON_APT_REPORT_FILE=/srv/dashmon-reports/apt-updates.json /usr/local/sbin/apt-updates.sh >/dev/null 2>&1
+0 3 * * 3 DASHMON_APT_REPORT_FILE=/srv/dashmon-reports/apt-updates.json /usr/local/bin/dashmon-apt-updates.sh >/dev/null 2>&1
 ```
 
 The read path stays fixed by the environment, never by the web interface.

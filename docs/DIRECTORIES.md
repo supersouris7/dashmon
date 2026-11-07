@@ -15,6 +15,9 @@ sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/depl
 sudo chmod 755 /usr/local/bin/dashmon-directory-sizes.sh
 ```
 
+To update it later, run the same two commands again: see
+[Updating the host scripts](SCRIPTS.md).
+
 In **Settings → Supervision → Local** or **your agent**, open **Directories**.
 Keep **Show directory sizes** checked. Add each directory with its **display
 name** and **absolute path**, then **Save**. The same form configures local

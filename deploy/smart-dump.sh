@@ -7,6 +7,10 @@
 # DASHMON_SMART_DEVICES contient une liste d'appareils separes par des espaces.
 set -eu
 
+# Version of this script, written into its report: Dashmon flags a report
+# made by an older script (docs/SCRIPTS.md). Raise it on every change.
+SCRIPT_VERSION=1
+
 CONT_NAME="${DASHMON_CONTAINER:-dashmon}"
 CONT_PATH="${DASHMON_SMART_CONTAINER_PATH:-/app/data/smart.json}"
 HOST_FILE="${DASHMON_SMART_DUMP:-}"
@@ -39,7 +43,7 @@ trap 'rm -f "$TMP"' EXIT
 
 # -q noserial evite que les numeros de serie quittent l'hote. smartctl renvoie
 # aussi un code non nul pour certains etats SMART : un JSON produit reste utile.
-printf '{"updatedAt":%s,"disks":[' "$(date +%s)" > "$TMP"
+printf '{"scriptVersion":%s,"updatedAt":%s,"disks":[' "$SCRIPT_VERSION" "$(date +%s)" > "$TMP"
 FIRST=1
 for DEVICE in $DEVICES; do
   JSON="$(smartctl -j -q noserial -a "$DEVICE" 2>/dev/null || true)"

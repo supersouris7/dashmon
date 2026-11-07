@@ -24,8 +24,12 @@ never the prompts, the code or the conversations.
 Install the script on the host where Claude Code runs:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/claude-stats.sh | sudo install -m 755 /dev/stdin /usr/local/bin/claude-stats.sh
+sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/claude-stats.sh -o /usr/local/bin/dashmon-claude-stats.sh
+sudo chmod 755 /usr/local/bin/dashmon-claude-stats.sh
 ```
+
+To update it later, run the same two commands again: see
+[Updating the host scripts](SCRIPTS.md).
 
 Nothing else is needed on the host: the counting runs with the Node.js of the
 Dashmon container, which receives the log lines on its input and keeps nothing.
@@ -37,13 +41,13 @@ directory. Writing into the container requires that this user may use Docker
 (member of the `docker` group). A first run on the primary:
 
 ```sh
-/usr/local/bin/claude-stats.sh
+/usr/local/bin/dashmon-claude-stats.sh
 ```
 
 For an agent installed with the [startup guide](GETTING_STARTED.md) stack:
 
 ```sh
-DASHMON_CONTAINER=dashmon-agent /usr/local/bin/claude-stats.sh
+DASHMON_CONTAINER=dashmon-agent /usr/local/bin/dashmon-claude-stats.sh
 ```
 
 The script writes to `/app/data/claude.json` in the `dashmon` container by
@@ -58,13 +62,13 @@ through `CLAUDE_REPORT_FILE`.
 Add this line to **your** crontab with `crontab -e` (not the root crontab):
 
 ```cron
-*/15 * * * * /usr/local/bin/claude-stats.sh >/dev/null 2>&1
+*/15 * * * * /usr/local/bin/dashmon-claude-stats.sh >/dev/null 2>&1
 ```
 
 For an **agent**:
 
 ```cron
-*/15 * * * * DASHMON_CONTAINER=dashmon-agent /usr/local/bin/claude-stats.sh >/dev/null 2>&1
+*/15 * * * * DASHMON_CONTAINER=dashmon-agent /usr/local/bin/dashmon-claude-stats.sh >/dev/null 2>&1
 ```
 
 The card flags a report older than 6 hours: the job has probably stopped.
@@ -107,7 +111,7 @@ services:
 The cron line then becomes:
 
 ```cron
-*/15 * * * * DASHMON_CLAUDE_REPORT=/srv/dashmon-reports/claude.json /usr/local/bin/claude-stats.sh >/dev/null 2>&1
+*/15 * * * * DASHMON_CLAUDE_REPORT=/srv/dashmon-reports/claude.json /usr/local/bin/dashmon-claude-stats.sh >/dev/null 2>&1
 ```
 
 The folder must be writable by your user. The read path stays fixed by the

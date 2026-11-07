@@ -7,7 +7,8 @@ const filesystem = {
 };
 assert.deepEqual(readWireguardDump("report", { filesystem }), {
   interfaces: [{ interface: "wg0", peers: [] }],
-  fetchedAt: 100
+  fetchedAt: 100,
+  scriptVersion: 0
 });
 assert.equal(
   readWireguardDump("missing", {

@@ -9,6 +9,10 @@
 # Usage : opencode-stats.sh [container] [path-in-container]
 set -eu
 
+# Version of this script, written into its report: Dashmon flags a report
+# made by an older script (docs/SCRIPTS.md). Raise it on every change.
+SCRIPT_VERSION=1
+
 CONT_NAME="${DASHMON_CONTAINER:-dashmon}"
 CONT_PATH="${DASHMON_OPENCODE_CONTAINER_PATH:-/app/data/opencode.json}"
 HOST_FILE="${DASHMON_OPENCODE_REPORT:-}"
@@ -55,8 +59,8 @@ MONTH="$(stats --days 30)"
 ALL="$(stats --all)"
 VERSION="$("$OPENCODE" --version 2>/dev/null | grep -o '[0-9][0-9A-Za-z.+-]*' | head -n 1 | cut -c1-40 || true)"
 
-printf '{"updatedAt":%s,"version":"%s","periods":{"today":%s,"week":%s,"month":%s,"all":%s}}' \
-  "$(date +%s)" "$VERSION" "$TODAY" "$WEEK" "$MONTH" "$ALL" > "$TMP"
+printf '{"scriptVersion":%s,"updatedAt":%s,"version":"%s","periods":{"today":%s,"week":%s,"month":%s,"all":%s}}' \
+  "$SCRIPT_VERSION" "$(date +%s)" "$VERSION" "$TODAY" "$WEEK" "$MONTH" "$ALL" > "$TMP"
 
 if [ -n "$HOST_FILE" ]; then
   mkdir -p "$(dirname "$HOST_FILE")"

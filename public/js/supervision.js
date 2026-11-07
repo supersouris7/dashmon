@@ -20,6 +20,15 @@ import { aptUpdatesCard } from "./supervision/apt-card.js";
 import { USAGE_SOURCES, usageCard } from "./supervision/usage-card.js";
 import { layoutMasonry } from "./supervision/masonry.js";
 import { speedtestCard } from "./supervision/speedtest-card.js";
+import { scriptNotice } from "./supervision/script-notice.js";
+
+// A card whose report comes from an older host script ends with the command
+// that updates it.
+function withScriptNotice(card, metrics, field) {
+  const notice = scriptNotice(metrics, field);
+  if (notice) card.appendChild(notice);
+  return card;
+}
 
 // Interval injected by the server (HOST_METRICS_INTERVAL). HTML served
 // without substitution (tests, local file) falls back to 60 s.
@@ -127,15 +136,19 @@ export function renderSupervision() {
   grid.dataset.columns = state.supervisionColumns;
   monitored.forEach(host => grid.appendChild(hostCard(host, byId.get(host.id))));
   monitored.forEach(host => {
-    const report = byId.get(host.id)?.directorySizes;
+    const metrics = byId.get(host.id);
+    const report = metrics?.directorySizes;
     if (Array.isArray(report?.directories) && report.directories.length)
-      grid.appendChild(directoryCard(host, report));
+      grid.appendChild(withScriptNotice(directoryCard(host, report), metrics, "directorySizes"));
   });
   const wgCards = [];
   monitored.forEach(host => {
     const metrics = byId.get(host.id);
     const interfaces = visibleInterfaces(host, metrics);
-    if (hasWireguardDump(host, metrics)) wgCards.push(wireguardCard(host, metrics, interfaces));
+    if (hasWireguardDump(host, metrics))
+      wgCards.push(
+        withScriptNotice(wireguardCard(host, metrics, interfaces), metrics, "wireguard")
+      );
   });
   // Speed test right after the host and its VPN: both describe its links.
   monitored.forEach(host => {
@@ -147,13 +160,14 @@ export function renderSupervision() {
   monitored.forEach(host => {
     const metrics = byId.get(host.id);
     const disks = visibleSmartDisks(host, metrics);
-    if (disks.length) grid.appendChild(smartCard(host, metrics, disks));
+    if (disks.length)
+      grid.appendChild(withScriptNotice(smartCard(host, metrics, disks), metrics, "smart"));
   });
   monitored.forEach(host => {
     const metrics = byId.get(host.id);
     const prefs = host.monitoring?.aptUpdates;
     if (host.monitoring?.type === "local" && metrics?.ok && prefs?.enabled !== false)
-      grid.appendChild(aptUpdatesCard(host, metrics));
+      grid.appendChild(withScriptNotice(aptUpdatesCard(host, metrics), metrics, "aptUpdates"));
   });
   // Coding agent cards only show up once a report exists: most hosts never
   // run one.
@@ -162,7 +176,7 @@ export function renderSupervision() {
       const metrics = byId.get(host.id);
       const field = source.field;
       if (metrics?.ok && metrics[field] && host.monitoring?.[field]?.enabled !== false)
-        grid.appendChild(usageCard(host, metrics, source));
+        grid.appendChild(withScriptNotice(usageCard(host, metrics, source), metrics, field));
     });
   }
   supervisionList.append(grid);

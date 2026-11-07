@@ -446,7 +446,8 @@ names and bind mounts. SMART and APT have their own local guides:
 [SMART](../docs/SMART.md), [APT updates](../docs/APT_UPDATES.md),
 [speed test](../docs/SPEEDTEST.md),
 [OpenCode statistics](../docs/OPENCODE.md) and
-[Claude Code statistics](../docs/CLAUDE_CODE.md).
+[Claude Code statistics](../docs/CLAUDE_CODE.md). These scripts are copies on
+the host: [update them](../docs/SCRIPTS.md) when a card asks for it.
 
 ### Disk of the real host (type Local)
 

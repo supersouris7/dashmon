@@ -15,6 +15,10 @@
 # Usage : claude-stats.sh [container] [path-in-container]
 set -eu
 
+# Version of this script, written into its report: Dashmon flags a report
+# made by an older script (docs/SCRIPTS.md). Raise it on every change.
+SCRIPT_VERSION=1
+
 CONT_NAME="${DASHMON_CONTAINER:-dashmon}"
 CONT_PATH="${DASHMON_CLAUDE_CONTAINER_PATH:-/app/data/claude.json}"
 HOST_FILE="${DASHMON_CLAUDE_REPORT:-}"
@@ -224,6 +228,7 @@ async function main() {
   }
   process.stdout.write(
     JSON.stringify({
+      scriptVersion: Number(process.argv[2]) || 0,
       updatedAt: Math.floor(now.getTime() / 1000),
       version: (version.match(/[0-9][0-9A-Za-z.+-]*/) || [""])[0].slice(0, 40),
       periods
@@ -247,7 +252,7 @@ logs() {
 }
 
 if [ -n "$HOST_FILE" ]; then
-  logs | "$NODE" -e "$CODE" "$(date +%z)" > "$TMP"
+  logs | "$NODE" -e "$CODE" "$(date +%z)" "$SCRIPT_VERSION" > "$TMP"
   mkdir -p "$(dirname "$HOST_FILE")"
   OUT_TMP="${HOST_FILE}.tmp"
   cp "$TMP" "$OUT_TMP"
@@ -258,7 +263,7 @@ if [ -n "$HOST_FILE" ]; then
   exit 0
 fi
 
-logs | docker exec -i "$CONT_NAME" node -e "$CODE" "$(date +%z)" > "$TMP"
+logs | docker exec -i "$CONT_NAME" node -e "$CODE" "$(date +%z)" "$SCRIPT_VERSION" > "$TMP"
 # Atomic write: the server never meets a half-written JSON.
 docker exec -i "$CONT_NAME" sh -c "cat > '$CONT_PATH.tmp' && mv -f '$CONT_PATH.tmp' '$CONT_PATH'" < "$TMP"
 echo "claude-stats.sh: report written to $CONT_NAME:$CONT_PATH" >&2
