@@ -151,9 +151,9 @@
     "semantic_hash": ""
   },
   "public/js/supervision.js": {
-    "mtime": 1793820515.9084358,
-    "seen": 1793821018.6744702,
-    "ast_hash": "997233302078d5f2714d30106f3882a2",
+    "mtime": 1794045845.7377338,
+    "seen": 1794045953.0451918,
+    "ast_hash": "a7eb2f2dfd50d54dec73a23821d5ace5",
     "semantic_hash": ""
   },
   "public/js/themes.js": {
@@ -229,9 +229,9 @@
     "semantic_hash": ""
   },
   "test/run.js": {
-    "mtime": 1793964432.536024,
-    "seen": 1793964502.741177,
-    "ast_hash": "57d933a4a68bb7beaa15c0ad4843c9a4",
+    "mtime": 1794045903.6901186,
+    "seen": 1794045953.0453784,
+    "ast_hash": "52a422f9ae882e6015fbb1dc8ec65a52",
     "semantic_hash": ""
   },
   "test/widgets.test.js": {
@@ -505,9 +505,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1793883509.3352015,
-    "seen": 1793883622.072372,
-    "ast_hash": "c26f4605301f28a968d98391b2dda2e0",
+    "mtime": 1793966432.212888,
+    "seen": 1794045953.04564,
+    "ast_hash": "459cdf72f4bae402e14956c7b89399be",
     "semantic_hash": ""
   },
   "deploy/DEPLOYMENT.md": {
@@ -559,9 +559,9 @@
     "semantic_hash": ""
   },
   "public/index.html": {
-    "mtime": 1793799636.6956828,
-    "seen": 1793800192.812633,
-    "ast_hash": "2c69fb1702b88b6389442858f160cddd",
+    "mtime": 1793966432.212888,
+    "seen": 1794045953.045709,
+    "ast_hash": "c6104ba08d0cbcf5ec7602646a5fb4d6",
     "semantic_hash": ""
   },
   "public/login.html": {
@@ -721,9 +721,9 @@
     "semantic_hash": ""
   },
   "lib/agent/protocol.js": {
-    "mtime": 1793820412.7316947,
-    "seen": 1793821018.6741164,
-    "ast_hash": "de36d52a9fae5e6e045e99fdaedbe112",
+    "mtime": 1794045845.7337337,
+    "seen": 1794045953.0448434,
+    "ast_hash": "503679ecdffca4eba6c26786edbe3dcf",
     "semantic_hash": ""
   },
   "lib/agent/replication-config.js": {
@@ -763,9 +763,9 @@
     "semantic_hash": ""
   },
   "lib/config/settings.js": {
-    "mtime": 1793820399.3715987,
-    "seen": 1793821018.6741424,
-    "ast_hash": "4108998e9573d43a85c70b968b7e1499",
+    "mtime": 1794045845.7337337,
+    "seen": 1794045953.0448697,
+    "ast_hash": "0c3fadb481907d211202efee65e4cee4",
     "semantic_hash": ""
   },
   "lib/config/store.js": {
@@ -787,9 +787,9 @@
     "semantic_hash": ""
   },
   "lib/host/metrics.js": {
-    "mtime": 1793820399.3715987,
-    "seen": 1793821018.6741564,
-    "ast_hash": "ef8b29bc519202a2b62b976518cb9483",
+    "mtime": 1794045845.7337337,
+    "seen": 1794045953.0448868,
+    "ast_hash": "8694d58f0a03a12b1203cecf6788fe43",
     "semantic_hash": ""
   },
   "lib/host/smart-report.js": {
@@ -1165,15 +1165,15 @@
     "semantic_hash": ""
   },
   "public/js/i18n/en.json": {
-    "mtime": 1793882796.4174917,
-    "seen": 1793882973.6809623,
-    "ast_hash": "8f3aaba1a8bebeea418b54ef5185bd7b",
+    "mtime": 1794045845.7377338,
+    "seen": 1794045953.0451603,
+    "ast_hash": "8e4a58bba18cb7aef26d5fa67ccc29eb",
     "semantic_hash": ""
   },
   "public/js/i18n/fr.json": {
-    "mtime": 1793882796.4174917,
-    "seen": 1793882973.6809654,
-    "ast_hash": "9515ff38333aee4f51786d5780917fea",
+    "mtime": 1794045845.7377338,
+    "seen": 1794045953.0451632,
+    "ast_hash": "f3786e087d1ea4ba80e7e6d44daccaf2",
     "semantic_hash": ""
   },
   "public/js/supervision/apt-card.js": {
@@ -1516,6 +1516,36 @@
     "mtime": 1793964438.0160606,
     "seen": 1793964502.7412074,
     "ast_hash": "7f813180d97d5daf570b5a0d07900c54",
+    "semantic_hash": ""
+  },
+  "deploy/directory-sizes.py": {
+    "mtime": 1794045845.7337337,
+    "seen": 1794045953.0448072,
+    "ast_hash": "a9570045833d3ba94bade41e78f0502a",
+    "semantic_hash": ""
+  },
+  "lib/host/directory-report.js": {
+    "mtime": 1794045878.9299543,
+    "seen": 1794045953.04488,
+    "ast_hash": "e2ed1109a7062707dbbd8a0694a518f8",
+    "semantic_hash": ""
+  },
+  "public/js/supervision/directory-card.js": {
+    "mtime": 1794045878.9779546,
+    "seen": 1794045953.0452065,
+    "ast_hash": "2630ebe17db4dbf66dd386143a9e92ea",
+    "semantic_hash": ""
+  },
+  "test/directory-report.test.js": {
+    "mtime": 1794045879.0179548,
+    "seen": 1794045953.0453248,
+    "ast_hash": "3239f3d10db52a7f1e660832bd55afa7",
+    "semantic_hash": ""
+  },
+  "docs/DIRECTORIES.md": {
+    "mtime": 1794045872.873914,
+    "seen": 1794045953.0456688,
+    "ast_hash": "44b10e0dbd5492d75b6ae1c82e585343",
     "semantic_hash": ""
   },
   "package-lock.json": {

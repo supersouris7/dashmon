@@ -1,4 +1,6 @@
 {
+  "directorySizesTitle": "Répertoires",
+  "directorySizesError": "Mesure impossible",
   "settings": "Paramètres",
   "settingsDashboard": "Dashboard",
   "settingsLocalHost": "Local",

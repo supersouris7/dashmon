@@ -1,4 +1,6 @@
 {
+  "directorySizesTitle": "Directories",
+  "directorySizesError": "Measurement failed",
   "settings": "Settings",
   "settingsDashboard": "Dashboard",
   "settingsLocalHost": "Local",

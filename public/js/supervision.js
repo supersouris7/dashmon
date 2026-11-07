@@ -9,6 +9,7 @@ import { supervisionList, supervisionPage } from "./dom.js";
 import { updateSmartCollapseButton } from "./supervision/cards.js";
 import { selectedSupervisionInstanceId } from "./supervision/instances.js";
 import { hostCard } from "./supervision/host-card.js";
+import { directoryCard } from "./supervision/directory-card.js";
 import {
   visibleInterfaces,
   hasWireguardDump,
@@ -125,6 +126,11 @@ export function renderSupervision() {
   grid.className = "supervision-grid";
   grid.dataset.columns = state.supervisionColumns;
   monitored.forEach(host => grid.appendChild(hostCard(host, byId.get(host.id))));
+  monitored.forEach(host => {
+    const report = byId.get(host.id)?.directorySizes;
+    if (Array.isArray(report?.directories) && report.directories.length)
+      grid.appendChild(directoryCard(host, report));
+  });
   const wgCards = [];
   monitored.forEach(host => {
     const metrics = byId.get(host.id);
