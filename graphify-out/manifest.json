@@ -73,9 +73,9 @@
     "semantic_hash": ""
   },
   "public/js/app.js": {
-    "mtime": 1793962139.897215,
-    "seen": 1793962432.540225,
-    "ast_hash": "edd3f6a6b8c55f49a997366067561e49",
+    "mtime": 1794055339.8331547,
+    "seen": 1794055469.201453,
+    "ast_hash": "f9cc67391f3d4b9154f5cb5c44e6f2e7",
     "semantic_hash": ""
   },
   "public/js/dom.js": {
@@ -139,9 +139,9 @@
     "semantic_hash": ""
   },
   "public/js/state.js": {
-    "mtime": 1793820426.8477962,
-    "seen": 1793821018.6744637,
-    "ast_hash": "9726bd956fa0c0b68cd69e07463a88d7",
+    "mtime": 1794055339.8331547,
+    "seen": 1794055469.2016695,
+    "ast_hash": "596cc70ce2541f9675ef7747c1cc5a5d",
     "semantic_hash": ""
   },
   "public/js/status.js": {
@@ -169,9 +169,9 @@
     "semantic_hash": ""
   },
   "public/js/view-prefs.js": {
-    "mtime": 1793820426.855796,
-    "seen": 1793821018.6745236,
-    "ast_hash": "2402a8ec8703eb7eba1eb6bff3a1bfff",
+    "mtime": 1794055339.8331547,
+    "seen": 1794055469.2017565,
+    "ast_hash": "6ca12335513cbe6959620e95afb44dec",
     "semantic_hash": ""
   },
   "public/js/widget-registry.js": {
@@ -223,9 +223,9 @@
     "semantic_hash": ""
   },
   "test/frontend.test.js": {
-    "mtime": 1793962367.8707683,
-    "seen": 1793962432.540629,
-    "ast_hash": "a73341e9d7db54e1e775fc1be75bd4a6",
+    "mtime": 1794055339.8371546,
+    "seen": 1794055469.2018952,
+    "ast_hash": "33e012a4084b713ec90b03cde8a71408",
     "semantic_hash": ""
   },
   "test/run.js": {
@@ -691,9 +691,9 @@
     "semantic_hash": ""
   },
   "test/browser.test.js": {
-    "mtime": 1794054551.3044143,
-    "seen": 1794054645.8118694,
-    "ast_hash": "a5aaaf659917ec2851a0833d0db4434c",
+    "mtime": 1794055368.6053383,
+    "seen": 1794055469.2018166,
+    "ast_hash": "88472591952d35418c19c4224157214e",
     "semantic_hash": ""
   },
   "test/editor-draft.test.js": {
@@ -1039,9 +1039,9 @@
     "semantic_hash": ""
   },
   "public/js/config/normalize.js": {
-    "mtime": 1794048201.8703723,
-    "seen": 1794048359.3467882,
-    "ast_hash": "2b4ca1ac53d9d2e29ad59cfb9b475121",
+    "mtime": 1794055339.8331547,
+    "seen": 1794055469.2014759,
+    "ast_hash": "7f8d98b09f2074ca33a3b298bdb45bee",
     "semantic_hash": ""
   },
   "public/js/config/sanitize.js": {
@@ -1183,9 +1183,9 @@
     "semantic_hash": ""
   },
   "public/js/supervision/cards.js": {
-    "mtime": 1793820833.1507132,
-    "seen": 1793821018.6744816,
-    "ast_hash": "a090b87d11d41b1e19ddeebbaf017cda",
+    "mtime": 1794055379.2974067,
+    "seen": 1794055469.201694,
+    "ast_hash": "e975d74953c2145b8d371da5002918e4",
     "semantic_hash": ""
   },
   "public/js/supervision/format.js": {
@@ -1525,9 +1525,9 @@
     "semantic_hash": ""
   },
   "public/js/supervision/directory-card.js": {
-    "mtime": 1794054507.5681093,
-    "seen": 1794054645.8117251,
-    "ast_hash": "fbb8cf0cfc22cff42e3371f6d287825a",
+    "mtime": 1794055379.2254064,
+    "seen": 1794055469.201699,
+    "ast_hash": "3b329bad56d75fca918d2773ab7fba13",
     "semantic_hash": ""
   },
   "test/directory-report.test.js": {
@@ -1537,9 +1537,9 @@
     "semantic_hash": ""
   },
   "docs/DIRECTORIES.md": {
-    "mtime": 1794054541.5883465,
-    "seen": 1794054645.81229,
-    "ast_hash": "fbf8967f77a644d190ae04c27e7d7f67",
+    "mtime": 1794055368.6053383,
+    "seen": 1794055469.202197,
+    "ast_hash": "28223282bd6e5cdd729571b47ea928ad",
     "semantic_hash": ""
   },
   "deploy/directory-sizes.sh": {

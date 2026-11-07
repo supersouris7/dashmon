@@ -45,11 +45,14 @@ To change the selection, edit the machine's settings in Dashmon and save.
 The next script execution uses the new list without editing cron.
 Use the up/down arrow buttons beside each entry to change its position, then
 save. The card follows this order without waiting for the next scan.
-Each row shows only the display name, size and a horizontal bar. Long names
+Each compact row shows the display name, horizontal bar and size on a single
+line. All rows have the same height and aligned columns. Long names
 are truncated instead of overflowing; hover over a name to read its path.
-The bar shows allocated size divided by total filesystem capacity; percentage
-and capacity are available on hover and to screen readers. The report date is
-available by hovering over the card title.
+The bar shows allocated size divided by total filesystem capacity. Click the
+card (or press Enter/Space) to show each full path, percentage, disk capacity
+and the report date. The primary rows keep the same layout. Expanded state is
+remembered in this browser, separately per machine, and follows Expand/Collapse
+all. Percentage and capacity remain available on hover and to screen readers.
 Missing capacity is shown as an unknown bar, never as zero occupancy.
 The card appears automatically after the next metrics refresh, on the selected
 machine's Supervision page. Up to 50 directories are supported.

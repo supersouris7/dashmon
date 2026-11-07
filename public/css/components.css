@@ -1148,6 +1148,18 @@ body[data-page="supervision"] #collapseAllBtn {
 
 .supervision-card-directories {
   min-width: 0;
+  cursor: pointer;
+}
+.supervision-card-directories:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.directory-chevron {
+  margin-left: auto;
+  font-size: 11px;
+}
+.supervision-card-directories.expanded .directory-chevron {
+  transform: rotate(180deg);
 }
 .directory-usage {
   display: grid;
@@ -1158,9 +1170,10 @@ body[data-page="supervision"] #collapseAllBtn {
 }
 .directory-summary {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) minmax(24px, 1.4fr) 7ch;
+  align-items: center;
+  height: 24px;
+  gap: 8px;
 }
 .directory-summary > span:first-child {
   overflow: hidden;
@@ -1169,7 +1182,18 @@ body[data-page="supervision"] #collapseAllBtn {
 }
 .directory-summary > span:last-child {
   white-space: nowrap;
+  text-align: right;
   font-variant-numeric: tabular-nums;
+}
+.directory-details {
+  display: none;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: var(--muted);
+}
+.supervision-card-directories.expanded .directory-details {
+  display: block;
 }
 
 .supervision-fill {

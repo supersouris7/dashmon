@@ -25,6 +25,7 @@ export const state = {
   collapsed: {},
   supervisionSmartExpanded: [],
   supervisionHostExpanded: [],
+  supervisionDirectoryExpanded: [],
   supervisionAptExpanded: [],
   supervisionOpencodeExpanded: [],
   supervisionClaudeExpanded: [],

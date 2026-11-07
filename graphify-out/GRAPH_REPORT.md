@@ -1,17 +1,17 @@
 # Graph Report - dashmon  (2026-11-07)
 
 ## Corpus Check
-- 249 files · ~143,468 words
+- 249 files · ~143,712 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 17 file(s) not represented in the graph (top: (none) 7, .css 6, .example 2)
 
 ## Summary
-- 2436 nodes · 4795 edges · 145 communities (121 shown, 24 thin omitted)
+- 2436 nodes · 4803 edges · 143 communities (119 shown, 24 thin omitted)
 - Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 274 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `10453d8e`
+- Built from commit: `3fee57c6`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -70,7 +70,7 @@
 - docker.js
 - duplicati/server.js
 - qbittorrent/server.js
-- replication-config.test.js
+- config-parity.test.js
 - screenshots.js
 - security-headers.test.js
 - lichess/client.mjs
@@ -144,10 +144,8 @@
 - request-origin.js
 - Directory sizes
 - security-headers.test.js
-- config-parity.test.js
 - Add a widget to Dashmon
 - Registry
-- opencode/server.js
 - identity.js
 
 ## God Nodes (most connected - your core abstractions)
@@ -177,7 +175,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (145 total, 24 thin omitted)
+## Communities (143 total, 24 thin omitted)
 
 ### Community 0 - "supervision.js"
 Cohesion: 0.06
@@ -395,9 +393,9 @@ Nodes (5): check(), computeStatus(), listBackups(), login(), parseDate()
 Cohesion: 0.39
 Nodes (5): check(), cookieOf(), login(), numberOf(), transferInfo()
 
-### Community 54 - "replication-config.test.js"
-Cohesion: 0.24
-Nodes (7): createReplicationConfig(), sanitizeReplication(), associated(), sanitizeSyncUrl(), assert, result, { sanitizeReplication, sanitizeSyncUrl }
+### Community 54 - "config-parity.test.js"
+Cohesion: 0.12
+Nodes (16): createReplicationConfig(), sanitizeReplication(), associated(), sanitizeSyncUrl(), assert, check(), FIXTURES, main() (+8 more)
 
 ### Community 56 - "screenshots.js"
 Cohesion: 0.10
@@ -484,8 +482,8 @@ Cohesion: 0.17
 Nodes (11): Creating a theme, Dashmon — Customization guide, Example, File format, Font Awesome icons (categories, hosts, web links), Fortune Cookie, Icons, Images (services) (+3 more)
 
 ### Community 94 - "opencode-widget.test.js"
-Cohesion: 0.14
-Nodes (14): createUsageSource(), agentName(), agentOfService(), fromAgent(), usageReport(), KINDS, agents, assert (+6 more)
+Cohesion: 0.12
+Nodes (18): createUsageSource(), agentName(), agentOfService(), fromAgent(), usageReport(), KINDS, agents, assert (+10 more)
 
 ### Community 95 - "pairing-list.js"
 Cohesion: 0.30
@@ -647,17 +645,9 @@ Nodes (5): Directory sizes, Installation and selection, Permissions, Scheduling,
 Cohesion: 0.38
 Nodes (5): CONTENT_SECURITY_POLICY, securityHeaders(), assert, headers(), plain
 
-### Community 140 - "config-parity.test.js"
-Cohesion: 0.24
-Nodes (9): assert, check(), FIXTURES, main(), pairing, path, { pathToFileURL }, SAME_KEYS (+1 more)
-
 ### Community 141 - "Add a widget to Dashmon"
 Cohesion: 0.22
 Nodes (9): Add a widget to Dashmon, If the plugin is missing or broken, Installing a third-party widget, Keeping a value over time, manifest.json, Security rules, server.js, Serving a link: `defaultFor: "link"` (+1 more)
-
-### Community 143 - "opencode/server.js"
-Cohesion: 0.80
-Nodes (4): check(), mainModel(), summary(), usedTokens()
 
 ### Community 144 - "identity.js"
 Cohesion: 0.40
@@ -676,7 +666,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **What connects `DEBIAN_FRONTEND`, `LC_ALL`, `RFC-5737` to the rest of the system?**
   _3 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `supervision.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.05787106446776612 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05907046476761619 - nodes in this community are weakly interconnected._
 - **Why does `ctx()` connect `opencode-widget.test.js` to `js/config/normalize.js`?**
   _High betweenness centrality (0.196) - this node is a cross-community bridge._
 - **Should `dom.js` be split into smaller, more focused modules?**

@@ -1,4 +1,10 @@
-import { applyHostColor } from "./cards.js";
+import {
+  applyHostColor,
+  cardKey,
+  isExpanded,
+  setExpanded,
+  updateSmartCollapseButton
+} from "./cards.js";
 import { bytesText, reportDateText } from "./format.js";
 import { t } from "../i18n.js";
 
@@ -6,6 +12,24 @@ export function directoryCard(host, report) {
   const card = document.createElement("article");
   card.className = "supervision-card supervision-card-directories";
   applyHostColor(card, host);
+  const key = cardKey(host);
+  card.dataset.directoryKey = key;
+  card.classList.toggle("expanded", isExpanded("supervisionDirectoryExpanded", key));
+  card.setAttribute("role", "button");
+  card.setAttribute("aria-expanded", String(card.classList.contains("expanded")));
+  card.tabIndex = 0;
+  const toggle = () => {
+    const expanded = card.classList.toggle("expanded");
+    card.setAttribute("aria-expanded", String(expanded));
+    setExpanded("supervisionDirectoryExpanded", key, expanded);
+    updateSmartCollapseButton();
+  };
+  card.addEventListener("click", toggle);
+  card.addEventListener("keydown", event => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    toggle();
+  });
   const head = document.createElement("div");
   head.className = "supervision-head";
   const icon = document.createElement("i");
@@ -16,6 +40,10 @@ export function directoryCard(host, report) {
   title.textContent = t("directorySizesTitle");
   if (report.updatedAt) title.title = reportDateText(report.updatedAt);
   head.append(icon, title);
+  const chevron = document.createElement("i");
+  chevron.className = "fa-solid fa-chevron-down directory-chevron";
+  chevron.setAttribute("aria-hidden", "true");
+  head.append(chevron);
   card.append(head);
   for (const directory of report.directories.slice(0, 50)) {
     const item = document.createElement("div");
@@ -63,8 +91,22 @@ export function directoryCard(host, report) {
       track.setAttribute("aria-label", t("directorySizesError"));
     }
     track.append(fill);
-    item.append(track);
+    row.insertBefore(track, size);
+    const details = document.createElement("div");
+    details.className = "directory-details";
+    const path = document.createElement("div");
+    path.textContent = directory.path;
+    const capacity = document.createElement("div");
+    capacity.textContent = track.title || t("directorySizesError");
+    details.append(path, capacity);
+    item.append(details);
     card.append(item);
+  }
+  if (report.updatedAt) {
+    const date = document.createElement("p");
+    date.className = "directory-details supervision-smart-updated";
+    date.textContent = reportDateText(report.updatedAt);
+    card.append(date);
   }
   return card;
 }

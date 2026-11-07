@@ -9,7 +9,7 @@ import { sanitizeTileColor } from "../config/sanitize.js";
 
 export const EXPANDABLE_CARDS =
   ".supervision-card-smart,.supervision-card-host.has-details,.supervision-card-apt.has-details," +
-  ".supervision-card-usage,.supervision-card-speedtest";
+  ".supervision-card-usage,.supervision-card-speedtest,.supervision-card-directories";
 
 // A card is identified by instance and host: the same machine seen from the
 // main dashboard and from an agent keeps two separate states.
@@ -38,6 +38,7 @@ export function setAllSmartDetails(expanded) {
   const fields = {
     supervisionSmartExpanded: [],
     supervisionHostExpanded: [],
+    supervisionDirectoryExpanded: [],
     supervisionAptExpanded: [],
     supervisionOpencodeExpanded: [],
     supervisionClaudeExpanded: [],
@@ -48,6 +49,8 @@ export function setAllSmartDetails(expanded) {
     card.setAttribute("aria-expanded", String(expanded));
     if (card.dataset.smartKey) fields.supervisionSmartExpanded.push(card.dataset.smartKey);
     if (card.dataset.hostKey) fields.supervisionHostExpanded.push(card.dataset.hostKey);
+    if (card.dataset.directoryKey)
+      fields.supervisionDirectoryExpanded.push(card.dataset.directoryKey);
     if (card.dataset.aptKey) fields.supervisionAptExpanded.push(card.dataset.aptKey);
     if (card.dataset.opencodeKey) fields.supervisionOpencodeExpanded.push(card.dataset.opencodeKey);
     if (card.dataset.claudeKey) fields.supervisionClaudeExpanded.push(card.dataset.claudeKey);
@@ -65,6 +68,7 @@ export function setAllSmartDetails(expanded) {
   saveViewPrefs({
     supervisionSmartExpanded: state.supervisionSmartExpanded,
     supervisionHostExpanded: state.supervisionHostExpanded,
+    supervisionDirectoryExpanded: state.supervisionDirectoryExpanded,
     supervisionAptExpanded: state.supervisionAptExpanded,
     supervisionOpencodeExpanded: state.supervisionOpencodeExpanded,
     supervisionClaudeExpanded: state.supervisionClaudeExpanded,

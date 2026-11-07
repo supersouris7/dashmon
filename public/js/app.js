@@ -120,6 +120,7 @@ async function loadConfig() {
     state.supervisionInstanceId = viewPrefs.supervisionInstanceId;
     state.supervisionSmartExpanded = viewPrefs.supervisionSmartExpanded;
     state.supervisionHostExpanded = viewPrefs.supervisionHostExpanded;
+    state.supervisionDirectoryExpanded = viewPrefs.supervisionDirectoryExpanded;
     state.supervisionAptExpanded = viewPrefs.supervisionAptExpanded;
     state.supervisionOpencodeExpanded = viewPrefs.supervisionOpencodeExpanded;
     state.supervisionClaudeExpanded = viewPrefs.supervisionClaudeExpanded;

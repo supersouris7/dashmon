@@ -477,11 +477,12 @@ async function main() {
   );
   assert.deepEqual(
     await evaluate(`import('/js/supervision/directory-card.js').then(({directoryCard})=>{
-    const card = directoryCard({}, {updatedAt:1700000000,directories:[
+    const report = {updatedAt:1700000000,directories:[
       {name:'Un nom de répertoire très long '.repeat(10),path:'/srv/media',bytes:1024,capacity:4096},
       {path:'/srv/backups/'+'dossier'.repeat(100),bytes:0,capacity:4096},
       {name:'Absent',path:'/srv/missing',bytes:null,capacity:null}
-    ]});
+    ]};
+    const card = directoryCard({}, report);
     card.style.cssText='position:fixed;top:0;left:0;width:220px';
     document.body.append(card);
     const rows=[...card.querySelectorAll('.directory-summary')];
@@ -492,10 +493,27 @@ async function main() {
       bars:card.querySelectorAll('[role=progressbar]').length,
       percent:card.querySelector('[role=progressbar]').getAttribute('aria-valuenow'),
       unknown:card.querySelectorAll('.supervision-track.unknown').length,
-      detailsHidden:!card.textContent.includes('capacity')&&!card.textContent.includes('capacité')&&
-        !card.textContent.includes('25%')&&!card.querySelector('.supervision-smart-updated'),
+      detailsHidden:[...card.querySelectorAll('.directory-details')].every(e=>getComputedStyle(e).display==='none'),
+      aligned: rows.every(r=> {
+        const [name,bar,size]=[...r.children].map(e=>e.getBoundingClientRect());
+        return name.right<=bar.left && bar.right<=size.left &&
+          Math.abs((name.top+name.height/2)-(bar.top+bar.height/2))<1;
+      }),
+      heights:[...new Set(rows.map(r=>r.getBoundingClientRect().height))],
       path:rows[0].firstElementChild.title
     };
+    card.click();
+    result.expanded = card.getAttribute('aria-expanded') === 'true' &&
+      [...card.querySelectorAll('.directory-details')].every(e=>getComputedStyle(e).display!=='none');
+    const refreshed = directoryCard({}, report);
+    result.remembered = refreshed.getAttribute('aria-expanded') === 'true' &&
+      JSON.parse(localStorage.getItem('dashmon.view')).supervisionDirectoryExpanded.includes(card.dataset.directoryKey);
+    card.dispatchEvent(new KeyboardEvent('keydown',{key:' ',bubbles:true}));
+    result.keyboard = card.getAttribute('aria-expanded') === 'false';
+    card.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
+    result.keyboard = result.keyboard && card.getAttribute('aria-expanded') === 'true';
+    result.expandedFits = card.scrollWidth <= card.clientWidth;
+    card.click();
     card.remove();
     return result;
   })`),
@@ -506,9 +524,15 @@ async function main() {
       percent: "25",
       unknown: 1,
       detailsHidden: true,
+      aligned: true,
+      heights: [24],
+      expanded: true,
+      remembered: true,
+      keyboard: true,
+      expandedFits: true,
       path: "/srv/media"
     },
-    "repertoires : tuile epuree, accesible et sans debordement a 220 px"
+    "repertoires : lignes alignees, depliage memorise et sans debordement a 220 px"
   );
   assert.equal(
     await evaluate("document.querySelectorAll('#localHostEditor .smart-disk-choice').length"),

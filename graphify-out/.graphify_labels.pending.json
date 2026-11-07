@@ -53,7 +53,7 @@
   "51": "docker.js",
   "52": "duplicati/server.js",
   "53": "qbittorrent/server.js",
-  "54": "replication-config.test.js",
+  "54": "config-parity.test.js",
   "55": "README.md",
   "56": "screenshots.js",
   "57": "security-headers.test.js",
@@ -139,9 +139,7 @@
   "137": "request-origin.js",
   "138": "Directory sizes",
   "139": "security-headers.test.js",
-  "140": "config-parity.test.js",
   "141": "Add a widget to Dashmon",
   "142": "Registry",
-  "143": "opencode/server.js",
   "144": "identity.js"
 }

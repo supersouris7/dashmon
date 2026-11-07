@@ -28,6 +28,7 @@ const ALLOWED = Object.freeze([
   "supervisionInstanceId",
   "supervisionSmartExpanded",
   "supervisionHostExpanded",
+  "supervisionDirectoryExpanded",
   "supervisionAptExpanded",
   "supervisionOpencodeExpanded",
   "supervisionClaudeExpanded",
