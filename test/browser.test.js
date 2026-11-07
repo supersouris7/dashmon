@@ -23,14 +23,14 @@ async function freePort() {
   return value;
 }
 async function ready(url) {
-  for (let i = 0; i < 150; i++) {
+  for (let i = 0; i < 600; i++) {
     try {
       const response = await fetch(url);
       if (response.ok) return response;
     } catch (_error) {}
     await wait(100);
   }
-  throw new Error("Service de test indisponible");
+  throw new Error("Service de test indisponible : " + url);
 }
 async function main() {
   const appPort = await freePort(),
@@ -95,11 +95,13 @@ async function main() {
         "--no-sandbox",
         "--disable-gpu",
         "--disable-dev-shm-usage",
+        "--no-first-run",
+        "--no-default-browser-check",
         `--user-data-dir=${dir}/profile`,
         `--remote-debugging-port=${debugPort}`,
         "about:blank"
       ],
-      { stdio: "ignore" }
+      { stdio: ["ignore", "ignore", "inherit"] }
     )
   );
   await ready(`http://${loopback}:${debugPort}/json/version`);
@@ -394,6 +396,39 @@ async function main() {
     "import('/js/state.js').then(({state})=>{const host=state.editHosts.find(h=>h.monitoring?.enabled&&h.monitoring.type==='local');state.hostMetrics=[{id:host.id,smart:[{device:'/dev/sda'},{device:'/dev/sdb'}]}]})"
   );
   await evaluate("document.querySelector('[data-panel=localHostPanel]').click()");
+  assert.equal(
+    await evaluate(`(()=>{
+    const button = [...document.querySelectorAll('#localHostEditor button')]
+      .find(b => b.textContent === 'Add directory' || b.textContent === 'Ajouter un répertoire');
+    if (!button) return false;
+    button.scrollIntoView();
+    return button.getBoundingClientRect().height > 0 && getComputedStyle(button).visibility !== 'hidden';
+  })()`),
+    true,
+    "repertoires : bouton Ajouter visible"
+  );
+  await evaluate(`(()=>{
+    const button = [...document.querySelectorAll('#localHostEditor button')]
+      .find(b => b.textContent === 'Add directory' || b.textContent === 'Ajouter un répertoire');
+    button.click();
+    for (const [name, value] of [['directorySizesName','Films'],['directorySizesPath','/srv/media']]) {
+      const input = document.querySelector('#localHostEditor [name='+name+']');
+      input.value = value;
+      input.dispatchEvent(new Event('input', {bubbles:true}));
+    }
+  })()`);
+  assert.deepEqual(
+    await evaluate(`import('/js/state.js').then(({state})=>
+    state.editHosts.find(h=>h.monitoring?.enabled&&h.monitoring.type==='local').monitoring.directorySizes.entries
+  )`),
+    [{ name: "Films", path: "/srv/media" }]
+  );
+  await evaluate(`document.querySelector('#localHostEditor [name=directorySizesPath]')
+    .closest('.host-settings-section').querySelector('button').click()`);
+  assert.equal(
+    await evaluate("!!document.querySelector('#localHostEditor [name=directorySizesPath]')"),
+    false
+  );
   assert.equal(
     await evaluate("document.querySelectorAll('#localHostEditor .smart-disk-choice').length"),
     2
