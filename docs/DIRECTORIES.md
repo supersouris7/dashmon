@@ -16,21 +16,24 @@ sudo chmod 755 /usr/local/bin/dashmon-directory-sizes.sh
 ```
 
 In **Settings → Supervision → Local** or **your agent**, open **Directories**.
-Keep **Show directory sizes** checked. The installation guide is linked there.
-This switch controls visibility; the directories to scan are selected below,
-on the machine itself, to avoid allowing arbitrary filesystem scans from the web.
+Keep **Show directory sizes** checked. Add each directory with its **display
+name** and **absolute path**, then **Save**. The same form configures local
+and remote agents. The installation guide is linked there.
 
-Select directories by passing their absolute paths to the script. Quote paths
-containing spaces. For the local Dashmon container:
+The script reads the saved selection from the chosen container at each run.
+Only the Node runtime already included in the container is used to read JSON:
+neither Node nor Python needs to be installed on the host.
+
+For the local Dashmon container:
 
 ```sh
-sh /usr/local/bin/dashmon-directory-sizes.sh /srv/media /srv/backups
+sh /usr/local/bin/dashmon-directory-sizes.sh
 ```
 
 For an agent:
 
 ```sh
-sh /usr/local/bin/dashmon-directory-sizes.sh --container dashmon-agent /srv/media /srv/backups
+sh /usr/local/bin/dashmon-directory-sizes.sh --container dashmon-agent
 ```
 
 The script reads directories **on the host**, not inside Docker. No media mount
@@ -38,7 +41,11 @@ or privileged container is needed. Run it with an account that can read the
 selected directories and publish to Docker. Docker access grants administrative
 privileges; do not give it to an untrusted account.
 
-To change the selection, change the paths in the command and run it again.
+To change the selection, edit the machine's settings in Dashmon and save.
+The next script execution uses the new list without editing cron.
+Each horizontal bar shows the directory's allocated size divided by the total
+capacity of its filesystem; size, percentage and capacity are displayed.
+Missing capacity is shown as an unknown bar, never as zero occupancy.
 The card appears automatically after the next metrics refresh, on the selected
 machine's Supervision page. Up to 50 directories are supported.
 
@@ -47,7 +54,7 @@ machine's Supervision page. Up to 50 directories are supported.
 Schedule the same command with cron, for example once per hour:
 
 ```cron
-0 * * * * sh /usr/local/bin/dashmon-directory-sizes.sh --container dashmon-agent /srv/media /srv/backups
+0 * * * * sh /usr/local/bin/dashmon-directory-sizes.sh --container dashmon-agent
 ```
 
 Large directories can take time to scan. Each scan is limited to five minutes
@@ -57,10 +64,18 @@ The report date remains visible if the scheduled job stops running.
 
 ## Without Docker
 
-Use `--output /srv/dashmon-reports/directory-sizes.json` and configure
+For an installation without Docker, explicit paths remain supported:
+`sh directory-sizes.sh --output /srv/dashmon-reports/directory-sizes.json /srv/media`.
+Configure
 `DIRECTORY_REPORT_FILE` to that file in Dashmon or the agent. The destination
 directory must already exist. For containers using a read-only report mount,
 write to the host side of that mount instead.
+
+## Permissions
+
+Administrators who can edit supervision settings can choose any directory
+readable by the script account on that machine. Run the collector with the
+least filesystem privileges needed. It reads sizes only, never file contents.
 
 Reports are written atomically. Only paths and sizes are transmitted, not file
 names or contents. Directory paths are visible to authenticated dashboard users.

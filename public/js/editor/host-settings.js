@@ -223,14 +223,6 @@ function speedtestSection(form, monitoring) {
 // Reports with only an on/off switch and a setup guide.
 const REPORT_SECTIONS = [
   [
-    "directorySizesTitle",
-    "fa-solid fa-folder-open",
-    "directorySizes",
-    "directorySizesShow",
-    "directorySizesHelp",
-    "DIRECTORIES.md"
-  ],
-  [
     "tabAptUpdates",
     "fa-solid fa-box",
     "aptUpdates",
@@ -259,10 +251,62 @@ export function renderHostSettings(container, { config, metrics, onRename = () =
   wireguardSection(form, monitoring);
   speedtestSection(form, monitoring);
   smartSection(form, monitoring, metrics);
+  directorySection(form, monitoring);
   for (const [title, icon, key, label, helpKey, file] of REPORT_SECTIONS) {
     const box = section(form, title, icon);
     toggle(box, monitoring, key, label);
     help(box, helpKey, file);
   }
   container.appendChild(form);
+}
+
+function directorySection(form, monitoring) {
+  const box = section(form, "directorySizesTitle", "fa-solid fa-folder-open");
+  monitoring.directorySizes = {
+    enabled: monitoring.directorySizes?.enabled !== false,
+    entries: monitoring.directorySizes?.entries || []
+  };
+  toggle(box, monitoring, "directorySizes", "directorySizesShow");
+  const list = document.createElement("div");
+  const add = document.createElement("button");
+  add.type = "button";
+  add.className = "action-btn";
+  add.textContent = t("directorySizesAdd");
+  function render() {
+    list.replaceChildren();
+    for (const entry of monitoring.directorySizes.entries) {
+      const row = document.createElement("div");
+      row.className = "host-settings-section";
+      input(row, "directorySizesName", entry.name, value => {
+        entry.name = value;
+      });
+      const path = input(row, "directorySizesPath", entry.path, value => {
+        entry.path = value;
+      });
+      path.maxLength = 4096;
+      path.required = true;
+      path.pattern = "/.*";
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "action-btn";
+      remove.textContent = t("deleteLabel");
+      remove.addEventListener("click", () => {
+        monitoring.directorySizes.entries = monitoring.directorySizes.entries.filter(
+          item => item !== entry
+        );
+        render();
+      });
+      row.append(remove);
+      list.append(row);
+    }
+    add.disabled = monitoring.directorySizes.entries.length >= 50;
+  }
+  add.addEventListener("click", () => {
+    monitoring.directorySizes.entries.push({ name: "", path: "" });
+    render();
+    list.lastElementChild.querySelector("input").focus();
+  });
+  render();
+  box.append(list, add);
+  help(box, "directorySizesHelp", "DIRECTORIES.md");
 }

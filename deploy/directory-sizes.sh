@@ -14,7 +14,7 @@ while [ "$#" -gt 0 ]; do
     *) break ;;
   esac
 done
-[ "$#" -ge 1 ] && [ "$#" -le 50 ] || { echo "Provide 1 to 50 absolute directory paths" >&2; exit 1; }
+[ "$#" -le 50 ] || { echo "Provide at most 50 absolute directory paths" >&2; exit 1; }
 for tool in du timeout awk mktemp; do
   command -v "$tool" >/dev/null || { echo "Missing tool: $tool" >&2; exit 1; }
 done
@@ -24,11 +24,28 @@ if [ -n "$output" ]; then
 else
   temporary=$(mktemp "${TMPDIR:-/tmp}/dashmon-directories.XXXXXX")
 fi
-trap 'rm -f "$temporary"' EXIT
+paths=$(mktemp "${TMPDIR:-/tmp}/dashmon-directory-paths.XXXXXX")
+trap 'rm -f "$temporary" "$paths"' EXIT
+if [ "$#" -gt 0 ]; then
+  printf '%s\n' "$@" > "$paths"
+else
+  # Use the Node runtime already shipped inside Dashmon, not on the host.
+  docker exec "$container" node -e '
+    const fs = require("fs");
+    const path = require("path");
+    const config = JSON.parse(fs.readFileSync(process.env.CONFIG_FILE || path.join(process.env.DATA_DIR || "/app/data", "config.json"), "utf8"));
+    const host = (config.hosts || []).find(h => h.monitoring?.enabled && h.monitoring.type === "local");
+    const prefs = host?.monitoring.directorySizes;
+    if (prefs?.enabled !== false) for (const entry of (prefs?.entries || []).slice(0, 50)) {
+      if (typeof entry.path === "string" && entry.path.startsWith("/") && entry.path.length <= 4096 && !/[\x00-\x1f\x7f]/.test(entry.path)) console.log(entry.path);
+    }
+  ' > "$paths"
+fi
 printf '{"updatedAt":%s,"directories":[' "$(date +%s)" > "$temporary"
 separator=
-for directory do
+while IFS= read -r directory; do
   bytes=null
+  capacity=null
   error=invalid_directory
   case "$directory" in
     /*)
@@ -37,6 +54,10 @@ for directory do
         if result=$(timeout 300 du -s -B1 -- "$directory" 2>/dev/null); then
           size=$(printf '%s\n' "$result" | awk 'NR == 1 {print $1}')
           case "$size" in ''|*[!0-9]*) ;; *) bytes=$size; error= ;; esac
+        fi
+        if disk=$(timeout 10 df -P -B1 -- "$directory" 2>/dev/null); then
+          total=$(printf '%s\n' "$disk" | awk 'NR == 2 {print $2}')
+          case "$total" in ''|*[!0-9]*|0) ;; *) capacity=$total ;; esac
         fi
       fi ;;
   esac
@@ -56,9 +77,9 @@ for directory do
     }
     printf "\"";
   }' >> "$temporary"
-  printf ',"bytes":%s,"error":"%s"}' "$bytes" "$error" >> "$temporary"
+  printf ',"bytes":%s,"capacity":%s,"error":"%s"}' "$bytes" "$capacity" "$error" >> "$temporary"
   separator=,
-done
+done < "$paths"
 printf ']}' >> "$temporary"
 if [ -n "$output" ]; then
   chmod 644 "$temporary"

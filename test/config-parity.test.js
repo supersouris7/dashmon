@@ -76,6 +76,15 @@ const FIXTURES = {
           smart: { enabled: true, disks: ["/dev/sda", "/dev/sda"] },
           speedtest: { interval: 360, server: "http://speed.exemple.lan/backend/" },
           aptUpdates: { enabled: false },
+          directorySizes: {
+            enabled: true,
+            entries: [
+              { name: "Films", path: "/srv/media" },
+              { name: "Duplicate", path: "/srv/media" },
+              { name: "Invalid", path: "relative" },
+              { name: "Invalid", path: "/srv/bad\npath" }
+            ]
+          },
           opencode: { enabled: false },
           claude: { enabled: true }
         }

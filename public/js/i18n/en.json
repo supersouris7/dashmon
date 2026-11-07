@@ -1,7 +1,11 @@
 {
   "directorySizesTitle": "Directories",
   "directorySizesShow": "Show directory sizes",
-  "directorySizesHelp": "Install the script on this machine using the guide below. Paths to measure are selected in the script command, not in the browser. The card appears after the first report.",
+  "directorySizesHelp": "Add a display name and absolute path for each directory, then save. The script installed on this machine reads this list on every run. The bar shows the directory's share of disk capacity.",
+  "directorySizesAdd": "Add directory",
+  "directorySizesName": "Display name",
+  "directorySizesPath": "Absolute path",
+  "directorySizesCapacity": "disk capacity:",
   "directorySizesError": "Measurement failed",
   "settings": "Settings",
   "settingsDashboard": "Dashboard",

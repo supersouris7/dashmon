@@ -217,7 +217,7 @@ export function normalizeHostMonitoring(raw) {
     smart: normalizeSmartPrefs(raw.smart),
     speedtest: normalizeSpeedtestPrefs(raw.speedtest),
     aptUpdates: normalizeAptUpdatesPrefs(raw.aptUpdates),
-    directorySizes: normalizeAptUpdatesPrefs(raw.directorySizes),
+    directorySizes: normalizeDirectoryPrefs(raw.directorySizes),
     opencode: normalizeAptUpdatesPrefs(raw.opencode),
     claude: normalizeAptUpdatesPrefs(raw.claude)
   };
@@ -271,6 +271,28 @@ export function normalizeSmartPrefs(raw) {
 export function normalizeAptUpdatesPrefs(raw) {
   const src = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
   return { enabled: src.enabled !== false };
+}
+
+export function normalizeDirectoryPrefs(raw) {
+  const src = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  const entries = Array.isArray(src.entries) ? src.entries : [];
+  const seen = new Set();
+  return {
+    enabled: src.enabled !== false,
+    entries: entries
+      .filter(
+        item =>
+          item &&
+          typeof item.path === "string" &&
+          item.path.startsWith("/") &&
+          item.path.length <= 4096 &&
+          [...item.path].every(char => char.charCodeAt(0) >= 32 && char.charCodeAt(0) !== 127) &&
+          !seen.has(item.path) &&
+          seen.add(item.path)
+      )
+      .slice(0, 50)
+      .map(item => ({ name: sanitizeText(item.name, 100), path: item.path }))
+  };
 }
 
 // Pairing settings: same rules as lib/agent/replication-config.js. Names,

@@ -20,7 +20,8 @@ export function directoryCard(host, report) {
     const row = document.createElement("div");
     row.className = "supervision-host-detail-row";
     const name = document.createElement("span");
-    name.textContent = directory.path;
+    name.textContent = directory.name || directory.path;
+    name.title = directory.path;
     name.style.overflowWrap = "anywhere";
     const size = document.createElement("span");
     size.textContent =
@@ -29,6 +30,37 @@ export function directoryCard(host, report) {
         : t("directorySizesError");
     row.append(name, size);
     card.append(row);
+    const track = document.createElement("div");
+    track.className = "supervision-track";
+    const fill = document.createElement("span");
+    fill.className = "supervision-fill";
+    if (
+      Number.isSafeInteger(directory.bytes) &&
+      directory.bytes >= 0 &&
+      Number.isSafeInteger(directory.capacity) &&
+      directory.capacity > 0
+    ) {
+      const percent = Math.min(100, (100 * directory.bytes) / directory.capacity);
+      fill.style.width = percent + "%";
+      track.setAttribute("role", "progressbar");
+      track.setAttribute("aria-label", name.textContent);
+      track.setAttribute("aria-valuemin", "0");
+      track.setAttribute("aria-valuemax", "100");
+      track.setAttribute("aria-valuenow", String(Math.round(percent)));
+      const detail =
+        percent.toFixed(1) +
+        "% · " +
+        t("directorySizesCapacity") +
+        " " +
+        bytesText(directory.capacity);
+      track.setAttribute("aria-valuetext", detail);
+      size.textContent += " · " + detail;
+    } else {
+      track.classList.add("unknown");
+      track.setAttribute("aria-label", t("directorySizesError"));
+    }
+    track.append(fill);
+    card.append(track);
   }
   if (report.updatedAt) {
     const date = document.createElement("p");

@@ -1,7 +1,11 @@
 {
   "directorySizesTitle": "Répertoires",
   "directorySizesShow": "Afficher la taille des répertoires",
-  "directorySizesHelp": "Installez le script sur cette machine avec le guide ci-dessous. Les chemins à mesurer sont choisis dans la commande du script, pas dans le navigateur. La tuile apparaît après le premier rapport.",
+  "directorySizesHelp": "Ajoutez un nom et un chemin absolu par répertoire, puis enregistrez. Le script installé sur cette machine récupère cette liste à chaque exécution. La barre indique la part du disque occupée par le répertoire.",
+  "directorySizesAdd": "Ajouter un répertoire",
+  "directorySizesName": "Nom d’affichage",
+  "directorySizesPath": "Chemin absolu",
+  "directorySizesCapacity": "capacité du disque :",
   "directorySizesError": "Mesure impossible",
   "settings": "Paramètres",
   "settingsDashboard": "Dashboard",
