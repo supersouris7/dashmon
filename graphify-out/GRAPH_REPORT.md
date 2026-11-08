@@ -1,7 +1,7 @@
 # Graph Report - dashmon  (2026-11-08)
 
 ## Corpus Check
-- 257 files · ~155,168 words
+- 257 files · ~155,252 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 17 file(s) not represented in the graph (top: (none) 7, .css 6, .example 2)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `418d2dd1`
+- Built from commit: `7ed6801e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
