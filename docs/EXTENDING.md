@@ -165,8 +165,11 @@ it instead of the descriptor.
 npm test
 ```
 
-- `test/widgets.test.js` loads the registry, checks the manifests, the
-  normalization, the cache keys, the purge and the renderers;
+- `test/widgets-*.test.js`, one file per topic, load the registry and check
+  the manifests (`registry`), the configuration, cache keys and purge
+  (`core`), the probe (`probe`), each widget's backend (`lichess`, `links`,
+  `status`) and the renderers (`renderers`); a new widget adds its checks to
+  the matching file, with the helpers of `test/widgets/helpers.js`;
 - `test/frontend.test.js` checks the syntax of the browser modules and the
   client registry;
 - a broken plugin never makes the load fail: it is ignored and listed in the
