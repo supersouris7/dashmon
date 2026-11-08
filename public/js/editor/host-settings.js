@@ -3,6 +3,13 @@ import { t } from "../i18n.js";
 import { SPEEDTEST_DEFAULT_INTERVAL, SPEEDTEST_INTERVALS } from "../config/normalize.js";
 import { moveItem } from "./drag.js";
 import { setIconButton, setDeleteIcon } from "./icon-button.js";
+import { commandLine } from "../supervision/script-notice.js";
+import {
+  SCRIPT_FREQUENCIES,
+  SETUP_INSTALL_COMMAND,
+  UPDATE_ALL_COMMAND,
+  installCommand
+} from "../supervision/script-commands.js";
 
 function hint(key) {
   const text = document.createElement("p");
@@ -64,18 +71,81 @@ function toggle(box, monitoring, key, label) {
   field(box, label, control);
 }
 
-function help(box, key, file) {
-  const details = document.createElement("details");
-  details.className = "host-settings-help";
-  const summary = document.createElement("summary");
-  summary.textContent = t("hostSetupGuide");
+function guideLink(file) {
   const doc = document.createElement("a");
   doc.href = "https://github.com/supersouris7/dashmon/blob/main/docs/" + file;
   doc.target = "_blank";
   doc.rel = "noopener noreferrer";
-  doc.textContent = t("agentDocumentation");
-  details.append(summary, hint(key), doc);
+  doc.textContent = t("hostGuideLink");
+  return doc;
+}
+
+// A folded help block; returns its body, where the content goes.
+function helpBox(box, summaryKey) {
+  const details = document.createElement("details");
+  details.className = "host-settings-help";
+  const summary = document.createElement("summary");
+  summary.textContent = t(summaryKey);
+  const body = document.createElement("div");
+  body.className = "host-settings-help-body";
+  details.append(summary, body);
   box.appendChild(details);
+  return body;
+}
+
+// The three schedules the setup tool offers, the recommended one marked.
+function frequencyList(script) {
+  const list = document.createElement("ul");
+  list.className = "script-frequencies";
+  for (const { cron, key, recommended } of SCRIPT_FREQUENCIES[script]) {
+    const item = document.createElement("li");
+    const code = document.createElement("code");
+    code.textContent = cron;
+    const text = t(key) + (recommended ? ` (${t("scriptRecommended")})` : "");
+    item.append(code, document.createTextNode(" " + text));
+    if (recommended) item.className = "recommended";
+    list.appendChild(item);
+  }
+  return list;
+}
+
+// Setup help of a section; with a host script, how to install it, how often
+// it runs, and how to remove it.
+function help(box, key, file, script) {
+  const details = helpBox(box, "hostSetupGuide");
+  details.appendChild(hint(key));
+  if (script) {
+    details.append(
+      hint("scriptInstallStep"),
+      commandLine(installCommand(script)),
+      hint("scriptFrequencies"),
+      frequencyList(script),
+      hint(
+        script === "opencode-stats" || script === "claude-stats"
+          ? "scriptCronUser"
+          : "scriptCronRoot"
+      ),
+      hint("scriptRemoveStep"),
+      commandLine(`sudo dashmon-setup.sh remove ${script}`)
+    );
+  }
+  details.appendChild(guideLink(file));
+}
+
+// How the host scripts are installed and updated, once for every section.
+function scriptsSection(form) {
+  const box = section(form, "hostScriptsTitle", "fa-solid fa-scroll");
+  box.appendChild(hint("hostScriptsIntro"));
+  const details = helpBox(box, "hostScriptsHow");
+  details.append(
+    hint("hostScriptsSetup"),
+    commandLine(SETUP_INSTALL_COMMAND),
+    hint("hostScriptsMenu"),
+    commandLine("sudo dashmon-setup.sh"),
+    hint("hostScriptsUpdate"),
+    commandLine(UPDATE_ALL_COMMAND),
+    guideLink("SCRIPTS.md")
+  );
 }
 
 function generalSection(form, config, onRename) {
@@ -108,7 +178,7 @@ function wireguardSection(form, monitoring) {
     },
     "phWireguardInterface"
   );
-  help(wg, "wireguardHelpIntro", "WIREGUARD.md");
+  help(wg, "wireguardHelpIntro", "WIREGUARD.md", "wireguard-dump");
 }
 
 // List filter (SMART disks): typed by hand, or picked
@@ -172,7 +242,7 @@ function filterSection(form, monitoring, spec) {
   }
   renderChoices();
   box.appendChild(choices);
-  help(box, spec.helpKey, spec.file);
+  help(box, spec.helpKey, spec.file, spec.script);
 }
 
 function smartSection(form, monitoring, metrics) {
@@ -188,7 +258,8 @@ function smartSection(form, monitoring, metrics) {
     detected: (Array.isArray(metrics?.smart) ? metrics.smart : []).map(item => item?.device),
     max: 20,
     helpKey: "smartHelpIntro",
-    file: "SMART.md"
+    file: "SMART.md",
+    script: "smart-dump"
   });
 }
 
@@ -230,7 +301,8 @@ const REPORT_SECTIONS = [
     "aptUpdates",
     "aptUpdatesShow",
     "aptUpdatesHelp",
-    "APT_UPDATES.md"
+    "APT_UPDATES.md",
+    "apt-updates"
   ],
   [
     "tabOpencode",
@@ -238,9 +310,18 @@ const REPORT_SECTIONS = [
     "opencode",
     "opencodeShow",
     "opencodeHelp",
-    "OPENCODE.md"
+    "OPENCODE.md",
+    "opencode-stats"
   ],
-  ["tabClaude", "fa-solid fa-code", "claude", "claudeShow", "claudeHelp", "CLAUDE_CODE.md"]
+  [
+    "tabClaude",
+    "fa-solid fa-code",
+    "claude",
+    "claudeShow",
+    "claudeHelp",
+    "CLAUDE_CODE.md",
+    "claude-stats"
+  ]
 ];
 
 export function renderHostSettings(container, { config, metrics, onRename = () => {} }) {
@@ -250,14 +331,15 @@ export function renderHostSettings(container, { config, metrics, onRename = () =
   const monitoring = config.monitoring;
   form.appendChild(hint("hostSettingsSaveHint"));
   generalSection(form, config, onRename);
+  scriptsSection(form);
   wireguardSection(form, monitoring);
   speedtestSection(form, monitoring);
   smartSection(form, monitoring, metrics);
   directorySection(form, monitoring);
-  for (const [title, icon, key, label, helpKey, file] of REPORT_SECTIONS) {
+  for (const [title, icon, key, label, helpKey, file, script] of REPORT_SECTIONS) {
     const box = section(form, title, icon);
     toggle(box, monitoring, key, label);
-    help(box, helpKey, file);
+    help(box, helpKey, file, script);
   }
   container.appendChild(form);
 }
@@ -336,5 +418,5 @@ function directorySection(form, monitoring) {
   });
   render();
   box.append(list, add);
-  help(box, "directorySizesHelp", "DIRECTORIES.md");
+  help(box, "directorySizesHelp", "DIRECTORIES.md", "directory-sizes");
 }

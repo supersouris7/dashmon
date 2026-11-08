@@ -283,6 +283,37 @@
   font-size: 13px;
 }
 
+/* Host script help (editor/host-settings.js): commands with a copy button
+   and the three cron schedules. */
+.host-settings-help-body {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+.host-settings-help-body .host-monitor-hint {
+  margin: 4px 0 0;
+}
+.host-settings-help .script-notice-command code {
+  padding: 6px 8px;
+  border-radius: 3px;
+  background: var(--surface-2);
+}
+.script-frequencies {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.script-frequencies code {
+  font-size: 12px;
+  color: var(--text);
+}
+.script-frequencies .recommended {
+  color: var(--text);
+}
+
 .host-settings-section input[type="checkbox"] {
   justify-self: start;
   accent-color: var(--accent);

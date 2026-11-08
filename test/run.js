@@ -21,6 +21,7 @@ const SUITES = [
   "speedtest.test.js",
   "version.test.js",
   "script-versions.test.js",
+  "setup-script.test.js",
   "opencode-widget.test.js",
   "sanitize.test.js",
   "secrets.test.js",

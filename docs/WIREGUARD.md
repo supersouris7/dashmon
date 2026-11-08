@@ -11,6 +11,16 @@ schedule.
 
 ## 1. Install the script
 
+**Quickest:** with the [setup tool](SCRIPTS.md#quick-start-dashmon-setup), one
+command installs the script and its cron line, asks the schedule and finds the
+container:
+
+```sh
+sudo dashmon-setup.sh install wireguard-dump
+```
+
+The rest of this section and the schedule below do the same by hand.
+
 The script `wireguard-dump.sh` lives in the repository:
 [`deploy/wireguard-dump.sh`](../deploy/wireguard-dump.sh).
 
@@ -19,8 +29,8 @@ sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/depl
 sudo chmod 755 /usr/local/bin/dashmon-wireguard-dump.sh
 ```
 
-To update it later, run the same two commands again: see
-[Updating the host scripts](SCRIPTS.md).
+To update it later, one command updates every script of the machine: see
+[Update everything at once](SCRIPTS.md#update-everything-at-once).
 
 It must run as **root** (or via `sudo`): `wg` needs `CAP_NET_ADMIN`, and `docker`
 must be able to reach the daemon.
@@ -131,39 +141,31 @@ Then let the script write to `/opt/dashmon/wireguard.dump` (host-file variant).
 
 ## 3. Schedule it with cron
 
-Edit the **root** crontab (`sudo crontab -e`) and pick a frequency. With no
-argument the script writes into the container's data directory:
+Add **one** of these lines to the **root** crontab with `sudo crontab -e`
+([cron in short](SCRIPTS.md#cron-in-short)). With no argument the script
+writes into the container's data directory:
 
-Once per hour:
+| Schedule | Cron line |
+| --- | --- |
+| **Every minute (recommended)** | `* * * * * /usr/local/bin/dashmon-wireguard-dump.sh >/dev/null 2>&1` |
+| Every 5 minutes | `*/5 * * * * /usr/local/bin/dashmon-wireguard-dump.sh >/dev/null 2>&1` |
+| Every 15 minutes | `*/15 * * * * /usr/local/bin/dashmon-wireguard-dump.sh >/dev/null 2>&1` |
+
+For an agent, add the container name as an argument:
 
 ```cron
-0 * * * * /usr/local/bin/dashmon-wireguard-dump.sh
-```
-
-For an agent, use this line instead:
-
-```cron
-0 * * * * /usr/local/bin/dashmon-wireguard-dump.sh dashmon-agent
+* * * * * /usr/local/bin/dashmon-wireguard-dump.sh dashmon-agent >/dev/null 2>&1
 ```
 
 If your container has another name, find it with `docker ps` and replace
 `dashmon-agent`.
 
-Once per day, at 03:00:
-
-```cron
-0 3 * * * /usr/local/bin/dashmon-wireguard-dump.sh
-```
-
-(Add the container name as an argument if it is not `dashmon`, e.g.
-`0 * * * * /usr/local/bin/dashmon-wireguard-dump.sh dashmon-prod`.)
-
-The more often the file is regenerated, the fresher the handshakes and traffic
-counters. A daily refresh is enough to see *who is configured*, but peers that
-renegotiate during the day keep showing a stale "last handshake"; hourly is a
-good balance for a small host. Dashmon itself re-reads the file at its own
-supervision interval (see `HOST_METRICS_INTERVAL`), so there is no point
-regenerating it more often than that.
+A peer shows **online** while its last handshake is under 3 minutes old, and
+active peers renew it every 2 minutes: only a dump every minute keeps that
+state right. Every 5 or 15 minutes is enough to see who connected and the
+traffic, but a connected peer may show offline between two dumps. The dump
+costs nothing. Dashmon itself re-reads the file at its own supervision
+interval (see `HOST_METRICS_INTERVAL`).
 
 > `wg show all dump` prints no peer names: the **public key** is used as the peer
 > name. Map keys to readable names with the [names file](#friendly-names). The
@@ -192,7 +194,7 @@ regenerating it more often than that.
 | `permission denied ... docker.sock` | cron/user not allowed to use Docker | Use the root crontab, or add the user to the `docker` group. |
 | `conteneur 'dashmon' introuvable` | wrong container name | Pass your container name as the first argument. |
 | No peers in Dashmon | File missing or empty, or written at the wrong path | `docker exec dashmon wc -c /app/data/wireguard.dump`, and check `WIREGUARD_DUMP_FILE` if you override it. |
-| Peers look stale | Cron too infrequent | Refresh hourly. |
+| Peers look stale | Cron too infrequent | Dump every minute. |
 
 If WireGuard runs in a **container**, use the host-file variant to provide the
 filtered dump; do not copy raw `wg show all dump` output into

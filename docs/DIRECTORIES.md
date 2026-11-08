@@ -7,6 +7,16 @@ do not provide this card.
 
 ## Installation and selection
 
+**Quickest:** with the [setup tool](SCRIPTS.md#quick-start-dashmon-setup), one
+command installs the script and its cron line, asks the schedule and finds the
+container:
+
+```sh
+sudo dashmon-setup.sh install directory-sizes
+```
+
+The rest of this section and the schedule below do the same by hand.
+
 On each machine to monitor, use a POSIX shell, `awk` and GNU coreutils (`du`, `timeout`, `mktemp`) — no Python or extra runtime is needed. Download
 `deploy/directory-sizes.sh` from this repository:
 
@@ -15,8 +25,8 @@ sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/depl
 sudo chmod 755 /usr/local/bin/dashmon-directory-sizes.sh
 ```
 
-To update it later, run the same two commands again: see
-[Updating the host scripts](SCRIPTS.md).
+To update it later, one command updates every script of the machine: see
+[Update everything at once](SCRIPTS.md#update-everything-at-once).
 
 In **Settings → Supervision → Local** or **your agent**, open **Directories**.
 Keep **Show directory sizes** checked. Add each directory with its **display
@@ -68,12 +78,20 @@ machine's Supervision page. Up to 50 directories are supported.
 
 ## Scheduling
 
-Schedule the same command with cron, once a night: measuring large disks reads
-every file entry, so running it more often mostly keeps the disks busy.
+Add **one** of these lines to the root crontab with `sudo crontab -e`
+([cron in short](SCRIPTS.md#cron-in-short)). On the primary, use
+`--container dashmon`, or the name `docker ps` gives:
 
-```cron
-30 3 * * * sh /usr/local/bin/dashmon-directory-sizes.sh --container dashmon-agent
-```
+| Schedule | Cron line |
+| --- | --- |
+| Every hour | `0 * * * * sh /usr/local/bin/dashmon-directory-sizes.sh --container dashmon-agent >/dev/null 2>&1` |
+| Every 6 hours | `0 */6 * * * sh /usr/local/bin/dashmon-directory-sizes.sh --container dashmon-agent >/dev/null 2>&1` |
+| **Every night at 03:30 (recommended)** | `30 3 * * * sh /usr/local/bin/dashmon-directory-sizes.sh --container dashmon-agent >/dev/null 2>&1` |
+
+Measuring reads every file entry: once a night, after the APT run, keeps the
+disks free during the day. Every hour suits a few small directories; every 6
+hours, a disk that fills up quickly. The card flags a report older than two
+days, so do not schedule it less than daily.
 
 Large directories can take time to scan. Each scan is limited to five minutes
 per directory. A row without a size says why: **Directory not found**,

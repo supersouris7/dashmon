@@ -17,6 +17,17 @@ prompts, the code or the conversations.
 
 ## Installation
 
+**Quickest:** with the [setup tool](SCRIPTS.md#quick-start-dashmon-setup), one
+command installs the script and its cron line, asks the schedule and finds the
+container. Run it with `sudo` from **your** account: the cron line then goes
+into your crontab, not root's.
+
+```sh
+sudo dashmon-setup.sh install opencode-stats
+```
+
+The rest of this section and the schedule below do the same by hand.
+
 Install the script on the host where OpenCode runs:
 
 ```sh
@@ -24,8 +35,8 @@ sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/depl
 sudo chmod 755 /usr/local/bin/dashmon-opencode-stats.sh
 ```
 
-To update it later, run the same two commands again: see
-[Updating the host scripts](SCRIPTS.md).
+To update it later, one command updates every script of the machine: see
+[Update everything at once](SCRIPTS.md#update-everything-at-once).
 
 Run it **as your own user**, not with `sudo`: the statistics live in your home
 directory. Writing into the container requires that this user may use Docker
@@ -52,11 +63,18 @@ is installed elsewhere, set `OPENCODE_BIN=/path/to/opencode`.
 
 ## Schedule
 
-Add this line to **your** crontab with `crontab -e` (not the root crontab):
+Add **one** of these lines to **your** crontab with `crontab -e`, not the root
+crontab ([cron in short](SCRIPTS.md#cron-in-short)):
 
-```cron
-*/15 * * * * /usr/local/bin/dashmon-opencode-stats.sh >/dev/null 2>&1
-```
+| Schedule | Cron line |
+| --- | --- |
+| Every 5 minutes | `*/5 * * * * /usr/local/bin/dashmon-opencode-stats.sh >/dev/null 2>&1` |
+| **Every 15 minutes (recommended)** | `*/15 * * * * /usr/local/bin/dashmon-opencode-stats.sh >/dev/null 2>&1` |
+| Every hour | `0 * * * * /usr/local/bin/dashmon-opencode-stats.sh >/dev/null 2>&1` |
+
+Every 15 minutes keeps today's tokens current at no real cost. Every 5 minutes
+follows a long session more closely; every hour is enough for the 30-day
+summary.
 
 For an **agent**:
 

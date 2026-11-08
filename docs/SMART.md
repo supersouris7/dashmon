@@ -6,6 +6,16 @@ that hosts the Dashmon container.
 
 ## Installation
 
+**Quickest:** with the [setup tool](SCRIPTS.md#quick-start-dashmon-setup), one
+command installs the script and its cron line, asks the schedule and finds the
+container:
+
+```sh
+sudo dashmon-setup.sh install smart-dump
+```
+
+The rest of this section and the schedule below do the same by hand.
+
 Install `smartmontools`, then fetch the script:
 
 ```sh
@@ -14,8 +24,8 @@ sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/depl
 sudo chmod 755 /usr/local/bin/dashmon-smart-dump.sh
 ```
 
-To update it later, run the same two commands again: see
-[Updating the host scripts](SCRIPTS.md).
+To update it later, one command updates every script of the machine: see
+[Update everything at once](SCRIPTS.md#update-everything-at-once).
 
 The script detects the disks reachable with `smartctl --scan-open`, runs
 `smartctl -j -q noserial -a` for each of them, then writes the result to
@@ -48,11 +58,18 @@ option, adapt a local copy of the script.
 
 ## Scheduling
 
-One dump every fifteen minutes is enough. Add this line with `sudo crontab -e`:
+Add **one** of these lines to the root crontab with `sudo crontab -e`
+([cron in short](SCRIPTS.md#cron-in-short)):
 
-```cron
-*/15 * * * * /usr/local/bin/dashmon-smart-dump.sh >/dev/null 2>&1
-```
+| Schedule | Cron line |
+| --- | --- |
+| Every 5 minutes | `*/5 * * * * /usr/local/bin/dashmon-smart-dump.sh >/dev/null 2>&1` |
+| **Every 15 minutes (recommended)** | `*/15 * * * * /usr/local/bin/dashmon-smart-dump.sh >/dev/null 2>&1` |
+| Every hour | `0 * * * * /usr/local/bin/dashmon-smart-dump.sh >/dev/null 2>&1` |
+
+Temperature and wear move slowly: every 15 minutes is enough, and reading the
+disks more often only keeps them awake. Every hour suits disks that should
+sleep.
 
 For an agent, replace that line with:
 

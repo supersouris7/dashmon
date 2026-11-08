@@ -2327,6 +2327,11 @@ body[data-page="supervision"] #collapseAllBtn {
   margin-left: auto;
   color: var(--accent);
 }
+.script-notice-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+}
 .script-notice-command {
   display: flex;
   align-items: flex-start;

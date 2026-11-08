@@ -177,15 +177,26 @@ its settings. No host command can be launched from this interface.
 
 ## 4. Add WireGuard, SMART, APT or usage statistics
 
-Install the scripts **on every host concerned**, not inside the agent. For an
-agent, use its container name in the commands and the cron job. The guides
-provide the full commands:
+Install the scripts **on every host concerned**, not inside the agent. The
+quickest way is the setup tool: install it once per machine, then pick the
+scripts in its menu; it writes the cron lines and finds the agent container by
+itself ([host scripts](SCRIPTS.md)):
+
+```sh
+sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/setup.sh -o /usr/local/bin/dashmon-setup.sh
+sudo chmod 755 /usr/local/bin/dashmon-setup.sh
+sudo dashmon-setup.sh
+```
+
+By hand, use the agent container name in the commands and the cron job. The
+guides provide the full commands:
 
 - [WireGuard: install and schedule the dump](WIREGUARD.md)
 - [SMART: install and schedule the dump](SMART.md)
 - [APT: install and schedule the updates](APT_UPDATES.md)
 - [OpenCode: schedule the usage statistics](OPENCODE.md), on the hosts running OpenCode
 - [Claude Code: schedule the usage statistics](CLAUDE_CODE.md), on the hosts running Claude Code
+- [Directories: measure selected directories](DIRECTORIES.md)
 
 The reports stay optional. APT **actually installs updates**; its automatic
 reboot is disabled unless explicitly enabled.

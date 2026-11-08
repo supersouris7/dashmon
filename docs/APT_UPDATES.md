@@ -11,6 +11,16 @@ not install any cron job automatically.
 
 ## Installation
 
+**Quickest:** with the [setup tool](SCRIPTS.md#quick-start-dashmon-setup), one
+command installs the script and its cron line, asks the schedule and finds the
+container:
+
+```sh
+sudo dashmon-setup.sh install apt-updates
+```
+
+The rest of this section and the schedule below do the same by hand.
+
 Install the files on the host that runs Docker:
 
 ```sh
@@ -18,8 +28,8 @@ sudo curl -fsSL https://raw.githubusercontent.com/supersouris7/dashmon/main/depl
 sudo chmod 755 /usr/local/bin/dashmon-apt-updates.sh
 ```
 
-To update it later, run the same two commands again: see
-[Updating the host scripts](SCRIPTS.md).
+To update it later, one command updates every script of the machine: see
+[Update everything at once](SCRIPTS.md#update-everything-at-once).
 
 **Warning: this command really installs the updates on the host.** It does not
 ask for a reboot unless `DASHMON_APT_REBOOT=1` is set. To run a first pass on
@@ -45,7 +55,17 @@ through `APT_UPDATES_REPORT_FILE`.
 
 ## Schedule and reboot
 
-Add this line to the root crontab with `sudo crontab -e`:
+Add **one** of these lines to the root crontab with `sudo crontab -e`
+([cron in short](SCRIPTS.md#cron-in-short)):
+
+| Schedule | Cron line |
+| --- | --- |
+| Every day at 03:00 | `0 3 * * * DASHMON_APT_INTERVAL_HOURS=24 /usr/local/bin/dashmon-apt-updates.sh >/dev/null 2>&1` |
+| **Every Wednesday at 03:00 (recommended)** | `0 3 * * 3 /usr/local/bin/dashmon-apt-updates.sh >/dev/null 2>&1` |
+| The 1st of the month at 03:00 | `0 3 1 * * DASHMON_APT_INTERVAL_HOURS=720 /usr/local/bin/dashmon-apt-updates.sh >/dev/null 2>&1` |
+
+Weekly keeps the host current without upgrading it every day; pick a night
+when an update can go wrong without bothering anyone. The recommended line:
 
 ```cron
 0 3 * * 3 /usr/local/bin/dashmon-apt-updates.sh >/dev/null 2>&1
@@ -75,14 +95,9 @@ To allow the reboot on an agent host:
 
 Use only one of the proposed APT lines, not several.
 
-The default interval is **7 days**, which matches the weekly job above. If you
-schedule another rhythm, tell the script so the card shows a correct next run:
-
-```cron
-0 3 * * * DASHMON_APT_INTERVAL_HOURS=24 /usr/local/bin/dashmon-apt-updates.sh >/dev/null 2>&1
-```
-
-The value is a number of hours. The next run is computed from the end of the
+The default interval is **7 days**, which matches the weekly job above. With
+another rhythm, `DASHMON_APT_INTERVAL_HOURS` (24 or 720 in the table) tells the
+script, so the card shows a correct next run. The value is a number of hours. The next run is computed from the end of the
 current run: it is an estimate, not a read of the crontab.
 
 The report is written before the reboot request, with the state
