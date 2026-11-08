@@ -1,17 +1,17 @@
 # Graph Report - dashmon  (2026-11-08)
 
 ## Corpus Check
-- 257 files · ~155,252 words
+- 257 files · ~155,372 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 17 file(s) not represented in the graph (top: (none) 7, .css 6, .example 2)
 
 ## Summary
-- 2549 nodes · 5145 edges · 147 communities (122 shown, 25 thin omitted)
+- 2549 nodes · 5146 edges · 147 communities (122 shown, 25 thin omitted)
 - Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 277 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7ed6801e`
+- Built from commit: `7ddd6a85`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -230,7 +230,7 @@ Cohesion: 0.06
 Nodes (35): cacheKey, config, description, en, fr, error, missingRepo, name (+27 more)
 
 ### Community 13 - "setup.sh"
-Cohesion: 0.13
+Cohesion: 0.14
 Nodes (46): ask_frequency(), auto_status(), auto_update(), check_tools(), choose_container(), clear_screen(), confirm(), cron_comment() (+38 more)
 
 ### Community 14 - "createLocalMetrics"
