@@ -12,19 +12,13 @@ import {
 import { t } from "../i18n.js";
 import { rateText, relativeAge } from "./format.js";
 import { state } from "../state.js";
+import { element } from "../element.js";
 
 const SVG = "http://www.w3.org/2000/svg";
 const DAY = 24 * 3600 * 1000;
 // Cards whose test was asked from this page: a re-render while it runs keeps
 // showing it as running.
 const pending = new Set();
-
-function element(tag, className, text) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
 
 function msText(value) {
   if (!Number.isFinite(value)) return "—";

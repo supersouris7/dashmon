@@ -5,15 +5,9 @@
 // the card. commandLine() is also used by the settings help.
 import { t } from "../i18n.js";
 import { SETUP_INSTALL_COMMAND, UPDATE_COMMAND } from "./script-commands.js";
+import { element } from "../element.js";
 
 const GUIDE = "https://github.com/supersouris7/dashmon/blob/main/docs/SCRIPTS.md";
-
-function element(tag, className, text) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
 
 // A command in a code block with a copy button.
 export function commandLine(command) {

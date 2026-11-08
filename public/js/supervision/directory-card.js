@@ -18,6 +18,7 @@ import {
   measured,
   sharePercentText
 } from "./directory-health.js";
+import { element } from "../element.js";
 
 const directoryError = directory => t(directoryErrorKey(directory));
 
@@ -36,13 +37,6 @@ function verdictOf(report) {
       health.level === "healthy" ? "fa-solid fa-circle-check" : "fa-solid fa-circle-exclamation",
     label
   };
-}
-
-function element(tag, className, text) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
 }
 
 function head() {

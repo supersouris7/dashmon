@@ -12,6 +12,7 @@ import {
 import { t } from "../i18n.js";
 import { state } from "../state.js";
 import { relativeAge, reportDateText, smartNumberText } from "./format.js";
+import { element } from "../element.js";
 
 const PERIODS = ["today", "week", "month", "all"];
 // A report older than this is flagged: the cron job has probably stopped.
@@ -84,13 +85,6 @@ export function dailyActivity(activity, days, now = new Date()) {
     out.push({ date, steps: steps.get(date) || 0 });
   }
   return out;
-}
-
-function element(tag, className, text) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
 }
 
 function sectionTitle(key) {
