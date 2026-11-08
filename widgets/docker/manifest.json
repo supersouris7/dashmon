@@ -1,6 +1,6 @@
 {
   "id": "docker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "label": { "fr": "Docker", "en": "Docker" },
   "description": {
     "fr": "Conteneurs actifs et images a jour, comparees au registre",
