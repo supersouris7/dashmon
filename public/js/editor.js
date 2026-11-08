@@ -4,7 +4,8 @@
 import { state } from "./state.js";
 import { normalizeConfig } from "./config/normalize.js";
 import { clone } from "./util.js";
-import { t, applyLanguage, setSettingsUpdater, resolveLanguage } from "./i18n.js";
+import { t, resolveLanguage } from "./i18n.js";
+import { applyLanguage, setSettingsUpdater } from "./language-ui.js";
 import { saveConfig, fetchConfig, configConflict } from "./api.js";
 import { saveViewPrefs } from "./view-prefs.js";
 import { render } from "./render.js";

@@ -21,15 +21,14 @@ import {
   updateSortModeMenu,
   setGroupMode
 } from "./dashboard/view-controls.js";
+import { t, resolveLanguage } from "./i18n.js";
 import {
-  t,
   applyLanguage,
-  resolveLanguage,
   setThemeLabelsUpdater,
   setCollapseButtonUpdater,
   setSupervisionUpdater,
   setPageSwitchUpdater
-} from "./i18n.js";
+} from "./language-ui.js";
 import {
   loadThemes,
   applyTheme,
