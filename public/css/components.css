@@ -2332,6 +2332,14 @@ body[data-page="supervision"] #collapseAllBtn {
   font-size: 11px;
   color: var(--muted);
 }
+.script-notice-setup summary {
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.script-notice-setup[open] summary {
+  margin-bottom: 6px;
+}
 .script-notice-command {
   display: flex;
   align-items: flex-start;

@@ -20,12 +20,11 @@ export const SETUP_INSTALL_COMMAND =
   ` && sudo chmod 755 ${BIN}/dashmon-setup.sh`;
 
 // Updates every Dashmon script installed on the machine, the setup tool
-// included, and nothing else: no new script, no cron change. Each copy is
-// renamed into place, so a run in progress keeps its old file.
-export const UPDATE_ALL_COMMAND =
-  `for n in setup ${SCRIPT_NAMES.join(" ")}; do f=${BIN}/dashmon-$n.sh; ` +
-  `[ -f "$f" ] || continue; sudo curl -fsSL "${RAW}/$n.sh" -o "$f.new" ` +
-  `&& sudo chmod 755 "$f.new" && sudo mv "$f.new" "$f" && echo "OK $n"; done`;
+// included: no new script, no cron change. "-all" works too.
+export const UPDATE_COMMAND = "sudo dashmon-setup.sh --all";
+
+// The same update from cron (root), at the frequency chosen in the tool.
+export const AUTO_UPDATE_COMMAND = "sudo dashmon-setup.sh auto";
 
 export function installCommand(name) {
   return `sudo dashmon-setup.sh install ${name}`;
@@ -58,6 +57,12 @@ export const SCRIPT_FREQUENCIES = Object.freeze({
     { cron: "*/5 * * * *", key: "cronEvery5" },
     { cron: "*/15 * * * *", key: "cronEvery15", recommended: true },
     { cron: "0 * * * *", key: "cronHourly" }
+  ],
+  // The automatic update (dashmon-setup.sh auto).
+  setup: [
+    { cron: "0 */6 * * *", key: "cronEvery6Hours" },
+    { cron: "30 4 * * *", key: "cronNightly430", recommended: true },
+    { cron: "30 4 * * 0", key: "cronSunday430" }
   ],
   "directory-sizes": [
     { cron: "0 * * * *", key: "cronHourly" },

@@ -156,11 +156,44 @@ async function main() {
         name
       );
     }
-    for (const name of ["setup", ...commands.SCRIPT_NAMES])
-      assert.ok(commands.UPDATE_ALL_COMMAND.includes(name));
-    // The update command really updates an installed script, and only those.
+    assert.equal(commands.UPDATE_COMMAND, "sudo dashmon-setup.sh --all");
+
+    // --all (or -all): replaces only what changed, and flags a script
+    // without its cron job.
+    fs.writeFileSync(path.join(bin, "dashmon-setup.sh"), fs.readFileSync(SETUP));
     fs.writeFileSync(path.join(bin, "dashmon-claude-stats.sh"), "#!/bin/sh\nSCRIPT_VERSION=0\n");
-    const loop = commands.UPDATE_ALL_COMMAND.replaceAll("sudo ", "")
+    const updated = run("--all");
+    assert.match(updated, /Claude Code: v0 -> v1, updated/);
+    assert.match(updated, /no cron job: sudo dashmon-setup\.sh install claude-stats/);
+    assert.match(updated, /WireGuard: v1, up to date/);
+    assert.match(run("-all"), /Claude Code: v1, up to date/);
+
+    // auto: the setup tool's own cron line, recommended frequency; off removes it.
+    run("auto");
+    assert.match(
+      crontab("root"),
+      new RegExp(
+        `^30 4 \\* \\* \\* ${bin}/dashmon-setup\\.sh --all >/dev/null 2>&1 # dashmon:setup$`,
+        "m"
+      )
+    );
+    assert.match(run("list"), /a\) Auto update +every night at 04:30 \(cron of root\)/);
+    run("auto", "--frequency", "3");
+    assert.equal(crontab("root").match(/# dashmon:setup/g).length, 1);
+    assert.match(crontab("root"), /^30 4 \* \* 0 /m);
+    assert.match(crontab("root"), /# dashmon:wireguard-dump$/m, "other lines kept");
+    run("auto", "off");
+    assert.ok(!crontab("root").includes("dashmon:setup"));
+    assert.match(crontab("root"), /# dashmon:wireguard-dump$/m);
+
+    // The manual loop of docs/SCRIPTS.md, for hosts without the tool.
+    const guide = fs.readFileSync(path.join(__dirname, "..", "docs", "SCRIPTS.md"), "utf8");
+    const manual = guide.split("\n").find(line => line.startsWith("for n in setup "));
+    assert.ok(manual, "update loop in docs/SCRIPTS.md");
+    for (const name of commands.SCRIPT_NAMES) assert.ok(manual.includes(name), name);
+    fs.writeFileSync(path.join(bin, "dashmon-claude-stats.sh"), "#!/bin/sh\nSCRIPT_VERSION=0\n");
+    const loop = manual
+      .replaceAll("sudo ", "")
       .replaceAll("/usr/local/bin", bin)
       .replace(
         /https:\/\/raw\.githubusercontent\.com\/supersouris7\/dashmon\/main\/deploy/g,

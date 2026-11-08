@@ -405,7 +405,7 @@
   "hostScriptsHow": "Installer et mettre à jour",
   "hostScriptsSetup": "1. Une fois par machine, installer l’outil :",
   "hostScriptsMenu": "2. Lancer le menu, choisir les scripts et la fréquence de chacun :",
-  "hostScriptsUpdate": "Mettre à jour d’un coup tous les scripts installés sur la machine (les tâches cron ne changent pas) :",
+  "hostScriptsUpdate": "Mettre à jour d’un coup tous les scripts installés (les tâches cron ne changent pas) :",
   "scriptInstallStep": "Installer ce script et sa tâche cron, avec l’outil dashmon-setup (voir Scripts de l’hôte) :",
   "scriptFrequencies": "Fréquences proposées par l’outil :",
   "scriptRecommended": "conseillé",
@@ -422,5 +422,9 @@
   "cronHourly": "toutes les heures",
   "cronEvery6Hours": "toutes les 6 heures",
   "cronNightly330": "chaque nuit à 03:30",
-  "hostGuideLink": "Guide détaillé"
+  "hostGuideLink": "Guide détaillé",
+  "scriptSetupMissing": "Commande introuvable ? Installez d’abord l’outil dashmon-setup :",
+  "hostScriptsAuto": "Ou les mettre à jour automatiquement par cron (root). L’outil demande la fréquence ; « auto off » arrête :",
+  "cronNightly430": "chaque nuit à 04:30",
+  "cronSunday430": "le dimanche à 04:30"
 }

@@ -7,7 +7,9 @@
 #   sudo dashmon-setup.sh list                 # what is installed
 #   sudo dashmon-setup.sh install smart-dump   # script + cron line
 #   sudo dashmon-setup.sh remove smart-dump    # cron line + script
-#   sudo dashmon-setup.sh update               # every installed script
+#   sudo dashmon-setup.sh --all                # update every installed script
+#   sudo dashmon-setup.sh auto                 # ... and from cron, every night
+#   sudo dashmon-setup.sh auto off             # stop the automatic update
 #
 # --lang fr|en chooses the language (default: from LANG).
 # install options: --frequency 1|2|3 (default: the recommended one),
@@ -17,12 +19,12 @@
 #
 # The cron lines it writes end with "# dashmon:NAME": that is how it finds
 # them again. It never edits another line, except a line that runs a script
-# it removes. Nothing runs in the background and nothing updates by itself.
+# it removes. Scripts update by themselves only after `auto` (opt-in).
 set -eu
 
 # Version of this script. It writes no report, so Dashmon never flags it:
 # `update` refreshes it with the others. Raise it on every change.
-SCRIPT_VERSION=2
+SCRIPT_VERSION=3
 
 RAW="${DASHMON_RAW_URL:-https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy}"
 BIN="${DASHMON_BIN_DIR:-/usr/local/bin}"
@@ -45,6 +47,8 @@ label() {
     setup) echo "dashmon-setup" ;;
   esac
 }
+# The setup tool's own cron line is the automatic update.
+title_of() { if [ "$1" = setup ]; then say "the automatic update" "la mise à jour automatique"; else label "$1"; fi; }
 
 # What the script feeds, shown before installing it.
 purpose() {
@@ -89,6 +93,11 @@ frequencies() {
       echo "*/5 * * * *||every 5 minutes|toutes les 5 minutes|"
       echo "*/15 * * * *||every 15 minutes|toutes les 15 minutes|1"
       echo "0 * * * *||every hour|toutes les heures|"
+      ;;
+    setup)
+      echo "0 */6 * * *||every 6 hours|toutes les 6 heures|"
+      echo "30 4 * * *||every night at 04:30|chaque nuit à 04:30|1"
+      echo "30 4 * * 0||every Sunday at 04:30|le dimanche à 04:30|"
       ;;
     directory-sizes)
       echo "0 * * * *||every hour|toutes les heures|"
@@ -174,9 +183,9 @@ choose_container() {
 
 # Downloads deploy/NAME.sh next to its target, then renames it: a run in
 # progress keeps reading the old file, and a cut download changes nothing.
-fetch() {
-  target=$(file_of "$1")
-  temporary="$target.new"
+# download NAME: deploy/NAME.sh checked, in $(file_of NAME).new.
+download() {
+  temporary="$(file_of "$1").new"
   if ! curl -fsSL "$RAW/$1.sh" -o "$temporary"; then
     rm -f "$temporary"
     die "Download failed: $RAW/$1.sh" "Échec du téléchargement : $RAW/$1.sh"
@@ -186,7 +195,10 @@ fetch() {
     die "Unexpected content: $RAW/$1.sh" "Contenu inattendu : $RAW/$1.sh"
   fi
   chmod 755 "$temporary"
-  mv "$temporary" "$target"
+}
+fetch() {
+  download "$1"
+  mv "$(file_of "$1").new" "$(file_of "$1")"
 }
 
 # --- commands ------------------------------------------------------------
@@ -232,6 +244,43 @@ list() {
   if [ -f "$(file_of setup)" ]; then
     printf '     %s v%s\n' "$(pad dashmon-setup 17)" "$(version_of "$(file_of setup)")"
   fi
+  printf '  a) %s %s\n' "$(pad "$(say "Auto update" "Mise à jour auto")" 17)" "$(auto_status)"
+}
+
+auto_status() {
+  line=$(cron_lines root setup | head -n 1)
+  if [ -z "$line" ]; then
+    say "off (sudo dashmon-setup.sh auto)" "désactivée (sudo dashmon-setup.sh auto)"
+    return
+  fi
+  expr=$(printf '%s\n' "$line" | awk '{ print $1, $2, $3, $4, $5 }')
+  say "$(when setup "$expr") (cron of root)" "$(when setup "$expr") (cron de root)"
+}
+
+# auto [on|off]: the setup tool updates every installed script from cron.
+auto_update() {
+  case "${1:-on}" in
+    off)
+      if [ -n "$(cron_lines root setup)" ]; then cron_drop root setup; fi
+      say "Automatic update off." "Mise à jour automatique désactivée."
+      ;;
+    on)
+      # Installed at its usual place, so cron finds it.
+      [ -f "$(file_of setup)" ] || fetch setup
+      index=$(ask_frequency setup)
+      line="$(frequency_field setup "$index" 1) $(file_of setup) --all >/dev/null 2>&1 $(marker setup)"
+      current=$(cron_read root | runs setup -v)
+      {
+        [ -n "$current" ] && printf '%s\n' "$current"
+        printf '%s\n' "$line"
+      } | cron_write root
+      say "Automatic update on, cron of root:" "Mise à jour automatique activée, cron de root :"
+      printf '  %s\n' "$line"
+      say "It updates the installed scripts only: no new script, no cron change." \
+        "Elle ne met à jour que les scripts installés : aucun nouveau script, aucune tâche cron changée."
+      ;;
+    *) die "auto takes on or off." "auto prend on ou off." ;;
+  esac
 }
 
 ask_frequency() {
@@ -241,7 +290,7 @@ ask_frequency() {
     die "--frequency takes 1, 2 or 3." "--frequency prend 1, 2 ou 3."
   fi
   if ! interactive; then echo "$best"; return; fi
-  say "How often should $(label "$1") run?" "À quelle fréquence lancer $(label "$1") ?" >&2
+  say "How often should $(title_of "$1") run?" "À quelle fréquence lancer $(title_of "$1") ?" >&2
   for index in 1 2 3; do
     text=$(if [ "$FR" = 1 ]; then frequency_field "$1" "$index" 4; else frequency_field "$1" "$index" 3; fi)
     mark=""
@@ -395,12 +444,19 @@ update_all() {
     file=$(file_of "$name")
     [ -f "$file" ] || continue
     before=$(version_of "$file")
-    fetch "$name"
-    after=$(version_of "$file")
-    if [ "$before" = "$after" ]; then
+    download "$name"
+    after=$(version_of "$file.new")
+    if cmp -s "$file.new" "$file"; then
+      rm -f "$file.new"
       say "  $(label "$name"): v$after, up to date" "  $(label "$name") : v$after, à jour"
     else
-      say "  $(label "$name"): v${before:-?} -> v$after" "  $(label "$name") : v${before:-?} -> v$after"
+      mv "$file.new" "$file"
+      say "  $(label "$name"): v${before:-?} -> v$after, updated" "  $(label "$name") : v${before:-?} -> v$after, mis à jour"
+    fi
+    # A script without its cron job feeds no card.
+    if [ "$name" != setup ] && [ -z "$(cron_lines "$(cron_owner "$name")" "$name")" ]; then
+      say "    no cron job: sudo dashmon-setup.sh install $name" \
+        "    sans tâche cron : sudo dashmon-setup.sh install $name"
     fi
     updated=$((updated + 1))
   done
@@ -446,8 +502,8 @@ menu() {
     echo
     list
     echo
-    say "Type the number of a script (1-6), u to update them all, q to quit." \
-      "Tapez le numéro d'un script (1-6), u pour tout mettre à jour, q pour quitter."
+    say "Type the number of a script (1-6), u to update them all now, a for the automatic update, q to quit." \
+      "Tapez le numéro d'un script (1-6), u pour tout mettre à jour maintenant, a pour la mise à jour auto, q pour quitter."
     [ "$FR" = 1 ] || echo "(En français : sudo dashmon-setup.sh --lang fr)"
     printf '> '
     read -r pick || return 0
@@ -455,6 +511,17 @@ menu() {
       q | Q) return 0 ;;
       "") ;;
       u | U) echo; update_all; pause ;;
+      a | A)
+        echo
+        say "Automatic update: every installed script, from cron. Now: $(auto_status)" \
+          "Mise à jour automatique des scripts installés, par cron. Actuellement : $(auto_status)"
+        say "  1) turn on or change the frequency   2) turn off   Enter) back" \
+          "  1) activer ou changer la fréquence   2) désactiver   Entrée) retour"
+        printf '%s ' "$(say "Choice:" "Choix :")"
+        read -r action || action=""
+        case "$action" in 1) auto_update on ;; 2) auto_update off ;; *) say "Nothing changed." "Rien n'a changé." ;; esac
+        pause
+        ;;
       [1-6])
         menu_script "$(echo "$COMPONENTS" | tr ' ' '\n' | sed -n "${pick}p")"
         pause
@@ -465,7 +532,7 @@ menu() {
 }
 
 usage() {
-  sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'
   echo
   say "Scripts: $COMPONENTS" "Scripts : $COMPONENTS"
 }
@@ -496,6 +563,7 @@ while [ "$#" -gt 0 ]; do
     --reboot) REBOOT_OPT=1 ;;
     --run) RUN_OPT=1 ;;
     --yes | -y) YES=1 ;;
+    --all | -all | -a) ACTION=update ;;
     -h | --help | help) usage; exit 0 ;;
     -*) die "Unknown option: $1" "Option inconnue : $1" ;;
     *) if [ -z "$ACTION" ]; then ACTION=$1; else NAMES="$NAMES $1"; fi ;;
@@ -517,12 +585,13 @@ case "$ACTION" in
   "") if [ -t 0 ]; then menu; else usage; fi ;;
   list) list full ;;
   update) update_all ;;
+  auto) auto_update $NAMES ;;
   install | remove)
     [ -n "$NAMES" ] || die "Name the script(s): $COMPONENTS" "Nommez le ou les scripts : $COMPONENTS"
     for name in $NAMES; do
       if [ "$ACTION" = install ]; then install_one "$name"; else remove_one "$name"; fi
     done
     ;;
-  *) die "Unknown command: $ACTION (list, install, remove, update)" \
-    "Commande inconnue : $ACTION (list, install, remove, update)" ;;
+  *) die "Unknown command: $ACTION (list, install, remove, update, auto)" \
+    "Commande inconnue : $ACTION (list, install, remove, update, auto)" ;;
 esac

@@ -405,7 +405,7 @@
   "hostScriptsHow": "Install and update",
   "hostScriptsSetup": "1. Once per machine, install the tool:",
   "hostScriptsMenu": "2. Start the menu, pick the scripts and how often each one runs:",
-  "hostScriptsUpdate": "Update every script installed on the machine at once (the cron jobs do not change):",
+  "hostScriptsUpdate": "Update every installed script at once (the cron jobs do not change):",
   "scriptInstallStep": "Install this script and its cron job with the dashmon-setup tool (see Host scripts):",
   "scriptFrequencies": "Schedules offered by the tool:",
   "scriptRecommended": "recommended",
@@ -422,5 +422,9 @@
   "cronHourly": "every hour",
   "cronEvery6Hours": "every 6 hours",
   "cronNightly330": "every night at 03:30",
-  "hostGuideLink": "Detailed guide"
+  "hostGuideLink": "Detailed guide",
+  "scriptSetupMissing": "Command not found? Install the dashmon-setup tool first:",
+  "hostScriptsAuto": "Or update them automatically from cron (root). The tool asks how often; \"auto off\" stops it:",
+  "cronNightly430": "every night at 04:30",
+  "cronSunday430": "every Sunday at 04:30"
 }

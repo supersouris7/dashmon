@@ -6,8 +6,9 @@ import { setIconButton, setDeleteIcon } from "./icon-button.js";
 import { commandLine } from "../supervision/script-notice.js";
 import {
   SCRIPT_FREQUENCIES,
+  AUTO_UPDATE_COMMAND,
   SETUP_INSTALL_COMMAND,
-  UPDATE_ALL_COMMAND,
+  UPDATE_COMMAND,
   installCommand
 } from "../supervision/script-commands.js";
 
@@ -143,7 +144,10 @@ function scriptsSection(form) {
     hint("hostScriptsMenu"),
     commandLine("sudo dashmon-setup.sh"),
     hint("hostScriptsUpdate"),
-    commandLine(UPDATE_ALL_COMMAND),
+    commandLine(UPDATE_COMMAND),
+    hint("hostScriptsAuto"),
+    commandLine(AUTO_UPDATE_COMMAND),
+    frequencyList("setup"),
     guideLink("SCRIPTS.md")
   );
 }

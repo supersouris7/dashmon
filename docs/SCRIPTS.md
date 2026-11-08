@@ -71,7 +71,9 @@ sudo dashmon-setup.sh install smart-dump            # script + cron line, recomm
 sudo dashmon-setup.sh install smart-dump --frequency 3 --run
 sudo dashmon-setup.sh install opencode-stats        # into the crontab of the user who ran sudo
 sudo dashmon-setup.sh remove smart-dump             # cron line + script
-sudo dashmon-setup.sh update                        # every installed script
+sudo dashmon-setup.sh --all                         # update every installed script
+sudo dashmon-setup.sh auto                          # ... automatically, from cron
+sudo dashmon-setup.sh auto off                      # stop the automatic update
 ```
 
 | Option | Meaning |
@@ -83,6 +85,7 @@ sudo dashmon-setup.sh update                        # every installed script
 | `--run` | Run the script once right after installing it. |
 | `--yes` | Ask nothing; replace a cron line written by hand. |
 | `--lang fr\|en` | Language of the messages. |
+| `--all` (or `-all`) | Update every installed script, same as `update`. |
 
 Several names can follow `install` or `remove`:
 `sudo dashmon-setup.sh install smart-dump wireguard-dump`.
@@ -93,25 +96,53 @@ Pi is often in `en_GB`: add `--lang fr` (`sudo dashmon-setup.sh --lang fr`).
 ## Update everything at once
 
 When a card ends with the yellow notice **Script to update on this host**, one
-command updates **every** Dashmon script installed on that machine, the setup
-tool included. It installs nothing new and does not touch the cron lines:
+short command updates **every** Dashmon script installed on that machine, the
+setup tool included:
+
+```sh
+sudo dashmon-setup.sh --all
+```
+
+The notice of the card contains this command, ready to copy. For each
+installed script it downloads the current version and replaces the installed
+copy only when it changed; it then says, script by script, `up to date` or
+`v1 -> v2, updated`, and flags a script left without its cron job. It installs
+nothing new and does not touch the cron lines. Each script is downloaded next
+to the old one, then renamed over it: a run in progress keeps its old file,
+and a cut download changes nothing. The notice disappears after the next run
+of the script, once Dashmon has read its new report.
+
+**Without the setup tool** (a machine installed before it), the notice offers
+its installation, or update with this single command:
 
 ```sh
 for n in setup apt-updates smart-dump wireguard-dump opencode-stats claude-stats directory-sizes; do f=/usr/local/bin/dashmon-$n.sh; [ -f "$f" ] || continue; sudo curl -fsSL "https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/$n.sh" -o "$f.new" && sudo chmod 755 "$f.new" && sudo mv "$f.new" "$f" && echo "OK $n"; done
 ```
 
-The notice of the card contains this command, ready to copy. Each script is
-downloaded next to the old one, then renamed over it: a run in progress keeps
-its old file, and a cut download changes nothing. The notice disappears after
-the next run of the script, once Dashmon has read its new report.
+## Automatic update
 
-`sudo dashmon-setup.sh update` does the same once the setup tool is installed.
+The setup tool can run that update itself, from the root crontab:
 
-Updates are never automatic on purpose: several scripts run as root, and a
-script that downloaded and ran a new version of itself would run code you have
-not seen. Read the scripts on GitHub before updating if you want to know what
-changed. Dashmon itself never writes on the host: no button in the app can
-change a script.
+```sh
+sudo dashmon-setup.sh auto
+```
+
+It asks how often (three choices, see [Schedules](#schedules)) and writes this
+line, recommended frequency:
+
+```cron
+30 4 * * * /usr/local/bin/dashmon-setup.sh --all >/dev/null 2>&1 # dashmon:setup
+```
+
+Every night at 04:30, after APT (03:00) and the directories (03:30), the
+installed scripts follow the repository: the notices on the cards no longer
+appear. In the menu, `a` turns it on, changes its frequency or turns it off;
+`sudo dashmon-setup.sh auto off` removes the line. `list` shows its state.
+
+It is off by default, and it is a choice: the scripts that run as root then
+take a new version from the repository without anyone reading it first. Leave
+it off if you prefer to read the changes on GitHub before `--all`. Dashmon
+itself never writes on the host: no button in the app can change a script.
 
 ## Schedules
 
@@ -126,6 +157,7 @@ shows and from what a run costs:
 | WireGuard | **`* * * * *` every minute** | `*/5 * * * *` every 5 minutes | `*/15 * * * *` every 15 minutes | A peer shows online while its last handshake is under 3 minutes old: only a dump every minute keeps that state right. 5 or 15 minutes are enough to see who connected. The dump costs nothing. |
 | OpenCode | `*/5 * * * *` every 5 minutes | **`*/15 * * * *` every 15 minutes** | `0 * * * *` every hour | Today's tokens stay current; the card flags a report older than 6 hours. |
 | Claude Code | `*/5 * * * *` every 5 minutes | **`*/15 * * * *` every 15 minutes** | `0 * * * *` every hour | Same as OpenCode. |
+| Automatic update | `0 */6 * * *` every 6 hours | **`30 4 * * *` every night at 04:30** | `30 4 * * 0` every Sunday at 04:30 | After the nightly APT and directory runs; every night is enough for scripts that change a few times a month. |
 | Directories | `0 * * * *` every hour | `0 */6 * * *` every 6 hours | **`30 3 * * *` every night at 03:30** | `du` reads every file entry: once a night, after APT. The card flags a report older than 2 days. |
 
 For APT the tool also sets `DASHMON_APT_INTERVAL_HOURS` (24, 168 or 720) so

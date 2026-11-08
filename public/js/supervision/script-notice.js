@@ -1,9 +1,10 @@
 // Notice at the bottom of a card whose report comes from an older host
-// script (lib/host/script-versions.js): the command that updates every
-// script of the machine, to copy, and the guide. Clicks inside never fold
+// script (lib/host/script-versions.js): the short command that updates every
+// script of the machine, to copy, the setup tool install in case it is
+// missing, and the guide. Clicks inside never fold
 // the card. commandLine() is also used by the settings help.
 import { t } from "../i18n.js";
-import { UPDATE_ALL_COMMAND } from "./script-commands.js";
+import { SETUP_INSTALL_COMMAND, UPDATE_COMMAND } from "./script-commands.js";
 
 const GUIDE = "https://github.com/supersouris7/dashmon/blob/main/docs/SCRIPTS.md";
 
@@ -59,10 +60,17 @@ export function scriptNotice(metrics, field) {
   guide.target = "_blank";
   guide.rel = "noopener noreferrer";
   title.append(icon, element("strong", "", t("scriptOutdated")), guide);
+  // Hosts installed before the setup tool: install it first.
+  const missing = element("details", "script-notice-setup");
+  missing.append(
+    element("summary", "", t("scriptSetupMissing")),
+    commandLine(SETUP_INSTALL_COMMAND)
+  );
   box.append(
     title,
     element("p", "script-notice-hint", t("scriptUpdateAllHint")),
-    commandLine(UPDATE_ALL_COMMAND)
+    commandLine(UPDATE_COMMAND),
+    missing
   );
   return box;
 }
