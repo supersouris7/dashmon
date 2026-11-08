@@ -24,7 +24,7 @@ set -eu
 
 # Version of this script. It writes no report, so Dashmon never flags it:
 # `update` refreshes it with the others. Raise it on every change.
-SCRIPT_VERSION=3
+SCRIPT_VERSION=4
 
 RAW="${DASHMON_RAW_URL:-https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy}"
 BIN="${DASHMON_BIN_DIR:-/usr/local/bin}"
@@ -130,18 +130,60 @@ cron_write() { crontab -u "$1" -; }
 marker() { echo "# dashmon:$1"; }
 # Lines that run this script: ours (marker), written by hand from a guide,
 # or from before the dashmon- names (/usr/local/sbin/apt-updates.sh...).
-# runs NAME [-v]: keeps the lines that run it, or with -v the others.
+# runs NAME [-v]: keeps the lines that run it, or with -v the others (its
+# comment line too).
 runs() {
   if [ "${2:-}" = -v ]; then
-    grep -v -F -e "$(marker "$1")" -e "/dashmon-$1.sh" -e "bin/$1.sh" || true
+    grep -v -F -e "$(marker "$1")" -e "[dashmon:$1]" -e "/dashmon-$1.sh" -e "bin/$1.sh" || true
   else
     grep -F -e "$(marker "$1")" -e "/dashmon-$1.sh" -e "bin/$1.sh" || true
   fi
 }
-cron_lines() { cron_read "$1" | runs "$2"; }
+# The active lines only: a commented-out line runs nothing.
+cron_lines() { cron_read "$1" | grep -v '^[[:space:]]*#' | runs "$2"; }
 cron_drop() {
   current=$(cron_read "$1")
   printf '%s\n' "$current" | runs "$2" -v | cron_write "$1"
+  cron_tidy "$1"
+}
+
+# The comment written above a line: what it runs and when, in words.
+cron_comment() {
+  t_expr=$(printf '%s\n' "$2" | awk '{ print $1, $2, $3, $4, $5 }')
+  t_what=$(if [ "$1" = setup ]; then
+    say "Automatic update of the Dashmon scripts" "Mise à jour automatique des scripts Dashmon"
+  else label "$1"; fi)
+  t_how=$(when "$1" "$t_expr")
+  case "$2" in *DASHMON_APT_REBOOT=1*) t_how="$t_how, $(say "automatic reboot" "redémarrage auto")" ;; esac
+  printf '# %s : %s [dashmon:%s]\n' "$t_what" "$t_how" "$1"
+}
+
+# Rewrites a crontab readable: the other lines as they are, then the Dashmon
+# lines together under a header, each with a blank line and its comment.
+cron_tidy() {
+  t_content=$(cron_read "$1")
+  t_others=$(printf '%s\n' "$t_content" | grep -v -F -e '[dashmon' -e '# dashmon:' \
+    | awk '{ line[NR] = $0 } NF && !first { first = NR } NF { last = NR }
+      END { for (i = first; first && i <= last; i++) print line[i] }' | cat -s)
+  t_blocks=""
+  # "job", not "name": the callers keep their own $name.
+  for t_job in $COMPONENTS setup; do
+    t_line=$(printf '%s\n' "$t_content" | grep -v '^[[:space:]]*#' | grep -F "$(marker "$t_job")" | head -n 1)
+    [ -n "$t_line" ] || continue
+    t_blocks="$t_blocks
+$(cron_comment "$t_job" "$t_line")
+$t_line
+"
+  done
+  {
+    if [ -n "$t_others" ]; then printf '%s\n' "$t_others"; fi
+    if [ -n "$t_others" ] && [ -n "$t_blocks" ]; then echo; fi
+    if [ -n "$t_blocks" ]; then
+      printf '%s\n' "$(say "# --- Dashmon: managed by dashmon-setup.sh (sudo dashmon-setup.sh list) [dashmon] ---" \
+        "# --- Dashmon : géré par dashmon-setup.sh (sudo dashmon-setup.sh list) [dashmon] ---")"
+      printf '%s' "$t_blocks"
+    fi
+  } | cron_write "$1"
 }
 
 invoking_user() {
@@ -150,6 +192,7 @@ invoking_user() {
   else id -un
   fi
 }
+cron_owners() { printf '%s\n%s\n' root "$(invoking_user)" | sort -u; }
 cron_owner() { if user_script "$1"; then invoking_user; else echo root; fi; }
 
 # --- Docker --------------------------------------------------------------
@@ -274,6 +317,7 @@ auto_update() {
         [ -n "$current" ] && printf '%s\n' "$current"
         printf '%s\n' "$line"
       } | cron_write root
+      cron_tidy root
       say "Automatic update on, cron of root:" "Mise à jour automatique activée, cron de root :"
       printf '  %s\n' "$line"
       say "It updates the installed scripts only: no new script, no cron change." \
@@ -391,6 +435,7 @@ install_one() {
     [ -n "$current" ] && printf '%s\n' "$current"
     printf '%s\n' "$line"
   } | cron_write "$owner"
+  cron_tidy "$owner"
   # A copy from before the dashmon- names, run only by a replaced line.
   for former in $(printf '%s\n' "$existing" | tr ' ' '\n' | grep "bin/$name.sh\$" || true); do
     if [ -f "$former" ] && [ -z "$(cron_read "$owner" | grep -F "$former" || true)" ]; then
@@ -461,7 +506,12 @@ update_all() {
     updated=$((updated + 1))
   done
   [ "$updated" -gt 0 ] || say "No Dashmon script installed in $BIN." "Aucun script Dashmon installé dans $BIN."
-  say "The cron lines do not change." "Les lignes cron ne changent pas."
+  # Older installs wrote bare lines: same jobs, laid out with their comments.
+  for who in $(cron_owners); do
+    if [ -n "$(cron_read "$who" | grep -F '# dashmon:' || true)" ]; then cron_tidy "$who"; fi
+  done
+  say "The cron jobs do not change (only laid out with their comments)." \
+    "Les tâches cron ne changent pas (seulement remises en forme, avec leurs commentaires)."
 }
 
 clear_screen() { if [ -t 1 ]; then printf '\033[H\033[2J'; fi; }

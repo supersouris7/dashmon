@@ -70,6 +70,13 @@ async function main() {
     );
     assert.match(root, /^\* \* \* \* \* .*dashmon-wireguard-dump\.sh .*# dashmon:wireguard-dump$/m);
     assert.ok(!root.includes(former), "hand-written line replaced");
+    // Laid out: the other lines first, then a header and, for each job, a
+    // blank line and a comment that says what runs and when.
+    const header = root.indexOf("# --- Dashmon: managed by dashmon-setup.sh");
+    assert.ok(header > root.indexOf('MAILTO=""'), "header after the other lines");
+    assert.match(root, /\n\n# SMART : every 15 minutes \[dashmon:smart-dump\]\n\*\/15 /);
+    assert.match(root, /\n\n# WireGuard : every minute \[dashmon:wireguard-dump\]\n\* \* /);
+    assert.ok(!/\n\n\n/.test(root), "no double blank line");
     assert.ok(!fs.existsSync(former), "former copy removed");
     assert.equal(
       (fs.statSync(path.join(bin, "dashmon-smart-dump.sh")).mode & 0o777).toString(8),
@@ -182,8 +189,13 @@ async function main() {
     assert.equal(crontab("root").match(/# dashmon:setup/g).length, 1);
     assert.match(crontab("root"), /^30 4 \* \* 0 /m);
     assert.match(crontab("root"), /# dashmon:wireguard-dump$/m, "other lines kept");
+    assert.match(
+      crontab("root"),
+      /# Automatic update of the Dashmon scripts : every Sunday at 04:30 \[dashmon:setup\]\n30 4/
+    );
     run("auto", "off");
     assert.ok(!crontab("root").includes("dashmon:setup"));
+    assert.equal(crontab("root").match(/\[dashmon\]/g).length, 1, "one header");
     assert.match(crontab("root"), /# dashmon:wireguard-dump$/m);
 
     // The manual loop of docs/SCRIPTS.md, for hosts without the tool.

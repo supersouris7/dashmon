@@ -183,17 +183,32 @@ The times are those of the host. Each user has a crontab:
 - `crontab -l` lists **your** crontab (OpenCode, Claude Code), `crontab -e`
   edits it.
 
-A line written by the setup tool looks like this:
+The setup tool keeps your own lines first, as they are, then groups its lines
+under a header, each with a blank line and a comment that says what runs and
+when:
 
 ```cron
+# My own job, kept as it is
+0 2 * * 0 /usr/local/bin/backup.sh >/dev/null 2>&1
+
+# --- Dashmon: managed by dashmon-setup.sh (sudo dashmon-setup.sh list) [dashmon] ---
+
+# SMART : every 15 minutes [dashmon:smart-dump]
 */15 * * * * DASHMON_CONTAINER=dashmon /usr/local/bin/dashmon-smart-dump.sh >/dev/null 2>&1 # dashmon:smart-dump
+
+# Automatic update of the Dashmon scripts : every night at 04:30 [dashmon:setup]
+30 4 * * * /usr/local/bin/dashmon-setup.sh --all >/dev/null 2>&1 # dashmon:setup
 ```
+
+The comments follow the language of the tool. Each install, removal or
+`--all` lays the crontab out again this way, so lines written by an older
+version get their comments at the next update.
 
 - `DASHMON_CONTAINER=...` names the container the report is written to;
 - `>/dev/null 2>&1` drops the output, so cron sends no mail at each run;
-- `# dashmon:smart-dump` is how the tool finds its line again. Keep it if you
-  edit the line by hand; the tool replaces only that line and never touches
-  the others.
+- `# dashmon:smart-dump` at the end of the line is how the tool finds it
+  again; `[dashmon:...]` marks its comments. Keep both if you edit by hand:
+  the tool rewrites only its own lines and never touches the others.
 
 To see why a job does not run, run its command by hand, without
 `>/dev/null 2>&1`: the script prints the cause (container not found, missing
