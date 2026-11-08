@@ -21,6 +21,7 @@ import { USAGE_SOURCES, usageCard } from "./supervision/usage-card.js";
 import { layoutMasonry } from "./supervision/masonry.js";
 import { speedtestCard } from "./supervision/speedtest-card.js";
 import { scriptNotice } from "./supervision/script-notice.js";
+import { restore, selectionInside, snapshot } from "./supervision/preserve.js";
 
 // A card whose report comes from an older host script ends with the command
 // that updates it.
@@ -240,8 +241,28 @@ export async function refreshHostMetrics() {
     state.hostMetrics = null;
   } finally {
     metricsInflight = false;
-    if (state.page === "supervision") renderSupervision();
+    if (state.page === "supervision") refreshSupervision();
   }
+}
+
+// A refresh keeps what the user is doing (supervision/preserve.js); while
+// text is selected in the page it waits for the selection to end.
+let refreshPending = false;
+function refreshSupervision() {
+  if (selectionInside(supervisionList)) {
+    refreshPending = true;
+    return;
+  }
+  refreshPending = false;
+  const saved = snapshot(supervisionList);
+  renderSupervision();
+  restore(supervisionList, saved);
+}
+if (typeof document !== "undefined") {
+  document.addEventListener("selectionchange", () => {
+    if (refreshPending && state.page === "supervision" && !selectionInside(supervisionList))
+      refreshSupervision();
+  });
 }
 
 function pageHidden() {
