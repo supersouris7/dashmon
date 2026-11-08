@@ -240,16 +240,8 @@ body.is-refreshing .widget-status {
   opacity: 0.55;
 }
 
-/* Lichess, AdGuard et Duplicati : les deux lignes portent la meme information
-   (une note et son evolution, un pourcentage et son volume). La seconde n'est
-   donc pas une legende mais une donnee, et elle se lit aussi mal que la
-   premiere. Le badge est deja gras (.widget-badge) ; on aligne la ligne du bas
-   sur ces trois widgets seulement, sans toucher Docker ni les autres. */
-#dashboard .widget-lichess .widget-time,
-#dashboard .widget-adguard .widget-time,
-#dashboard .widget-duplicati .widget-time {
-  font-weight: 700;
-}
+/* The second line of a tile is never bold: the value above it is. Uptime
+   Kuma draws its own lines (one per status page, all bold) in its renderer. */
 
 /* Le mode compact resserre la tuile, pas ses informations : les deux lignes du
    widget gardent la meme taille que sur une tuile normale. */
