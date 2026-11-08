@@ -25,7 +25,10 @@ async function main() {
         "#!/bin/sh",
         'u=root; [ "$1" = -u ] && { u=$2; shift 2; }',
         'f="$CRONTAB_DIR/$u"',
-        'case "$1" in -l) [ -f "$f" ] && cat "$f" || exit 1 ;; -) cat > "$f" ;; esac',
+        // A file argument, as the tool writes; no terminal, no editor.
+        '[ -t 0 ] && { echo "crontab got a terminal" >&2; exit 9; }',
+        '[ "$EDITOR" = false ] || { echo "editor not neutralised" >&2; exit 9; }',
+        'case "$1" in -l) [ -f "$f" ] && cat "$f" || exit 1 ;; -) exit 9 ;; *) cat "$1" > "$f" ;; esac',
         ""
       ].join("\n"),
       { mode: 0o755 }

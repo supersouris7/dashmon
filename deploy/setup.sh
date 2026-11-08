@@ -24,7 +24,7 @@ set -eu
 
 # Version of this script. It writes no report, so Dashmon never flags it:
 # `update` refreshes it with the others. Raise it on every change.
-SCRIPT_VERSION=5
+SCRIPT_VERSION=6
 
 RAW="${DASHMON_RAW_URL:-https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy}"
 BIN="${DASHMON_BIN_DIR:-/usr/local/bin}"
@@ -125,8 +125,20 @@ version_of() { sed -n 's/^SCRIPT_VERSION=\([0-9][0-9]*\)$/\1/p' "$1" 2>/dev/null
 
 # --- crontab -------------------------------------------------------------
 
-cron_read() { crontab -u "$1" -l 2>/dev/null || true; }
-cron_write() { crontab -u "$1" -; }
+# crontab never gets the terminal nor an editor: whatever a crontab version
+# makes of its arguments, it cannot open one (nano showed up on a Pi).
+cron_read() { EDITOR=false VISUAL=false crontab -u "$1" -l </dev/null 2>/dev/null || true; }
+# cron_write USER < content: through a file, not "-".
+cron_write() {
+  cron_file=$(mktemp)
+  cat >"$cron_file"
+  if EDITOR=false VISUAL=false crontab -u "$1" "$cron_file" </dev/null; then
+    rm -f "$cron_file"
+  else
+    rm -f "$cron_file"
+    die "crontab refused the new table of $1." "crontab a refusé la nouvelle table de $1."
+  fi
+}
 marker() { echo "# dashmon:$1"; }
 # Lines that run this script: ours (marker), written by hand from a guide,
 # or from before the dashmon- names (/usr/local/sbin/apt-updates.sh...).
