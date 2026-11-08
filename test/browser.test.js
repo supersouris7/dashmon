@@ -546,6 +546,55 @@ async function main() {
     },
     "repertoires : lignes alignees, depliage memorise et sans debordement a 220 px"
   );
+  // APT card, built from a failed report with markup in its output: what the
+  // user sees and does, not how the source is written.
+  assert.deepEqual(
+    await evaluate(`Promise.all([
+      import('/js/supervision/apt-card.js'),
+      import('/js/supervision/cards.js'),
+      import('/js/i18n.js')
+    ]).then(([{aptUpdatesCard},{EXPANDABLE_CARDS},{t}])=>{
+    const host={id:'apt-test'};
+    const metrics={aptUpdates:{status:'failed',updated:0,failedStep:'upgrade',exitCode:100,
+      error:'<b>E: dpkg interrompu</b>',finishedAt:1700000000,nextRunAt:1700604800}};
+    const card=aptUpdatesCard(host,metrics);
+    document.body.append(card);
+    const details=()=>[...card.querySelectorAll('.supervision-apt-details')];
+    const shown=()=>details().every(e=>getComputedStyle(e).display!=='none');
+    const output=card.querySelector('.supervision-apt-error pre');
+    const labels=[...card.querySelectorAll('.supervision-apt-details *')].map(e=>e.textContent);
+    const result={
+      title:card.querySelector('.supervision-name').textContent===t('supervisionAptTitle'),
+      foldedByDefault:card.getAttribute('aria-expanded')==='false' && details().every(e=>getComputedStyle(e).display==='none'),
+      outputAsText:output.textContent.includes('<b>E: dpkg interrompu</b>') && !output.querySelector('b'),
+      nextRunAfterLastRun:labels.indexOf(t('aptUpdatesNextRun'))>labels.indexOf(t('aptUpdatesLastRun')) && labels.indexOf(t('aptUpdatesLastRun'))>=0,
+      inExpandAll:card.matches(EXPANDABLE_CARDS)
+    };
+    card.click();
+    result.opens=card.getAttribute('aria-expanded')==='true' && shown();
+    result.remembered=JSON.parse(localStorage.getItem('dashmon.view')).supervisionAptExpanded.includes(card.dataset.aptKey) &&
+      aptUpdatesCard(host,metrics).getAttribute('aria-expanded')==='true';
+    card.dispatchEvent(new KeyboardEvent('keydown',{key:' ',bubbles:true}));
+    result.space=card.getAttribute('aria-expanded')==='false';
+    card.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
+    result.enter=card.getAttribute('aria-expanded')==='true';
+    card.click();
+    card.remove();
+    return result;
+  })`),
+    {
+      title: true,
+      foldedByDefault: true,
+      outputAsText: true,
+      nextRunAfterLastRun: true,
+      inExpandAll: true,
+      opens: true,
+      remembered: true,
+      space: true,
+      enter: true
+    },
+    "APT : titre, replie par defaut, depliage memorise, clavier, sortie en texte"
+  );
   assert.equal(
     await evaluate("document.querySelectorAll('#localHostEditor .smart-disk-choice').length"),
     2

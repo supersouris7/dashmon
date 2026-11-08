@@ -311,7 +311,8 @@ async function main() {
       )
   );
 
-  // La carte APT partage la commande globale et conserve son etat au refresh.
+  // The APT card's behaviour (folding, keyboard, output shown as text) is
+  // checked in a real page by test/browser.test.js.
   // The supervision page (supervision.js) and its cards (supervision/).
   const supervisionSource = [
     "supervision.js",
@@ -320,10 +321,6 @@ async function main() {
     .map(file => readSource("public", "js", ...file.split("/")))
     .join("");
   const aptSource = readSource("public", "js", "supervision", "apt-card.js");
-  ok(
-    "APT : carte incluse dans le depliage global",
-    contains(supervisionSource, ".supervision-card-apt.has-details")
-  );
   ok(
     "supervision : chaque tuile porte son propre titre",
     [
@@ -334,26 +331,11 @@ async function main() {
     ].every(key => contains(supervisionSource, 't("' + key + '")'))
   );
   ok(
-    "APT : chevron et clavier",
-    contains(aptSource, "supervision-smart-chevron") &&
-      contains(aptSource, 'event.key!=="Enter"') &&
-      contains(aptSource, 'event.key!==" "')
-  );
-  ok(
-    "APT : etat conserve par instance et hote",
-    contains(aptSource, 'isExpanded("supervisionAptExpanded",key)') &&
-      contains(supervisionSource, "selectedSupervisionInstanceId(),host.id")
-  );
-  ok(
     "supervision : le depliage est enregistre en direct",
     contains(supervisionSource, 'setExpanded("supervisionSmartExpanded",key,expanded)') &&
       contains(supervisionSource, 'setExpanded("supervisionHostExpanded",key,expanded)') &&
       contains(supervisionSource, 'setExpanded("supervisionAptExpanded",key,open)') &&
       contains(supervisionSource, "saveViewPrefs({[field]:state[field]})")
-  );
-  ok(
-    "APT : sortie affichee comme texte",
-    contains(aptSource, "message.textContent=") && !contains(aptSource, "message.innerHTML")
   );
   ok(
     "APT : statut a jour/pas a jour avec coche comme la sante de l'hote",
@@ -414,20 +396,6 @@ async function main() {
       ]
     );
   }
-  ok(
-    "APT : prochain passage sous le dernier passage",
-    aptSource.indexOf(squash("aptUpdatesNextRun")) > aptSource.indexOf(squash("aptUpdatesLastRun"))
-  );
-  ok(
-    "APT : details replies par defaut",
-    (() => {
-      const css = readSource("public", "css", "supervision.css");
-      return (
-        contains(css, ".supervision-apt-details{display:none") &&
-        contains(css, ".supervision-card-apt.expanded .supervision-apt-details{display:grid}")
-      );
-    })()
-  );
   const agentEditorSource = editorSource();
   ok(
     "agents : test depuis le principal sans bouton parametrer redondant",
