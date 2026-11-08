@@ -217,6 +217,22 @@ Back up the primary data volume and its master key separately. Each agent has
 its own configuration volume. Upgrading an image does not upgrade the scripts
 installed on the hosts.
 
+## Changing the sync token
+
+Change `DASHMON_SYNC_TOKEN` when it may have been seen: printed in a terminal
+or a log, shared by mistake, or after someone left. The primary and every agent
+must then hold the same new value.
+
+1. Generate a new value: `openssl rand -base64 32`.
+2. Put it in the stack of **every agent**, then redeploy them.
+3. Put it in the stack of the **primary**, then redeploy it.
+4. Open **Settings → Agents**: each agent comes back connected with the new
+   token. Nothing else is needed; the pairing itself does not change.
+
+Between steps 2 and 3, the agents are shown unreachable: that is expected.
+`docker inspect` shows a container's environment, the token included: keep its
+output private.
+
 ## Quick troubleshooting
 
 | Problem | Check |
