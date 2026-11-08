@@ -19,6 +19,7 @@
 // the work waits on outgoing requests, which do not use the pool: 4 is enough.
 process.env.UV_THREADPOOL_SIZE = process.env.UV_THREADPOOL_SIZE || "4";
 
+const { apiError } = require("./lib/http/api-errors");
 const express = require("express");
 const os = require("os");
 const path = require("path");
@@ -178,8 +179,7 @@ function applySecurity(app, settings, { auth, failures, limits }) {
     const validToken = createSyncTokenCheck(settings.syncToken);
     app.use("/api", agentApiFilter);
     app.use("/api", (req, res, next) => {
-      if (!validToken(req))
-        return res.status(401).json({ error: "Authentification agent requise" });
+      if (!validToken(req)) return res.status(401).json({ ...apiError("agent_auth_required") });
       next();
     });
   } else {

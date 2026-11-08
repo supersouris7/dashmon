@@ -12,6 +12,7 @@ import {
   manageSelectionCount,
   imageManagerGrid
 } from "./dom.js";
+import { errorText } from "./api-error.js";
 
 let activeIconSetter = null;
 const managedImageSelection = new Set();
@@ -196,7 +197,7 @@ pngUpload.addEventListener("change", async () => {
     });
 
     const result = await response.json();
-    if (!response.ok) throw new Error(result.error || t("imagesUploadFailed"));
+    if (!response.ok) throw new Error(errorText(result, "imagesUploadFailed"));
 
     if (activeIconSetter) {
       activeIconSetter(`icons/${result.file}`);

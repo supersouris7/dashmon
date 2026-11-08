@@ -1,6 +1,8 @@
 "use strict";
 // Widget Gotify : la derniere notification est lue avec un jeton client.
 
+const { resultError } = require("../../lib/http/api-errors");
+
 function latestMessage(payload, sanitizeText) {
   const message = Array.isArray(payload && payload.messages) ? payload.messages[0] : null;
   if (!message || typeof message !== "object") return null;
@@ -16,8 +18,8 @@ function latestMessage(payload, sanitizeText) {
 async function check(ctx) {
   const baseUrl = String(ctx.sanitizeUrl(ctx.service.url) || "").replace(/\/+$/, "");
   const token = String(ctx.config.token || "");
-  if (!baseUrl) return { ok: false, error: "URL Gotify invalide" };
-  if (!token) return { ok: false, error: "Jeton client Gotify manquant" };
+  if (!baseUrl) return { ok: false, ...resultError("invalid_url") };
+  if (!token) return { ok: false, ...resultError("token_missing") };
   try {
     const payload = await ctx.api(baseUrl, "/message?limit=1", {
       headers: { "X-Gotify-Key": token }

@@ -15,6 +15,7 @@
 import fr from "./i18n/fr.json" with { type: "json" };
 import en from "./i18n/en.json" with { type: "json" };
 import { formatters } from "./format.js";
+import { errorKey, errorMessage } from "./error-code.js";
 
 // Prefix of the secrets stored by the server, encrypted or masked (never
 // re-encrypted here).
@@ -278,9 +279,9 @@ export function renderWidget(service, info, lang) {
 
   // A failed check looks the same on every tile, whatever the widget: a yellow
   // "!" and one word ("unreachable" or "error"), the cause in the tooltip.
-  const failure = info && typeof info.error === "string" ? info.error.trim() : "";
+  const texts = activeLang === "en" ? en : fr;
+  const failure = (info && (texts[errorKey(info)] || errorMessage(info))) || "";
   if (failure) {
-    const texts = activeLang === "en" ? en : fr;
     return {
       badge: UNREACHABLE.test(failure) ? texts.widgetUnreachable : texts.widgetError,
       badgeClass: "error",

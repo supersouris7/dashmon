@@ -4,6 +4,8 @@
 // L'URL de l'API est saisie dans la config du widget ; a defaut on retombe sur
 // l'URL du service (cas d'un AdGuard publie directement sur la tuile).
 
+const { resultError } = require("../../lib/http/api-errors");
+
 async function check(ctx) {
   const serviceUrl = ctx.sanitizeUrl(ctx.service.url);
   const rawTarget = String(ctx.config.url || "")
@@ -16,7 +18,7 @@ async function check(ctx) {
   if (!baseUrl) {
     return {
       ok: false,
-      error: "URL AdGuard invalide",
+      ...resultError("invalid_url"),
       queries: 0,
       blocked: 0,
       ratio: null,

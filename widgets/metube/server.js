@@ -1,6 +1,8 @@
 "use strict";
 // Widget MeTube : /history distingue les telechargements actifs, en attente et termines.
 
+const { resultError } = require("../../lib/http/api-errors");
+
 function entries(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -15,7 +17,7 @@ function summarize(history) {
 
 async function check(ctx) {
   const baseUrl = String(ctx.sanitizeUrl(ctx.service.url) || "").replace(/\/+$/, "");
-  if (!baseUrl) return { ok: false, error: "URL MeTube invalide" };
+  if (!baseUrl) return { ok: false, ...resultError("invalid_url") };
   try {
     const history = await ctx.api(baseUrl, "/history");
     return { ok: true, ...summarize(history) };

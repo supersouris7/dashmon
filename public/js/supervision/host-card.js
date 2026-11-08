@@ -16,6 +16,7 @@ import {
   setExpanded,
   updateSmartCollapseButton
 } from "./cards.js";
+import { errorText } from "../api-error.js";
 
 // A metric bar: a label, a track filled to the value, a number. The severity
 // class does not depend on the theme (the fill stays readable).
@@ -215,7 +216,7 @@ export function hostCard(host, metrics) {
     card.classList.add("is-unreachable");
     const error = document.createElement("p");
     error.className = "supervision-error";
-    error.textContent = metrics && metrics.error ? metrics.error : t("supervisionUnreachable");
+    error.textContent = errorText(metrics, "supervisionUnreachable");
     card.appendChild(error);
   }
   return card;

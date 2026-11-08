@@ -113,6 +113,9 @@ module.exports = { createState, check, purge };
 
 The returned status is a free-form object: its content is your display, Dashmon
 does not touch it. `check` must never throw: return `{ ok:false, error }`.
+For a common cause, `resultError(code)` from `lib/http/api-errors.js` gives
+`{ errorCode, error }`, which the tile shows in the viewer's language:
+`return { ok: false, ...resultError("invalid_url") }`.
 
 ### Keeping a value over time
 

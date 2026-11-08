@@ -4,6 +4,8 @@
 // Le widget nimplemente QUE la logique metier. Le core fournit la config
 // (secret deja dechiffre), le client HTTP, le cache et la frequence.
 
+const { resultError } = require("../../lib/http/api-errors");
+
 function createState() {
   // Tokens par URL de serveur : on ne s'identifie qu'une fois par cycle, les
   // re-logins sont reserves aux reponses 401.
@@ -83,7 +85,7 @@ async function check(ctx) {
   if (!url) {
     return {
       ok: false,
-      error: "URL Duplicati invalide",
+      ...resultError("invalid_url"),
       lastAttemptAt: null,
       total: 0,
       okCount: 0,

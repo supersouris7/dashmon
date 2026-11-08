@@ -5,6 +5,7 @@ import { effectiveStatus, statusIcon } from "../status.js";
 import { renderWidget, hasWidget, widgetStatusKey } from "../widget-registry.js";
 import { sanitizeTileColor } from "../config/sanitize.js";
 import { bumpUsage } from "../api.js";
+import { errorText } from "../api-error.js";
 
 export function safeHref(url) {
   return /^https?:\/\//.test(url) ? url : "#";
@@ -14,8 +15,9 @@ export function statusTitle(monitor, info) {
   if (!info) return t("statusPending");
   const state = effectiveStatus(monitor, info);
   if (state === "up") return `${t("statusUp")} · ${info.ms} ms`;
-  if (state === "soft") return `${t("statusSoftDown")} · ${info.error || t("statusNoResponse")}`;
-  return `${t("statusDown")} · ${info.error || t("statusNoResponse")}`;
+  const cause = errorText(info, "statusNoResponse");
+  if (state === "soft") return `${t("statusSoftDown")} · ${cause}`;
+  return `${t("statusDown")} · ${cause}`;
 }
 
 // Widget part of a tile: the work is done by the widget renderer

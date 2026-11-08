@@ -1,6 +1,8 @@
 "use strict";
 // Widget qBittorrent : la Web API utilise un cookie de session apres connexion.
 
+const { resultError } = require("../../lib/http/api-errors");
+
 function createState() {
   return { sessions: new Map() };
 }
@@ -40,7 +42,7 @@ function numberOf(value) {
 
 async function check(ctx) {
   const baseUrl = String(ctx.sanitizeUrl(ctx.service.url) || "").replace(/\/+$/, "");
-  if (!baseUrl) return { ok: false, error: "URL qBittorrent invalide" };
+  if (!baseUrl) return { ok: false, ...resultError("invalid_url") };
 
   const sessions = ctx.state.sessions;
   try {

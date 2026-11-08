@@ -37,7 +37,9 @@ lib/
                      encrypted secrets
   http/              outgoing HTTP client (client.js), authentication,
                      protections (headers, origin, rate limits, agent token),
-                     request log, errors
+                     request log, errors; api-errors.js holds the error codes
+                     ({ code, error } in a response), translated by the
+                     interface (public/js/api-error.js)
   routes/            all HTTP routes, one file per topic; each header lists
                      its routes
   widgets/           widget registry, schema, storage and core
