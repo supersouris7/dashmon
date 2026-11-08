@@ -115,6 +115,14 @@ async function main() {
     run("install", "apt-updates");
     assert.equal(crontab("root").match(/# dashmon:apt-updates/g).length, 1);
     assert.match(crontab("root"), /^0 3 \* \* 3 DASHMON_CONTAINER=dashmon-agent /m);
+    // --cron: any schedule, said in words when it is a day of the week.
+    run("install", "apt-updates", "--cron", "0 3 * * 4", "--reboot");
+    assert.match(
+      crontab("root"),
+      /# APT updates : every Thursday at 03:00, automatic reboot \[dashmon:apt-updates\]\n0 3 \* \* 4 DASHMON_APT_REBOOT=1 /
+    );
+    assert.throws(() => run("install", "apt-updates", "--cron", "0 3 * * 4; rm"), /five fields/);
+    run("install", "apt-updates");
     run("install", "directory-sizes");
     assert.match(
       crontab("root"),

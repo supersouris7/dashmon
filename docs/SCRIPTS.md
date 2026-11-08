@@ -79,6 +79,7 @@ sudo dashmon-setup.sh auto off                      # stop the automatic update
 | Option | Meaning |
 | --- | --- |
 | `--frequency 1\|2\|3` | One of the three schedules of the script, in the order of the table below. |
+| `--cron "M H D M W"` | Any schedule instead of the three offered, for example `--cron "0 3 * * 4"` (Thursday at 03:00) so that two hosts do not run APT, and reboot, at the same time. |
 | `--container NAME` | Dashmon container to write to, when it cannot be found by itself. |
 | `--user NAME` | OpenCode and Claude Code: whose crontab and statistics. Default: the user who ran `sudo`. |
 | `--reboot` | APT: allow the reboot after an update that requires it. |

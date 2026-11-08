@@ -15,6 +15,7 @@
 # install options: --frequency 1|2|3 (default: the recommended one),
 # --container NAME (default: the Dashmon container found by docker ps),
 # --user NAME (OpenCode and Claude Code: whose crontab), --reboot (APT),
+# --cron "M H D M W" (any schedule instead of the three offered),
 # --run (first run now), --yes (no question).
 #
 # The cron lines it writes end with "# dashmon:NAME": that is how it finds
@@ -24,7 +25,7 @@ set -eu
 
 # Version of this script. It writes no report, so Dashmon never flags it:
 # `update` refreshes it with the others. Raise it on every change.
-SCRIPT_VERSION=7
+SCRIPT_VERSION=8
 
 RAW="${DASHMON_RAW_URL:-https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy}"
 BIN="${DASHMON_BIN_DIR:-/usr/local/bin}"
@@ -111,7 +112,24 @@ when() {
   words=$(frequencies "$1" | while IFS='|' read -r expr _ english french _; do
     if [ "$expr" = "$2" ]; then if [ "$FR" = 1 ]; then echo "$french"; else echo "$english"; fi; fi
   done)
-  if [ -n "$words" ]; then printf '%s\n' "$words"; else printf '%s\n' "$2"; fi
+  if [ -n "$words" ]; then printf '%s\n' "$words"; return; fi
+  # Another day of the week (--cron "0 3 * * 4"): said in words too.
+  case "$2" in
+    [0-9]*" "[0-9]*" * * "[0-7])
+      # read, not set --: the * fields must not expand to file names.
+      printf '%s\n' "$2" | {
+        read -r minute hour _ _ weekday
+        if [ "$FR" = 1 ]; then
+          day=$(echo "dimanche lundi mardi mercredi jeudi vendredi samedi dimanche" | cut -d' ' -f$((weekday + 1)))
+          printf 'le %s à %02d:%02d\n' "$day" "$hour" "$minute"
+        else
+          day=$(echo "Sunday Monday Tuesday Wednesday Thursday Friday Saturday Sunday" | cut -d' ' -f$((weekday + 1)))
+          printf 'every %s at %02d:%02d\n' "$day" "$hour" "$minute"
+        fi
+      }
+      ;;
+    *) printf '%s\n' "$2" ;;
+  esac
 }
 frequency_field() { frequencies "$1" | sed -n "${2}p" | cut -d'|' -f"$3"; }
 recommended() { frequencies "$1" | awk -F'|' '$5 == "1" { print NR }'; }
@@ -451,6 +469,11 @@ install_one() {
   index=$(ask_frequency "$name")
   schedule=$(frequency_field "$name" "$index" 1)
   extra=$(frequency_field "$name" "$index" 2)
+  if [ -n "$CRON_OPT" ]; then
+    schedule=$CRON_OPT
+    # APT announces its next run from an interval: a week fits a weekly day.
+    extra=""
+  fi
   if [ "$name" = apt-updates ]; then
     if [ "$REBOOT_OPT" = 1 ] || confirm "Reboot automatically when an update requires it?" \
       "Redémarrer automatiquement quand une mise à jour l'exige ?" n; then
@@ -648,6 +671,7 @@ usage() {
 # --- arguments -----------------------------------------------------------
 
 FREQUENCY_OPT=""
+CRON_OPT=""
 CONTAINER_OPT=""
 USER_OPT=""
 REBOOT_OPT=0
@@ -657,10 +681,18 @@ ACTION=""
 NAMES=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --frequency | --container | --user | --lang)
+    --frequency | --container | --user | --lang | --cron)
       [ "$#" -ge 2 ] || die "Missing value for $1" "Valeur manquante pour $1"
       case "$1" in
         --frequency) FREQUENCY_OPT=$2 ;;
+        --cron)
+          # Five fields of digits, *, /, - and commas: nothing else reaches cron.
+          printf '%s\n' "$2" | grep -Eq '^[0-9*/,-]+( [0-9*/,-]+){4}$' \
+            || die "--cron takes five fields, for example \"0 3 * * 4\"." \
+              "--cron prend cinq champs, par exemple \"0 3 * * 4\"."
+          CRON_OPT=$2
+          FREQUENCY_OPT=1
+          ;;
         --container) CONTAINER_OPT=$2 ;;
         --user) USER_OPT=$2 ;;
         --lang) case "$2" in fr*) FR=1 ;; *) FR=0 ;; esac ;;
