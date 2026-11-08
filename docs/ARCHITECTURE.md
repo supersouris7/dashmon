@@ -98,7 +98,10 @@ public/js/
   config/              config schema (normalize.js), value checks (sanitize.js),
                        icon list, example data (demo.js), language choice
                        (language.js)
-  i18n.js, i18n/       interface texts, one JSON file per language
+  i18n.js, i18n/       interface texts, one JSON file per language; t() has
+                       no DOM, so modules that translate are testable in Node
+  language-ui.js       applies the language to the page and re-renders
+  element.js           element(tag, class, text), the brick of the cards
   widget-registry.js   loads the widgets published by the server
   pages.js, themes.js, view-prefs.js, images.js, fortune.js, metrics.js...
   preload.js           theme applied before the first paint (dashboard and login)
