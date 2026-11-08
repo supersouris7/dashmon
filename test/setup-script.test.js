@@ -77,7 +77,18 @@ async function main() {
     );
 
     // A user script goes into that user's crontab; a frequency can be picked.
-    run("install", "opencode-stats", "--user", "tester", "--frequency", "3", "--container", "dm");
+    // --yes: the stub user has no OpenCode data, which is asked about first.
+    run(
+      "install",
+      "opencode-stats",
+      "--user",
+      "tester",
+      "--frequency",
+      "3",
+      "--container",
+      "dm",
+      "--yes"
+    );
     assert.match(
       crontab("tester"),
       /^0 \* \* \* \* DASHMON_CONTAINER=dm .*# dashmon:opencode-stats$/m
@@ -98,7 +109,17 @@ async function main() {
       /^30 3 \* \* \* sh .*dashmon-directory-sizes\.sh --container dashmon-agent /m
     );
 
-    assert.match(run("list"), /smart-dump +SMART +v1/);
+    const listing = run("list");
+    assert.match(listing, /2\) SMART +v1, every 15 minutes \(cron of root\)/);
+    assert.match(listing, /1\) APT updates +v1, every Wednesday at 03:00 \(cron of root\)/);
+    assert.match(listing, /5\) Claude Code +not installed/);
+    assert.match(
+      run("list", "--lang", "fr"),
+      /2\) SMART +v1, toutes les 15 minutes \(cron de root\)/
+    );
+    // A user script for a user who does not use the tool: nothing without --yes.
+    assert.match(run("install", "claude-stats", "--user", "tester"), /Nothing installed/);
+    assert.ok(!fs.existsSync(path.join(bin, "dashmon-claude-stats.sh")));
     assert.match(run("update"), /SMART: v1, up to date/);
 
     run("remove", "smart-dump", "opencode-stats", "--user", "tester");

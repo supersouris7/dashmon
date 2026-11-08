@@ -36,9 +36,20 @@ Then start the menu and answer the questions:
 sudo dashmon-setup.sh
 ```
 
-The menu lists every script with its version and cron line. Pick a number to
-install a script, change its frequency or remove it. For each installation it
-asks:
+The menu numbers the six scripts and shows, for each one, its version, when it
+runs and in whose crontab:
+
+```text
+  1) APT updates       v1, every Wednesday at 03:00, automatic reboot (cron of root)
+  2) SMART             v1, every 15 minutes (cron of root)
+  3) WireGuard         not installed
+  ...
+```
+
+Type a number: the menu says what that script does and asks before
+installing it. For an installed script it offers to change its frequency or
+remove it. `u` updates them all, `q` quits. After each action, Enter brings
+the menu back. For each installation it asks:
 
 - **how often** it runs, among three schedules (Enter keeps the recommended
   one, see [Schedules](#schedules));
@@ -47,6 +58,8 @@ asks:
   `dashmon-agent` on an agent installed with the startup guide);
 - for APT, whether the host may **reboot** after an update that requires it
   (no by default);
+- for OpenCode and Claude Code, whether to install it anyway when the user
+  does not seem to use the tool on this machine;
 - whether to **run it once now**, so the card appears without waiting (never
   for APT, which really installs the updates).
 
@@ -69,11 +82,13 @@ sudo dashmon-setup.sh update                        # every installed script
 | `--reboot` | APT: allow the reboot after an update that requires it. |
 | `--run` | Run the script once right after installing it. |
 | `--yes` | Ask nothing; replace a cron line written by hand. |
+| `--lang fr\|en` | Language of the messages. |
 
 Several names can follow `install` or `remove`:
 `sudo dashmon-setup.sh install smart-dump wireguard-dump`.
 
-Messages are in French when the `LANG` of the session is French.
+Messages are in French when the `LANG` of the session is French; a Raspberry
+Pi is often in `en_GB`: add `--lang fr` (`sudo dashmon-setup.sh --lang fr`).
 
 ## Update everything at once
 

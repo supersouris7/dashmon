@@ -9,6 +9,7 @@
 #   sudo dashmon-setup.sh remove smart-dump    # cron line + script
 #   sudo dashmon-setup.sh update               # every installed script
 #
+# --lang fr|en chooses the language (default: from LANG).
 # install options: --frequency 1|2|3 (default: the recommended one),
 # --container NAME (default: the Dashmon container found by docker ps),
 # --user NAME (OpenCode and Claude Code: whose crontab), --reboot (APT),
@@ -21,13 +22,13 @@ set -eu
 
 # Version of this script. It writes no report, so Dashmon never flags it:
 # `update` refreshes it with the others. Raise it on every change.
-SCRIPT_VERSION=1
+SCRIPT_VERSION=2
 
 RAW="${DASHMON_RAW_URL:-https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy}"
 BIN="${DASHMON_BIN_DIR:-/usr/local/bin}"
 COMPONENTS="apt-updates smart-dump wireguard-dump opencode-stats claude-stats directory-sizes"
 
-case "${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}" in fr*) FR=1 ;; *) FR=0 ;; esac
+case "${DASHMON_LANG:-${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}}" in fr*) FR=1 ;; *) FR=0 ;; esac
 # say "English" "Français"
 say() { if [ "$FR" = 1 ]; then printf '%s\n' "$2"; else printf '%s\n' "$1"; fi; }
 die() { say "$1" "$2" >&2; exit 1; }
@@ -42,6 +43,21 @@ label() {
     claude-stats) echo "Claude Code" ;;
     directory-sizes) say "Directories" "Répertoires" ;;
     setup) echo "dashmon-setup" ;;
+  esac
+}
+
+# What the script feeds, shown before installing it.
+purpose() {
+  case "$1" in
+    apt-updates) say "installs the host updates (apt-get upgrade) and reports them" \
+      "installe les mises à jour de l'hôte (apt-get upgrade) et en rend compte" ;;
+    smart-dump) say "SMART state and temperature of the disks (smartctl)" \
+      "état SMART et température des disques (smartctl)" ;;
+    wireguard-dump) say "WireGuard peers and traffic (wg)" "pairs et trafic WireGuard (wg)" ;;
+    opencode-stats) say "OpenCode usage of a user" "utilisation d'OpenCode par un utilisateur" ;;
+    claude-stats) say "Claude Code usage of a user" "utilisation de Claude Code par un utilisateur" ;;
+    directory-sizes) say "size of the directories chosen in Dashmon" \
+      "taille des répertoires choisis dans Dashmon" ;;
   esac
 }
 
@@ -80,6 +96,13 @@ frequencies() {
       echo "30 3 * * *||every night at 03:30|chaque nuit à 03:30|1"
       ;;
   esac
+}
+# when NAME "EXPR": the schedule in words, or the expression itself.
+when() {
+  words=$(frequencies "$1" | while IFS='|' read -r expr _ english french _; do
+    if [ "$expr" = "$2" ]; then if [ "$FR" = 1 ]; then echo "$french"; else echo "$english"; fi; fi
+  done)
+  if [ -n "$words" ]; then printf '%s\n' "$words"; else printf '%s\n' "$2"; fi
 }
 frequency_field() { frequencies "$1" | sed -n "${2}p" | cut -d'|' -f"$3"; }
 recommended() { frequencies "$1" | awk -F'|' '$5 == "1" { print NR }'; }
@@ -168,21 +191,46 @@ fetch() {
 
 # --- commands ------------------------------------------------------------
 
+# One line: version, schedule in words, whose crontab.
+status_text() {
+  file=$(file_of "$1")
+  if [ ! -f "$file" ]; then say "not installed" "non installé"; return; fi
+  owner=$(cron_owner "$1")
+  version="v$(version_of "$file")"
+  line=$(cron_lines "$owner" "$1" | head -n 1)
+  if [ -z "$line" ]; then
+    say "$version, no cron job" "$version, sans tâche cron"
+    return
+  fi
+  expr=$(printf '%s\n' "$line" | awk '{ print $1, $2, $3, $4, $5 }')
+  case "$line" in
+    *"$(marker "$1")"*) how=$(when "$1" "$expr") ;;
+    *) how=$(say "cron line written by hand ($expr)" "ligne cron écrite à la main ($expr)") ;;
+  esac
+  case "$line" in *DASHMON_APT_REBOOT=1*) how="$how, $(say "automatic reboot" "redémarrage auto")" ;; esac
+  say "$version, $how (cron of $owner)" "$version, $how (cron de $owner)"
+}
+
+# Pads to a width in characters, accents included.
+pad() {
+  printf '%s' "$1"
+  missing=$(($2 - $(printf '%s' "$1" | wc -m)))
+  if [ "$missing" -gt 0 ]; then printf "%${missing}s" ""; fi
+}
+
+# list [full]: numbered as in the menu; full adds the cron lines.
 list() {
-  say "Dashmon host scripts in $BIN:" "Scripts Dashmon de l'hôte dans $BIN :"
+  say "Dashmon scripts on this machine:" "Scripts Dashmon de cette machine :"
+  index=0
   for name in $COMPONENTS; do
-    file=$(file_of "$name")
-    owner=$(cron_owner "$name")
-    if [ -f "$file" ]; then
-      state="v$(version_of "$file")"
-    else
-      state=$(say "not installed" "non installé")
+    index=$((index + 1))
+    printf '  %d) %s %s\n' "$index" "$(pad "$(label "$name")" 17)" "$(status_text "$name")"
+    if [ "${1:-}" = full ]; then
+      cron_lines "$(cron_owner "$name")" "$name" | sed 's/^/       /'
     fi
-    printf '  %-16s %-16s %s\n' "$name" "$(label "$name")" "$state"
-    cron_lines "$owner" "$name" | sed "s/^/      cron ($owner): /"
   done
   if [ -f "$(file_of setup)" ]; then
-    printf '  %-16s %-16s v%s\n' setup dashmon-setup "$(version_of "$(file_of setup)")"
+    printf '     %s v%s\n' "$(pad dashmon-setup 17)" "$(version_of "$(file_of setup)")"
   fi
 }
 
@@ -193,14 +241,14 @@ ask_frequency() {
     die "--frequency takes 1, 2 or 3." "--frequency prend 1, 2 ou 3."
   fi
   if ! interactive; then echo "$best"; return; fi
-  say "How often?" "À quelle fréquence ?" >&2
+  say "How often should $(label "$1") run?" "À quelle fréquence lancer $(label "$1") ?" >&2
   for index in 1 2 3; do
     text=$(if [ "$FR" = 1 ]; then frequency_field "$1" "$index" 4; else frequency_field "$1" "$index" 3; fi)
     mark=""
     [ "$index" = "$best" ] && mark=$(say " (recommended)" " (conseillé)")
-    printf '  %d) %s%s   [%s]\n' "$index" "$text" "$mark" "$(frequency_field "$1" "$index" 1)" >&2
+    printf '  %d) %s %s\n' "$index" "$(pad "$text$mark" 44)" "$(frequency_field "$1" "$index" 1)" >&2
   done
-  printf '> [%s] ' "$best" >&2
+  printf '%s ' "$(say "Choice [Enter = $best]:" "Choix [Entrée = $best] :")" >&2
   read -r pick
   case "$pick" in 1 | 2 | 3) echo "$pick" ;; *) echo "$best" ;; esac
 }
@@ -231,6 +279,16 @@ check_tools() {
   return 0
 }
 
+# Does this user work with OpenCode or Claude Code here?
+user_has_tool() {
+  home=$(getent passwd "$2" 2>/dev/null | cut -d: -f6)
+  [ -n "$home" ] || return 1
+  case "$1" in
+    claude-stats) [ -d "${CLAUDE_CONFIG_DIR:-$home/.claude}/projects" ] ;;
+    opencode-stats) [ -d "$home/.local/share/opencode" ] || [ -x "$home/.opencode/bin/opencode" ] ;;
+  esac
+}
+
 install_one() {
   name=$1
   known "$name" || die "Unknown script: $name (see: list)" "Script inconnu : $name (voir : list)"
@@ -239,6 +297,14 @@ install_one() {
   if user_script "$name" && [ "$owner" = root ]; then
     say "Warning: $(label "$name") runs as root; pass --user YOUR_USER for your own statistics." \
       "Attention : $(label "$name") tournera en root ; passez --user VOTRE_UTILISATEUR pour vos statistiques." >&2
+  fi
+  if user_script "$name" && ! user_has_tool "$name" "$owner"; then
+    say "$(label "$name") does not seem to be used by $owner on this machine." \
+      "$(label "$name") ne semble pas utilisé par $owner sur cette machine."
+    if ! confirm "Install it anyway?" "L'installer quand même ?" n && [ "$YES" = 0 ]; then
+      say "Nothing installed." "Rien n'a été installé."
+      return 0
+    fi
   fi
   container=$(choose_container)
   index=$(ask_frequency "$name")
@@ -342,35 +408,58 @@ update_all() {
   say "The cron lines do not change." "Les lignes cron ne changent pas."
 }
 
+clear_screen() { if [ -t 1 ]; then printf '\033[H\033[2J'; fi; }
+pause() {
+  printf '\n%s ' "$(say "Press Enter to go back to the menu." "Entrée pour revenir au menu.")"
+  read -r _ || true
+}
+
+# One script: what it does, then install it, or change or remove it.
+menu_script() {
+  name=$1
+  echo
+  say "$(label "$name"): $(purpose "$name")." "$(label "$name") : $(purpose "$name")."
+  if [ -f "$(file_of "$name")" ]; then
+    say "Now: $(status_text "$name")" "Actuellement : $(status_text "$name")"
+    say "  1) change the frequency   2) remove it   Enter) back" \
+      "  1) changer la fréquence   2) le retirer   Entrée) retour"
+    printf '%s ' "$(say "Choice:" "Choix :")"
+    read -r action || action=""
+    case "$action" in
+      1) install_one "$name" ;;
+      2) if confirm "Remove $(label "$name") and its cron job?" \
+        "Retirer $(label "$name") et sa tâche cron ?" n; then remove_one "$name"; fi ;;
+      *) say "Nothing changed." "Rien n'a changé." ;;
+    esac
+  elif confirm "Install it?" "L'installer ?" y; then
+    install_one "$name"
+  else
+    say "Nothing changed." "Rien n'a changé."
+  fi
+}
+
 menu() {
   while :; do
+    clear_screen
+    say "Dashmon setup: the scripts that feed the Supervision cards" \
+      "Dashmon setup : les scripts qui alimentent les cartes de Supervision"
     echo
     list
     echo
-    say "  1-6) install, change or remove a script   u) update all   q) quit" \
-      "  1-6) installer, modifier ou retirer un script   u) tout mettre à jour   q) quitter"
+    say "Type the number of a script (1-6), u to update them all, q to quit." \
+      "Tapez le numéro d'un script (1-6), u pour tout mettre à jour, q pour quitter."
+    [ "$FR" = 1 ] || echo "(En français : sudo dashmon-setup.sh --lang fr)"
     printf '> '
     read -r pick || return 0
     case "$pick" in
-      q | Q | "") return 0 ;;
-      u | U) update_all ;;
+      q | Q) return 0 ;;
+      "") ;;
+      u | U) echo; update_all; pause ;;
       [1-6])
-        name=$(echo "$COMPONENTS" | tr ' ' '\n' | sed -n "${pick}p")
-        if [ -f "$(file_of "$name")" ]; then
-          say "$(label "$name"): 1) change the frequency   2) remove   (other) back" \
-            "$(label "$name") : 1) changer la fréquence   2) retirer   (autre) retour"
-          printf '> '
-          read -r action
-          case "$action" in
-            1) install_one "$name" ;;
-            2) confirm "Remove $(label "$name") and its cron line?" \
-              "Retirer $(label "$name") et sa ligne cron ?" n && remove_one "$name" ;;
-          esac
-        else
-          install_one "$name"
-        fi
+        menu_script "$(echo "$COMPONENTS" | tr ' ' '\n' | sed -n "${pick}p")"
+        pause
         ;;
-      *) say "Unknown choice." "Choix inconnu." ;;
+      *) say "Unknown choice: $pick" "Choix inconnu : $pick"; pause ;;
     esac
   done
 }
@@ -393,12 +482,13 @@ ACTION=""
 NAMES=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --frequency | --container | --user)
+    --frequency | --container | --user | --lang)
       [ "$#" -ge 2 ] || die "Missing value for $1" "Valeur manquante pour $1"
       case "$1" in
         --frequency) FREQUENCY_OPT=$2 ;;
         --container) CONTAINER_OPT=$2 ;;
         --user) USER_OPT=$2 ;;
+        --lang) case "$2" in fr*) FR=1 ;; *) FR=0 ;; esac ;;
       esac
       shift 2
       continue
@@ -425,7 +515,7 @@ command -v curl >/dev/null 2>&1 || [ "$ACTION" = list ] || [ "$ACTION" = remove 
 
 case "$ACTION" in
   "") if [ -t 0 ]; then menu; else usage; fi ;;
-  list) list ;;
+  list) list full ;;
   update) update_all ;;
   install | remove)
     [ -n "$NAMES" ] || die "Name the script(s): $COMPONENTS" "Nommez le ou les scripts : $COMPONENTS"
