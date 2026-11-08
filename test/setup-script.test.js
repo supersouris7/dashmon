@@ -35,7 +35,9 @@ async function main() {
     );
     fs.writeFileSync(
       path.join(stub, "docker"),
-      '#!/bin/sh\n[ "$1" = ps ] && printf "dashmon-agent supersouris7/dashmon:unstable\\nweb nginx\\n"\nexit 0\n',
+      '#!/bin/sh\n[ "$1" = ps ] && printf "dashmon-agent supersouris7/dashmon:unstable\\nweb nginx\\n"\n' +
+        // docker exec -i NAME ...: what the tool sends to a container.
+        '[ "$1" = exec ] && cat > "$CRONTAB_DIR/../published-$3"\nexit 0\n',
       { mode: 0o755 }
     );
     const env = {
@@ -176,6 +178,13 @@ async function main() {
     assert.match(updated, /Claude Code: v0 -> v1, updated/);
     assert.match(updated, /no cron job: sudo dashmon-setup\.sh install claude-stats/);
     assert.match(updated, /WireGuard: v1, up to date/);
+    // The installed versions reach the container the cron lines write to.
+    const published = JSON.parse(
+      fs.readFileSync(path.join(dir, "published-dashmon-agent"), "utf8")
+    );
+    assert.equal(published.versions["wireguard-dump"], 1);
+    assert.equal(published.versions["claude-stats"], 1);
+    assert.ok(!("smart-dump" in published.versions), "removed script not listed");
     assert.match(run("-all"), /Claude Code: v1, up to date/);
     // An older setup tool updates itself, then its new version does the rest.
     fs.writeFileSync(path.join(bin, "dashmon-setup.sh"), "#!/bin/sh\nSCRIPT_VERSION=1\n");

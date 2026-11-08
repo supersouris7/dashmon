@@ -109,8 +109,12 @@ copy only when it changed; it then says, script by script, `up to date` or
 `v1 -> v2, updated`, and flags a script left without its cron job. It installs
 nothing new and does not touch the cron lines. Each script is downloaded next
 to the old one, then renamed over it: a run in progress keeps its old file,
-and a cut download changes nothing. The notice disappears after the next run
-of the script, once Dashmon has read its new report.
+and a cut download changes nothing. The tool then writes the installed versions
+into each Dashmon container its cron lines write to
+(`/app/data/installed-scripts.json`): the notice disappears at the next
+refresh, without waiting for the next run of the script (APT runs once a
+week). With the manual loop below, it disappears after that next run, once
+Dashmon has read a report from the new script.
 
 **Without the setup tool** (a machine installed before it), the notice offers
 its installation, or update with this single command:

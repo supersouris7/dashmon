@@ -24,7 +24,7 @@ set -eu
 
 # Version of this script. It writes no report, so Dashmon never flags it:
 # `update` refreshes it with the others. Raise it on every change.
-SCRIPT_VERSION=6
+SCRIPT_VERSION=7
 
 RAW="${DASHMON_RAW_URL:-https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy}"
 BIN="${DASHMON_BIN_DIR:-/usr/local/bin}"
@@ -232,6 +232,42 @@ choose_container() {
   [ "$count" -gt 1 ] && say "Several Dashmon containers: pass --container NAME." \
     "Plusieurs conteneurs Dashmon : passez --container NOM." >&2
   echo dashmon
+}
+
+# --- installed versions --------------------------------------------------
+
+# Containers the cron lines write to, and the Dashmon containers running.
+target_containers() {
+  {
+    for who in $(cron_owners); do
+      cron_read "$who" | grep -v '^[[:space:]]*#' | grep -F '# dashmon:' \
+        | sed -n -e 's/.*DASHMON_CONTAINER=\([A-Za-z0-9_.-]*\).*/\1/p' \
+          -e 's/.*--container \([A-Za-z0-9_.-]*\).*/\1/p'
+    done
+    dashmon_containers
+  } | sort -u
+}
+
+# Tells each Dashmon container which script versions are installed here:
+# a card stops asking for the update as soon as its script is current,
+# without waiting for its next run (APT runs once a week).
+publish_versions() {
+  command -v docker >/dev/null 2>&1 || return 0
+  versions=""
+  for item in $COMPONENTS; do
+    if [ -f "$(file_of "$item")" ]; then
+      versions="$versions\"$item\":$(version_of "$(file_of "$item")"),"
+    fi
+  done
+  json="{\"versions\":{${versions%,}},\"writtenAt\":$(date +%s)}"
+  for target in $(target_containers); do
+    if ! printf '%s\n' "$json" | docker exec -i "$target" sh -c \
+      'cat > /app/data/installed-scripts.json.tmp && mv -f /app/data/installed-scripts.json.tmp /app/data/installed-scripts.json' \
+      >/dev/null 2>&1; then
+      say "Container $target not reached: its cards learn the versions at the next runs." \
+        "Conteneur $target injoignable : ses cartes verront les versions aux prochains passages."
+    fi
+  done
 }
 
 # --- download ------------------------------------------------------------
@@ -454,6 +490,7 @@ install_one() {
       rm -f "$former" && say "Former copy removed: $former" "Ancienne copie supprimée : $former"
     fi
   done
+  publish_versions
   say "Installed: $(label "$name") v$(version_of "$file"), cron of $owner:" \
     "Installé : $(label "$name") v$(version_of "$file"), cron de $owner :"
   printf '  %s\n' "$line"
@@ -491,6 +528,7 @@ remove_one() {
   done
   rm -f "$(file_of "$name")"
   say "Removed: $(label "$name")." "Retiré : $(label "$name")."
+  publish_versions
   say "Its report stays in the container: the card shows the last one, then disappears with it." \
     "Son rapport reste dans le conteneur : la carte affiche le dernier relevé."
 }
@@ -529,6 +567,7 @@ update_all() {
   for who in $(cron_owners); do
     if [ -n "$(cron_read "$who" | grep -F '# dashmon:' || true)" ]; then cron_tidy "$who"; fi
   done
+  publish_versions
   say "The cron jobs do not change (only laid out with their comments)." \
     "Les tâches cron ne changent pas (seulement remises en forme, avec leurs commentaires)."
 }

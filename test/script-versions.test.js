@@ -10,6 +10,7 @@ const {
   SCRIPTS,
   readExpectedVersions,
   outdatedScripts,
+  readInstalledVersions,
   scriptVersion
 } = require("../lib/host/script-versions");
 const { readWireguardDump } = require("../lib/host/wireguard-report");
@@ -40,6 +41,18 @@ assert.deepEqual(
   ),
   { aptUpdates: "apt-updates", opencode: "opencode-stats" }
 );
+// An old report, but the script installed on the host is current
+// (dashmon-setup wrote installed-scripts.json): no longer flagged.
+assert.deepEqual(
+  outdatedScripts({ aptUpdates: { scriptVersion: 0 } }, expected, {
+    "apt-updates": expected["apt-updates"]
+  }),
+  {}
+);
+assert.deepEqual(
+  outdatedScripts({ aptUpdates: { scriptVersion: 0 } }, expected, { "apt-updates": 0 }),
+  { aptUpdates: "apt-updates" }
+);
 // A script missing from the image is never flagged.
 assert.deepEqual(outdatedScripts({ aptUpdates: {} }, {}), {});
 
@@ -60,6 +73,17 @@ try {
   );
   fs.writeFileSync(dump, "wg0\t(redacted)\tpub\t51820\toff\n");
   assert.equal(readWireguardDump(dump).scriptVersion, 0);
+
+  // installed-scripts.json: known names, positive versions; anything else ignored.
+  const installedFile = path.join(dir, "installed-scripts.json");
+  fs.writeFileSync(
+    installedFile,
+    JSON.stringify({ versions: { "apt-updates": 2, other: 9, smart: -1, "smart-dump": "x" } })
+  );
+  assert.deepEqual(readInstalledVersions(installedFile), { "apt-updates": 2 });
+  fs.writeFileSync(installedFile, "not json");
+  assert.deepEqual(readInstalledVersions(installedFile), {});
+  assert.deepEqual(readInstalledVersions(path.join(dir, "missing.json")), {});
 
   // JSON reports carry scriptVersion.
   const write = (name, value) => {
