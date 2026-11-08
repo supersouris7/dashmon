@@ -12,6 +12,9 @@
 #   sudo dashmon-setup.sh auto off             # stop the automatic update
 #
 # --lang fr|en chooses the language (default: from LANG).
+# The scripts come from the Dashmon image deployed on this machine (the
+# versions its cards expect); GitHub only when no container has them, or
+# with --from github.
 # install options: --frequency 1|2|3 (default: the recommended one),
 # --container NAME (default: the Dashmon container found by docker ps),
 # --user NAME (OpenCode and Claude Code: whose crontab), --reboot (APT),
@@ -25,7 +28,7 @@ set -eu
 
 # Version of this script. It writes no report, so Dashmon never flags it:
 # `update` refreshes it with the others. Raise it on every change.
-SCRIPT_VERSION=8
+SCRIPT_VERSION=9
 
 RAW="${DASHMON_RAW_URL:-https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy}"
 BIN="${DASHMON_BIN_DIR:-/usr/local/bin}"
@@ -292,16 +295,50 @@ publish_versions() {
 
 # Downloads deploy/NAME.sh next to its target, then renames it: a run in
 # progress keeps reading the old file, and a cut download changes nothing.
-# download NAME: deploy/NAME.sh checked, in $(file_of NAME).new.
+# The Dashmon container holding the newest deploy/NAME.sh, or nothing. The
+# image ships the scripts its cards expect: taken from there, a host never
+# runs a script that was not deployed, and needs no Internet access.
+image_container() {
+  [ "$SOURCE_OPT" = github ] && return 0
+  command -v docker >/dev/null 2>&1 || return 0
+  src_best=""
+  src_version=0
+  for src_container in $(target_containers); do
+    src_found=$(docker exec "$src_container" sed -n 's/^SCRIPT_VERSION=\([0-9][0-9]*\)$/\1/p' \
+      "/app/deploy/$1.sh" 2>/dev/null | head -n 1)
+    if [ -n "$src_found" ] && [ "$src_found" -gt "$src_version" ]; then
+      src_best=$src_container
+      src_version=$src_found
+    fi
+  done
+  echo "$src_best"
+}
+
+# download NAME: deploy/NAME.sh checked, in $(file_of NAME).new; $SOURCE_TEXT
+# says where it came from.
 download() {
   temporary="$(file_of "$1").new"
-  if ! curl -fsSL "$RAW/$1.sh" -o "$temporary"; then
-    rm -f "$temporary"
-    die "Download failed: $RAW/$1.sh" "Échec du téléchargement : $RAW/$1.sh"
+  src_container=$(image_container "$1")
+  if [ -n "$src_container" ]; then
+    SOURCE_TEXT=$(say "image of $src_container" "image de $src_container")
+    if ! docker exec "$src_container" cat "/app/deploy/$1.sh" >"$temporary" 2>/dev/null; then
+      rm -f "$temporary"
+      die "Read failed: $src_container:/app/deploy/$1.sh" "Lecture impossible : $src_container:/app/deploy/$1.sh"
+    fi
+  else
+    [ "$SOURCE_OPT" != image ] || die "No Dashmon container holds deploy/$1.sh." \
+      "Aucun conteneur Dashmon ne contient deploy/$1.sh."
+    command -v curl >/dev/null 2>&1 || die "curl is missing: sudo apt install curl" \
+      "curl manque : sudo apt install curl"
+    SOURCE_TEXT="GitHub"
+    if ! curl -fsSL "$RAW/$1.sh" -o "$temporary"; then
+      rm -f "$temporary"
+      die "Download failed: $RAW/$1.sh" "Échec du téléchargement : $RAW/$1.sh"
+    fi
   fi
   if ! head -n 1 "$temporary" | grep -q '^#!' || [ -z "$(version_of "$temporary")" ]; then
     rm -f "$temporary"
-    die "Unexpected content: $RAW/$1.sh" "Contenu inattendu : $RAW/$1.sh"
+    die "Unexpected content for $1 ($SOURCE_TEXT)." "Contenu inattendu pour $1 ($SOURCE_TEXT)."
   fi
   chmod 755 "$temporary"
 }
@@ -566,16 +603,17 @@ update_all() {
     after=$(version_of "$file.new")
     if cmp -s "$file.new" "$file"; then
       rm -f "$file.new"
-      say "  $(label "$name"): v$after, up to date" "  $(label "$name") : v$after, à jour"
+      say "  $(label "$name"): v$after, up to date ($SOURCE_TEXT)" "  $(label "$name") : v$after, à jour ($SOURCE_TEXT)"
     else
       mv "$file.new" "$file"
-      say "  $(label "$name"): v${before:-?} -> v$after, updated" "  $(label "$name") : v${before:-?} -> v$after, mis à jour"
+      say "  $(label "$name"): v${before:-?} -> v$after, updated ($SOURCE_TEXT)" \
+        "  $(label "$name") : v${before:-?} -> v$after, mis à jour ($SOURCE_TEXT)"
       # The rest is done by the new version, so one --all is enough.
       if [ "$name" = setup ] && [ -z "${DASHMON_SETUP_RESTARTED:-}" ]; then
         language=en
         [ "$FR" = 1 ] && language=fr
         exec env DASHMON_SETUP_RESTARTED=1 DASHMON_LANG="$language" \
-          sh "$file" --all ${USER_OPT:+--user "$USER_OPT"}
+          sh "$file" --all ${USER_OPT:+--user "$USER_OPT"} ${SOURCE_OPT:+--from "$SOURCE_OPT"}
       fi
     fi
     # A script without its cron job feeds no card.
@@ -672,6 +710,7 @@ usage() {
 
 FREQUENCY_OPT=""
 CRON_OPT=""
+SOURCE_OPT=""
 CONTAINER_OPT=""
 USER_OPT=""
 REBOOT_OPT=0
@@ -681,7 +720,7 @@ ACTION=""
 NAMES=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --frequency | --container | --user | --lang | --cron)
+    --frequency | --container | --user | --lang | --cron | --from)
       [ "$#" -ge 2 ] || die "Missing value for $1" "Valeur manquante pour $1"
       case "$1" in
         --frequency) FREQUENCY_OPT=$2 ;;
@@ -695,6 +734,9 @@ while [ "$#" -gt 0 ]; do
           ;;
         --container) CONTAINER_OPT=$2 ;;
         --user) USER_OPT=$2 ;;
+        --from)
+          case "$2" in image | github) SOURCE_OPT=$2 ;; *) die "--from takes image or github." "--from prend image ou github." ;; esac
+          ;;
         --lang) case "$2" in fr*) FR=1 ;; *) FR=0 ;; esac ;;
       esac
       shift 2
@@ -718,8 +760,6 @@ esac
 if [ "$ACTION" != list ] && [ ! -w "$BIN" ]; then
   die "Run it with sudo: $BIN is not writable." "Lancez-le avec sudo : $BIN n'est pas accessible en écriture."
 fi
-command -v curl >/dev/null 2>&1 || [ "$ACTION" = list ] || [ "$ACTION" = remove ] \
-  || die "curl is missing: sudo apt install curl" "curl manque : sudo apt install curl"
 
 case "$ACTION" in
   "") if [ -t 0 ]; then menu; else usage; fi ;;

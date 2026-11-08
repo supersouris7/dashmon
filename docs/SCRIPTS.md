@@ -86,6 +86,7 @@ sudo dashmon-setup.sh auto off                      # stop the automatic update
 | `--run` | Run the script once right after installing it. |
 | `--yes` | Ask nothing; replace a cron line written by hand. |
 | `--lang fr\|en` | Language of the messages. |
+| `--from image\|github` | Where the scripts come from: only the deployed image, or only GitHub. Default: the image, GitHub when it lacks a script. |
 | `--all` (or `-all`) | Update every installed script, same as `update`. |
 
 Several names can follow `install` or `remove`:
@@ -93,6 +94,21 @@ Several names can follow `install` or `remove`:
 
 Messages are in French when the `LANG` of the session is French; a Raspberry
 Pi is often in `en_GB`: add `--lang fr` (`sudo dashmon-setup.sh --lang fr`).
+
+## Where the scripts come from
+
+The Dashmon image ships the scripts its cards expect (`/app/deploy/` in the
+container). `dashmon-setup` takes them **from the Dashmon container running on
+the machine**: the installed versions follow the image you deployed, never a
+newer repository, and the machine needs no Internet access. Each line of
+`--all` says the source, for example `v1, up to date (image of dashmon)`.
+
+GitHub (`main` branch) is used only when no container holds the script: an
+image older than the scripts, or a machine without Dashmon container.
+`--from github` forces GitHub, `--from image` refuses it.
+
+The first installation of the tool itself still comes from GitHub (the
+command above), since the tool is what knows the container.
 
 ## Update everything at once
 
@@ -145,9 +161,10 @@ appear. In the menu, `a` turns it on, changes its frequency or turns it off;
 `sudo dashmon-setup.sh auto off` removes the line. `list` shows its state.
 
 It is off by default, and it is a choice: the scripts that run as root then
-take a new version from the repository without anyone reading it first. Leave
-it off if you prefer to read the changes on GitHub before `--all`. Dashmon
-itself never writes on the host: no button in the app can change a script.
+change without anyone reading them first. They only take what the Dashmon
+image deployed on the machine ships (see below), so nothing reaches the host
+before you deploy an image. Dashmon itself never writes on the host: no button
+in the app can change a script.
 
 ## Schedules
 

@@ -36,8 +36,17 @@ async function main() {
     fs.writeFileSync(
       path.join(stub, "docker"),
       '#!/bin/sh\n[ "$1" = ps ] && printf "dashmon-agent supersouris7/dashmon:unstable\\nweb nginx\\n"\n' +
-        // docker exec -i NAME ...: what the tool sends to a container.
-        '[ "$1" = exec ] && cat > "$CRONTAB_DIR/../published-$3"\nexit 0\n',
+        // docker exec NAME sed|cat /app/deploy/X.sh: the image's scripts,
+        // from $STUB_DEPLOY; docker exec -i NAME ...: what the tool sends.
+        'if [ "$1" = exec ]; then\n' +
+        "  for last; do :; done\n" +
+        '  case "$last" in /app/deploy/*)\n' +
+        '    f="$STUB_DEPLOY/${last#/app/deploy/}"; [ -f "$f" ] || exit 1\n' +
+        '    [ "$3" = cat ] && exec cat "$f"\n' +
+        '    exec sed -n "s/^SCRIPT_VERSION=\\([0-9][0-9]*\\)$/\\1/p" "$f" ;;\n' +
+        "  esac\n" +
+        '  cat > "$CRONTAB_DIR/../published-$3"\n' +
+        "fi\nexit 0\n",
       { mode: 0o755 }
     );
     const env = {
@@ -47,7 +56,9 @@ async function main() {
       LC_ALL: "C",
       CRONTAB_DIR: cron,
       DASHMON_BIN_DIR: bin,
-      DASHMON_RAW_URL: pathToFileURL(DEPLOY).href
+      DASHMON_RAW_URL: pathToFileURL(DEPLOY).href,
+      // No image scripts at first: GitHub (file://) is used.
+      STUB_DEPLOY: path.join(dir, "no-image")
     };
     const run = (...args) =>
       execFileSync("sh", [SETUP, ...args], {
@@ -223,6 +234,26 @@ async function main() {
     assert.ok(!crontab("root").includes("dashmon:setup"));
     assert.equal(crontab("root").match(/\[dashmon\]/g).length, 1, "one header");
     assert.match(crontab("root"), /# dashmon:wireguard-dump$/m);
+
+    // The scripts come from the deployed image when a container has them:
+    // the versions its cards expect, even if GitHub differs.
+    const image = path.join(dir, "image");
+    fs.mkdirSync(image);
+    for (const file of fs.readdirSync(DEPLOY).filter(name => name.endsWith(".sh")))
+      fs.copyFileSync(path.join(DEPLOY, file), path.join(image, file));
+    fs.writeFileSync(
+      path.join(image, "claude-stats.sh"),
+      fs
+        .readFileSync(path.join(DEPLOY, "claude-stats.sh"), "utf8")
+        .replace(/^SCRIPT_VERSION=\d+$/m, "SCRIPT_VERSION=9")
+    );
+    env.STUB_DEPLOY = image;
+    assert.match(run("--all"), /Claude Code: v1 -> v9, updated \(image of dashmon-agent\)/);
+    assert.match(run("--all", "--from", "github"), /Claude Code: v9 -> v1, updated \(GitHub\)/);
+    fs.rmSync(path.join(image, "claude-stats.sh"));
+    assert.match(run("--all"), /Claude Code: v1, up to date \(GitHub\)/, "image without it");
+    assert.throws(() => run("--all", "--from", "image"), /No Dashmon container holds/);
+    env.STUB_DEPLOY = path.join(dir, "no-image");
 
     // The manual loop of docs/SCRIPTS.md, for hosts without the tool.
     const guide = fs.readFileSync(path.join(__dirname, "..", "docs", "SCRIPTS.md"), "utf8");
