@@ -20,3 +20,11 @@ Thumbs.db
 
 # graphify : etat local de construction (contient le chemin absolu du depot)
 graphify-out/.graphify_build_state.json
+# graphify : fichiers regeneres a chaque construction, propres a la machine
+# (cache, dates des fichiers, visualisation HTML). Seuls graph.json,
+# GRAPH_REPORT.md et les libelles restent suivis.
+graphify-out/cache/
+graphify-out/manifest.json
+graphify-out/graph.html
+graphify-out/.graphify_labels.pending.json
+graphify-out/.cloud-cta-shown
