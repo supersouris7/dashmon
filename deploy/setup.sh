@@ -24,7 +24,7 @@ set -eu
 
 # Version of this script. It writes no report, so Dashmon never flags it:
 # `update` refreshes it with the others. Raise it on every change.
-SCRIPT_VERSION=4
+SCRIPT_VERSION=5
 
 RAW="${DASHMON_RAW_URL:-https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy}"
 BIN="${DASHMON_BIN_DIR:-/usr/local/bin}"
@@ -497,6 +497,13 @@ update_all() {
     else
       mv "$file.new" "$file"
       say "  $(label "$name"): v${before:-?} -> v$after, updated" "  $(label "$name") : v${before:-?} -> v$after, mis à jour"
+      # The rest is done by the new version, so one --all is enough.
+      if [ "$name" = setup ] && [ -z "${DASHMON_SETUP_RESTARTED:-}" ]; then
+        language=en
+        [ "$FR" = 1 ] && language=fr
+        exec env DASHMON_SETUP_RESTARTED=1 DASHMON_LANG="$language" \
+          sh "$file" --all ${USER_OPT:+--user "$USER_OPT"}
+      fi
     fi
     # A script without its cron job feeds no card.
     if [ "$name" != setup ] && [ -z "$(cron_lines "$(cron_owner "$name")" "$name")" ]; then

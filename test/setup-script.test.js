@@ -174,6 +174,12 @@ async function main() {
     assert.match(updated, /no cron job: sudo dashmon-setup\.sh install claude-stats/);
     assert.match(updated, /WireGuard: v1, up to date/);
     assert.match(run("-all"), /Claude Code: v1, up to date/);
+    // An older setup tool updates itself, then its new version does the rest.
+    fs.writeFileSync(path.join(bin, "dashmon-setup.sh"), "#!/bin/sh\nSCRIPT_VERSION=1\n");
+    const restarted = run("--all");
+    assert.match(restarted, /dashmon-setup: v1 -> v\d+, updated/);
+    assert.match(restarted, /dashmon-setup: v\d+, up to date/);
+    assert.match(restarted, /WireGuard: v1, up to date/);
 
     // auto: the setup tool's own cron line, recommended frequency; off removes it.
     run("auto");
