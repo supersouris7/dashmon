@@ -212,7 +212,7 @@ headerObserver.observe(document.querySelector(".toolbar"));
 const toolbarObserver = new ResizeObserver(updateToolbarLayout);
 toolbarObserver.observe(toolbar);
 
-// No settings on a phone: the entry is hidden (components.css, same width),
+// No settings on a phone: the entry is hidden (settings-tools.css, same width),
 // and settings left open close when the screen becomes that narrow.
 const PHONE = window.matchMedia("(max-width: 599px)");
 PHONE.addEventListener("change", event => {

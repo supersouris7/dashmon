@@ -1,0 +1,132 @@
+/* Settings tools: trash buttons, image manager, theme management, and no
+   settings entry on a phone. */
+
+/* Trash of the settings rows: outlined in the theme error colour, readable
+   on light and dark backgrounds alike. Two classes are enough to win over
+   .small-icon-btn and its hover state (editor.css, base.css). */
+.edit-panel .delete-btn {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--error);
+  border: 1px solid color-mix(in srgb, var(--error) 45%, transparent);
+  border-radius: 3px;
+  box-shadow: none;
+}
+
+.edit-panel .delete-btn i {
+  color: inherit;
+  font-size: 14px;
+  opacity: 1;
+}
+
+.edit-panel .delete-btn:hover {
+  background: color-mix(in srgb, var(--error) 10%, transparent);
+  color: var(--error);
+  border-color: color-mix(in srgb, var(--error) 75%, transparent);
+}
+
+.modal i,
+.small-icon-btn:not(.delete-btn) {
+  color: inherit;
+}
+
+.image-manager-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.image-selection-count {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.delete-selection-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.image-manager-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 8px;
+}
+
+.image-manager-item {
+  position: relative;
+  min-width: 0;
+  min-height: 64px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-manager-item:hover {
+  background: var(--surface-3);
+}
+
+.image-manager-item.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.image-manager-item input {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.image-manager-item img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.image-manager-empty {
+  /* Whole row of the grid, not one 64 px cell. */
+  grid-column: 1 / -1;
+  padding: 18px 4px;
+  color: var(--muted);
+}
+
+/* Gestion des thèmes */
+.theme-manage {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.theme-manage .action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0;
+  min-width: 110px;
+}
+
+/* No settings on a phone: same width as PHONE in app.js. Tablets keep them,
+   upright (600 px and more) as well as sideways. */
+@media (max-width: 599px) {
+  #menuSettingsBtn {
+    display: none;
+  }
+}

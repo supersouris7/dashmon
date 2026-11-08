@@ -1,0 +1,1099 @@
+/* Supervision page: mosaic grid, host, WireGuard, SMART, APT, speed test,
+   directories and coding agent cards, and the host script notice. */
+
+.supervision-grid {
+  display: grid;
+  /* Full width, aligned on the toolbar: as many columns of 320 px or more as
+     fit. auto-fill keeps the column width when there are few cards. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  align-items: start;
+  gap: 16px;
+}
+/* Mosaic (supervision/masonry.js): thin rows without gap, each card spans the
+   rows its height needs; "dense" fills a hole beside a wide card. */
+.supervision-grid.masonry {
+  grid-auto-rows: 4px;
+  grid-auto-flow: row dense;
+  row-gap: 0;
+}
+
+.supervision-card {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background 0.1s ease,
+    border-color 0.1s ease;
+}
+
+.supervision-card.tinted:hover {
+  transform: translateY(-1px);
+  border-color: var(--tile-ink);
+  background: color-mix(in srgb, var(--tile-color) 9%, var(--surface));
+}
+
+.supervision-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.supervision-health {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -2px 0 12px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-2);
+  font-size: 12px;
+}
+.supervision-health-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.supervision-health-state i {
+  color: var(--muted);
+}
+.supervision-card-host.is-healthy .supervision-health-state i {
+  color: var(--success);
+}
+.supervision-card-host.is-warning .supervision-health-state i {
+  color: var(--warning);
+}
+.supervision-card-host.is-critical .supervision-health-state i {
+  color: var(--error);
+}
+.supervision-card-host.has-details {
+  cursor: pointer;
+}
+.supervision-card-host.has-details:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.supervision-host-chevron {
+  margin-left: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  transition: transform 0.18s ease;
+}
+.supervision-card-host.expanded .supervision-host-chevron {
+  transform: rotate(180deg);
+}
+
+.supervision-rows {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.supervision-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.supervision-row > span:first-child,
+.supervision-metric-label {
+  color: var(--muted);
+}
+.supervision-row > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.supervision-row > span:last-child {
+  font-weight: 700;
+}
+.supervision-row.ok > span:last-child {
+  color: var(--success);
+}
+.supervision-row.warn > span:last-child {
+  color: var(--warning);
+}
+.supervision-row.high > span:last-child {
+  color: var(--error);
+}
+
+.supervision-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Le type de source reste discret : une pastille secondaire a droite du titre.
+   Elle accueille aussi le nom de l'hote sur sa propre tuile. */
+.supervision-type {
+  margin-left: auto;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 1px 7px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Une ligne de metrique : libelle, piste remplie, valeur. Trois colonnes fixes
+   pour que CPU, RAM et disque s'alignent d'une carte a l'autre. */
+.supervision-metric {
+  display: grid;
+  grid-template-columns: 78px minmax(48px, 1fr) 48px;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.supervision-metric-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.supervision-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--surface-3);
+}
+
+.supervision-card-directories {
+  min-width: 0;
+  cursor: pointer;
+}
+.supervision-card-directories:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.supervision-card-directories.is-healthy .supervision-health-state i {
+  color: var(--success);
+}
+.supervision-card-directories.is-warning .supervision-health-state i {
+  color: var(--warning);
+}
+.supervision-card-directories.expanded > .supervision-head .supervision-smart-chevron {
+  transform: rotate(180deg);
+}
+/* The rows share their columns (subgrid): every bar starts at the same place,
+   after the longest name, so names stay whole while bars stay aligned. */
+.directory-list {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(48px, 1fr) max-content;
+  column-gap: 10px;
+  row-gap: 2px;
+}
+.directory-usage {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  min-width: 0;
+  font-size: 13px;
+}
+.directory-summary {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: center;
+  min-height: 22px;
+}
+.directory-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.directory-size {
+  white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.directory-details {
+  grid-column: 1 / -1;
+  display: none;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.supervision-card-directories.expanded .directory-details {
+  display: block;
+}
+.directory-date {
+  margin: 10px 0 0;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+}
+
+.supervision-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 4px;
+  background: var(--success);
+  transition: width 0.3s ease;
+}
+
+/* Seuils : vert < 70 %, jaune < 90 %, rouge au-dela. La piste vide (metrique
+   indisponible) est hachuree pour se distinguer d'une mesure a zero. */
+.supervision-fill.warn {
+  background: var(--warning);
+}
+.supervision-fill.high {
+  background: var(--error);
+}
+
+.supervision-track.unknown {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--surface-3),
+    var(--surface-3) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+.supervision-metric-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.supervision-empty,
+.supervision-error {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.supervision-error {
+  color: var(--error);
+}
+
+/* WireGuard : detache des cartes hote, dans sa propre section sous la grille
+   des mesures. Une section par interface, puis un pair par ligne. "wg0" est
+   affiche en blanc, "Dernier releve" en gris sur la meme ligne. Le nom et le
+   handshake tiennent sur la premiere ligne, le trafic sur la seconde. */
+/* SMART reprend les cartes de supervision mais distingue les deux mesures les
+   plus utiles avant de presenter les compteurs bruts dans un tableau compact. */
+.supervision-card-smart {
+  min-width: 0;
+  cursor: pointer;
+}
+
+.supervision-host-details {
+  display: none;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+.supervision-card-host.expanded .supervision-host-details {
+  display: grid;
+}
+.supervision-host-detail-row {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.supervision-host-detail-row > span:first-child {
+  color: var(--muted);
+}
+.supervision-host-detail-row > span:last-child {
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.supervision-card-smart:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.supervision-card-smart.expanded > .supervision-head .supervision-smart-chevron {
+  transform: rotate(180deg);
+}
+
+.supervision-smart-updated {
+  margin: -7px 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.supervision-smart-disk + .supervision-smart-disk {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.supervision-smart-title {
+  display: flex;
+  justify-content: flex-start;
+  gap: 7px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.supervision-smart-title > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.supervision-smart-status {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.supervision-smart-status.passed {
+  background: var(--success);
+}
+.supervision-smart-status.failed {
+  background: var(--error);
+}
+.supervision-smart-status.unknown {
+  background: var(--muted);
+}
+
+.supervision-smart-chevron {
+  margin-left: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  transition: transform 0.18s ease;
+}
+
+.supervision-smart-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 7px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.supervision-smart-uptime {
+  font-weight: 600;
+}
+.supervision-smart-summary small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.supervision-smart-temperature {
+  margin-left: auto;
+  font-weight: 600;
+}
+
+.supervision-smart-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding-top: 7px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.supervision-smart-fact.warn {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+/* APT : resume d'un cycle termine, avec le volume mis a jour et les deux
+   informations utiles a l'exploitation (date et redemarrage). Le statut
+   reprend la presentation de la sante de l'hote : icone + libelle. */
+.supervision-card-apt.is-healthy .supervision-health-state i {
+  color: var(--success);
+}
+.supervision-card-apt.is-warning .supervision-health-state i {
+  color: var(--warning);
+}
+.supervision-card-apt.is-critical .supervision-health-state i {
+  color: var(--error);
+}
+
+.supervision-apt-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 15px 0 12px;
+}
+.supervision-apt-summary strong {
+  font-size: 30px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+.supervision-apt-summary span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.supervision-apt-details {
+  display: none;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+.supervision-card-apt.expanded .supervision-apt-details {
+  display: grid;
+}
+.supervision-apt-details > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.supervision-apt-details > div > span:first-child {
+  color: var(--muted);
+}
+.supervision-apt-details time,
+.supervision-apt-details > div > span:last-child {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.supervision-apt-details .ok {
+  color: var(--success);
+}
+.supervision-apt-details .warning {
+  color: var(--warning);
+  font-weight: 600;
+}
+.supervision-apt-hint {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* Le resume reste dense ; le clic sur le disque revele les libelles complets
+   sans faire grandir toutes les cartes en permanence. */
+.supervision-smart-details {
+  display: none;
+  margin-top: 9px;
+}
+.supervision-card-smart.expanded .supervision-smart-details {
+  display: grid;
+}
+.supervision-smart-model,
+.supervision-smart-full-status {
+  margin: 0 0 7px;
+  font-size: 12px;
+}
+.supervision-smart-model {
+  color: var(--muted);
+}
+.supervision-smart-full-status.passed {
+  color: var(--success);
+}
+.supervision-smart-full-status.failed {
+  color: var(--error);
+}
+.supervision-smart-full-status.unknown {
+  color: var(--muted);
+}
+.supervision-smart-detail-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 86px;
+  gap: 10px;
+  align-items: center;
+  padding: 5px 0;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+.supervision-smart-detail-row > span:first-child {
+  color: var(--muted);
+}
+.supervision-smart-detail-row > span:nth-child(2) {
+  font-variant-numeric: tabular-nums;
+}
+.supervision-smart-detail-diagnostic {
+  text-align: right;
+  font-size: 11px;
+}
+.supervision-smart-detail-diagnostic.up {
+  color: var(--success);
+}
+.supervision-smart-detail-diagnostic.warn {
+  color: var(--warning);
+}
+
+.smart-disk-choices {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.smart-disk-choices:empty {
+  display: none;
+}
+.smart-disk-choice {
+  min-height: 28px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.smart-disk-choice.active {
+  border-color: var(--success);
+  background: rgba(60, 245, 155, 0.14);
+  color: var(--success);
+}
+
+.supervision-wireguard {
+  margin-top: 12px;
+}
+
+.supervision-card-wireguard .supervision-wireguard:first-of-type {
+  margin-top: 6px;
+}
+
+.supervision-wireguard-head {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.supervision-wireguard-iface {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.supervision-wireguard-updated {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.supervision-peers {
+  display: grid;
+  gap: 6px;
+}
+
+.supervision-peer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1px 10px;
+  font-size: 12px;
+}
+
+.supervision-peer-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.supervision-peer-name > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.supervision-peer-dot {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+}
+
+.supervision-peer-dot.up {
+  border-color: var(--success);
+  background: var(--success);
+}
+
+.supervision-peer-handshake {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.supervision-peer-handshake.up {
+  color: var(--success);
+}
+
+.supervision-peer-traffic {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.supervision-wireguard-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.supervision-card-apt.has-details {
+  cursor: pointer;
+}
+.supervision-card-apt.has-details:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.supervision-card-apt.expanded > .supervision-head .supervision-smart-chevron {
+  transform: rotate(180deg);
+}
+.supervision-apt-error {
+  display: none;
+  margin: 8px 0;
+  color: var(--text);
+}
+.supervision-card-apt.expanded .supervision-apt-error {
+  display: block;
+}
+.supervision-apt-error strong {
+  color: var(--muted);
+}
+.supervision-apt-error pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 200px;
+  overflow: auto;
+  font:
+    12px/1.4 ui-monospace,
+    monospace;
+}
+
+/* Speed test card (supervision/speedtest-card.js): the last download,
+   upload and latency, the graph of the last 24 hours; opened, the details
+   and the graph of the last 7 days. */
+.supervision-card-speedtest {
+  cursor: pointer;
+}
+.supervision-card-speedtest:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.supervision-card-speedtest.is-healthy .supervision-health-state i {
+  color: var(--success);
+}
+.supervision-card-speedtest.is-warning .supervision-health-state i {
+  color: var(--warning);
+}
+.supervision-card-speedtest.expanded > .supervision-head .supervision-smart-chevron {
+  transform: rotate(180deg);
+}
+.speedtest-figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.speedtest-figure {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 6px;
+  align-items: baseline;
+  min-width: 0;
+}
+.speedtest-figure i {
+  grid-row: span 2;
+  font-size: 12px;
+}
+.speedtest-figure strong {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.speedtest-figure span {
+  grid-column: 2;
+  color: var(--muted);
+  font-size: 11px;
+}
+.speedtest-down i {
+  color: var(--accent);
+}
+.speedtest-up i {
+  color: var(--success);
+}
+.speedtest-ping i {
+  color: var(--muted);
+}
+.speedtest-graph {
+  width: 100%;
+  height: 48px;
+  margin-top: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.speedtest-graph polyline {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.speedtest-line-down {
+  stroke: var(--accent);
+  fill: var(--accent);
+}
+.speedtest-line-up {
+  stroke: var(--success);
+  fill: var(--success);
+}
+.speedtest-graph-week,
+.supervision-card-speedtest.expanded .speedtest-graph-day {
+  display: none;
+}
+.supervision-card-speedtest.expanded .speedtest-graph-week {
+  display: block;
+  height: 64px;
+}
+.speedtest-details {
+  display: none;
+}
+.supervision-card-speedtest.expanded .speedtest-details {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+.speedtest-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.speedtest-value {
+  margin-left: auto;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: pre;
+}
+.speedtest-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.speedtest-run {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.speedtest-message {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Coding agents (OpenCode, Claude Code): today's tokens and the last 30 days stay visible; the details
+   (period, models, tokens, tools, activity) open with the card, which then
+   takes two columns on a wide screen to keep the model lines readable. */
+.supervision-card-usage {
+  cursor: pointer;
+}
+.supervision-card-usage:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.supervision-card-usage.is-healthy .supervision-health-state i {
+  color: var(--success);
+}
+.supervision-card-usage.is-warning .supervision-health-state i {
+  color: var(--warning);
+}
+.supervision-card-usage.expanded > .supervision-head .supervision-smart-chevron {
+  transform: rotate(180deg);
+}
+@media (min-width: 900px) {
+  .supervision-card-usage.expanded,
+  .supervision-card-smart.expanded.multi-disk {
+    grid-column: span 2;
+  }
+  /* With three columns, two would leave the third empty beside a tall card:
+     an opened coding agent card takes the whole row. */
+  .supervision-grid[data-tracks="3"] .supervision-card-usage.expanded {
+    grid-column: 1 / -1;
+  }
+  /* Opened with several disks: two disks per row. */
+  .supervision-card-smart.expanded.multi-disk .supervision-smart-disks {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
+  }
+  .supervision-card-smart.expanded.multi-disk .supervision-smart-disk + .supervision-smart-disk {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+  .supervision-card-smart.expanded.multi-disk .supervision-smart-disk:nth-child(n + 3) {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+}
+.usage-age {
+  margin-left: auto;
+  color: var(--muted);
+}
+.usage-summary {
+  margin: 12px 0 10px;
+}
+.usage-facts {
+  padding-top: 0;
+  border-top: 0;
+}
+.usage-details {
+  display: none;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  cursor: default;
+}
+.supervision-card-usage.expanded .usage-details {
+  display: grid;
+}
+.usage-period-body {
+  display: grid;
+  gap: 10px;
+}
+.usage-periods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.usage-period {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+.usage-period.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  font-weight: 600;
+}
+.usage-period:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.usage-section-title {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.usage-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+.usage-figure,
+.usage-token {
+  display: grid;
+  gap: 2px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-2);
+  min-width: 0;
+}
+.usage-figure strong {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.usage-figure span,
+.usage-token span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.usage-tokens {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 8px;
+}
+.usage-token strong {
+  font-variant-numeric: tabular-nums;
+}
+.usage-models {
+  display: grid;
+  gap: 10px;
+}
+.usage-model {
+  display: grid;
+  gap: 4px;
+}
+.usage-model-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.usage-model-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.usage-model-provider {
+  color: var(--muted);
+  font-size: 11px;
+}
+.usage-model-amount {
+  margin-left: auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.usage-model-cost {
+  min-width: 56px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.usage-bar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--surface-2);
+}
+.usage-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+}
+.usage-model-detail {
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.usage-tools {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 6px 14px;
+}
+.usage-tool {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+.usage-tool span {
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.usage-tool strong {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.usage-tool small {
+  color: var(--warning);
+  font-weight: 600;
+}
+.usage-activity-box {
+  display: grid;
+  gap: 6px;
+}
+.usage-activity {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 48px;
+}
+.usage-activity span {
+  flex: 1;
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--accent);
+}
+.usage-activity span.idle {
+  background: var(--border);
+}
+.usage-empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* Older host script (supervision/script-notice.js): a yellow notice at the
+   bottom of the card with the command that updates it. */
+.script-notice {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--warning);
+  border-radius: 3px;
+  cursor: default;
+}
+.script-notice-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 12px;
+}
+.script-notice-title i {
+  color: var(--warning);
+}
+.script-notice-title a {
+  margin-left: auto;
+  color: var(--accent);
+}
+.script-notice-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+.script-notice-setup summary {
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.script-notice-setup[open] summary {
+  margin-bottom: 6px;
+}
+.script-notice-command {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.script-notice-command code {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+  user-select: all;
+}

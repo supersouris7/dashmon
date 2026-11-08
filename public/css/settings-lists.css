@@ -1,0 +1,293 @@
+/* Settings lists: rows of the hosts, services and web links panels, the
+   service image and monitoring controls. Loaded first of the component
+   styles (index.html). */
+
+.host-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.host-row {
+  display: grid;
+  grid-template-columns: 30px auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "drag picker name color remove";
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.host-row .color-picker {
+  grid-area: color;
+}
+.host-row .drag-handle {
+  grid-area: drag;
+}
+.host-row > .edit-input {
+  grid-area: name;
+}
+.host-row .icon-picker {
+  grid-area: picker;
+}
+.host-row .delete-btn {
+  grid-area: remove;
+}
+
+.host-monitor-field {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.host-monitor-field > span {
+  color: var(--muted);
+}
+
+.host-monitor-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.icon-btn,
+.action-btn,
+.modal-close {
+  min-height: 40px;
+}
+
+.editor-filterbar {
+  display: grid;
+  /* The search comes first and is the widest: it is the main tool. */
+  grid-template-columns: minmax(240px, 2fr) minmax(160px, 1fr) minmax(160px, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.editor-search {
+  position: relative;
+}
+
+.editor-search > i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+  font-size: 13px;
+}
+
+.editor-search .edit-input {
+  width: 100%;
+  padding-left: 36px;
+}
+
+/* Narrow panel (tablet): the search takes its own line, the two filters
+   share the next one; very narrow, one per line. */
+@container (max-width: 640px) {
+  .editor-filterbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .editor-search {
+    grid-column: 1 / -1;
+  }
+}
+@container (max-width: 400px) {
+  .editor-filterbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* One service = a small block of labelled fields:
+     Name | URL (wide)              | actions
+     Category | Host | Widget      | (Image, Monitoring, Delete)
+   Settings are not available on phones, so there is no narrow layout. */
+.service-row {
+  display: grid;
+  /* Fixed action column: every row lines up whatever the button labels. */
+  grid-template-columns: 64px repeat(3, minmax(0, 1fr)) auto;
+  grid-template-areas:
+    "image name url url actions"
+    "image category host widget actions";
+  gap: 8px 12px;
+  align-items: end;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+/* Narrow panel: the widget field gets its own line, so its select keeps
+   room next to the Configure button. */
+@container (max-width: 900px) {
+  .service-row {
+    grid-template-columns: 64px repeat(2, minmax(0, 1fr)) auto;
+    grid-template-areas:
+      "image name url actions"
+      "image category host actions"
+      "image widget widget actions";
+  }
+}
+
+/* Tablet panel: name and URL each get a full line, the actions join the
+   widget line, so the fields keep the whole width. */
+@container (max-width: 600px) {
+  .service-row {
+    grid-template-areas:
+      "image name name name"
+      "image url url url"
+      "category category host host"
+      "widget widget widget actions";
+  }
+}
+
+.service-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.service-field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.service-field-name {
+  grid-area: name;
+}
+.service-field-url {
+  grid-area: url;
+}
+.service-field-category {
+  grid-area: category;
+}
+.service-field-host {
+  grid-area: host;
+}
+.service-field-widget {
+  grid-area: widget;
+}
+
+/* Same fields as every other settings list: 38 px, 16 px text. */
+.service-field .edit-input,
+.service-field .edit-select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Image of the service: square tile, same format as the Images panel. */
+.service-image-btn {
+  grid-area: image;
+  align-self: center;
+  width: 64px;
+  height: 64px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.service-image-btn:hover {
+  border-color: var(--muted);
+  background: var(--surface-3);
+}
+
+.service-image-btn img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+/* Monitoring help, dot and trash. */
+.service-actions {
+  grid-area: actions;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: center;
+}
+
+.service-widget {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.service-widget .widget-type {
+  flex: 1 1 auto;
+}
+
+.service-widget .widget-config-btn {
+  flex: 0 0 auto;
+}
+
+.service-widget .widget-config-btn.disabled {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+
+body,
+.toolbar,
+button,
+input,
+select,
+.card,
+.section-header,
+.top-menu,
+.modal,
+.image-library-panel,
+.icon-picker-menu {
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.top-menu.show,
+.modal-backdrop.show .modal,
+.image-library.show .image-library-panel,
+.icon-picker.open .icon-picker-menu {
+  animation: softReveal 0.18s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+@keyframes softReveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.998);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-backdrop.show,
+.image-library.show {
+  animation: backdropIn 0.18s ease;
+}
+
+@keyframes backdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

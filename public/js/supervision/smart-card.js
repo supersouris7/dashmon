@@ -117,7 +117,7 @@ export function smartCard(host, metrics, disks) {
   });
 
   // With several disks, the opened card spans two columns and lays the disks
-  // side by side (components.css).
+  // side by side (supervision.css).
   if (disks.length > 1) card.classList.add("multi-disk");
   const list = document.createElement("div");
   list.className = "supervision-smart-disks";

@@ -114,9 +114,13 @@ public/js/
   it needs as a parameter or from a shared leaf module.
   `test/import-cycles.test.js` refuses any cycle.
 - Styles, in load order: `base.css` (theme variables, page layout, toolbar),
-  `editor.css` (form controls, dialogs), `components.css` (tiles, sections,
-  supervision cards, settings rows) and `settings.css` (the frame of the
-  settings window: title bar, menu tree, panel and footer, each styled once).
+  `editor.css` (form controls, dialogs), then the components:
+  `settings-lists.css` (rows of the settings lists), `dashboard.css` (tiles,
+  widgets, web links, fortune, search), `supervision.css` (supervision cards),
+  `responsive.css` (toolbar on a phone), `settings-tools.css` (trash, image and
+  theme management), and last `settings.css` (the frame of the settings
+  window: title bar, menu tree, panel and footer, each styled once). The order
+  matters: a later file wins over an earlier one at equal specificity.
 - View preferences (columns, sorting, collapsed sections) live in the browser
   (`view-prefs.js`), not in `config.json`.
 - `config/normalize.js` and `config/sanitize.js` mirror the server rules: a

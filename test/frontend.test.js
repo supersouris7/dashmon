@@ -16,6 +16,14 @@ const assert = require("assert");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+// The component styles, in their load order (index.html).
+const COMPONENT_CSS = [
+  "settings-lists.css",
+  "dashboard.css",
+  "supervision.css",
+  "responsive.css",
+  "settings-tools.css"
+];
 const { spawnSync } = require("child_process");
 const { pathToFileURL } = require("url");
 
@@ -272,7 +280,7 @@ async function main() {
   // (100vw l'inclut et decalait les bandeaux de 7,5 px sur PC).
   {
     const raw = file => fs.readFileSync(path.join(ROOT, "public", ...file.split("/")), "utf8");
-    const css = raw("css/base.css") + raw("css/components.css");
+    const css = raw("css/base.css") + COMPONENT_CSS.map(file => raw("css/" + file)).join("");
     ok(
       "mise en page : bandeaux alignes sur le contenu, barre de defilement comprise",
       !css.includes("100vw - 1280px") &&
@@ -288,7 +296,7 @@ async function main() {
   ok(
     "widgets : unite de la valeur masquee sur une tuile etroite",
     contains(
-      readSource("public", "css", "components.css"),
+      readSource("public", "css", "dashboard.css"),
       "@container (max-width: 340px){.widget-badge-unit{display:none;}}"
     ) &&
       readSource("public", "js", "widget-registry.js").includes("badgeUnit") &&
@@ -413,7 +421,7 @@ async function main() {
   ok(
     "APT : details replies par defaut",
     (() => {
-      const css = readSource("public", "css", "components.css");
+      const css = readSource("public", "css", "supervision.css");
       return (
         contains(css, ".supervision-apt-details{display:none") &&
         contains(css, ".supervision-card-apt.expanded .supervision-apt-details{display:grid}")

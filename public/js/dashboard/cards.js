@@ -38,7 +38,7 @@ export function applyWidgetStatus(wrap, service, info) {
   badge.textContent = view.badge || "—";
   if (view.icon) {
     // The word goes in its own span: narrow tiles hide it and keep the icon
-    // (components.css), so the application name keeps its room.
+    // (dashboard.css), so the application name keeps its room.
     const text = document.createElement("span");
     text.className = "widget-badge-text";
     text.textContent = badge.textContent;
@@ -49,7 +49,7 @@ export function applyWidgetStatus(wrap, service, info) {
     badge.prepend(icon);
   }
   if (view.badgeUnit && !view.icon) {
-    // Unit of the value ("tokens"): a narrow tile hides it (components.css),
+    // Unit of the value ("tokens"): a narrow tile hides it (dashboard.css),
     // so the application name is not cut.
     const unit = document.createElement("span");
     unit.className = "widget-badge-unit";
