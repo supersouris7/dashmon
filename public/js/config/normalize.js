@@ -14,6 +14,8 @@ import {
 import { formatCompactCount } from "../format.js";
 import { clone } from "../util.js";
 import { normalizeWidgetConfig } from "../widget-registry.js";
+import { pluginSettingsSchemas } from "../supervision-registry.js";
+import { sanitizePluginSettings, workingPrefs } from "./plugin-prefs.js";
 
 export const DEFAULT_CATEGORIES = [
   { name: "Infrastructure", icon: "fa-solid fa-server" },
@@ -217,40 +219,24 @@ export function normalizeHostMonitoring(raw) {
     enabled: raw.enabled === true,
     type,
     path: sanitizeText(raw.path, 200),
-    wireguard: normalizeWireguardPrefs(raw.wireguard),
-    smart: normalizeSmartPrefs(raw.smart),
     speedtest: normalizeSpeedtestPrefs(raw.speedtest),
-    aptUpdates: normalizeAptUpdatesPrefs(raw.aptUpdates),
-    directorySizes: normalizeDirectoryPrefs(raw.directorySizes),
-    opencode: normalizeAptUpdatesPrefs(raw.opencode),
-    claude: normalizeAptUpdatesPrefs(raw.claude),
-    plugins: normalizePluginPrefs(raw.plugins)
+    ...pluginMonitoring(raw)
   };
 }
 
-// Supervision plugin cards turned off on a host: { <id>: { enabled: false } }.
-// Only the off switches are kept, whatever plugins are installed. Same rules
-// as lib/config/fields.js.
-const PLUGIN_ID_PATTERN = /^[a-z][a-z0-9-]{0,31}$/;
-export function normalizePluginPrefs(raw) {
-  const out = {};
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return out;
-  for (const [id, prefs] of Object.entries(raw).slice(0, 50)) {
-    if (!PLUGIN_ID_PATTERN.test(id)) continue;
-    if (prefs && typeof prefs === "object" && prefs.enabled === false) out[id] = { enabled: false };
+// Settings of the supervision plugins (config/plugin-prefs.js): the installed
+// ones in their editor shape, the others preserved as stored.
+function pluginMonitoring(raw) {
+  const schemas = pluginSettingsSchemas();
+  const stored = sanitizePluginSettings(raw, schemas);
+  const out = { ...stored, plugins: { ...stored.plugins } };
+  for (const schema of schemas) {
+    const source = schema.key ? raw[schema.key] : raw.plugins?.[schema.id];
+    const prefs = workingPrefs(source, schema);
+    if (schema.key) out[schema.key] = prefs;
+    else out.plugins[schema.id] = prefs;
   }
   return out;
-}
-
-// Display preference of a host's WireGuard peers. When absent, the section is
-// shown as soon as the local dump has data; an optional interface filter
-// shows a single tunnel.
-export function normalizeWireguardPrefs(raw) {
-  const src = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
-  return {
-    enabled: src.enabled !== false,
-    interface: sanitizeText(src.interface, 50)
-  };
 }
 
 // Speed test card: on by default, every hour (minutes; 0 = on request only),
@@ -275,43 +261,6 @@ function speedtestServer(value) {
     if (url.protocol === "http:" || url.protocol === "https:") return url.href.slice(0, 300);
   } catch (_error) {}
   return "";
-}
-
-// SMART preference: section shown by default, with an optional filter on
-// device names (`/dev/sda`, `/dev/nvme0`, ...).
-export function normalizeSmartPrefs(raw) {
-  const src = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
-  const disks = Array.isArray(src.disks)
-    ? [...new Set(src.disks.map(value => sanitizeText(value, 100)).filter(Boolean))].slice(0, 20)
-    : [];
-  return { enabled: src.enabled !== false, disks };
-}
-
-export function normalizeAptUpdatesPrefs(raw) {
-  const src = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
-  return { enabled: src.enabled !== false };
-}
-
-export function normalizeDirectoryPrefs(raw) {
-  const src = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
-  const entries = Array.isArray(src.entries) ? src.entries : [];
-  const seen = new Set();
-  return {
-    enabled: src.enabled !== false,
-    entries: entries
-      .filter(
-        item =>
-          item &&
-          typeof item.path === "string" &&
-          item.path.startsWith("/") &&
-          item.path.length <= 4096 &&
-          [...item.path].every(char => char.charCodeAt(0) >= 32 && char.charCodeAt(0) !== 127) &&
-          !seen.has(item.path) &&
-          seen.add(item.path)
-      )
-      .slice(0, 50)
-      .map(item => ({ name: sanitizeText(item.name, 100), path: item.path }))
-  };
 }
 
 // Pairing settings: same rules as lib/agent/replication-config.js. Names,

@@ -1,0 +1,30 @@
+{
+  "id": "opencode",
+  "version": "1.0.0",
+  "label": {
+    "fr": "OpenCode",
+    "en": "OpenCode"
+  },
+  "description": {
+    "fr": "Statistiques OpenCode écrites par deploy/opencode-stats.sh.",
+    "en": "OpenCode statistics written by deploy/opencode-stats.sh."
+  },
+  "icon": "fa-solid fa-terminal",
+  "order": 50,
+  "script": "opencode-stats",
+  "guide": "OPENCODE.md",
+  "files": {
+    "report": {
+      "env": "OPENCODE_REPORT_FILE",
+      "default": "opencode.json"
+    }
+  },
+  "server": "server.js",
+  "client": "client.mjs",
+  "settings": {
+    "key": "opencode",
+    "title": "tabOpencode",
+    "show": "opencodeShow",
+    "help": "opencodeHelp"
+  }
+}

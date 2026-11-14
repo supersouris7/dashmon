@@ -1,5 +1,5 @@
 // Directories card: size of the directories chosen in the host settings,
-// measured by deploy/directory-sizes.sh (lib/host/directory-report.js). Each
+// measured by deploy/directory-sizes.sh (supervisions/directories/). Each
 // bar is the share of its disk the directory takes, coloured like the Disk
 // bar of the Resources card. Folded: name, bar and size; opened: the path,
 // the share of the disk and the date of the report.
@@ -9,16 +9,11 @@ import {
   isExpanded,
   setExpanded,
   updateSmartCollapseButton
-} from "./cards.js";
-import { bytesText, metricSeverity, relativeAge, reportDateText } from "./format.js";
-import { t } from "../i18n.js";
-import {
-  directoryErrorKey,
-  directoryHealth,
-  measured,
-  sharePercentText
-} from "./directory-health.js";
-import { element } from "../element.js";
+} from "/js/supervision/cards.js";
+import { bytesText, metricSeverity, relativeAge, reportDateText } from "/js/supervision/format.js";
+import { t } from "/js/i18n.js";
+import { directoryErrorKey, directoryHealth, measured, sharePercentText } from "./health.mjs";
+import { element as node } from "/js/element.js";
 
 const directoryError = directory => t(directoryErrorKey(directory));
 
@@ -40,42 +35,42 @@ function verdictOf(report) {
 }
 
 function head() {
-  const box = element("div", "supervision-head");
-  const icon = element("i", "fa-solid fa-folder-open");
+  const box = node("div", "supervision-head");
+  const icon = node("i", "fa-solid fa-folder-open");
   icon.setAttribute("aria-hidden", "true");
-  const chevron = element("i", "fa-solid fa-chevron-down supervision-smart-chevron");
+  const chevron = node("i", "fa-solid fa-chevron-down supervision-smart-chevron");
   chevron.setAttribute("aria-hidden", "true");
   box.append(
     icon,
-    element("span", "supervision-name", t("directorySizesTitle")),
-    element("span", "supervision-type", t("directorySizesBadge")),
+    node("span", "supervision-name", t("directorySizesTitle")),
+    node("span", "supervision-type", t("directorySizesBadge")),
     chevron
   );
   return box;
 }
 
 function healthLine(verdict) {
-  const status = element("div", "supervision-health");
-  const box = element("span", "supervision-health-state");
-  const icon = element("i", verdict.icon);
+  const status = node("div", "supervision-health");
+  const box = node("span", "supervision-health-state");
+  const icon = node("i", verdict.icon);
   icon.setAttribute("aria-hidden", "true");
-  box.append(icon, element("strong", "", verdict.label));
+  box.append(icon, node("strong", "", verdict.label));
   status.appendChild(box);
   return status;
 }
 
 function directoryItem(directory) {
-  const item = element("div", "directory-usage");
-  const row = element("div", "directory-summary");
-  const name = element("span", "directory-name", directory.name || directory.path);
+  const item = node("div", "directory-usage");
+  const row = node("div", "directory-summary");
+  const name = node("span", "directory-name", directory.name || directory.path);
   name.title = directory.path;
-  const size = element(
+  const size = node(
     "span",
     "directory-size",
     measured(directory) ? bytesText(directory.bytes) : "—"
   );
-  const track = element("div", "supervision-track");
-  const fill = element("span", "supervision-fill");
+  const track = node("div", "supervision-track");
+  const fill = node("span", "supervision-fill");
   let share = "";
   if (measured(directory) && Number.isSafeInteger(directory.capacity) && directory.capacity > 0) {
     const percent = Math.min(100, (100 * directory.bytes) / directory.capacity);
@@ -101,10 +96,10 @@ function directoryItem(directory) {
   }
   track.append(fill);
   row.append(name, track, size);
-  const details = element("div", "directory-details");
+  const details = node("div", "directory-details");
   details.append(
-    element("div", "", directory.path),
-    element("div", "", measured(directory) ? share || "—" : directoryError(directory))
+    node("div", "", directory.path),
+    node("div", "", measured(directory) ? share || "—" : directoryError(directory))
   );
   item.append(row, details);
   return item;
@@ -112,10 +107,7 @@ function directoryItem(directory) {
 
 export function directoryCard(host, report) {
   const verdict = verdictOf(report);
-  const card = element(
-    "article",
-    "supervision-card supervision-card-directories is-" + verdict.level
-  );
+  const card = node("article", "supervision-card supervision-card-directories is-" + verdict.level);
   applyHostColor(card, host);
   const key = cardKey(host);
   card.dataset.directoryKey = key;
@@ -137,11 +129,15 @@ export function directoryCard(host, report) {
   });
 
   card.append(head(), healthLine(verdict));
-  const list = element("div", "directory-list");
+  const list = node("div", "directory-list");
   for (const directory of report.directories.slice(0, 50)) list.append(directoryItem(directory));
   card.append(list);
   if (report.updatedAt) {
-    card.append(element("p", "directory-details directory-date", reportDateText(report.updatedAt)));
+    card.append(node("p", "directory-details directory-date", reportDateText(report.updatedAt)));
   }
   return card;
+}
+
+export function element(ctx) {
+  return ctx.report?.directories?.length ? directoryCard(ctx.host, ctx.report) : null;
 }

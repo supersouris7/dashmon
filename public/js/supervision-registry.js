@@ -2,9 +2,9 @@
 //
 // Same model as the tile widgets (widget-registry.js): the browser knows no
 // supervision plugin by name. It fetches the list published by the server
-// (GET /api/supervisions), then loads each card renderer
-// (GET /supervision-client/<id>.js). Adding a card never requires changing
-// supervision.js, the editor or the translations.
+// (GET /api/supervisions), then loads each card renderer from the plugin's
+// folder (GET /supervision-client/<id>/<client file>). Adding a card never
+// requires changing supervision.js, the editor or the translations.
 //
 // A missing or failing renderer never breaks the page: its card is simply not
 // drawn, the other cards keep working.
@@ -13,6 +13,20 @@ import { widgetLabel, widgetString } from "./widget-registry.js";
 
 const metas = new Map();
 const renderers = new Map();
+
+// One folder per plugin, so its modules import each other by relative path.
+// The manifest version is part of the URL: a new version of a plugin is a new
+// URL, never an old cached module.
+function assetUrl(meta, file) {
+  return (
+    "/supervision-client/" +
+    encodeURIComponent(meta.id) +
+    "/" +
+    encodeURIComponent(file || "") +
+    "?v=" +
+    encodeURIComponent(meta.version || "")
+  );
+}
 
 // Loads the registry and the renderers. Never throws: on failure the page
 // goes on without plugin cards.
@@ -32,16 +46,9 @@ export async function loadSupervisionRegistry() {
     list.map(meta => {
       if (!meta || !meta.id) return null;
       metas.set(meta.id, meta);
-      if (meta.hasCss) styles.push(meta);
-      if (!meta.hasClient) return null;
-      // The manifest version is part of the URL: a new version of a plugin is
-      // a new URL, never an old cached module.
-      return import(
-        "/supervision-client/" +
-          encodeURIComponent(meta.id) +
-          ".js?v=" +
-          encodeURIComponent(meta.version || "")
-      )
+      if (meta.css) styles.push(meta);
+      if (!meta.client) return null;
+      return import(assetUrl(meta, meta.client))
         .then(module => {
           if (typeof module.card === "function" || typeof module.element === "function")
             renderers.set(meta.id, module);
@@ -60,18 +67,35 @@ function injectStyles(list) {
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.dataset.supervisionStyle = meta.id;
-    link.href =
-      "/supervision-client/" +
-      encodeURIComponent(meta.id) +
-      ".css?v=" +
-      encodeURIComponent(meta.version || "");
+    link.href = assetUrl(meta, meta.css);
     document.head.appendChild(link);
   }
 }
 
-// Installed plugins, sorted by id: the order of their cards and settings.
+// Installed plugins in the order of their cards and settings (manifest
+// order, then id).
 export function listSupervisionPlugins() {
-  return [...metas.values()].sort((a, b) => a.id.localeCompare(b.id));
+  return [...metas.values()].sort(
+    (a, b) => (a.order ?? 100) - (b.order ?? 100) || a.id.localeCompare(b.id)
+  );
+}
+
+// Host settings schemas of the installed plugins, for the config
+// normalisation: [{ id, key, fields }].
+export function pluginSettingsSchemas() {
+  return listSupervisionPlugins().map(meta => ({
+    id: meta.id,
+    key: meta.settings?.key || null,
+    fields: Array.isArray(meta.settings?.fields) ? meta.settings.fields : []
+  }));
+}
+
+// Settings of a plugin on a host: its historical key for a former built-in
+// card, monitoring.plugins.<id> otherwise.
+export function pluginHostPrefs(monitoring, meta) {
+  const key = meta?.settings?.key;
+  const prefs = key ? monitoring?.[key] : monitoring?.plugins?.[meta?.id];
+  return prefs && typeof prefs === "object" && !Array.isArray(prefs) ? prefs : {};
 }
 
 export function supervisionRenderer(id) {
@@ -82,8 +106,12 @@ export function pluginLabel(meta, lang) {
   return widgetLabel(meta, lang);
 }
 
-export function pluginString(meta, key, lang) {
-  return widgetString(meta, key, lang);
+// A text of the manifest strings; otherwise fallback(key): the host settings
+// and the cards pass the interface translation, which the built-in cards
+// reuse. (No i18n import here: config/normalize.js imports this module.)
+export function pluginString(meta, key, lang, fallback = value => value) {
+  const own = widgetString(meta, key, lang);
+  return own !== key ? own : fallback(key);
 }
 
 // Test hook: registers a plugin without the network.

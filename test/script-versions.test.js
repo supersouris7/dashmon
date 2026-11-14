@@ -7,21 +7,29 @@ const os = require("os");
 const path = require("path");
 const { execFileSync } = require("child_process");
 const {
-  SCRIPTS,
   readExpectedVersions,
   outdatedScripts,
   readInstalledVersions,
   scriptVersion
 } = require("../lib/host/script-versions");
-const { readWireguardDump } = require("../lib/host/wireguard-report");
-const { readAptUpdatesReport } = require("../lib/host/apt-report");
-const { readSmartDump } = require("../lib/host/smart-report");
+const { readWireguardDump } = require("../supervisions/wireguard/report");
+const { readAptUpdatesReport } = require("../supervisions/apt-updates/report");
+const { readSmartDump } = require("../supervisions/smart/report");
 const { readUsageReport } = require("../lib/host/usage-report");
-const { readDirectoryReport } = require("../lib/host/directory-report");
+const { readDirectoryReport } = require("../supervisions/directories/report");
+const { bundledMetas } = require("./supervisions/schemas");
+
+// Plugin id -> host script, from the manifests of the bundled cards.
+const SCRIPTS = Object.fromEntries(
+  bundledMetas()
+    .filter(meta => meta.script)
+    .map(meta => [meta.id, meta.script])
+);
+const NAMES = Object.values(SCRIPTS);
 
 // Every script of the image carries a version.
-const expected = readExpectedVersions(path.join(__dirname, "..", "deploy"));
-assert.deepEqual(Object.keys(expected).sort(), Object.values(SCRIPTS).sort());
+const expected = readExpectedVersions(path.join(__dirname, "..", "deploy"), NAMES);
+assert.deepEqual(Object.keys(expected).sort(), NAMES.slice().sort());
 for (const [name, version] of Object.entries(expected)) assert.ok(version >= 1, name);
 
 assert.equal(scriptVersion("3"), 3);
@@ -32,29 +40,32 @@ assert.equal(scriptVersion(-1), 0);
 assert.deepEqual(
   outdatedScripts(
     {
-      aptUpdates: { scriptVersion: 0 },
+      "apt-updates": { scriptVersion: 0 },
       smart: { scriptVersion: expected["smart-dump"] },
       opencode: {},
       claude: null
     },
+    SCRIPTS,
     expected
   ),
-  { aptUpdates: "apt-updates", opencode: "opencode-stats" }
+  { "apt-updates": "apt-updates", opencode: "opencode-stats" }
 );
 // An old report, but the script installed on the host is current
 // (dashmon-setup wrote installed-scripts.json): no longer flagged.
 assert.deepEqual(
-  outdatedScripts({ aptUpdates: { scriptVersion: 0 } }, expected, {
+  outdatedScripts({ "apt-updates": { scriptVersion: 0 } }, SCRIPTS, expected, {
     "apt-updates": expected["apt-updates"]
   }),
   {}
 );
 assert.deepEqual(
-  outdatedScripts({ aptUpdates: { scriptVersion: 0 } }, expected, { "apt-updates": 0 }),
-  { aptUpdates: "apt-updates" }
+  outdatedScripts({ "apt-updates": { scriptVersion: 0 } }, SCRIPTS, expected, {
+    "apt-updates": 0
+  }),
+  { "apt-updates": "apt-updates" }
 );
 // A script missing from the image is never flagged.
-assert.deepEqual(outdatedScripts({ aptUpdates: {} }, {}), {});
+assert.deepEqual(outdatedScripts({ "apt-updates": {} }, SCRIPTS, {}), {});
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-scripts-"));
 try {
@@ -80,10 +91,10 @@ try {
     installedFile,
     JSON.stringify({ versions: { "apt-updates": 2, other: 9, smart: -1, "smart-dump": "x" } })
   );
-  assert.deepEqual(readInstalledVersions(installedFile), { "apt-updates": 2 });
+  assert.deepEqual(readInstalledVersions(installedFile, NAMES), { "apt-updates": 2 });
   fs.writeFileSync(installedFile, "not json");
-  assert.deepEqual(readInstalledVersions(installedFile), {});
-  assert.deepEqual(readInstalledVersions(path.join(dir, "missing.json")), {});
+  assert.deepEqual(readInstalledVersions(installedFile, NAMES), {});
+  assert.deepEqual(readInstalledVersions(path.join(dir, "missing.json"), NAMES), {});
 
   // JSON reports carry scriptVersion.
   const write = (name, value) => {

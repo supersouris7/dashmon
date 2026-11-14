@@ -17,23 +17,8 @@ import { element } from "../element.js";
 const PERIODS = ["today", "week", "month", "all"];
 // A report older than this is flagged: the cron job has probably stopped.
 const STALE_SECONDS = 6 * 3600;
-// One card per source; `field` is the key of the report in the host metrics.
-export const USAGE_SOURCES = [
-  {
-    field: "opencode",
-    title: "supervisionOpencodeTitle",
-    icon: "fa-solid fa-terminal",
-    pref: "supervisionOpencodeExpanded",
-    keyName: "opencodeKey"
-  },
-  {
-    field: "claude",
-    title: "supervisionClaudeTitle",
-    icon: "fa-solid fa-code",
-    pref: "supervisionClaudeExpanded",
-    keyName: "claudeKey"
-  }
-];
+// One card per source, given by the supervision plugins opencode and claude:
+// { field, title, icon, pref, keyName } (field names the source).
 // The period shown in the details of each source, kept across the periodic
 // re-renders.
 const periodBySource = new Map();
@@ -375,8 +360,7 @@ function activityDetails(report, periods, month) {
   return activityBox;
 }
 
-export function usageCard(host, metrics, source) {
-  const report = metrics[source.field];
+export function usageCard(host, report, source) {
   const periods = report.periods || {};
   const today = periods.today;
   const month = periods.month || periods.all;

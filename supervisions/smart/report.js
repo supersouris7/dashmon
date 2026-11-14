@@ -2,8 +2,8 @@
 // Reads the disk health report written by deploy/smart-dump.sh (smartctl JSON)
 // and keeps only the values the supervision page shows.
 const fs = require("fs");
-const { scriptVersion } = require("./script-versions");
-const { sanitizeText } = require("../sanitize");
+const { scriptVersion } = require("../../lib/host/script-versions");
+const { sanitizeText } = require("../../lib/sanitize");
 
 function smartNumber(value) {
   const n = Number(value);

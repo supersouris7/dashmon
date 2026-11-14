@@ -1,15 +1,15 @@
 // SMART card: disk health from the report written by deploy/smart-dump.sh,
 // with a diagnosis per value.
-import { smartNumberText, handshakeAge, relativeAge } from "./format.js";
-import { t } from "../i18n.js";
+import { smartNumberText, handshakeAge, relativeAge } from "/js/supervision/format.js";
+import { t } from "/js/i18n.js";
 import {
   applyHostColor,
   cardKey,
   isExpanded,
   setExpanded,
   updateSmartCollapseButton
-} from "./cards.js";
-import { state } from "../state.js";
+} from "/js/supervision/cards.js";
+import { state } from "/js/state.js";
 
 function smartFact(label, value, warning = false) {
   const fact = document.createElement("span");
@@ -57,15 +57,13 @@ function smartDetailRow(label, value, key) {
   return row;
 }
 
-export function visibleSmartDisks(host, metrics) {
-  if (!metrics || !metrics.ok || !Array.isArray(metrics.smart) || !metrics.smart.length) return [];
-  const prefs = host.monitoring && host.monitoring.smart;
-  if (prefs && prefs.enabled === false) return [];
-  const wanted = prefs && Array.isArray(prefs.disks) ? prefs.disks : [];
-  return wanted.length ? metrics.smart.filter(disk => wanted.includes(disk.device)) : metrics.smart;
+// Disks of the report: the server already kept the ones chosen in the host
+// settings.
+export function visibleSmartDisks(report) {
+  return Array.isArray(report?.disks) ? report.disks : [];
 }
 
-export function smartCard(host, metrics, disks) {
+export function smartCard(host, report, disks) {
   const card = document.createElement("article");
   card.className = "supervision-card supervision-card-smart";
   applyHostColor(card, host);
@@ -93,7 +91,7 @@ export function smartCard(host, metrics, disks) {
   head.append(icon, name, badge, chevron);
   card.appendChild(head);
 
-  const age = handshakeAge(metrics.smartFetchedAt);
+  const age = handshakeAge(report.fetchedAt);
   if (age !== null) {
     const updated = document.createElement("p");
     updated.className = "supervision-smart-updated";
@@ -208,4 +206,9 @@ export function smartCard(host, metrics, disks) {
   });
   card.appendChild(list);
   return card;
+}
+
+export function element(ctx) {
+  const disks = visibleSmartDisks(ctx.report);
+  return disks.length ? smartCard(ctx.host, ctx.report, disks) : null;
 }

@@ -14,6 +14,8 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { pathToFileURL } = require("url");
+// Bundled cards import the interface modules by their /js/ URL.
+require("node:module").register("./browser-paths.mjs", pathToFileURL(__filename));
 const { Registry } = require("../lib/widgets/registry");
 const { SupervisionCore, MAX_REPORT_BYTES } = require("../lib/supervisions/core");
 const { sanitizeText } = require("../lib/sanitize");
@@ -34,7 +36,20 @@ function kindOf(dir, flag) {
 
 async function checkClient(item, kind) {
   if (!item.client) return;
-  const module = await import(pathToFileURL(path.join(item.dir, item.client)).href);
+  let module;
+  try {
+    module = await import(pathToFileURL(path.join(item.dir, item.client)).href);
+  } catch (error) {
+    // A module that reaches the page (document, window) at import can only
+    // be checked in a browser: not a failure here.
+    if (error instanceof ReferenceError && /\b(document|window|navigator)\b/.test(error.message)) {
+      console.log(
+        `  client  ${item.client}: needs a browser to import (${error.message}), not checked`
+      );
+      return;
+    }
+    throw error;
+  }
   const names = kind === "widget" ? ["render", "element"] : ["card", "element"];
   if (!names.some(name => typeof module[name] === "function"))
     throw new Error(`${item.client} must export ${names.join("(ctx) or ")}(ctx)`);

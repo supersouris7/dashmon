@@ -1,0 +1,56 @@
+{
+  "id": "directories",
+  "version": "1.0.0",
+  "label": {
+    "fr": "Répertoires",
+    "en": "Directories"
+  },
+  "description": {
+    "fr": "Taille des répertoires choisis, mesurée par deploy/directory-sizes.sh.",
+    "en": "Size of chosen directories, measured by deploy/directory-sizes.sh."
+  },
+  "icon": "fa-solid fa-folder-open",
+  "order": 10,
+  "script": "directory-sizes",
+  "guide": "DIRECTORIES.md",
+  "files": {
+    "report": {
+      "env": "DIRECTORY_REPORT_FILE",
+      "default": "directory-sizes.json"
+    }
+  },
+  "server": "server.js",
+  "client": "client.mjs",
+  "modules": ["health.mjs"],
+  "settings": {
+    "key": "directorySizes",
+    "title": "directorySizesTitle",
+    "show": "directorySizesShow",
+    "help": "directorySizesHelp",
+    "fields": [
+      {
+        "key": "entries",
+        "type": "list",
+        "add": "directorySizesAdd",
+        "up": "directorySizesUp",
+        "down": "directorySizesDown",
+        "max": 50,
+        "unique": "path",
+        "fields": [
+          {
+            "key": "name",
+            "type": "text",
+            "label": "directorySizesName",
+            "maxLength": 100
+          },
+          {
+            "key": "path",
+            "type": "path",
+            "label": "directorySizesPath",
+            "required": true
+          }
+        ]
+      }
+    ]
+  }
+}

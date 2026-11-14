@@ -1,7 +1,9 @@
 // Same monitoring form for the primary and agents; only their save differs.
 import { t } from "../i18n.js";
 import { state } from "../state.js";
-import { listSupervisionPlugins, pluginLabel } from "../supervision-registry.js";
+import { listSupervisionPlugins, pluginLabel, pluginString } from "../supervision-registry.js";
+import { workingPrefs } from "../config/plugin-prefs.js";
+import { withPluginReports } from "../supervision/legacy.js";
 import { SPEEDTEST_DEFAULT_INTERVAL, SPEEDTEST_INTERVALS } from "../config/normalize.js";
 import { moveItem } from "./drag.js";
 import { setIconButton, setDeleteIcon } from "./icon-button.js";
@@ -37,11 +39,12 @@ function section(form, key, icon) {
   return box;
 }
 
+// key: an interface text key, or { text } already translated.
 function field(box, key, control) {
   const label = document.createElement("label");
   label.className = "host-monitor-field";
   const text = document.createElement("span");
-  text.textContent = t(key);
+  text.textContent = typeof key === "object" ? key.text : t(key);
   label.append(text, control);
   box.appendChild(label);
 }
@@ -77,9 +80,12 @@ function toggle(box, monitoring, key, label) {
   field(box, label, control);
 }
 
+// guide: a file of docs/ or a full https URL (supervision plugin manifest).
 function guideLink(file) {
   const doc = document.createElement("a");
-  doc.href = "https://github.com/supersouris7/dashmon/blob/main/docs/" + file;
+  doc.href = /^https:\/\//.test(file)
+    ? file
+    : "https://github.com/supersouris7/dashmon/blob/main/docs/" + file;
   doc.target = "_blank";
   doc.rel = "noopener noreferrer";
   doc.textContent = t("hostGuideLink");
@@ -115,12 +121,17 @@ function frequencyList(script) {
   return list;
 }
 
-// Setup help of a section; with a host script, how to install it, how often
-// it runs, and how to remove it.
-function help(box, key, file, script) {
+// Setup help of a section; with a host script the setup tool knows, how to
+// install it, how often it runs, and how to remove it. intro: a text key, or
+// { text } already translated.
+function help(box, intro, file, script) {
   const details = helpBox(box, "hostSetupGuide");
-  details.appendChild(hint(key));
-  if (script) {
+  if (typeof intro === "object") {
+    const text = hint("hostSetupGuide");
+    text.textContent = intro.text;
+    details.appendChild(text);
+  } else if (intro) details.appendChild(hint(intro));
+  if (script && SCRIPT_FREQUENCIES[script]) {
     details.append(
       hint("scriptInstallStep"),
       commandLine(installCommand(script)),
@@ -135,7 +146,7 @@ function help(box, key, file, script) {
       commandLine(`sudo dashmon-setup.sh remove ${script}`)
     );
   }
-  details.appendChild(guideLink(file));
+  if (file) details.appendChild(guideLink(file));
 }
 
 // How the host scripts are installed and updated, once for every section.
@@ -175,103 +186,6 @@ function generalSection(form, config, onRename) {
   general.appendChild(hint("hostLocalHint"));
 }
 
-function wireguardSection(form, monitoring) {
-  const wg = section(form, "tabWireguard", "fa-solid fa-dragon");
-  toggle(wg, monitoring, "wireguard", "wireguardShowPeers");
-  input(
-    wg,
-    "wireguardInterface",
-    monitoring.wireguard?.interface,
-    value => {
-      monitoring.wireguard = { ...monitoring.wireguard, interface: value };
-    },
-    "phWireguardInterface"
-  );
-  help(wg, "wireguardHelpIntro", "WIREGUARD.md", "wireguard-dump");
-}
-
-// List filter (SMART disks): typed by hand, or picked
-// among the names the host reported. An empty list means the default set.
-function filterSection(form, monitoring, spec) {
-  const box = section(form, spec.title, spec.icon);
-  toggle(box, monitoring, spec.key, spec.show);
-  const choices = document.createElement("div");
-  choices.className = "smart-disk-choices";
-  const detected = [...new Set(spec.detected.filter(Boolean))];
-  const selection = () => monitoring[spec.key]?.[spec.field] || [];
-  const update = list => {
-    monitoring[spec.key] = { ...monitoring[spec.key], [spec.field]: list.slice(0, spec.max) };
-  };
-  const text = input(
-    box,
-    spec.input,
-    selection().join(", "),
-    value => {
-      update([
-        ...new Set(
-          value
-            .split(/[,\n]/)
-            .map(item => item.trim())
-            .filter(Boolean)
-        )
-      ]);
-      renderChoices();
-    },
-    spec.placeholder
-  );
-  function renderChoices() {
-    choices.replaceChildren();
-    if (!detected.length) return;
-    const label = document.createElement("span");
-    label.textContent = t(spec.detectedLabel);
-    choices.appendChild(label);
-    for (const name of detected) {
-      const current = selection();
-      const selected = spec.isDefault
-        ? current.length
-          ? current.includes(name)
-          : spec.isDefault(name)
-        : !current.length || current.includes(name);
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "smart-disk-choice" + (selected ? " active" : "");
-      button.setAttribute("aria-pressed", String(selected));
-      button.textContent = name;
-      button.addEventListener("click", () => {
-        // From the default set, the first click turns it into an explicit list.
-        const base = current.length
-          ? current
-          : detected.filter(value => (spec.isDefault ? spec.isDefault(value) : true));
-        update(selected ? base.filter(value => value !== name) : [...base, name]);
-        text.value = selection().join(", ");
-        renderChoices();
-      });
-      choices.appendChild(button);
-    }
-  }
-  renderChoices();
-  box.appendChild(choices);
-  help(box, spec.helpKey, spec.file, spec.script);
-}
-
-function smartSection(form, monitoring, metrics) {
-  filterSection(form, monitoring, {
-    title: "tabSmart",
-    icon: "fa-solid fa-database",
-    key: "smart",
-    field: "disks",
-    show: "smartShowDisks",
-    input: "smartDisks",
-    placeholder: "phSmartDisks",
-    detectedLabel: "smartDetectedDisks",
-    detected: (Array.isArray(metrics?.smart) ? metrics.smart : []).map(item => item?.device),
-    max: 20,
-    helpKey: "smartHelpIntro",
-    file: "SMART.md",
-    script: "smart-dump"
-  });
-}
-
 // Speed test: on/off, how often, and the server (empty: Cloudflare).
 function speedtestSection(form, monitoring) {
   const box = section(form, "tabSpeedtest", "fa-solid fa-gauge-high");
@@ -302,64 +216,223 @@ function speedtestSection(form, monitoring) {
   help(box, "speedtestHelp", "SPEEDTEST.md");
 }
 
-// Reports with only an on/off switch and a setup guide.
-const REPORT_SECTIONS = [
-  [
-    "tabAptUpdates",
-    "fa-solid fa-box",
-    "aptUpdates",
-    "aptUpdatesShow",
-    "aptUpdatesHelp",
-    "APT_UPDATES.md",
-    "apt-updates"
-  ],
-  [
-    "tabOpencode",
-    "fa-solid fa-terminal",
-    "opencode",
-    "opencodeShow",
-    "opencodeHelp",
-    "OPENCODE.md",
-    "opencode-stats"
-  ],
-  [
-    "tabClaude",
-    "fa-solid fa-code",
-    "claude",
-    "claudeShow",
-    "claudeHelp",
-    "CLAUDE_CODE.md",
-    "claude-stats"
-  ]
-];
+// --- Supervision plugins ----------------------------------------------------
+// Each installed plugin (supervisions/<id>/) gets a section built from the
+// "settings" of its manifest: its switch, its fields, then its setup help.
+// Field types: text, choices (a list of names, typed or picked among the ones
+// the host reported) and list (records, e.g. a name and a path per row).
 
-// One switch per installed supervision plugin (supervisions/<id>/), stored
-// as monitoring.plugins.<id>.enabled. The plugin's description, from its
-// manifest, says what the card needs.
-function pluginSections(form, monitoring) {
-  const lang = state.language === "en" ? "en" : "fr";
-  for (const meta of listSupervisionPlugins()) {
-    const box = section(
-      form,
-      { text: pluginLabel(meta, lang) },
-      meta.icon || "fa-solid fa-puzzle-piece"
-    );
-    const control = document.createElement("input");
-    control.type = "checkbox";
-    control.name = "plugin-" + meta.id;
-    control.checked = monitoring.plugins?.[meta.id]?.enabled !== false;
-    control.addEventListener("change", () => {
-      monitoring.plugins = { ...monitoring.plugins, [meta.id]: { enabled: control.checked } };
-    });
-    field(box, "supervisionPluginShow", control);
-    const description = meta.description?.[lang] || meta.description?.fr || "";
-    if (description) {
-      const text = document.createElement("p");
-      text.className = "host-monitor-hint";
-      text.textContent = description;
-      box.appendChild(text);
+function textControl(name, value, maxLength, placeholder, change) {
+  const control = document.createElement("input");
+  control.className = "edit-input";
+  control.name = name;
+  control.value = value || "";
+  control.maxLength = maxLength;
+  if (placeholder) control.placeholder = placeholder;
+  control.addEventListener("input", () => change(control.value));
+  return control;
+}
+
+// Names typed by hand, or picked among the ones of the plugin's report. An
+// empty list means "all".
+function choicesField(box, prefs, spec, text, report) {
+  const detected = spec.detect
+    ? [
+        ...new Set(
+          (Array.isArray(report?.[spec.detect.list]) ? report[spec.detect.list] : [])
+            .map(item => item?.[spec.detect.key])
+            .filter(value => typeof value === "string" && value)
+        )
+      ]
+    : [];
+  const choices = document.createElement("div");
+  choices.className = "smart-disk-choices";
+  const selection = () => prefs[spec.key] || [];
+  const update = list => {
+    prefs[spec.key] = list.slice(0, spec.max);
+  };
+  const control = textControl(
+    spec.label || spec.key,
+    selection().join(", "),
+    2000,
+    text(spec.placeholder),
+    value => {
+      update([
+        ...new Set(
+          value
+            .split(/[,\n]/)
+            .map(item => item.trim())
+            .filter(Boolean)
+        )
+      ]);
+      renderChoices();
+    }
+  );
+  field(box, { text: text(spec.label) }, control);
+  function renderChoices() {
+    choices.replaceChildren();
+    if (!detected.length) return;
+    const label = document.createElement("span");
+    label.textContent = text(spec.detectedLabel || "smartDetectedDisks");
+    choices.appendChild(label);
+    for (const name of detected) {
+      const current = selection();
+      const selected = !current.length || current.includes(name);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "smart-disk-choice" + (selected ? " active" : "");
+      button.setAttribute("aria-pressed", String(selected));
+      button.textContent = name;
+      button.addEventListener("click", () => {
+        // From "all", the first click turns it into an explicit list.
+        const base = current.length ? current : detected;
+        update(selected ? base.filter(value => value !== name) : [...base, name]);
+        control.value = selection().join(", ");
+        renderChoices();
+      });
+      choices.appendChild(button);
     }
   }
+  renderChoices();
+  box.appendChild(choices);
+}
+
+function moveButtons(rows, index, render, list, labels) {
+  const buttons = [];
+  for (const [offset, icon, label] of [
+    [-1, "fa-solid fa-arrow-up", labels.up],
+    [1, "fa-solid fa-arrow-down", labels.down]
+  ]) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "action-btn";
+    button.dataset.move = String(offset);
+    setIconButton(button, icon, label);
+    const next = index + offset;
+    button.disabled = next < 0 || next >= rows.length;
+    button.addEventListener("click", () => {
+      moveItem(rows, index, next);
+      render();
+      const moved = list.children[next];
+      const control =
+        moved.querySelector(`[data-move="${offset}"]:not(:disabled)`) ||
+        moved.querySelector("input");
+      control.focus();
+    });
+    buttons.push(button);
+  }
+  return buttons;
+}
+
+// Records, one row each, that can be moved and removed.
+function listField(box, prefs, spec, text) {
+  if (!Array.isArray(prefs[spec.key])) prefs[spec.key] = [];
+  const list = document.createElement("div");
+  list.className = "directory-settings-list";
+  const add = document.createElement("button");
+  add.type = "button";
+  add.className = "action-btn";
+  add.textContent = text(spec.add || "settingsListAdd");
+  const labels = {
+    up: text(spec.up || "settingsMoveUp"),
+    down: text(spec.down || "settingsMoveDown")
+  };
+  function render() {
+    const rows = prefs[spec.key];
+    list.replaceChildren();
+    for (const [index, entry] of rows.entries()) {
+      const row = document.createElement("div");
+      row.className = "directory-setting";
+      for (const sub of spec.fields) {
+        const control = textControl(
+          sub.label || sub.key,
+          entry[sub.key],
+          sub.maxLength,
+          "",
+          value => {
+            entry[sub.key] = value;
+          }
+        );
+        if (sub.required) control.required = true;
+        if (sub.type === "path") control.pattern = "/.*";
+        field(row, { text: text(sub.label) }, control);
+      }
+      const actions = document.createElement("div");
+      actions.className = "directory-setting-actions";
+      actions.append(...moveButtons(rows, index, render, list, labels));
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "action-btn delete-btn";
+      setDeleteIcon(remove, t("deleteLabel"));
+      remove.addEventListener("click", () => {
+        prefs[spec.key] = prefs[spec.key].filter(item => item !== entry);
+        render();
+      });
+      actions.append(remove);
+      row.append(actions);
+      list.append(row);
+    }
+    add.disabled = rows.length >= spec.max;
+  }
+  add.addEventListener("click", () => {
+    prefs[spec.key].push(Object.fromEntries(spec.fields.map(sub => [sub.key, ""])));
+    render();
+    list.lastElementChild.querySelector("input").focus();
+  });
+  render();
+  box.append(list, add);
+}
+
+// The plugin's settings object inside the host monitoring, every field
+// present: its historical key for a former built-in card, plugins.<id>
+// otherwise.
+function pluginPrefs(monitoring, meta) {
+  const key = meta.settings?.key;
+  const schema = { id: meta.id, key, fields: meta.settings?.fields || [] };
+  const prefs = workingPrefs(key ? monitoring[key] : monitoring.plugins?.[meta.id], schema);
+  if (key) monitoring[key] = prefs;
+  else monitoring.plugins = { ...monitoring.plugins, [meta.id]: prefs };
+  return prefs;
+}
+
+function pluginSection(form, monitoring, meta, report) {
+  const lang = state.language === "en" ? "en" : "fr";
+  const settings = meta.settings || {};
+  const text = key => (key ? pluginString(meta, key, lang, t) : "");
+  const title = settings.title ? text(settings.title) : pluginLabel(meta, lang);
+  const box = section(form, { text: title }, meta.icon || "fa-solid fa-puzzle-piece");
+  const prefs = pluginPrefs(monitoring, meta);
+  const show = document.createElement("input");
+  show.type = "checkbox";
+  // Named after the setting it stores: the historical key of a former
+  // built-in card, the plugin id otherwise.
+  show.name = settings.key || "plugin-" + meta.id;
+  show.checked = prefs.enabled !== false;
+  show.addEventListener("change", () => {
+    prefs.enabled = show.checked;
+  });
+  field(box, { text: settings.show ? text(settings.show) : t("supervisionPluginShow") }, show);
+  for (const spec of settings.fields || []) {
+    if (spec.type === "choices") choicesField(box, prefs, spec, text, report);
+    else if (spec.type === "list") listField(box, prefs, spec, text);
+    else
+      field(
+        box,
+        { text: text(spec.label) },
+        textControl(
+          spec.label || spec.key,
+          prefs[spec.key],
+          spec.maxLength,
+          text(spec.placeholder),
+          value => {
+            prefs[spec.key] = value.trim();
+          }
+        )
+      );
+  }
+  const description = meta.description?.[lang] || meta.description?.fr || "";
+  const intro = settings.help ? text(settings.help) : description;
+  if (intro || meta.guide || meta.script) help(box, { text: intro }, meta.guide, meta.script);
 }
 
 export function renderHostSettings(container, { config, metrics, onRename = () => {} }) {
@@ -370,92 +443,9 @@ export function renderHostSettings(container, { config, metrics, onRename = () =
   form.appendChild(hint("hostSettingsSaveHint"));
   generalSection(form, config, onRename);
   scriptsSection(form);
-  wireguardSection(form, monitoring);
   speedtestSection(form, monitoring);
-  smartSection(form, monitoring, metrics);
-  directorySection(form, monitoring);
-  for (const [title, icon, key, label, helpKey, file, script] of REPORT_SECTIONS) {
-    const box = section(form, title, icon);
-    toggle(box, monitoring, key, label);
-    help(box, helpKey, file, script);
-  }
-  pluginSections(form, monitoring);
+  const reports = withPluginReports(metrics)?.plugins || {};
+  for (const meta of listSupervisionPlugins())
+    pluginSection(form, monitoring, meta, reports[meta.id]);
   container.appendChild(form);
-}
-
-function directorySection(form, monitoring) {
-  const box = section(form, "directorySizesTitle", "fa-solid fa-folder-open");
-  monitoring.directorySizes = {
-    enabled: monitoring.directorySizes?.enabled !== false,
-    entries: monitoring.directorySizes?.entries || []
-  };
-  toggle(box, monitoring, "directorySizes", "directorySizesShow");
-  const list = document.createElement("div");
-  list.className = "directory-settings-list";
-  const add = document.createElement("button");
-  add.type = "button";
-  add.className = "action-btn";
-  add.textContent = t("directorySizesAdd");
-  function render() {
-    list.replaceChildren();
-    for (const [index, entry] of monitoring.directorySizes.entries.entries()) {
-      const row = document.createElement("div");
-      row.className = "directory-setting";
-      input(row, "directorySizesName", entry.name, value => {
-        entry.name = value;
-      });
-      const path = input(row, "directorySizesPath", entry.path, value => {
-        entry.path = value;
-      });
-      path.maxLength = 4096;
-      path.required = true;
-      path.pattern = "/.*";
-      const actions = document.createElement("div");
-      actions.className = "directory-setting-actions";
-      for (const [offset, icon, label] of [
-        [-1, "fa-solid fa-arrow-up", "directorySizesUp"],
-        [1, "fa-solid fa-arrow-down", "directorySizesDown"]
-      ]) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "action-btn";
-        button.dataset.move = String(offset);
-        setIconButton(button, icon, t(label));
-        const next = index + offset;
-        button.disabled = next < 0 || next >= monitoring.directorySizes.entries.length;
-        button.addEventListener("click", () => {
-          moveItem(monitoring.directorySizes.entries, index, next);
-          render();
-          const moved = list.children[next];
-          const control =
-            moved.querySelector(`[data-move="${offset}"]:not(:disabled)`) ||
-            moved.querySelector("input");
-          control.focus();
-        });
-        actions.append(button);
-      }
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.className = "action-btn delete-btn";
-      setDeleteIcon(remove, t("deleteLabel"));
-      remove.addEventListener("click", () => {
-        monitoring.directorySizes.entries = monitoring.directorySizes.entries.filter(
-          item => item !== entry
-        );
-        render();
-      });
-      actions.append(remove);
-      row.append(actions);
-      list.append(row);
-    }
-    add.disabled = monitoring.directorySizes.entries.length >= 50;
-  }
-  add.addEventListener("click", () => {
-    monitoring.directorySizes.entries.push({ name: "", path: "" });
-    render();
-    list.lastElementChild.querySelector("input").focus();
-  });
-  render();
-  box.append(list, add);
-  help(box, "directorySizesHelp", "DIRECTORIES.md", "directory-sizes");
 }

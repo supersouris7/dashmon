@@ -476,7 +476,7 @@ async function main() {
     false
   );
   assert.deepEqual(
-    await evaluate(`import('/js/supervision/directory-card.js').then(({directoryCard})=>{
+    await evaluate(`import('/supervision-client/directories/client.mjs').then(({directoryCard})=>{
     const report = {updatedAt:1700000000,directories:[
       {name:'Un nom de répertoire très long '.repeat(10),path:'/srv/media',bytes:1024,capacity:4096},
       {path:'/srv/backups/'+'dossier'.repeat(100),bytes:0,capacity:4096},
@@ -550,14 +550,14 @@ async function main() {
   // user sees and does, not how the source is written.
   assert.deepEqual(
     await evaluate(`Promise.all([
-      import('/js/supervision/apt-card.js'),
+      import('/supervision-client/apt-updates/client.mjs'),
       import('/js/supervision/cards.js'),
       import('/js/i18n.js')
     ]).then(([{aptUpdatesCard},{EXPANDABLE_CARDS},{t}])=>{
     const host={id:'apt-test'};
-    const metrics={aptUpdates:{status:'failed',updated:0,failedStep:'upgrade',exitCode:100,
-      error:'<b>E: dpkg interrompu</b>',finishedAt:1700000000,nextRunAt:1700604800}};
-    const card=aptUpdatesCard(host,metrics);
+    const report={status:'failed',updated:0,failedStep:'upgrade',exitCode:100,
+      error:'<b>E: dpkg interrompu</b>',finishedAt:1700000000,nextRunAt:1700604800};
+    const card=aptUpdatesCard(host,report);
     document.body.append(card);
     const details=()=>[...card.querySelectorAll('.supervision-apt-details')];
     const shown=()=>details().every(e=>getComputedStyle(e).display!=='none');
@@ -573,7 +573,7 @@ async function main() {
     card.click();
     result.opens=card.getAttribute('aria-expanded')==='true' && shown();
     result.remembered=JSON.parse(localStorage.getItem('dashmon.view')).supervisionAptExpanded.includes(card.dataset.aptKey) &&
-      aptUpdatesCard(host,metrics).getAttribute('aria-expanded')==='true';
+      aptUpdatesCard(host,report).getAttribute('aria-expanded')==='true';
     card.dispatchEvent(new KeyboardEvent('keydown',{key:' ',bubbles:true}));
     result.space=card.getAttribute('aria-expanded')==='false';
     card.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));

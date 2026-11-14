@@ -1,6 +1,6 @@
 // State of the Directories card, without DOM (testable in Node): text keys and
-// numbers, translated by directory-card.js.
-import { state } from "../state.js";
+// numbers, translated by client.mjs.
+import { state } from "/js/state.js";
 
 // The script runs once a day: two days without a report means it stopped.
 export const STALE_SECONDS = 2 * 24 * 3600;

@@ -16,6 +16,7 @@ import { element } from "../element.js";
 import { formatters } from "../format.js";
 import { relativeAge, reportDateText } from "./format.js";
 import { pluginLabel, pluginString } from "../supervision-registry.js";
+import { t as uiText } from "../i18n.js";
 import { LEVELS, cardView } from "./plugin-view.js";
 
 function rowList(list, className) {
@@ -74,14 +75,17 @@ function makeExpandable(card, key) {
   });
 }
 
-// Context given to the plugin's card(ctx) / element(ctx).
-export function cardContext(meta, report, host, lang) {
+// Context given to the plugin's card(ctx) / element(ctx). host is the
+// monitored host as the page has it (id, name, color, icon...); prefs are the
+// plugin's settings on that host.
+export function cardContext(meta, report, host, lang, prefs = {}) {
   const fmt = formatters(lang);
   return {
     report,
-    host: { id: host.id || "", name: host.name || "" },
+    host: { ...host },
+    prefs,
     lang,
-    t: key => pluginString(meta, key, lang),
+    t: key => pluginString(meta, key, lang, uiText),
     formatDateTime: fmt.formatDateTime,
     formatNumber: fmt.formatNumber,
     formatCompactNumber: fmt.formatCompactNumber,
@@ -93,8 +97,8 @@ export function cardContext(meta, report, host, lang) {
 
 // The card element, or null when the plugin has nothing to draw or fails:
 // a broken plugin only loses its own card.
-export function pluginCard(host, meta, module, report, lang) {
-  const ctx = cardContext(meta, report, host, lang);
+export function pluginCard(host, meta, module, report, lang, prefs) {
+  const ctx = cardContext(meta, report, host, lang, prefs);
   let custom = null;
   let view = null;
   try {
@@ -106,6 +110,11 @@ export function pluginCard(host, meta, module, report, lang) {
   }
   if (custom && !(typeof Node !== "undefined" && custom instanceof Node)) custom = null;
   if (!custom && !view) return null;
+  // A whole card (the built-in ones build their own frame): used as is.
+  if (custom?.classList?.contains("supervision-card")) {
+    custom.classList.add("supervision-card-plugin-" + meta.id);
+    return custom;
+  }
 
   const card = element("article", "supervision-card supervision-card-plugin");
   card.classList.add("supervision-card-plugin-" + meta.id);

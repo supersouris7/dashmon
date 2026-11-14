@@ -1,0 +1,45 @@
+{
+  "id": "smart",
+  "version": "1.0.0",
+  "label": {
+    "fr": "Disques",
+    "en": "Disks"
+  },
+  "description": {
+    "fr": "État SMART des disques, relevé par deploy/smart-dump.sh.",
+    "en": "SMART health of the disks, read by deploy/smart-dump.sh."
+  },
+  "icon": "fa-solid fa-database",
+  "order": 30,
+  "script": "smart-dump",
+  "guide": "SMART.md",
+  "files": {
+    "dump": {
+      "env": "SMART_DUMP_FILE",
+      "default": "smart.json"
+    }
+  },
+  "server": "server.js",
+  "client": "client.mjs",
+  "settings": {
+    "key": "smart",
+    "title": "tabSmart",
+    "show": "smartShowDisks",
+    "help": "smartHelpIntro",
+    "fields": [
+      {
+        "key": "disks",
+        "type": "choices",
+        "label": "smartDisks",
+        "placeholder": "phSmartDisks",
+        "detectedLabel": "smartDetectedDisks",
+        "detect": {
+          "list": "disks",
+          "key": "device"
+        },
+        "max": 20,
+        "maxLength": 100
+      }
+    ]
+  }
+}

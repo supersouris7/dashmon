@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("fs");
-const { sanitizeText } = require("../sanitize");
-const { scriptVersion } = require("./script-versions");
+const { sanitizeText } = require("../../lib/sanitize");
+const { scriptVersion } = require("../../lib/host/script-versions");
 
 // Causes written by deploy/directory-sizes.sh; "not_measured" is a directory
 // added in the settings after the last run of the script.

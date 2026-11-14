@@ -10,6 +10,8 @@
 //
 // ctx = {
 //   host         : { id, name, monitoring }  the supervised host and its settings
+//   prefs        : this card's settings on the host (manifest "settings")
+//   files        : paths of the report files of the manifest ("files")
 //   state        : your memory, created once by createState()
 //   storage      : read(name, fallback) / write(name, value), JSON that
 //                  survives a restart (data/supervisions/<id>/)
@@ -19,7 +21,7 @@
 //   log          : (message) => one line in the Dashmon logs
 // }
 //
-// Rules: answer within 5 s, keep the report under 64 KB, never return a
+// Rules: answer within 5 s, keep the report under 256 KB, never return a
 // secret (the report reaches the browser). An exception or a timeout only
 // drops your card for this round; the error is logged once.
 const os = require("os");

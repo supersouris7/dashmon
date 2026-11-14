@@ -3,8 +3,8 @@
 // and turns it into interfaces and peers. Private and preshared keys are never
 // kept; a peer without a name is identified by its public key.
 const fs = require("fs");
-const { scriptVersion } = require("./script-versions");
-const { sanitizeText } = require("../sanitize");
+const { scriptVersion } = require("../../lib/host/script-versions");
+const { sanitizeText } = require("../../lib/sanitize");
 const MAX_INTERFACES = 10;
 const MAX_PEERS = 200;
 

@@ -95,7 +95,7 @@ async function main() {
   });
   assert.equal(response.status, 200);
   let data = await response.json();
-  assert.deepEqual(data.protocol, { major: 1, minor: 1 });
+  assert.deepEqual(data.protocol, { major: 1, minor: 2 });
   assert.ok(data.agent.id && data.agent.capabilities.includes("host-metrics"));
   assert.ok(data.agent.capabilities.includes("supervision-plugins"));
   assert.ok(data.hosts[0].plugins["my-card"].cores >= 1, "rapport du plugin de supervision");
@@ -104,9 +104,12 @@ async function main() {
   const agentId = data.agent.id;
   assert.equal(data.hosts.length, 1);
   assert.equal(data.hosts[0].name, "Ancien");
-  assert.equal(data.hosts[0].aptUpdates.error, "Erreur APT");
-  assert.equal(data.hosts[0].aptUpdates.failedStep, "upgrade");
-  assert.equal(data.hosts[0].aptUpdates.exitCode, 100);
+  // The former built-in reports are supervision plugin reports.
+  const apt = data.hosts[0].plugins["apt-updates"];
+  assert.equal(apt.error, "Erreur APT");
+  assert.equal(apt.failedStep, "upgrade");
+  assert.equal(apt.exitCode, 100);
+  assert.equal(data.hosts[0].aptUpdates, undefined);
   response = await fetch(agent + "/api/config", { headers: { Authorization: auth } });
   assert.equal(response.status, 404);
   for (const page of ["/", "/login", "/login.html", "/agent.html", "/js/agent.js"]) {
@@ -179,7 +182,11 @@ async function main() {
     },
     body: JSON.stringify({
       name: "Agent",
-      monitoring: { smart: { enabled: false }, wireguard: { enabled: false } }
+      monitoring: {
+        smart: { enabled: false },
+        wireguard: { enabled: false },
+        aptUpdates: { enabled: false }
+      }
     })
   });
   assert.equal(response.status, 200);
@@ -201,8 +208,14 @@ async function main() {
   });
   data = await response.json();
   assert.equal(data.hosts[0].name, "Agent");
-  assert.equal(data.hosts[0].smart, null);
-  assert.equal(data.hosts[0].wireguard, null);
+  // A card turned off on the agent is not collected, and its setting stays
+  // under its historical key in the agent's config.json.
+  assert.equal(data.hosts[0].plugins["apt-updates"], undefined);
+  assert.ok(data.hosts[0].plugins["my-card"], "plugin tiers toujours collecte");
+  const agentConfig = JSON.parse(fs.readFileSync(path.join(agentDir, "config.json"), "utf8"));
+  assert.deepEqual(agentConfig.hosts.find(host => host.id === "local").monitoring.aptUpdates, {
+    enabled: false
+  });
   const primaryDir = path.join(dir, "primary");
   fs.mkdirSync(primaryDir);
   fs.writeFileSync(

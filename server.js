@@ -112,11 +112,6 @@ function createServices(settings) {
     sanitizeText,
     defaultName: os.hostname().slice(0, 100)
   });
-  const normalizeConfig = createConfigNormalizer({
-    serializeWidget: widget => widgetCore.serializeWidget(widget),
-    sanitizeReplication: pairing.sanitizeReplication
-  });
-
   // Supervision cards contributed as plugins (supervisions/): like the
   // widgets, adding one never requires changing this file. Loaded in both
   // modes: an agent collects their reports for the main dashboard.
@@ -124,7 +119,14 @@ function createServices(settings) {
     root: settings.rootDir,
     dataDir: settings.dataDir,
     log: message => log.info(message),
-    sanitizeText
+    sanitizeText,
+    reportFile: settings.reportFile
+  });
+
+  const normalizeConfig = createConfigNormalizer({
+    serializeWidget: widget => widgetCore.serializeWidget(widget),
+    sanitizeReplication: pairing.sanitizeReplication,
+    pluginSettings: () => supervisionCore.settingsSchemas()
   });
 
   const statusMonitor = createStatusMonitor({ widgetCore, statusCache, readConfig, log });
@@ -263,7 +265,12 @@ function registerRoutes(app, settings, version, services) {
     agentMode,
     validSyncToken: createSyncTokenCheck(settings.syncToken)
   });
-  registerAgentConfigRoutes(app, { agentMode, configRepository, hostMetrics });
+  registerAgentConfigRoutes(app, {
+    agentMode,
+    configRepository,
+    hostMetrics,
+    pluginSettings: () => supervisionCore.settingsSchemas()
+  });
   registerStatusRoutes(app, { statusMonitor });
 
   app.use(notFound);
@@ -285,8 +292,11 @@ function createApp() {
     readConfig,
     readAgents,
     sanitizeReplication: services.pairing.sanitizeReplication,
-    readLocal: kind =>
-      readUsageReport(kind === "claude" ? settings.claudeReportFile : settings.opencodeReportFile)
+    // The report file of the supervision plugin of the same name.
+    readLocal: kind => {
+      const file = supervisionCore.filePath(kind, "report");
+      return file ? readUsageReport(file) : null;
+    }
   });
 
   // Once the widget schemas are known: secrets still stored in clear text

@@ -16,11 +16,14 @@ const { pathToFileURL } = require("url");
 const { createConfigNormalizer } = require("../lib/config/normalize");
 const { createReplicationConfig } = require("../lib/agent/replication-config");
 const { sanitizeText, sanitizeUrl } = require("../lib/sanitize");
+const { sanitizePluginSettings } = require("../lib/config/plugin-prefs");
+const { bundledMetas, bundledSchemas } = require("./supervisions/schemas");
 
 const pairing = createReplicationConfig({ sanitizeUrl, sanitizeText, defaultName: "Dashmon" });
 const server = createConfigNormalizer({
   serializeWidget: widget => widget || null,
-  sanitizeReplication: pairing.sanitizeReplication
+  sanitizeReplication: pairing.sanitizeReplication,
+  pluginSettings: bundledSchemas
 });
 
 // Champs dont la valeur ne depend que de l'entree, des deux cotes.
@@ -163,10 +166,59 @@ function check(name, fn) {
   }
 }
 
+// Host settings of the supervision plugins, edge cases the fixtures above do
+// not reach: both copies of plugin-prefs.js must agree on each.
+const PLUGIN_SETTINGS = [
+  {},
+  { wireguard: { enabled: true, interface: "  wg0<>  " }, smart: { disks: "sda" } },
+  { smart: { enabled: false, disks: ["a", "a", "", 3, "b".repeat(300)] } },
+  {
+    directorySizes: {
+      entries: [
+        { name: "A", path: "/a" },
+        { name: "B", path: "/a" },
+        { name: "C", path: "rel" },
+        { name: "D", path: "/bad\u0001" },
+        null,
+        "x",
+        ...Array.from({ length: 60 }, (_, i) => ({ path: "/d" + i }))
+      ]
+    }
+  },
+  { aptUpdates: "off", opencode: { enabled: false, extra: 1 }, claude: [] },
+  {
+    plugins: {
+      inconnu: { enabled: false, liste: ["a", 2, { k: "v", n: 1 }], texte: "t", objet: {} },
+      autre: { enabled: true },
+      Mauvais: { enabled: false },
+      "trop-long-identifiant-de-plugin-x": { enabled: false }
+    }
+  }
+];
+
 async function main() {
   const client = await import(
     pathToFileURL(path.join(__dirname, "..", "public", "js", "config", "normalize.js")).href
   );
+  const registry = await import(
+    pathToFileURL(path.join(__dirname, "..", "public", "js", "supervision-registry.js")).href
+  );
+  for (const meta of bundledMetas()) registry.registerSupervisionPlugin(meta);
+  const clientPrefs = await import(
+    pathToFileURL(path.join(__dirname, "..", "public", "js", "config", "plugin-prefs.js")).href
+  );
+  PLUGIN_SETTINGS.forEach((raw, index) => {
+    for (const schemas of [bundledSchemas(), []]) {
+      check(
+        `parite : reglages des plugins (${index}, ${schemas.length ? "connus" : "inconnus"})`,
+        () =>
+          assert.deepStrictEqual(
+            clientPrefs.sanitizePluginSettings(structuredClone(raw), schemas),
+            sanitizePluginSettings(structuredClone(raw), schemas)
+          )
+      );
+    }
+  });
   for (const [label, raw] of Object.entries(FIXTURES)) {
     const fromServer = server(structuredClone(raw));
     const fromClient = client.normalizeConfig(structuredClone(raw));

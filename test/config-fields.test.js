@@ -5,6 +5,7 @@ const {
   sanitizeFortune,
   sanitizeHostMonitoring
 } = require("../lib/config/fields");
+const { bundledSchemas } = require("./supervisions/schemas");
 assert.equal(sanitizeLinkCounter({ type: "unknown", target: "repo" }), null);
 assert.deepEqual(sanitizeLinkCounter({ type: "github", target: " repo " }), {
   type: "github",
@@ -21,17 +22,34 @@ assert.equal(sanitizeFortune({ fortune: false, specialTile: { type: "fortune" } 
 assert.equal(sanitizeHostMonitoring({ type: "remote", enabled: true }), undefined);
 assert.equal(sanitizeHostMonitoring({ type: "local", enabled: false }), undefined);
 assert.deepEqual(
-  sanitizeHostMonitoring({
-    type: "local",
-    enabled: true,
-    path: " /host ",
-    smart: { disks: ["disk", "disk"] }
-  }),
+  sanitizeHostMonitoring(
+    {
+      type: "local",
+      enabled: true,
+      path: " /host ",
+      smart: { disks: ["disk", "disk"] }
+    },
+    bundledSchemas()
+  ),
   {
     enabled: true,
     type: "local",
     path: "/host",
     smart: { enabled: true, disks: ["disk"] }
   }
+);
+// Settings of a plugin that is not installed (or not loaded yet) are kept
+// within bounds, never dropped: reinstalling it finds them again.
+assert.deepEqual(
+  sanitizeHostMonitoring({
+    enabled: true,
+    smart: { disks: ["disk", "disk"] },
+    plugins: { absent: { enabled: false, note: "x<y>" }, Bad: { enabled: false } }
+  }).plugins,
+  { absent: { enabled: false, note: "xy" } }
+);
+assert.deepEqual(
+  sanitizeHostMonitoring({ enabled: true, smart: { disks: ["disk", "disk"] } }).smart,
+  { enabled: true, disks: ["disk", "disk"] }
 );
 console.log("PASS configuration : champs de supervision et tuiles");

@@ -1,0 +1,30 @@
+{
+  "id": "claude",
+  "version": "1.0.0",
+  "label": {
+    "fr": "Claude Code",
+    "en": "Claude Code"
+  },
+  "description": {
+    "fr": "Statistiques Claude Code écrites par deploy/claude-stats.sh.",
+    "en": "Claude Code statistics written by deploy/claude-stats.sh."
+  },
+  "icon": "fa-solid fa-code",
+  "order": 60,
+  "script": "claude-stats",
+  "guide": "CLAUDE_CODE.md",
+  "files": {
+    "report": {
+      "env": "CLAUDE_REPORT_FILE",
+      "default": "claude.json"
+    }
+  },
+  "server": "server.js",
+  "client": "client.mjs",
+  "settings": {
+    "key": "claude",
+    "title": "tabClaude",
+    "show": "claudeShow",
+    "help": "claudeHelp"
+  }
+}

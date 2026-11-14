@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("fs");
-const { sanitizeText } = require("../sanitize");
-const { scriptVersion } = require("./script-versions");
+const { sanitizeText } = require("../../lib/sanitize");
+const { scriptVersion } = require("../../lib/host/script-versions");
 
 function nonnegativeInteger(value) {
   const number = Number(value);

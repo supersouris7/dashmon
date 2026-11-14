@@ -1,18 +1,19 @@
-// APT updates card: last report written by deploy/apt-updates.sh (installed
-// updates, failure, reboot required).
+// APT updates card (supervision plugin apt-updates): last report written by
+// deploy/apt-updates.sh (installed updates, failure, reboot required). A
+// bundled card: it reuses the interface modules by their /js/ path, which a
+// third-party plugin should not rely on (docs/EXTENDING.md).
 import {
   applyHostColor,
   cardKey,
   isExpanded,
   setExpanded,
   updateSmartCollapseButton
-} from "./cards.js";
-import { t } from "../i18n.js";
-import { smartNumberText, reportDateText } from "./format.js";
-import { aptHealth } from "./apt-health.js";
+} from "/js/supervision/cards.js";
+import { t } from "/js/i18n.js";
+import { smartNumberText, reportDateText } from "/js/supervision/format.js";
+import { aptHealth } from "./health.mjs";
 
-export function aptUpdatesCard(host, metrics) {
-  const report = metrics?.aptUpdates;
+export function aptUpdatesCard(host, report) {
   const card = document.createElement("article");
   const failed = report?.status === "failed";
   const updated = Number(report?.updated) || 0;
@@ -144,4 +145,9 @@ export function aptUpdatesCard(host, metrics) {
     card.appendChild(details);
   }
   return card;
+}
+
+// Drawn even without a report (manifest showEmpty): it says how to start.
+export function element(ctx) {
+  return aptUpdatesCard(ctx.host, ctx.report);
 }

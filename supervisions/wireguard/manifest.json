@@ -1,0 +1,39 @@
+{
+  "id": "wireguard",
+  "version": "1.0.0",
+  "label": {
+    "fr": "VPN",
+    "en": "VPN"
+  },
+  "description": {
+    "fr": "Pairs WireGuard relevés par deploy/wireguard-dump.sh.",
+    "en": "WireGuard peers read by deploy/wireguard-dump.sh."
+  },
+  "icon": "fa-solid fa-dragon",
+  "order": 20,
+  "script": "wireguard-dump",
+  "guide": "WIREGUARD.md",
+  "files": {
+    "dump": {
+      "env": "WIREGUARD_DUMP_FILE",
+      "default": "wireguard.dump"
+    }
+  },
+  "server": "server.js",
+  "client": "client.mjs",
+  "settings": {
+    "key": "wireguard",
+    "title": "tabWireguard",
+    "show": "wireguardShowPeers",
+    "help": "wireguardHelpIntro",
+    "fields": [
+      {
+        "key": "interface",
+        "type": "text",
+        "label": "wireguardInterface",
+        "placeholder": "phWireguardInterface",
+        "maxLength": 50
+      }
+    ]
+  }
+}

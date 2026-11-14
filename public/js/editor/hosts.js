@@ -25,21 +25,6 @@ export function renderHostEditor() {
   state.editHosts.forEach((host, index) => {
     if (!host.monitoring || typeof host.monitoring !== "object")
       host.monitoring = blankMonitoring();
-    if (!host.monitoring.wireguard || typeof host.monitoring.wireguard !== "object") {
-      host.monitoring.wireguard = { enabled: true, interface: "" };
-    }
-    if (!host.monitoring.smart || typeof host.monitoring.smart !== "object") {
-      host.monitoring.smart = { enabled: true, disks: [] };
-    }
-    if (!host.monitoring.aptUpdates || typeof host.monitoring.aptUpdates !== "object") {
-      host.monitoring.aptUpdates = { enabled: true };
-    }
-    if (!host.monitoring.opencode || typeof host.monitoring.opencode !== "object") {
-      host.monitoring.opencode = { enabled: true };
-    }
-    if (!host.monitoring.claude || typeof host.monitoring.claude !== "object") {
-      host.monitoring.claude = { enabled: true };
-    }
 
     const item = document.createElement("div");
     item.className = "host-item";

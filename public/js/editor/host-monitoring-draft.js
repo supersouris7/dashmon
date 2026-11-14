@@ -1,24 +1,23 @@
+// Monitoring settings of a host as the editor keeps and saves them. The
+// speed test and the disk path belong to the core; every other card is a
+// supervision plugin whose settings follow its manifest (config/plugin-prefs.js,
+// the same rules as the server).
 import {
   HOST_MONITORING_TYPES,
   SPEEDTEST_DEFAULT_INTERVAL,
-  normalizeSpeedtestPrefs,
-  normalizeDirectoryPrefs,
-  normalizePluginPrefs
+  normalizeSpeedtestPrefs
 } from "../config/normalize.js";
+import { sanitizePluginSettings } from "../config/plugin-prefs.js";
+import { pluginSettingsSchemas } from "../supervision-registry.js";
 
-// Working values: no monitoring is enabled without an explicit action.
+// Working values: no monitoring is enabled without an explicit action. The
+// plugin settings are created by their form (host-settings.js).
 export function blankMonitoring() {
   return {
     enabled: false,
     type: "local",
     path: "",
-    wireguard: { enabled: true, interface: "" },
-    smart: { enabled: true, disks: [] },
     speedtest: { enabled: true, interval: SPEEDTEST_DEFAULT_INTERVAL, server: "" },
-    aptUpdates: { enabled: true },
-    directorySizes: { enabled: true, entries: [] },
-    opencode: { enabled: true },
-    claude: { enabled: true },
     plugins: {}
   };
 }
@@ -31,55 +30,13 @@ export function serializeHostMonitoring(m) {
     type: HOST_MONITORING_TYPES.includes(m.type) ? m.type : "local",
     path: (m.path || "").trim()
   };
-  const wg =
-    m.type === "local" && m.wireguard && typeof m.wireguard === "object" ? m.wireguard : null;
-  if (wg) {
-    const wireguard = { enabled: wg.enabled !== false, interface: (wg.interface || "").trim() };
-    if (!wireguard.enabled || wireguard.interface) out.wireguard = wireguard;
-  }
-  const smart = m.smart && typeof m.smart === "object" ? m.smart : null;
-  if (smart) {
-    const disks = [
-      ...new Set(
-        (Array.isArray(smart.disks) ? smart.disks : [])
-          .map(value =>
-            String(value || "")
-              .trim()
-              .slice(0, 100)
-          )
-          .filter(Boolean)
-      )
-    ].slice(0, 20);
-    const prefs = { enabled: smart.enabled !== false, disks };
-    if (!prefs.enabled || prefs.disks.length) out.smart = prefs;
-  }
   if (m.speedtest && typeof m.speedtest === "object") {
     const prefs = normalizeSpeedtestPrefs(m.speedtest);
     if (!prefs.enabled || prefs.interval !== SPEEDTEST_DEFAULT_INTERVAL || prefs.server)
       out.speedtest = prefs;
   }
-  const apt =
-    m.aptUpdates && typeof m.aptUpdates === "object"
-      ? { enabled: m.aptUpdates.enabled !== false }
-      : null;
-  if (apt && !apt.enabled) out.aptUpdates = apt;
-  if (m.opencode && typeof m.opencode === "object" && m.opencode.enabled === false)
-    out.opencode = { enabled: false };
-  if (m.claude && typeof m.claude === "object" && m.claude.enabled === false)
-    out.claude = { enabled: false };
-  const directories = normalizeDirectoryPrefs(m.directorySizes);
-  if (!directories.enabled || directories.entries.length) out.directorySizes = directories;
-  const plugins = normalizePluginPrefs(m.plugins);
-  if (Object.keys(plugins).length) out.plugins = plugins;
-  const meaningful =
-    out.plugins ||
-    out.directorySizes ||
-    out.path ||
-    out.wireguard ||
-    out.smart ||
-    out.speedtest ||
-    out.aptUpdates ||
-    out.opencode ||
-    out.claude;
+  const plugins = sanitizePluginSettings(m, pluginSettingsSchemas());
+  Object.assign(out, plugins);
+  const meaningful = out.path || out.speedtest || Object.keys(plugins).length;
   return !out.enabled && !meaningful ? undefined : out;
 }

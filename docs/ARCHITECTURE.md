@@ -33,8 +33,9 @@ scripts/
 lib/
   config/            environment variables (settings.js), config.json
                      (store.js, repository.js), validation (normalize.js,
-                     fields.js), startup migrations (default web links),
-                     encrypted secrets
+                     fields.js, plugin-prefs.js for the settings of the
+                     supervision plugins), startup migrations (default web
+                     links), encrypted secrets
   http/              outgoing HTTP client (client.js), authentication,
                      protections (headers, origin, rate limits, agent token),
                      request log, errors; api-errors.js holds the error codes
@@ -44,21 +45,25 @@ lib/
                      its routes
   widgets/           plugin registry (shared by both plugin kinds), widget
                      schema, storage and core
-  supervisions/      core of the supervision plugins: runs collect(), bounds
+  supervisions/      core of the supervision plugins: manifest keys of the
+                     kind (manifest.js), report files, runs collect(), bounds
                      and isolates their reports
   status/            status loop of the monitored services
   host/              machine measurements (CPU, RAM, disk, scheduled
-                     speed test) and WireGuard, SMART, APT, OpenCode
-                     and Claude Code reports
+                     speed test), versions of the host scripts, coding
+                     agent report format (shared by two cards and a widget)
   agent/             protocol, identity and agent pairing
   themes.js          theme validation
   version.js         version label and mount detection
   lifecycle.js       startup, status loop and clean shutdown
   log.js             timestamped logs
 widgets/<id>/        one folder per widget (see EXTENDING.md)
-supervisions/<id>/   one folder per supervision card plugin (see EXTENDING.md)
+supervisions/<id>/   one folder per Supervision card (see EXTENDING.md): the
+                     directories, WireGuard, SMART, APT, OpenCode and Claude
+                     Code cards, and any third-party card
 scripts/
   check-plugin.js    npm run plugin:check: loads one plugin as the registry does
+  browser-paths.mjs  lets Node import a browser module that uses /js/ paths
 ```
 
 A few rules guide this split:
@@ -91,11 +96,12 @@ public/js/
                        buttons (view-controls.js), search and group labels
                        (query.js)
   supervision.js       supervision page and metrics refresh
-  supervision/         one file per card (host, speed test, WireGuard, SMART, APT,
-                       coding agents: OpenCode and Claude Code), shared
+  supervision/         the core cards (host resources, speed test), the card
+                       drawn for a plugin (plugin-card.js), the coding agent
+                       card both usage plugins share (usage-card.js), shared
                        card behaviour (cards.js), mosaic layout (masonry.js),
-                       texts (format.js) and the
-                       supervised instances (instances.js)
+                       texts (format.js), reports of older agents
+                       (legacy.js) and the supervised instances (instances.js)
   editor.js            settings page: navigation tree, save, import / export
   editor/              one file per panel (services, widgets, categories,
                        dashboards, hosts, web links, pairing...), the widget
@@ -147,15 +153,16 @@ refusal of anything that does not validate, without stopping the startup.
 | Kind | Server core | Browser | Data path |
 | --- | --- | --- | --- |
 | tile widget | `lib/widgets/core.js` (status loop) | `widget-registry.js` | status cache -> `/api/status` |
-| supervision card | `lib/supervisions/core.js` (host metrics) | `supervision-registry.js`, `supervision/plugin-card.js` | `host.plugins.<id>` -> `/api/host-metrics`, agent protocol 1.1 |
+| supervision card | `lib/supervisions/core.js` (host metrics) | `supervision-registry.js`, `supervision/plugin-card.js` | `host.plugins.<id>` -> `/api/host-metrics`, agent protocol 1.2 |
 
 What a plugin cannot do, on purpose:
 
-- add an HTTP route, a configuration field outside its own schema, or a
-  setting outside `monitoring.plugins.<id>`: the API surface and
-  `config.json` stay owned by the core;
-- write outside its storage folder, or read the data folder other than through
-  `ctx.readDataFile` (bare file names);
+- add an HTTP route, or a host setting outside its own schema (stored in
+  `monitoring.plugins.<id>`): the API surface and `config.json` stay owned by
+  the core;
+- choose which files it reads from the web interface: report files are named
+  in its manifest, their path comes from the administrator (`..._FILE`
+  variable) or the data folder;
 - reach the browser with secrets: a widget's secrets are decrypted for its
   `check()` only, a supervision report is sent as is and must hold none.
 
@@ -163,12 +170,33 @@ Plugins run in the main process: the registry bounds mistakes (timeouts, sizes,
 names), it is not a sandbox. That is why external plugin folders need
 `DASHMON_ALLOW_UNSAFE_PLUGINS=1`.
 
-The built-in Supervision cards (host, WireGuard, SMART, APT, directories, speed
-test, OpenCode, Claude Code) predate the plugin kind and stay in the core: they
-have dedicated settings forms, host scripts versioned with the image
-(`lib/host/script-versions.js`) and fields of their own in the agent protocol.
-A new card should be a plugin; moving a built-in card to a plugin is possible
-once it only needs an on/off switch.
+Every Supervision card about a report is a plugin, the ones Dashmon ships
+included (`supervisions/`): the core knows none of them by name. Two cards
+stay in the core because they are not reports: **Resources** (the host
+itself, around which the page is built) and **Speed test** (a measurement
+Dashmon runs on a schedule, with HTTP routes relayed to the agents, which a
+plugin may not add). The speed test keeps its place among the cards with order
+15.
+
+The bundled cards keep what existed before them, so nothing changes for an
+installation:
+
+- **settings keys**: their manifest names a historical key (`settings.key`:
+  `aptUpdates`, `smart`, `wireguard`, `directorySizes`, `opencode`, `claude`;
+  a closed list in `lib/config/plugin-prefs.js`). `config.json` is unchanged,
+  and `deploy/directory-sizes.sh`, which reads its directories from it, too;
+- **report files and variables**: `APT_UPDATES_REPORT_FILE`,
+  `SMART_DUMP_FILE`... are declared in the manifests (`files`);
+- **agents before protocol 1.2** send these reports as host fields:
+  `public/js/supervision/legacy.js` reads them as plugin reports, and the
+  OpenCode widget reads both shapes (`lib/host/usage-source.js`);
+- **interface modules**: their browser files import `/js/...` modules
+  (cards.js, format.js, i18n.js) and reuse the interface texts. A third-party
+  plugin should not: those modules are not a stable API.
+
+Host scripts: a card names its script in its manifest (`script`); the
+expected version is read from `deploy/<script>.sh`
+(`lib/host/script-versions.js`).
 
 ## Checks
 

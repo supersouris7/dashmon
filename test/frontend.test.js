@@ -16,6 +16,11 @@ const assert = require("assert");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+// Bundled supervision cards import the interface modules by their /js/ URL.
+require("node:module").register(
+  "../scripts/browser-paths.mjs",
+  require("url").pathToFileURL(__filename)
+);
 // The component styles, in their load order (index.html).
 const COMPONENT_CSS = [
   "settings-lists.css",
@@ -314,13 +319,22 @@ async function main() {
   // The APT card's behaviour (folding, keyboard, output shown as text) is
   // checked in a real page by test/browser.test.js.
   // The supervision page (supervision.js) and its cards (supervision/).
+  // The supervision page (supervision.js), its shared modules (supervision/)
+  // and the cards bundled as plugins (supervisions/<id>/).
+  const pluginDir = path.join(__dirname, "..", "supervisions");
   const supervisionSource = [
     "supervision.js",
     ...fs.readdirSync(path.join(JS_DIR, "supervision")).map(f => "supervision/" + f)
   ]
     .map(file => readSource("public", "js", ...file.split("/")))
+    .concat(
+      fs
+        .readdirSync(pluginDir)
+        .filter(id => fs.existsSync(path.join(pluginDir, id, "client.mjs")))
+        .map(id => readSource("supervisions", id, "client.mjs"))
+    )
     .join("");
-  const aptSource = readSource("public", "js", "supervision", "apt-card.js");
+  const aptSource = readSource("supervisions", "apt-updates", "client.mjs");
   ok(
     "supervision : chaque tuile porte son propre titre",
     [
@@ -345,7 +359,7 @@ async function main() {
   );
   {
     const health = await import(
-      pathToFileURL(path.join(JS_DIR, "supervision", "directory-health.js")).href
+      pathToFileURL(path.join(__dirname, "..", "supervisions", "directories", "health.mjs")).href
     );
     const { state } = await import(pathToFileURL(path.join(JS_DIR, "state.js")).href);
     const language = state.language;
@@ -376,7 +390,7 @@ async function main() {
   }
   {
     const { aptHealth } = await import(
-      pathToFileURL(path.join(JS_DIR, "supervision", "apt-health.js")).href
+      pathToFileURL(path.join(__dirname, "..", "supervisions", "apt-updates", "health.mjs")).href
     );
     check(
       "APT : paquets installes = a jour, seuls l'echec et le redemarrage alertent",
@@ -967,10 +981,13 @@ async function main() {
       stateModule.normalizeHostMonitoring({ enabled: true, type: "proxmox" }),
       null
     );
+    // The APT card is a supervision plugin: without its manifest loaded, the
+    // browser invents no setting for it (the defaults of the installed
+    // plugins: test/host-monitoring-draft.test.js).
     check(
-      "config : rapport APT actif par defaut",
+      "config : aucun reglage invente pour un plugin non charge",
       stateModule.normalizeHostMonitoring({ enabled: true, type: "local" }).aptUpdates,
-      { enabled: true }
+      undefined
     );
     check(
       "config : rapport APT desactive conserve",

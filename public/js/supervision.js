@@ -9,26 +9,22 @@ import { supervisionList, supervisionPage } from "./dom.js";
 import { updateSmartCollapseButton } from "./supervision/cards.js";
 import { selectedSupervisionInstanceId } from "./supervision/instances.js";
 import { hostCard } from "./supervision/host-card.js";
-import { directoryCard } from "./supervision/directory-card.js";
-import {
-  visibleInterfaces,
-  hasWireguardDump,
-  wireguardCard
-} from "./supervision/wireguard-card.js";
-import { visibleSmartDisks, smartCard } from "./supervision/smart-card.js";
-import { aptUpdatesCard } from "./supervision/apt-card.js";
-import { USAGE_SOURCES, usageCard } from "./supervision/usage-card.js";
 import { layoutMasonry } from "./supervision/masonry.js";
 import { speedtestCard } from "./supervision/speedtest-card.js";
 import { scriptNotice } from "./supervision/script-notice.js";
 import { restore, selectionInside, snapshot } from "./supervision/preserve.js";
 import { pluginCard } from "./supervision/plugin-card.js";
-import { listSupervisionPlugins, supervisionRenderer } from "./supervision-registry.js";
+import { withPluginReports } from "./supervision/legacy.js";
+import {
+  listSupervisionPlugins,
+  pluginHostPrefs,
+  supervisionRenderer
+} from "./supervision-registry.js";
 
 // A card whose report comes from an older host script ends with the command
-// that updates it.
-function withScriptNotice(card, metrics, field) {
-  const notice = scriptNotice(metrics, field);
+// that updates it (metrics.scriptUpdates, keyed by plugin id).
+function withScriptNotice(card, metrics, id) {
+  const notice = scriptNotice(metrics, id);
   if (notice) card.appendChild(notice);
   return card;
 }
@@ -128,77 +124,55 @@ export function renderSupervision() {
     return;
   }
 
+  // Agents older than protocol 1.2 send the former built-in reports as host
+  // fields: read as plugin reports (supervision/legacy.js).
   const byId = new Map(
-    (selected ? selected.hosts : state.hostMetrics || []).filter(m => m && m.id).map(m => [m.id, m])
+    (selected ? selected.hosts : state.hostMetrics || [])
+      .filter(m => m && m.id)
+      .map(m => [m.id, withPluginReports(m)])
   );
-  // A single grid avoids reserving a whole row for details: WireGuard and SMART
-  // take the first free cell after the hosts, without stretching an isolated
-  // card. The order stays readable: hosts, WireGuard, then SMART.
+  // A single grid: every card takes the first free cell, without reserving a
+  // row. The hosts first, then the cards in their manifest order; the speed
+  // test, part of the core, sits after the directories (order 15), next to
+  // the host whose links it measures.
   const grid = document.createElement("div");
   grid.className = "supervision-grid";
   grid.dataset.columns = state.supervisionColumns;
   monitored.forEach(host => grid.appendChild(hostCard(host, byId.get(host.id))));
-  monitored.forEach(host => {
-    const metrics = byId.get(host.id);
-    const report = metrics?.directorySizes;
-    if (Array.isArray(report?.directories) && report.directories.length)
-      grid.appendChild(withScriptNotice(directoryCard(host, report), metrics, "directorySizes"));
-  });
-  const wgCards = [];
-  monitored.forEach(host => {
-    const metrics = byId.get(host.id);
-    const interfaces = visibleInterfaces(host, metrics);
-    if (hasWireguardDump(host, metrics))
-      wgCards.push(
-        withScriptNotice(wireguardCard(host, metrics, interfaces), metrics, "wireguard")
-      );
-  });
-  // Speed test right after the host and its VPN: both describe its links.
-  monitored.forEach(host => {
-    const metrics = byId.get(host.id);
-    if (metrics?.ok && metrics.speedtest?.available)
-      grid.appendChild(speedtestCard(host, metrics, { onRun: runSpeedtest }));
-  });
-  wgCards.forEach(card => grid.appendChild(card));
-  monitored.forEach(host => {
-    const metrics = byId.get(host.id);
-    const disks = visibleSmartDisks(host, metrics);
-    if (disks.length)
-      grid.appendChild(withScriptNotice(smartCard(host, metrics, disks), metrics, "smart"));
-  });
-  monitored.forEach(host => {
-    const metrics = byId.get(host.id);
-    const prefs = host.monitoring?.aptUpdates;
-    if (host.monitoring?.type === "local" && metrics?.ok && prefs?.enabled !== false)
-      grid.appendChild(withScriptNotice(aptUpdatesCard(host, metrics), metrics, "aptUpdates"));
-  });
-  // Coding agent cards only show up once a report exists: most hosts never
-  // run one.
-  for (const source of USAGE_SOURCES) {
+  const lang = state.language === "en" ? "en" : "fr";
+  const entries = [
+    { order: 15, speedtest: true },
+    ...listSupervisionPlugins().map(meta => ({ order: meta.order ?? 100, meta }))
+  ].sort((a, b) => a.order - b.order);
+  for (const entry of entries) {
     monitored.forEach(host => {
       const metrics = byId.get(host.id);
-      const field = source.field;
-      if (metrics?.ok && metrics[field] && host.monitoring?.[field]?.enabled !== false)
-        grid.appendChild(withScriptNotice(usageCard(host, metrics, source), metrics, field));
-    });
-  }
-  // Cards of the supervision plugins (supervisions/<id>/): one per host whose
-  // metrics carry the plugin's report. A host switch hides them, as for the
-  // built-in reports; a plugin not installed here draws nothing.
-  for (const meta of listSupervisionPlugins()) {
-    const module = supervisionRenderer(meta.id);
-    if (!module) continue;
-    monitored.forEach(host => {
-      const metrics = byId.get(host.id);
-      const report = metrics?.ok ? metrics.plugins?.[meta.id] : null;
-      if (!report || host.monitoring?.plugins?.[meta.id]?.enabled === false) return;
-      const card = pluginCard(host, meta, module, report, state.language === "en" ? "en" : "fr");
+      if (entry.speedtest) {
+        if (metrics?.ok && metrics.speedtest?.available)
+          grid.appendChild(speedtestCard(host, metrics, { onRun: runSpeedtest }));
+        return;
+      }
+      const card = supervisionPluginCard(host, metrics, entry.meta, lang);
       if (card) grid.appendChild(card);
     });
   }
   supervisionList.append(grid);
   layoutMasonry(grid);
   updateSmartCollapseButton();
+}
+
+// Card of a supervision plugin for one host, or null: no renderer, card
+// turned off on that host, no report (unless the manifest asks for an empty
+// card), or nothing the renderer wants to show.
+function supervisionPluginCard(host, metrics, meta, lang) {
+  const module = supervisionRenderer(meta.id);
+  if (!module || !metrics?.ok) return null;
+  const prefs = pluginHostPrefs(host.monitoring, meta);
+  if (prefs.enabled === false) return null;
+  const report = metrics.plugins?.[meta.id] || null;
+  if (!report && !meta.showEmpty) return null;
+  const card = pluginCard(host, meta, module, report, lang, prefs);
+  return card ? withScriptNotice(card, metrics, meta.id) : null;
 }
 
 // Speed test asked from a card: on this instance, or on the agent the card

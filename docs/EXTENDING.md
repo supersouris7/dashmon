@@ -209,14 +209,28 @@ other metrics, so a card written once works for every paired machine.
 
 ```
 supervisions/<id>/
-  manifest.json   labels, icon, texts
+  manifest.json   labels, icon, texts, host settings, report files
   server.js       collect(ctx): builds the report on the monitored machine
   client.mjs      card(ctx): turns the report into a card in the browser
   client.css      optional: style owned by the card
+  *.mjs           optional: other browser modules client.mjs imports ("./x.mjs")
 ```
 
 The template (`supervisions/_template/`) is a complete, working card: the load
-average and uptime of the machine.
+average and uptime of the machine. The cards Dashmon ships are plugins too,
+and show the rest of the API on real cases:
+
+| Card | Shows how to |
+| --- | --- |
+| `apt-updates` | read a report file, draw a card even without report (`showEmpty`) |
+| `wireguard` | read a text dump, filter it with a `text` setting |
+| `smart` | filter with a `choices` setting fed by the report (`detect`) |
+| `directories` | a `list` setting (name + path per row) that a host script also reads |
+| `opencode`, `claude` | two cards sharing one report format |
+
+They build their card with Dashmon's own interface modules (`/js/...`), which
+is reserved to the cards shipped with Dashmon: a third-party card uses `ctx`
+and the descriptor below, whose contract is stable.
 
 ### How it flows
 
@@ -230,11 +244,13 @@ collect(ctx) on the host  ->  host metrics: plugins.<id> = report
 - `collect` runs for the local monitored host on every metrics refresh (60 s by
   default), on the main instance and on agents alike.
 - Its report is placed under `plugins.<id>` of the host metrics: its own
-  namespace, it can never overwrite a built-in field.
-- Each host has a **Show the card** switch per installed plugin in
-  **Settings → Supervision → *your host or agent***, in a section named after
-  the card (stored as `monitoring.plugins.<id>.enabled`; the card is shown by
-  default).
+  namespace, it can never overwrite a core field.
+- Each host has a section per installed plugin in
+  **Settings → Supervision → *your host or agent***: a **Show the card**
+  switch, the fields your manifest declares, and the setup help (stored in
+  `monitoring.plugins.<id>`; the card is shown by default).
+- Cards appear after the host card, in their manifest `order` (the cards
+  Dashmon ships use 10 to 60, the speed test of the core 15).
 - A card collected by an agent is drawn by the main dashboard: **the plugin must
   be installed on both** (the agent collects, the main instance renders).
 
@@ -244,22 +260,55 @@ collect(ctx) on the host  ->  host metrics: plugins.<id> = report
 {
   "id": "my-card",
   "version": "1.0.0",
-  "label": { "fr": "Charge système", "en": "System load" },
-  "description": { "fr": "Charge moyenne et durée de fonctionnement.", "en": "Load average and uptime." },
-  "icon": "fa-solid fa-gauge-high",
+  "label": { "fr": "Sauvegardes", "en": "Backups" },
+  "description": { "fr": "Dernière sauvegarde de l'hôte.", "en": "Last backup of the host." },
+  "icon": "fa-solid fa-box-archive",
+  "order": 100,
+  "guide": "https://exemple.lan/my-card",
+  "files": { "report": { "env": "MY_CARD_REPORT_FILE", "default": "my-card.json" } },
   "server": "server.js",
   "client": "client.mjs",
   "strings": {
-    "fr": { "idle": "Charge normale" },
-    "en": { "idle": "Normal load" }
+    "fr": { "show": "Afficher la carte", "job": "Tâche", "jobHint": "toutes si vide" },
+    "en": { "show": "Show the card", "job": "Job", "jobHint": "all if empty" }
+  },
+  "settings": {
+    "show": "show",
+    "fields": [{ "key": "job", "type": "text", "label": "job", "placeholder": "jobHint", "maxLength": 60 }]
   }
 }
 ```
 
-`label` is the card title, `description` is shown under the switch in the host
-settings, `icon` is a Font Awesome 6 free class. `interval`, `config` and the
-other widget keys have no effect here: a card follows the metrics refresh and
-is configured by its host switch.
+| Key | Role |
+| --- | --- |
+| `label`, `icon` | card title and its Font Awesome 6 free icon |
+| `description` | under the switch in the host settings, when there is no `settings.help` |
+| `order` | position among the cards (default 100) |
+| `showEmpty` | `true`: the card is drawn even when `collect` returns `null`, with `ctx.report` null (to say how to install what it needs) |
+| `files` | report files `collect` reads: `default`, a file of the data folder, or the path in the `env` variable (it must end with `_FILE`). The administrator chooses, never the web interface |
+| `guide` | link of the setup help: an https URL (or a file of `docs/` for the cards Dashmon ships) |
+| `script` | host script of `deploy/` that writes the report, for the cards Dashmon ships: the card shows the update command when the report comes from an older version |
+| `modules` | other `.mjs` files of the folder the client imports |
+| `settings` | the host settings form (below) |
+
+`interval`, `config` and the other widget keys have no effect here: a card
+follows the metrics refresh.
+
+#### Host settings
+
+`settings` builds the plugin's section in the host settings. Its texts (`show`,
+`help`, `label`...) are keys of your `strings`.
+
+| Field `type` | Stored as | Options |
+| --- | --- | --- |
+| `text` | a string | `maxLength` (300 max), `placeholder` |
+| `choices` | a list of strings; empty means "all" | `max`, `maxLength`, `detect: { "list": "disks", "key": "device" }` offers the values found in your report, `detectedLabel` |
+| `list` | a list of records, one row each, that can be moved and removed | `fields` (`text` or `path`: an absolute path; `required`), `unique`, `max` (50 max), `add`, `up`, `down` |
+
+`collect` receives them in `ctx.prefs` (`{ enabled, job: "..." }`) and does
+the filtering: the report sent to the browser is already the one to show.
+Only what differs from the defaults is stored. The settings of a plugin that is
+removed are kept, so reinstalling it finds them again.
 
 ### server.js
 
@@ -280,6 +329,8 @@ module.exports = { createState, collect };
 | Field | Role |
 | --- | --- |
 | `host` | `{ id, name, monitoring }`: the supervised host and its settings |
+| `prefs` | your settings on this host (manifest `settings`), `enabled` included |
+| `files` | paths of the report files of your manifest: `ctx.files.report` |
 | `state` | your memory, created once by `createState()` |
 | `storage` | `read(name, fallback)` / `write(name, value)`: JSON that survives a restart, in `data/supervisions/<id>/` |
 | `readDataFile(name, { maxBytes })` | reads a JSON file of the data folder: `{ data, modifiedAt }` (seconds) or `null`. A bare file name only, 2 MB max |
@@ -290,7 +341,7 @@ module.exports = { createState, collect };
 nothing to show on this host (no report yet, feature absent). Dashmon enforces:
 
 - **5 seconds** to answer, otherwise the card is dropped for this round;
-- **64 KB** per report once serialised: a card summary, not a dump;
+- **256 KB** per report once serialised: a card summary, not a dump;
 - an exception, a timeout or an invalid report only drops **your** card; the
   cause is logged once, not on every refresh.
 
@@ -301,9 +352,11 @@ agent to the main dashboard.
 
 Most cards read a report produced on the host by a script run from cron, the
 way Dashmon's own APT, SMART or WireGuard cards do (see
-[`SCRIPTS.md`](SCRIPTS.md)): the script writes a JSON file into the data folder
-mounted in the container, `collect` reads it with `ctx.readDataFile`. Keep the
-script outside the container's privileges: Dashmon only reads its output.
+[`SCRIPTS.md`](SCRIPTS.md)): the script writes a file into the data folder
+mounted in the container, `collect` reads it at `ctx.files.report` (declared in
+`files`, so the administrator can move it) or with `ctx.readDataFile` for a
+JSON file of the data folder. Keep the script outside the container's
+privileges: Dashmon only reads its output.
 
 ### client.mjs
 
@@ -328,14 +381,21 @@ colours, host tint and expand behaviour of the built-in cards: a card with
 others. `tone` colours a value: `ok`, `warning` or `critical`. Texts and rows
 are bounded (30 rows), unknown values are ignored.
 
-`ctx` provides `report` (what `collect` returned), `host` (`{ id, name }`),
-`lang`, `t(key)`, `formatNumber`, `formatCompactNumber`, `formatDateTime`,
-`relativeAge(epochSeconds)` (*3 min ago*) and `reportDate(epochSeconds)`.
+`ctx` provides `report` (what `collect` returned), `host` (`{ id, name, color… }`),
+`prefs` (your settings on this host), `lang`, `t(key)`, `formatNumber`,
+`formatCompactNumber`, `formatDateTime`, `relativeAge(epochSeconds)`
+(*3 min ago*) and `reportDate(epochSeconds)`. Return `null` to draw nothing on
+this host.
 
 Like a widget, `card` must touch neither the DOM nor `document`, and must not
 throw. For a fully custom body, export `element(ctx)` returning a DOM node: the
-title bar stays Dashmon's. Style it in your `client.css`, scoped under
-`.supervision-card-plugin-<id>`.
+title bar stays Dashmon's (a node that is itself a whole `.supervision-card`,
+as the bundled cards build, is used as is). Style it in your `client.css`,
+scoped under `.supervision-card-plugin-<id>`.
+
+The client is served from the plugin's folder
+(`/supervision-client/<id>/client.mjs`): it imports the other modules it
+declares in `modules` by relative path (`import { x } from "./view.mjs"`).
 
 ---
 
@@ -352,8 +412,10 @@ npm test                           # the whole suite
   `status`) and the renderers (`renderers`); a new widget adds its checks to
   the matching file, with the helpers of `test/widgets/helpers.js`;
 - `test/supervisions.test.js` checks the supervision core (isolation of a
-  failing plugin, bounds, data files) and the card descriptor; a new card adds
-  its `collect` and `card` checks there;
+  failing plugin, bounds, data files, manifest keys), the cards Dashmon ships
+  (report files, settings) and the card descriptor; a new card adds its
+  `collect` and `card` checks there. `test/supervisions/schemas.js` gives the
+  settings schemas of the bundled cards to the configuration tests;
 - `test/agent.test.js` checks that a card collected by an agent reaches the
   main dashboard;
 - both templates are loaded by the tests: if you change the engine, they must
@@ -375,7 +437,8 @@ npm test                           # the whole suite
   for `maxBody` (capped at 8 MB) and `{ raw: true }` to receive
   `{ status, body, headers }` instead of JSON.
 - `ctx.storage` and `ctx.readDataFile` accept a bare file name only: a plugin
-  cannot read or write outside the data folder through them.
+  cannot read or write outside the data folder through them, and the paths
+  of `ctx.files` come from the administrator, never from the web interface.
 
 **A plugin is code that runs inside the Dashmon process, with its rights.** The
 bounds above protect against mistakes, not against malicious code. Only install
@@ -421,7 +484,7 @@ The core depends on no plugin: nothing breaks, and above all nothing is lost.
   other plugins load normally;
 - a service configured with an unknown widget is displayed as a standard service
   and **its configuration is kept** as is on save: reinstall the plugin and it
-  will find it again. The same goes for a host's card switch;
+  will find it again. The same goes for a card's host settings;
 - a supervision report whose plugin is not installed on the main dashboard is
   simply not drawn;
 - the registries are loaded before the port opens, so `/api/widgets` and

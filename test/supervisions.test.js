@@ -50,7 +50,7 @@ async function serverSide() {
   fs.cpSync(TEMPLATE, path.join(root, "my-card"), { recursive: true });
   plugin(root, "throws", "module.exports = { collect() { throw new Error('boom'); } };");
   plugin(root, "slow", "module.exports = { collect: () => new Promise(() => {}) };");
-  plugin(root, "huge", "module.exports = { collect: () => ({ text: 'x'.repeat(70000) }) };");
+  plugin(root, "huge", "module.exports = { collect: () => ({ text: 'x'.repeat(270000) }) };");
   plugin(root, "nothing", "module.exports = { collect: () => null };");
   plugin(root, "array", "module.exports = { collect: () => [1, 2] };");
   plugin(root, "no-entry", "module.exports = { check() {} };");
@@ -98,9 +98,11 @@ async function serverSide() {
   );
   ok(
     "registre : le code serveur n'est jamais servi au navigateur",
-    instance.clientAsset("my-card", "js") &&
-      !String(instance.clientAsset("my-card", "js").body).includes("loadavg") &&
-      instance.clientAsset("throws", "js") === null
+    instance.asset("my-card", "client.mjs") &&
+      !String(instance.asset("my-card", "client.mjs").body).includes("loadavg") &&
+      instance.asset("my-card", "server.js") === null &&
+      instance.asset("my-card", "../my-card/server.js") === null &&
+      instance.asset("throws", "client.mjs") === null
   );
 
   const first = await instance.collect(HOST);
@@ -230,7 +232,136 @@ async function browserSide() {
   );
 }
 
+// The cards that were part of the core, now plugins: their report files,
+// their settings under the historical keys, the outdated script notice.
+async function bundledCards() {
+  const dataDir = tempDir("bundled");
+  const now = Math.floor(Date.now() / 1000);
+  fs.writeFileSync(
+    path.join(dataDir, "apt-updates.json"),
+    JSON.stringify({ status: "success", updated: 3, finishedAt: now })
+  );
+  const disk = name => ({ device: { name }, smart_status: { passed: true } });
+  fs.writeFileSync(
+    path.join(dataDir, "smart.json"),
+    JSON.stringify({
+      scriptVersion: 1,
+      updatedAt: now,
+      disks: [disk("/dev/sda"), disk("/dev/sdb")]
+    })
+  );
+  fs.writeFileSync(
+    path.join(dataDir, "wireguard.dump"),
+    "wg0\t(redacted)\tpub\t51820\toff\nwg1\t(redacted)\tpub\t51821\toff\n"
+  );
+  const custom = path.join(dataDir, "elsewhere.json");
+  fs.writeFileSync(custom, JSON.stringify({ periods: { today: {} } }));
+  const lines = [];
+  const bundled = new SupervisionCore({
+    root: ROOT,
+    dataDir,
+    log: line => lines.push(line),
+    sanitizeText,
+    env: {},
+    // The administrator's variable wins over the data folder.
+    reportFile: (env, fallback) =>
+      env === "OPENCODE_REPORT_FILE" ? custom : path.join(dataDir, fallback)
+  });
+  await bundled.load();
+  check("integrees : les six cartes sont des plugins", bundled.ids(), [
+    "apt-updates",
+    "claude",
+    "directories",
+    "opencode",
+    "smart",
+    "wireguard"
+  ]);
+  check("integrees : aucun echec de chargement", bundled.registry.failures, []);
+  const all = await bundled.collect(HOST);
+  check(
+    "integrees : rapports lus dans le dossier de donnees ou au chemin de l'administrateur",
+    {
+      apt: all["apt-updates"].updated,
+      disks: all.smart.disks.length,
+      interfaces: all.wireguard.interfaces.length,
+      opencode: !!all.opencode,
+      claude: "claude" in all,
+      directories: "directories" in all
+    },
+    { apt: 3, disks: 2, interfaces: 2, opencode: true, claude: false, directories: false }
+  );
+  const filtered = await bundled.collect({
+    ...HOST,
+    monitoring: {
+      ...HOST.monitoring,
+      smart: { enabled: true, disks: ["/dev/sdb"] },
+      wireguard: { enabled: true, interface: "wg1" },
+      aptUpdates: { enabled: false }
+    }
+  });
+  check(
+    "integrees : reglages lus sous leurs cles historiques",
+    {
+      disks: filtered.smart.disks.map(item => item.device),
+      interfaces: filtered.wireguard.interfaces.map(item => item.interface),
+      apt: "apt-updates" in filtered
+    },
+    { disks: ["/dev/sdb"], interfaces: ["wg1"], apt: false }
+  );
+  check("integrees : chaque carte annonce son script hote", bundled.scripts(), {
+    "apt-updates": "apt-updates",
+    claude: "claude-stats",
+    directories: "directory-sizes",
+    opencode: "opencode-stats",
+    smart: "smart-dump",
+    wireguard: "wireguard-dump"
+  });
+  const meta = bundled.publicList().find(item => item.id === "directories");
+  ok(
+    "integrees : le schema des reglages est publie, pas les chemins",
+    meta.settings.key === "directorySizes" &&
+      meta.settings.fields[0].type === "list" &&
+      !JSON.stringify(bundled.publicList()).includes(dataDir)
+  );
+}
+
+async function manifests() {
+  const { validateSupervisionManifest } = require("../lib/supervisions/manifest");
+  const errorsOf = raw => {
+    const errors = [];
+    validateSupervisionManifest(raw, errors);
+    return errors.length;
+  };
+  check(
+    "manifeste : cle historique reservee, variable ..._FILE, guide, modules, types de champs",
+    [
+      errorsOf({ settings: { key: "speedtest" } }),
+      errorsOf({ files: { report: { env: "HOME", default: "a.json" } } }),
+      errorsOf({ files: { report: { default: "../a.json" } } }),
+      errorsOf({ guide: "http://exemple.lan/doc" }),
+      errorsOf({ modules: ["../x.mjs"] }),
+      errorsOf({ settings: { fields: [{ key: "enabled" }] } }),
+      errorsOf({ settings: { fields: [{ key: "x", type: "password" }] } }),
+      errorsOf({ settings: { fields: [{ key: "rows", type: "list", fields: [] }] } }),
+      errorsOf({
+        guide: "https://exemple.lan/doc",
+        files: { report: { env: "MY_REPORT_FILE", default: "mine.json" } },
+        modules: ["view.mjs"],
+        settings: {
+          fields: [
+            { key: "name" },
+            { key: "rows", type: "list", fields: [{ key: "path", type: "path" }] }
+          ]
+        }
+      })
+    ],
+    [1, 1, 1, 1, 1, 1, 1, 1, 0]
+  );
+}
+
 run(async () => {
   await serverSide();
+  await bundledCards();
+  await manifests();
   await browserSide();
 });

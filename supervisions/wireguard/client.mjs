@@ -6,9 +6,9 @@ import {
   handshakeText,
   bytesText,
   relativeAge
-} from "./format.js";
-import { t } from "../i18n.js";
-import { applyHostColor } from "./cards.js";
+} from "/js/supervision/format.js";
+import { t } from "/js/i18n.js";
+import { applyHostColor } from "/js/supervision/cards.js";
 
 // A peer: name, last handshake, then received and sent traffic. Name and
 // endpoint come from the agent: nothing goes through innerHTML, everything
@@ -43,36 +43,18 @@ function peerRow(peer) {
   return row;
 }
 
-// Interfaces of a host kept by its preferences: the section can be hidden
-// (enabled === false) and filtered on one interface. An empty array may mean a
-// valid dump without peers, which the card must still render.
-export function visibleInterfaces(host, metrics) {
-  if (!metrics || !metrics.ok) return [];
-  const prefs = host.monitoring && host.monitoring.wireguard;
-  if (prefs && prefs.enabled === false) return [];
-  if (!Array.isArray(metrics.wireguard)) return [];
-  const interfaces =
-    prefs && prefs.interface
-      ? metrics.wireguard.filter(item => item.interface === prefs.interface)
-      : metrics.wireguard;
-  return interfaces;
-}
-
-export function hasWireguardDump(host, metrics) {
-  const prefs = host.monitoring && host.monitoring.wireguard;
-  return !!(
-    metrics &&
-    metrics.ok &&
-    (!prefs || prefs.enabled !== false) &&
-    Array.isArray(metrics.wireguard)
-  );
+// Interfaces of the report: the server already kept the one chosen in the
+// host settings. An empty array is a valid dump without interface, which the
+// card still renders.
+export function visibleInterfaces(report) {
+  return Array.isArray(report?.interfaces) ? report.interfaces : [];
 }
 
 // Standalone WireGuard card, separate from the host card, like the dashboard
 // tile. One card per host, one section per interface, then one peer per row.
 // The interface row reads "wg0" (white) then " : last reading" (grey), the
-// date of the dump file (wireguardFetchedAt).
-export function wireguardCard(host, metrics, interfaces) {
+// date of the dump file (report.fetchedAt).
+export function wireguardCard(host, report, interfaces) {
   const card = document.createElement("article");
   card.className = "supervision-card supervision-card-wireguard";
   applyHostColor(card, host);
@@ -92,7 +74,7 @@ export function wireguardCard(host, metrics, interfaces) {
   head.append(icon, name, badge);
   card.appendChild(head);
 
-  const age = handshakeAge(metrics.wireguardFetchedAt);
+  const age = handshakeAge(report.fetchedAt);
   const updatedText =
     age === null ? "" : t("supervisionWireguardUpdated").replace("{ago}", relativeAge(age));
 
@@ -143,4 +125,8 @@ export function wireguardCard(host, metrics, interfaces) {
   });
 
   return card;
+}
+
+export function element(ctx) {
+  return wireguardCard(ctx.host, ctx.report, visibleInterfaces(ctx.report));
 }

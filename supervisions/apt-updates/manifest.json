@@ -1,0 +1,32 @@
+{
+  "id": "apt-updates",
+  "version": "1.0.0",
+  "label": {
+    "fr": "Mises à jour",
+    "en": "Updates"
+  },
+  "description": {
+    "fr": "Dernier passage de deploy/apt-updates.sh.",
+    "en": "Last run of deploy/apt-updates.sh."
+  },
+  "icon": "fa-solid fa-box",
+  "order": 40,
+  "showEmpty": true,
+  "script": "apt-updates",
+  "guide": "APT_UPDATES.md",
+  "files": {
+    "report": {
+      "env": "APT_UPDATES_REPORT_FILE",
+      "default": "apt-updates.json"
+    }
+  },
+  "server": "server.js",
+  "client": "client.mjs",
+  "modules": ["health.mjs"],
+  "settings": {
+    "key": "aptUpdates",
+    "title": "tabAptUpdates",
+    "show": "aptUpdatesShow",
+    "help": "aptUpdatesHelp"
+  }
+}

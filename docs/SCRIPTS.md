@@ -280,7 +280,8 @@ By hand, for each script installed on a machine:
 ## For contributors
 
 Raise `SCRIPT_VERSION` in a script whenever you change it: that number is what
-makes the cards ask for the update. The image ships the scripts (`deploy/*.sh`)
+makes the cards ask for the update. A card names its script in its manifest
+(`"script"` in `supervisions/<id>/manifest.json`). The image ships the scripts (`deploy/*.sh`)
 and reads the expected versions from them. The schedules exist twice, in
 `deploy/setup.sh` and `public/js/supervision/script-commands.js`;
 `test/setup-script.test.js` checks that they match.

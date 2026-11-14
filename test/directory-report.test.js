@@ -4,12 +4,12 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { execFileSync } = require("child_process");
-const { readDirectoryReport } = require("../lib/host/directory-report");
+const { readDirectoryReport } = require("../supervisions/directories/report");
 const { sanitizeHostMonitoring } = require("../lib/config/fields");
 
 assert.deepEqual(
   sanitizeHostMonitoring({ enabled: true, directorySizes: { enabled: false } }).directorySizes,
-  { enabled: false, entries: [] }
+  { enabled: false }
 );
 assert.equal(
   sanitizeHostMonitoring({ enabled: true, directorySizes: { enabled: true } }).directorySizes,

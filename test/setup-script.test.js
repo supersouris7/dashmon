@@ -167,8 +167,12 @@ async function main() {
       pathToFileURL(path.join(__dirname, "..", "public", "js", "supervision", "script-commands.js"))
         .href
     );
-    const { SCRIPTS } = require("../lib/host/script-versions");
-    assert.deepEqual([...commands.SCRIPT_NAMES].sort(), Object.values(SCRIPTS).sort());
+    // ...and as the supervision cards whose report comes from a host script.
+    const { bundledMetas } = require("./supervisions/schemas");
+    const scripts = bundledMetas()
+      .map(meta => meta.script)
+      .filter(Boolean);
+    assert.deepEqual([...commands.SCRIPT_NAMES].sort(), scripts.sort());
     const source = fs.readFileSync(SETUP, "utf8").split("frequencies() {")[1].split("\n}\n")[0];
     const blocks = {};
     for (const [, names, body] of source.matchAll(/^ {4}([a-z| -]+)\)\n([\s\S]*?);;/gm))
