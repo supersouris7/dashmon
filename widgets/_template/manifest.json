@@ -1,5 +1,5 @@
 {
-  "id": "mowidget",
+  "id": "my-widget",
   "version": "1.0.0",
   "label": { "fr": "Mon widget", "en": "My widget" },
   "description": {
@@ -36,14 +36,14 @@
   },
   "config": [
     {
-      "key": "apiUrl",
+      "key": "url",
       "type": "text",
       "label": "apiUrl",
       "maxLength": 200,
       "placeholder": "apiUrlPlaceholder"
     },
     {
-      "key": "apiToken",
+      "key": "token",
       "type": "secret",
       "label": "apiToken",
       "maxLength": 2000,

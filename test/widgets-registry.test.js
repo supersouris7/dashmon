@@ -3,8 +3,9 @@
 // Shared helpers and fixtures: test/widgets/helpers.js.
 
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
-const { validateManifest } = require("../lib/widgets/registry");
+const { Registry, validateManifest } = require("../lib/widgets/registry");
 const { WIDGETS, check, ok, loadRegistry, run } = require("./widgets/helpers");
 
 async function main() {
@@ -141,6 +142,20 @@ async function main() {
     ["a"]
   );
   ok("schema : cle dupliquee signalee", dup.length === 1);
+
+  // The template is what contributors copy: once renamed after its manifest
+  // id, it must load as is, and from outside widgets/ (DASHMON_WIDGET_DIR).
+  const copyRoot = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-template-"));
+  const template = JSON.parse(
+    fs.readFileSync(path.join(WIDGETS, "_template", "manifest.json"), "utf8")
+  );
+  fs.cpSync(path.join(WIDGETS, "_template"), path.join(copyRoot, template.id), {
+    recursive: true
+  });
+  const copied = new Registry({ kind: "widget", roots: [copyRoot], logger: () => {} });
+  await copied.load();
+  check("modele : la copie de _template se charge hors de widgets/", copied.failures, []);
+  ok("modele : la copie de _template a un backend", !!copied.get(template.id)?.check);
 }
 
 run(main);

@@ -1,22 +1,17 @@
-// MODELE DE RENDU COTE NAVIGATEUR — a copier dans un nouveau dossier.
+// WIDGET TEMPLATE, browser side (see server.js and docs/EXTENDING.md).
 //
-// Contrainte importante : render() ne doit toucher NI au DOM, NI a `document`,
-// NI a des variables d'interface. Il renvoie un descripteur et le core se
-// charge de l'appliquer sur la tuile. Deux raisons :
-//   1. le module reste testable sous Node (voir test/widgets.test.js) ;
-//   2. un widget casse ne peut pas casser l'affichage du dashboard.
-//
-// Si vous avez besoin d'un rendu totalement sur mesure, exportez
-// element(ctx) qui retourne un nœud DOM : le core l'utilisera a la place du
-// descripteur, pour ce widget uniquement.
+// render(ctx) touches neither the DOM nor `document`: it returns a descriptor
+// that the core applies to the tile. The module stays testable under Node,
+// and a broken widget cannot break the dashboard. For a fully custom tile,
+// export element(ctx) returning a DOM node instead.
 
 export function render(ctx) {
   // ctx = {
-  //   info   : statut calcule par votre server.js (ou null si jamais verifie),
-  //   config : configuration du widget telle que saisie dans l'editeur,
-  //   t      : (key) => libelle traduit, declare dans manifest.json -> strings,
-  //   lang   : "fr" | "en",
-  //   formatNumber, formatCompactNumber, formatDateTime : utilitaires d'affichage
+  //   info   : status computed by your server.js (null before the first check)
+  //   config : widget configuration as entered in the editor (no secret)
+  //   t      : (key) => text declared in manifest.json "strings"
+  //   lang   : "fr" | "en"
+  //   formatNumber, formatCompactNumber, formatDateTime
   // }
   const { info, t } = ctx;
 
@@ -35,7 +30,7 @@ export function render(ctx) {
   return {
     badge: `${t("badge")} ${info.value ?? "—"}`,
     badgeClass: "ok", // "ok" | "nok" | "warn" | "pending" | ""
-    time: info.detail || "", // 2e ligne (masquee en mode icones)
+    time: info.detail || "", // second line (hidden in icon mode)
     timeClass: "", // "warn" | "delta-up" | "delta-down" | ""
     title: t("name")
   };

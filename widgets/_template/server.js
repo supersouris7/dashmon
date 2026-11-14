@@ -1,42 +1,47 @@
 "use strict";
-// MODELE DE WIDGET — a copier dans un nouveau dossier, puis a adapter.
+// WIDGET TEMPLATE: copy this folder to widgets/<your-id>/ and set "id" in
+// manifest.json to the folder name. A folder starting with "_" is never
+// loaded. Full guide: docs/EXTENDING.md; check it with
+// `npm run plugin:check -- widgets/<your-id>`.
 //
-// Un widget Dashmon tient en TROIS fichiers dans son dossier :
-//   manifest.json  : metadonnees, libelles, periodes, schema de configuration
-//   server.js      : la logique metier (tourne dans le conteneur)
-//   client.js      : le rendu de la tuile (tourne dans le navigateur)
-//
-// Rien d'autre n'a toucher : ni server.js, ni l'editeur, ni le CSS, ni i18n.
-//
-// Le dossier doit porter l'identifiant declare dans manifest.json. Le nommage
-// "mowidget" est volontairement sobre ; un "_" en tete (comme _template) exclut
-// le dossier du registre.
+// A widget is three files:
+//   manifest.json  labels, check period, configuration schema
+//   server.js      the check, run in the container (this file)
+//   client.mjs     the tile renderer, run in the browser
+// Nothing else changes: not server.js at the root, the editor, the CSS or i18n.
 
 function createState() {
-  // Memoire conservee entre deux checks (jetons en cache, historique...).
-  // Facultatif : retirez la fonction si vous n'en avez pas besoin.
+  // Memory kept between two checks (cached tokens, history...). Optional.
   return { calls: 0 };
 }
 
 // ctx = {
-//   config  : configuration du widget, secrets DECHIFFRES a cet endroit,
-//   service : le service tel qu'il figure dans config.json (name, url, ...),
-//   state   : objet retourne par createState(),
-//   api     : (baseUrl, path, options) => Promise<json>  (Bearer/Basic, timeout, IPv4),
-//   sanitizeUrl, sanitizeText, t(key) : utilitaires du core
+//   config  : the widget configuration, secrets DECRYPTED here only
+//   service : the service as stored in config.json (name, url, ...)
+//   state   : the object returned by createState()
+//   api     : (baseUrl, path, options) => Promise<json>  shared HTTP client
+//   probe   : (href) => { ok, code, ms, error }           link probe
+//   storage : read(name, fallback) / write(name, value)   survives a restart
+//   log     : (message) => one line in the Dashmon logs
+//   resultError(code) : { errorCode, error } of a common failure (invalid_url,
+//             token_missing...), shown in the viewer's language
+//   sanitizeUrl, sanitizeText, t(key)
+// Use what ctx provides rather than require("../../lib/..."): that path
+// breaks once the widget is installed outside widgets/.
 // }
 //
-// Retour attendu : un objet plat, serialisable en JSON, qui devient l'entree de
-// statut affichee. Les champs "ok", "ms", "lastCheck" et "state" sont geres par
-// le core ; les autres sont libres (ils sont lisibles par votre client.js).
-// Levez une exception pour signaler une erreur : le core la recupere et l'affiche.
+// Returns a flat JSON object: the status entry your client.mjs displays.
+// "ok", "ms", "lastCheck" and "state" are managed by the core; the rest is
+// yours. Do not throw: return { ok: false, error } (an exception is caught
+// and shown the same way, but an explicit result is clearer).
 async function check(ctx) {
-  const baseUrl = ctx.sanitizeUrl(ctx.config.apiUrl);
+  const baseUrl = ctx.sanitizeUrl(ctx.config.url);
   if (!baseUrl) {
-    return { ok: false, error: ctx.t("error") + " : URL invalide", value: null };
+    // A common cause: a code translated in the viewer's language by the tile.
+    return { ok: false, ...ctx.resultError("invalid_url") };
   }
   try {
-    const data = await ctx.api(baseUrl, "/stats", { token: ctx.config.apiToken });
+    const data = await ctx.api(baseUrl, "/stats", { token: ctx.config.token });
     ctx.state.calls++;
     return {
       ok: true,
@@ -48,9 +53,9 @@ async function check(ctx) {
   }
 }
 
-// Facultatif : appelee apres chaque cycle pour oublier ce qui n'est plus
-// surveille ( jetons d'un serveur supprime, historique d'un service retire ).
-// Le 1er argument est l'ensemble des URL encore surveillees pour ce widget.
+// Optional: called after each cycle to forget what is no longer monitored
+// (tokens of a removed server, history of a deleted service). The first
+// argument is the set of URLs still monitored by this widget.
 // function purge(activeUrls, state) { ... }
 
 module.exports = { createState, check };
