@@ -1,24 +1,24 @@
 # Graph Report - dashmon  (2026-11-14)
 
 ## Corpus Check
-- 281 files · ~166,655 words
+- 301 files · ~172,518 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 21 file(s) not represented in the graph (top: .css 10, (none) 7, .example 2)
 
 ## Summary
-- 2733 nodes · 5687 edges · 144 communities (123 shown, 21 thin omitted)
-- Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 331 edges (avg confidence: 0.86)
+- 2960 nodes · 5901 edges · 161 communities (137 shown, 24 thin omitted)
+- Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 360 edges (avg confidence: 0.86)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `0e142e38`
+- Built from commit: `efc1408c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - WidgetCore
-- js/pages.js
-- ref_fs
+- app.js
+- supervisions/core.js
 - en
 - en
 - en
@@ -32,7 +32,7 @@
 - setup.sh
 - createLocalMetrics
 - _template/manifest.json
-- services.js
+- widget-registry.js
 - sanitizeText
 - gotify/manifest.json
 - with
@@ -92,27 +92,27 @@
 - qbittorrent/client.mjs
 - web/server.js
 - smart-dump.sh
-- supervision/cards.js
+- directories/client.mjs
 - Install Dashmon and its agents
 - fortune-bar.js
 - APT updates
 - SMART supervision
 - services.js
 - plugin-card.js
-- ref_assert
+- apt-updates/manifest.json
 - opencode-widget.test.js
 - dom.js
 - Dashmon architecture
 - host/metrics.js
-- session-routes.test.js
+- SessionStore
 - browser.test.js
 - ref_fs
 - pairing-list.js
 - Themes
 - config-parity.test.js
 - registerAgentRoutes
-- directory-card.js
-- render.js
+- directories/manifest.json
+- js/config/normalize.js
 - auth.test.js
 - .prettierrc.json
 - version.js
@@ -129,67 +129,84 @@
 - usage-card.js
 - columns-layout.js
 - claude-stats.sh
-- store.js
+- config-store.test.js
 - t
-- smart-report.js
+- smart/report.js
 - client.js
-- wireguard-report.js
+- wireguard/report.js
 - devDependencies
 - duplicati/server.js
 - Host scripts
 - directory-sizes.sh
 - registerConfigRoutes
 - confirm.js
-- docker.test.js
+- render.js
 - security-headers.test.js
-- ping/server.js
+- smart/manifest.json
 - Directory sizes
 - demo.js
-- scripts
-- ref_crypto
+- wireguard/manifest.json
+- claude/manifest.json
 - identity.js
-- system.js
+- supervisions/opencode/manifest.json
+- WidgetCore
+- i18n.js
+- SupervisionCore
+- ref_fs
+- dashboard/cards.js
+- js/config/plugin-prefs.js
+- Registry
+- claude-stats.test.js
+- manifest.js
+- lib/config/plugin-prefs.js
+- check-plugin.js
+- preserve.js
+- opencode-report.test.js
+- dashboard/web-links.js
+- dockerfile.test.js
+- supervision-registry.js
+- browser-paths.mjs
 
 ## God Nodes (most connected - your core abstractions)
-1. `t()` - 135 edges
-2. `apiError()` - 36 edges
-3. `WidgetCore` - 35 edges
-4. `state` - 34 edges
-5. `sanitizeText()` - 33 edges
-6. `element()` - 30 edges
+1. `t()` - 122 edges
+2. `sanitizeText()` - 38 edges
+3. `apiError()` - 36 edges
+4. `WidgetCore` - 35 edges
+5. `state` - 32 edges
+6. `Registry` - 27 edges
 7. `applyEditorChanges()` - 27 edges
-8. `renderSupervision()` - 27 edges
-9. `main()` - 26 edges
-10. `install_one()` - 25 edges
+8. `main()` - 26 edges
+9. `install_one()` - 25 edges
+10. `element()` - 25 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `Host settings` --references--> `help()`  [INFERRED]
+  docs/EXTENDING.md → public/js/editor/host-settings.js
+- `client.mjs` --references--> `prefs()`  [INFERRED]
+  docs/EXTENDING.md → lib/host/speedtest.js
+- `server.js` --references--> `prefs()`  [INFERRED]
+  docs/EXTENDING.md → lib/host/speedtest.js
 - `client.mjs` --references--> `details()`  [INFERRED]
   docs/EXTENDING.md → public/js/supervision/speedtest-card.js
 - `Add a widget or a Supervision card` --references--> `ctx()`  [INFERRED]
   CONTRIBUTING.md → test/opencode-widget.test.js
-- `Quick start` --references--> `ctx()`  [INFERRED]
-  docs/EXTENDING.md → test/opencode-widget.test.js
-- `Testing` --references--> `core()`  [INFERRED]
-  docs/EXTENDING.md → test/supervisions.test.js
-- `client.mjs` --references--> `formatDateTime()`  [INFERRED]
-  docs/EXTENDING.md → public/js/format.js
 
 ## Import Cycles
 - None detected.
 
-## Communities (144 total, 21 thin omitted)
+## Communities (161 total, 24 thin omitted)
 
 ### Community 0 - "WidgetCore"
+Cohesion: 0.12
+Nodes (20): createSecretCodec(), decryptSecret(), crypto, isEncryptedSecret(), isMaskedSecret(), maskSecret(), secretFingerprint(), localize() (+12 more)
+
+### Community 1 - "app.js"
 Cohesion: 0.11
-Nodes (16): createSecretCodec(), decryptSecret(), crypto, isEncryptedSecret(), isMaskedSecret(), maskSecret(), secretFingerprint(), extraRoot() (+8 more)
+Nodes (38): saveConfig(), setConfigRevision(), closeTopMenu(), gridSelects, headerObserver, loadConfig(), loadDemo(), openSettings() (+30 more)
 
-### Community 1 - "js/pages.js"
-Cohesion: 0.10
-Nodes (40): loadConfig(), setOpenMode(), setSearchOpen(), setToolbarHeight(), setGroupMode(), updateGroupModeMenu(), updateIconsButton(), updateOpenModeMenu() (+32 more)
-
-### Community 2 - "ref_fs"
-Cohesion: 0.06
-Nodes (28): extraRoot(), fs, path, pluginEnabled(), SupervisionCore, withTimeout(), fs, path (+20 more)
+### Community 2 - "supervisions/core.js"
+Cohesion: 0.13
+Nodes (10): extraRoot(), fs, path, pluginEnabled(), pluginPrefs(), withTimeout(), extraRoot(), fs (+2 more)
 
 ### Community 3 - "en"
 Cohesion: 0.04
@@ -243,13 +260,13 @@ Nodes (13): clampPercent(), createLocalMetrics(), localCpuPercent(), localDiskPe
 Cohesion: 0.06
 Nodes (34): cacheKey, client, config, description, en, fr, apiToken, apiTokenConfigured (+26 more)
 
-### Community 16 - "services.js"
-Cohesion: 0.05
-Nodes (63): Add a widget or a Supervision card, Before opening a pull request, Contributing to Dashmon, Conventions, Public repository: no personal data, Set up, client.mjs, client.mjs (+55 more)
+### Community 16 - "widget-registry.js"
+Cohesion: 0.11
+Nodes (32): errorText(), widgetConfig, widgetConfigBody, widgetConfigCloseBtn, widgetConfigSaveBtn, buildWidgetField(), commitWidgetConfig(), hasWidgetType() (+24 more)
 
 ### Community 17 - "sanitizeText"
-Cohesion: 0.22
-Nodes (18): HOST_MONITORING_TYPES, sanitizeFortune(), sanitizeHostMonitoring(), sanitizeLinkCounter(), sanitizePluginPrefs(), sanitizeSpeedtest(), SPEEDTEST_INTERVALS, WEB_LINK_COUNTER_TYPES (+10 more)
+Cohesion: 0.17
+Nodes (21): HOST_MONITORING_TYPES, sanitizeFortune(), sanitizeHostMonitoring(), sanitizeLinkCounter(), sanitizeSpeedtest(), SPEEDTEST_INTERVALS, WEB_LINK_COUNTER_TYPES, createConfigNormalizer() (+13 more)
 
 ### Community 18 - "gotify/manifest.json"
 Cohesion: 0.06
@@ -264,24 +281,24 @@ Cohesion: 0.06
 Nodes (31): cap_drop, container_name, dns, environment, image, ports, read_only, restart (+23 more)
 
 ### Community 21 - "js/themes.js"
-Cohesion: 0.11
-Nodes (30): configConflict, configSaveChain, fetchConfig(), patchConfig(), pendingConfigPatch, saveConfig(), setConfigRevision(), loadDemo() (+22 more)
+Cohesion: 0.18
+Nodes (22): patchConfig(), themeSelect, allThemes(), applyTheme(), applyThemeLabels(), buildThemeSelect(), currentTheme(), deleteCustomTheme() (+14 more)
 
 ### Community 22 - "en"
 Cohesion: 0.04
 Nodes (46): cacheKey, client, config, description, en, fr, cost, days30 (+38 more)
 
 ### Community 23 - "registry.js"
-Cohesion: 0.21
-Nodes (13): asLocalized(), FIELD_TYPES, fs, isPlainObject(), path, { pathToFileURL }, validateField(), validateManifest() (+5 more)
+Cohesion: 0.16
+Nodes (16): asLocalized(), FIELD_TYPES, fs, isPlainObject(), path, { pathToFileURL }, validateField(), validateManifest() (+8 more)
 
 ### Community 24 - "web/manifest.json"
 Cohesion: 0.08
 Nodes (23): cacheKey, defaultFor, description, en, fr, badProtocol, invalidUrl, name (+15 more)
 
 ### Community 25 - "ref_path"
-Cohesion: 0.09
-Nodes (35): Registry, fs, main(), os, path, assert, check(), finish() (+27 more)
+Cohesion: 0.10
+Nodes (35): browserSide(), fs, HOST, os, path, { pathToFileURL }, TEMPLATE, fs (+27 more)
 
 ### Community 26 - "request-origin.js"
 Cohesion: 0.39
@@ -301,7 +318,7 @@ Nodes (12): 1. Prepare Dashmon, 2. Install nginx and certbot, 3. Configure the H
 
 ### Community 30 - "speedtest.js"
 Cohesion: 0.11
-Nodes (27): agentsFor(), check(), crypto, downloadWorker(), endpoints(), errorCode(), failure(), fs (+19 more)
+Nodes (26): agentsFor(), check(), crypto, downloadWorker(), endpoints(), errorCode(), failure(), fs (+18 more)
 
 ### Community 31 - "en"
 Cohesion: 0.11
@@ -312,8 +329,8 @@ Cohesion: 0.11
 Nodes (19): error, metric, metricForks, metricForksShort, metricIssues, metricIssuesShort, metricStars, metricStarsShort (+11 more)
 
 ### Community 33 - "ref_path"
-Cohesion: 0.06
-Nodes (23): assert, path, { pathToFileURL }, assert, element(), main(), path, { pathToFileURL } (+15 more)
+Cohesion: 0.07
+Nodes (24): assert, report, assert, path, { pathToFileURL }, assert, element(), main() (+16 more)
 
 ### Community 34 - "agent.test.js"
 Cohesion: 0.09
@@ -328,8 +345,8 @@ Cohesion: 0.13
 Nodes (14): cap_drop, environment, image, ports, read_only, restart, security_opt, volumes (+6 more)
 
 ### Community 37 - "server.js"
-Cohesion: 0.10
-Nodes (23): errorHandler(), notFound(), requestLog(), startServer(), log, registerHostMetricsRoutes(), express, fs (+15 more)
+Cohesion: 0.09
+Nodes (24): AGENT_API_PATHS, agentApiFilter(), errorHandler(), notFound(), requestLog(), startServer(), log, registerHostMetricsRoutes() (+16 more)
 
 ### Community 38 - "Dashmon"
 Cohesion: 0.13
@@ -340,12 +357,12 @@ Cohesion: 0.15
 Nodes (23): fs, registerThemeRoutes(), fs, listThemeIds(), normalizeTheme(), OPTIONAL_VARIABLES, path, readTheme() (+15 more)
 
 ### Community 40 - "frontend.test.js"
-Cohesion: 0.15
+Cohesion: 0.16
 Nodes (18): assert, check(), COMPONENT_CSS, contains(), editorSource(), fs, importStateModules(), JS_DIR (+10 more)
 
 ### Community 41 - "editor.js"
 Cohesion: 0.10
-Nodes (34): resolveLanguage(), cancelBtn, closeBtn, configImportInput, demoConfigBtn, editorTitle, exportConfigBtn, importConfigBtn (+26 more)
+Nodes (32): configConflict, configSaveChain, fetchConfig(), pendingConfigPatch, configImportInput, demoConfigBtn, exportConfigBtn, importConfigBtn (+24 more)
 
 ### Community 42 - "settings.test.js"
 Cohesion: 0.15
@@ -356,20 +373,20 @@ Cohesion: 0.07
 Nodes (35): 1. Run, 2. Environment variables, 3. Data, 4. Portainer stacks, 5. nginx (optional), 6. Verification, 7. Monitoring LAN domains (.lan, .local…), 8. Private CA certificates (+27 more)
 
 ### Community 44 - "createSpeedtest"
-Cohesion: 0.38
-Nodes (9): createSpeedtest(), nextAt(), prefs(), report(), run(), runNow(), start(), store() (+1 more)
+Cohesion: 0.33
+Nodes (10): createSpeedtest(), nextAt(), prefs(), report(), run(), runNow(), start(), store() (+2 more)
 
 ### Community 45 - "icons.js"
-Cohesion: 0.14
-Nodes (18): availableFileName(), decodeFileName(), express, fs, path, PNG_SIGNATURE, pngSize(), registerIconRoutes() (+10 more)
+Cohesion: 0.13
+Nodes (18): createAuthFailures(), availableFileName(), decodeFileName(), express, fs, path, PNG_SIGNATURE, pngSize() (+10 more)
 
 ### Community 46 - "github/manifest.json"
 Cohesion: 0.20
 Nodes (9): cacheKey, config, hidden, id, interval, probe, server, strings (+1 more)
 
 ### Community 47 - "usage-report.js"
-Cohesion: 0.16
-Nodes (20): activity(), count(), fs, models(), money(), normalizeUsagePeriod(), PERIODS, readUsageReport() (+12 more)
+Cohesion: 0.28
+Nodes (13): activity(), count(), fs, models(), money(), normalizeUsagePeriod(), PERIODS, readUsageReport() (+5 more)
 
 ### Community 48 - "AGENTS.md"
 Cohesion: 0.15
@@ -384,8 +401,8 @@ Cohesion: 0.50
 Nodes (7): channelPath(), normalizeInput(), parseNumber(), parseSubscribers(), check(), fetchChannel(), isChallenge()
 
 ### Community 51 - "docker.js"
-Cohesion: 0.15
-Nodes (19): cachedResolved(), classifyDockerContainers(), computeDockerSummary(), computeLiveDockerSummary(), crypto, http, https, isDockerHub() (+11 more)
+Cohesion: 0.10
+Nodes (31): assert, check(), eacces(), http, pending, ref(), cachedResolved(), classifyDockerContainers() (+23 more)
 
 ### Community 52 - "api-errors.js"
 Cohesion: 0.13
@@ -393,7 +410,7 @@ Nodes (17): API_ERRORS, resultError(), assert, main(), path, { pathToFileURL }, 
 
 ### Community 53 - "hosts.js"
 Cohesion: 0.14
-Nodes (39): DEFAULT_TAB_ICON, ICON_OPTIONS, createAgentSettings(), renderForm(), request(), renderCategoryEditor(), closeColorPalette(), createColorPicker() (+31 more)
+Nodes (30): addCategoryBtn, addDashboardBtn, addHostBtn, addWebLinkBtn, categoryEditor, dashboardEditor, hostEditor, webLinksEditor (+22 more)
 
 ### Community 54 - "monitor.js"
 Cohesion: 0.39
@@ -444,8 +461,8 @@ Cohesion: 0.67
 Nodes (3): check(), isValidRepo(), METRICS
 
 ### Community 67 - "supervision.js"
-Cohesion: 0.15
-Nodes (22): supervisionList, supervisionPage, HOST_METRICS_INTERVAL, pageHidden(), cardIdentity(), find(), keysOf(), locate() (+14 more)
+Cohesion: 0.12
+Nodes (32): mobilePageBtn, mobilePageMenu, pageSwitchGroup, supervisionPage, activeDashboardId(), applyPage(), button(), closeMobilePageMenu() (+24 more)
 
 ### Community 69 - "description"
 Cohesion: 0.67
@@ -456,12 +473,12 @@ Cohesion: 0.67
 Nodes (3): label, en, fr
 
 ### Community 71 - "supervision/format.js"
-Cohesion: 0.29
-Nodes (17): bytesText(), handshakeAge(), handshakeText(), isMissing(), metricSeverity(), percentText(), relativeAge(), temperatureSeverity() (+9 more)
+Cohesion: 0.33
+Nodes (14): bytesText(), handshakeAge(), handshakeText(), isMissing(), metricSeverity(), percentText(), temperatureSeverity(), temperatureText() (+6 more)
 
-### Community 79 - "supervision/cards.js"
-Cohesion: 0.27
-Nodes (16): aptUpdatesCard(), aptHealth(), applyHostColor(), cardKey(), EXPANDABLE_CARDS, isExpanded(), setAllSmartDetails(), setExpanded() (+8 more)
+### Community 79 - "directories/client.mjs"
+Cohesion: 0.09
+Nodes (28): aptUpdatesCard(), element(), aptHealth(), SOURCE, directoryCard(), directoryError(), directoryItem(), element() (+20 more)
 
 ### Community 87 - "Install Dashmon and its agents"
 Cohesion: 0.20
@@ -480,68 +497,64 @@ Cohesion: 0.40
 Nodes (5): Dashmon configuration, Installation, Scheduling, Security, SMART supervision
 
 ### Community 91 - "services.js"
-Cohesion: 0.15
-Nodes (22): addServiceBtn, editorCategoryFilter, editorHostFilter, editorSearch, serviceEditor, categorySelect(), hostSelect(), iconElement() (+14 more)
+Cohesion: 0.21
+Nodes (22): addServiceBtn, serviceEditor, setIconButton(), categorySelect(), deleteButton(), getEditorHostNames(), hostSelect(), iconElement() (+14 more)
 
 ### Community 92 - "plugin-card.js"
 Cohesion: 0.17
-Nodes (17): reportDateText(), body(), cardContext(), pluginCard(), rowList(), cardView(), LEVELS, rows() (+9 more)
+Nodes (22): supervisionList, cardKey(), EXPANDABLE_CARDS, isExpanded(), setAllSmartDetails(), setExpanded(), toggleAllSmartDetails(), updateSmartCollapseButton() (+14 more)
 
-### Community 93 - "ref_assert"
-Cohesion: 0.11
-Nodes (13): assert, read(), report, assert, assert, config, normalize, assert (+5 more)
+### Community 93 - "apt-updates/manifest.json"
+Cohesion: 0.08
+Nodes (25): client, description, en, fr, files, report, guide, icon (+17 more)
 
 ### Community 94 - "opencode-widget.test.js"
-Cohesion: 0.13
-Nodes (17): createUsageSource(), agentName(), agentOfService(), fromAgent(), usageReport(), KINDS, agents, assert (+9 more)
+Cohesion: 0.05
+Nodes (51): Add a widget or a Supervision card, Before opening a pull request, Contributing to Dashmon, Conventions, Public repository: no personal data, Set up, client.mjs, client.mjs (+43 more)
 
 ### Community 95 - "dom.js"
-Cohesion: 0.05
-Nodes (69): closeTopMenu(), gridSelects, headerObserver, openSettings(), PHONE, positionTopMenu(), searchBox, toolbar (+61 more)
+Cohesion: 0.06
+Nodes (58): cancelBtn, closeBtn, closeImageLibraryBtn, collapseAllBtn, dashboard, deleteThemeBtn, editorCategoryFilter, editorHostFilter (+50 more)
 
 ### Community 96 - "Dashmon architecture"
 Cohesion: 0.33
 Nodes (6): Browser, Checks, Dashmon architecture, Extension points, Overview, Server
 
 ### Community 97 - "host/metrics.js"
-Cohesion: 0.11
-Nodes (30): fs, nonnegativeInteger(), readAptUpdatesReport(), ERRORS, fs, readDirectoryReport(), createHostMetrics(), collect() (+22 more)
-
-### Community 98 - "session-routes.test.js"
-Cohesion: 0.14
-Nodes (12): createAuthFailures(), SessionStore, registerSessionRoutes(), recordFailure(), requireAuth(), tooManyAttempts(), assert, express (+4 more)
+Cohesion: 0.08
+Nodes (33): createHostMetrics(), collect(), handle(), hostReport(), scriptVersions(), withPlugins(), localHostOf(), path (+25 more)
 
 ### Community 99 - "browser.test.js"
 Cohesion: 0.14
 Nodes (17): assert, children, crypto, dir, freePort(), fs, loopback, main() (+9 more)
 
 ### Community 100 - "ref_fs"
-Cohesion: 0.11
-Nodes (22): crypto, DEFAULT_WEB_LINKS, ensureAgentLocalHost(), ensureHostIds(), fs, path, prepareDataDir(), runStartupMigrations() (+14 more)
+Cohesion: 0.07
+Nodes (30): crypto, DEFAULT_WEB_LINKS, ensureAgentLocalHost(), ensureHostIds(), fs, path, prepareDataDir(), runStartupMigrations() (+22 more)
 
 ### Community 101 - "pairing-list.js"
-Cohesion: 0.30
-Nodes (12): agentHostSelect(), agentUrlInput(), button(), createPairingList(), render(), row(), setStatus(), TEST_FAILURES (+4 more)
+Cohesion: 0.26
+Nodes (16): listField(), render(), moveButtons(), agentHostSelect(), agentUrlInput(), button(), createPairingList(), render() (+8 more)
 
 ### Community 102 - "Themes"
 Cohesion: 0.17
 Nodes (11): Creating a theme, Dashmon — Customization guide, Example, File format, Font Awesome icons (categories, hosts, web links), Fortune Cookie, Icons, Images (services) (+3 more)
 
 ### Community 103 - "config-parity.test.js"
-Cohesion: 0.24
-Nodes (9): assert, check(), FIXTURES, main(), pairing, path, { pathToFileURL }, SAME_KEYS (+1 more)
+Cohesion: 0.16
+Nodes (16): assert, check(), FIXTURES, main(), pairing, path, { pathToFileURL }, PLUGIN_SETTINGS (+8 more)
 
 ### Community 104 - "registerAgentRoutes"
 Cohesion: 0.23
-Nodes (12): AGENT_API_PATHS, agentApiFilter(), apiError(), crypto, findLocalHost(), registerAgentConfigRoutes(), registerAgentRoutes(), agentConfig() (+4 more)
+Nodes (14): apiError(), crypto, findLocalHost(), registerAgentConfigRoutes(), registerAgentRoutes(), agentConfig(), collect(), readAgents() (+6 more)
 
-### Community 105 - "directory-card.js"
-Cohesion: 0.30
-Nodes (12): directoryCard(), directoryError(), directoryItem(), head(), healthLine(), verdictOf(), directoryErrorKey(), directoryHealth() (+4 more)
+### Community 105 - "directories/manifest.json"
+Cohesion: 0.08
+Nodes (25): client, description, en, fr, files, report, guide, icon (+17 more)
 
-### Community 106 - "render.js"
-Cohesion: 0.06
-Nodes (87): bumpUsage(), compactCount(), DEFAULT_CATEGORIES, DEFAULT_DASHBOARDS, HOST_MONITORING_TYPES, LINK_COUNTER_TYPES, linkCounterValue(), normalizeAptUpdatesPrefs() (+79 more)
+### Community 106 - "js/config/normalize.js"
+Cohesion: 0.12
+Nodes (32): DEFAULT_CATEGORIES, DEFAULT_DASHBOARDS, HOST_MONITORING_TYPES, LINK_COUNTER_TYPES, normalizeCollapsed(), normalizeConfig(), normalizeExpandedKeys(), normalizeFortune() (+24 more)
 
 ### Community 107 - "auth.test.js"
 Cohesion: 0.10
@@ -552,16 +565,16 @@ Cohesion: 0.50
 Nodes (3): arrowParens, printWidth, trailingComma
 
 ### Community 109 - "version.js"
-Cohesion: 0.39
-Nodes (7): appIsMounted(), describeVersion(), fs, isMountedPath(), readMountPoints(), releaseLabel(), assert
+Cohesion: 0.26
+Nodes (10): fs, path, registerSystemRoutes(), appIsMounted(), describeVersion(), fs, isMountedPath(), readMountPoints() (+2 more)
 
 ### Community 110 - "ref_os"
-Cohesion: 0.05
-Nodes (33): os, assert, bin, dir, fs, os, path, { spawnSync } (+25 more)
+Cohesion: 0.08
+Nodes (18): os, assert, { execFileSync }, fs, os, path, temporary, path (+10 more)
 
 ### Community 111 - "speedtest-card.js"
-Cohesion: 0.35
-Nodes (11): rateText(), dateText(), details(), figure(), graph(), health(), msText(), pending (+3 more)
+Cohesion: 0.30
+Nodes (13): applyHostColor(), rateText(), relativeAge(), dateText(), details(), figure(), graph(), health() (+5 more)
 
 ### Community 112 - "updates"
 Cohesion: 0.13
@@ -595,29 +608,29 @@ Nodes (22): element(), smartNumberText(), activityChart(), activityDetails(), co
 Cohesion: 0.25
 Nodes (16): board(), clear(), GAP, layoutColumns(), place(), placeColumns(), rowSpan(), schedule() (+8 more)
 
-### Community 123 - "store.js"
-Cohesion: 0.12
-Nodes (16): ConfigStore, crypto, fs, parseConfig(), path, readValid(), syncFolder(), writeDurably() (+8 more)
+### Community 123 - "config-store.test.js"
+Cohesion: 0.22
+Nodes (8): assert, dir, file, fs, os, path, store, warnings
 
 ### Community 124 - "t"
-Cohesion: 0.17
-Nodes (30): SPEEDTEST_INTERVALS, directorySection(), field(), filterSection(), renderChoices(), frequencyList(), generalSection(), guideLink() (+22 more)
+Cohesion: 0.16
+Nodes (28): SPEEDTEST_INTERVALS, choicesField(), renderChoices(), field(), frequencyList(), generalSection(), guideLink(), help() (+20 more)
 
-### Community 125 - "smart-report.js"
-Cohesion: 0.36
-Nodes (8): fs, normalizeSmartDisk(), readSmartDump(), smartAttribute(), smartNumber(), assert, disk, filesystem
+### Community 125 - "smart/report.js"
+Cohesion: 0.30
+Nodes (9): fs, normalizeSmartDisk(), readSmartDump(), smartAttribute(), smartNumber(), collect(), assert, disk (+1 more)
 
 ### Community 126 - "client.js"
-Cohesion: 0.22
-Nodes (14): open(), apiRequest(), blockedAddressError(), dns, getMaxBody(), getTimeout(), http, httpProbe() (+6 more)
+Cohesion: 0.15
+Nodes (20): open(), apiRequest(), blockedAddressError(), dns, getMaxBody(), getTimeout(), http, httpProbe() (+12 more)
 
-### Community 127 - "wireguard-report.js"
-Cohesion: 0.29
-Nodes (9): byteCount(), fs, handshakeSeconds(), normalizePeer(), normalizeWireguard(), readWireguardDump(), assert, filesystem (+1 more)
+### Community 127 - "wireguard/report.js"
+Cohesion: 0.26
+Nodes (10): byteCount(), fs, handshakeSeconds(), normalizePeer(), normalizeWireguard(), readWireguardDump(), collect(), assert (+2 more)
 
 ### Community 128 - "devDependencies"
-Cohesion: 0.17
-Nodes (14): unused, devDependencies, eslint@10.13.0, @eslint/js@10.0.1, globals@17.13.0, prettier@3.9.10, name, overrides (+6 more)
+Cohesion: 0.09
+Nodes (24): unused, devDependencies, eslint@10.13.0, @eslint/js@10.0.1, globals@17.13.0, prettier@3.9.10, name, overrides (+16 more)
 
 ### Community 129 - "duplicati/server.js"
 Cohesion: 0.39
@@ -635,17 +648,17 @@ Nodes (6): countsOf(), registerConfigRoutes(), flushUsage(), usageKey(), assert,
 Cohesion: 0.50
 Nodes (3): createConfirmDialog(), cancel(), open()
 
-### Community 135 - "docker.test.js"
-Cohesion: 0.20
-Nodes (12): assert, check(), eacces(), http, pending, ref(), dockerErrorBody(), dockerHostMode() (+4 more)
+### Community 135 - "render.js"
+Cohesion: 0.19
+Nodes (23): statusTitle(), searchQuery(), updateWebLinkCounters(), announceSearch(), categoryDashboardId(), createWelcome(), currentDashboardId(), drawDashboard() (+15 more)
 
 ### Community 136 - "security-headers.test.js"
 Cohesion: 0.38
 Nodes (5): CONTENT_SECURITY_POLICY, securityHeaders(), assert, headers(), plain
 
-### Community 137 - "ping/server.js"
-Cohesion: 0.31
-Nodes (6): check(), dns, net, parseTarget(), resolveTarget(), tcpConnect()
+### Community 137 - "smart/manifest.json"
+Cohesion: 0.08
+Nodes (24): client, description, en, fr, default, env, files, dump (+16 more)
 
 ### Community 138 - "Directory sizes"
 Cohesion: 0.40
@@ -655,41 +668,101 @@ Nodes (5): Directory sizes, Installation and selection, Permissions, Scheduling,
 Cohesion: 0.50
 Nodes (4): RFC-5737, demoData(), LABELS, withDemo()
 
-### Community 140 - "scripts"
-Cohesion: 0.22
-Nodes (9): scripts, format, format:check, lint, plugin:check, screenshots, start, test (+1 more)
+### Community 140 - "wireguard/manifest.json"
+Cohesion: 0.08
+Nodes (24): client, description, en, fr, default, env, files, dump (+16 more)
 
-### Community 141 - "ref_crypto"
-Cohesion: 0.29
-Nodes (6): assert, codec, crypto, encrypted, unconfigured, value
+### Community 141 - "claude/manifest.json"
+Cohesion: 0.08
+Nodes (23): client, description, en, fr, files, report, guide, icon (+15 more)
 
 ### Community 142 - "identity.js"
 Cohesion: 0.40
 Nodes (4): crypto, fs, loadAgentIdentity(), path
 
-### Community 143 - "system.js"
-Cohesion: 0.50
-Nodes (3): fs, path, version
+### Community 143 - "supervisions/opencode/manifest.json"
+Cohesion: 0.08
+Nodes (23): client, description, en, fr, files, report, guide, icon (+15 more)
+
+### Community 145 - "i18n.js"
+Cohesion: 0.18
+Nodes (12): DEFAULT_TAB_ICON, ICON_OPTIONS, createAgentSettings(), renderForm(), request(), UI_TEXT, serviceMatchesSearch(), state (+4 more)
+
+### Community 146 - "SupervisionCore"
+Cohesion: 0.22
+Nodes (6): SupervisionCore, bundledCards(), core(), plugin(), serverSide(), tempDir()
+
+### Community 147 - "ref_fs"
+Cohesion: 0.12
+Nodes (14): assert, bin, dir, fs, os, path, { spawnSync }, assert (+6 more)
+
+### Community 148 - "dashboard/cards.js"
+Cohesion: 0.25
+Nodes (14): bumpUsage(), sanitizeIconClass(), appendTileIcon(), applyWidgetStatus(), createCard(), safeHref(), groupLabel(), createSection() (+6 more)
+
+### Community 149 - "js/config/plugin-prefs.js"
+Cohesion: 0.27
+Nodes (15): normalizeDashboards(), pluginMonitoring(), cleanPath(), FIELD_KEY_PATTERN, fieldValue(), hasValue(), LEGACY_KEYS, listValue() (+7 more)
+
+### Community 150 - "Registry"
+Cohesion: 0.29
+Nodes (3): Registry, loadRegistry(), main()
+
+### Community 151 - "claude-stats.test.js"
+Cohesion: 0.17
+Nodes (10): assert, dir, fs, now, old, os, path, projects (+2 more)
+
+### Community 152 - "manifest.js"
+Cohesion: 0.45
+Nodes (9): bounded(), plain(), textKey(), validateFiles(), validateSettingField(), validateSettings(), validateSubField(), validateSupervisionManifest() (+1 more)
+
+### Community 153 - "lib/config/plugin-prefs.js"
+Cohesion: 0.44
+Nodes (9): cleanPath(), fieldValue(), hasValue(), LEGACY_KEYS, listValue(), plain(), preservePrefs(), sanitizePluginSettings() (+1 more)
+
+### Community 154 - "check-plugin.js"
+Cohesion: 0.29
+Nodes (8): checkClient(), fs, kindOf(), main(), os, path, { pathToFileURL }, usage()
+
+### Community 155 - "preserve.js"
+Cohesion: 0.40
+Nodes (9): cardIdentity(), find(), keysOf(), locate(), restore(), selectionInside(), snapshot(), typeOf() (+1 more)
+
+### Community 156 - "opencode-report.test.js"
+Cohesion: 0.20
+Nodes (9): assert, bin, dir, fs, os, path, period, report (+1 more)
+
+### Community 157 - "dashboard/web-links.js"
+Cohesion: 0.33
+Nodes (8): compactCount(), linkCounterValue(), linkCounterText(), renderWebLinks(), updateWebLinksAppearance(), webLinksEnabledSelect, webLinksList, webLinksSection
+
+### Community 158 - "dockerfile.test.js"
+Cohesion: 0.22
+Nodes (7): assert, dockerfile, fs, http, path, server, { spawn, spawnSync }
+
+### Community 159 - "supervision-registry.js"
+Cohesion: 0.36
+Nodes (6): assetUrl(), injectStyles(), listSupervisionPlugins(), loadSupervisionRegistry(), metas, renderers
 
 ## Knowledge Gaps
 - **3 isolated node(s):** `DEBIAN_FRONTEND`, `LC_ALL`, `RFC-5737`
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1242 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **21 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1371 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **24 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `t()` connect `hosts.js` to `js/pages.js`, `supervision.js`, `pairing-list.js`, `supervision/format.js`, `editor.js`, `render.js`, `directory-card.js`, `usage-card.js`, `supervision/cards.js`, `services.js`, `speedtest-card.js`, `js/metrics.js`, `js/themes.js`, `fortune-bar.js`, `services.js`, `t`, `dom.js`?**
-  _High betweenness centrality (0.075) - this node is a cross-community bridge._
+- **Why does `Extend Dashmon` connect `opencode-widget.test.js` to `README.md`?**
+  _High betweenness centrality (0.068) - this node is a cross-community bridge._
+- **Are the 7 inferred relationships involving `sanitizeText()` (e.g. with `createHostMetrics()` and `lib/sanitize.js`) actually correct?**
+  _`sanitizeText()` has 7 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `DEBIAN_FRONTEND`, `LC_ALL`, `RFC-5737` to the rest of the system?**
   _3 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `WidgetCore` be split into smaller, more focused modules?**
-  _Cohesion score 0.10520487264673312 - nodes in this community are weakly interconnected._
-- **Why does `Extend Dashmon` connect `services.js` to `README.md`?**
-  _High betweenness centrality (0.068) - this node is a cross-community bridge._
-- **Should `js/pages.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.09936575052854123 - nodes in this community are weakly interconnected._
-- **Why does `client.mjs` connect `services.js` to `speedtest-card.js`?**
-  _High betweenness centrality (0.041) - this node is a cross-community bridge._
-- **Should `ref_fs` be split into smaller, more focused modules?**
-  _Cohesion score 0.06485671191553545 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.11954022988505747 - nodes in this community are weakly interconnected._
+- **Why does `t()` connect `pairing-list.js` to `app.js`, `render.js`, `widget-registry.js`, `i18n.js`, `dashboard/cards.js`, `js/themes.js`, `dashboard/web-links.js`, `editor.js`, `hosts.js`, `supervision.js`, `supervision/format.js`, `fortune-bar.js`, `services.js`, `plugin-card.js`, `dom.js`, `speedtest-card.js`, `js/metrics.js`, `usage-card.js`, `t`?**
+  _High betweenness centrality (0.062) - this node is a cross-community bridge._
+- **Should `app.js` be split into smaller, more focused modules?**
+  _Cohesion score 0.11265969802555169 - nodes in this community are weakly interconnected._
+- **Why does `client.mjs` connect `opencode-widget.test.js` to `createSpeedtest`, `speedtest-card.js`?**
+  _High betweenness centrality (0.038) - this node is a cross-community bridge._
