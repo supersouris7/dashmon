@@ -8,6 +8,7 @@ RUN npm ci --omit=dev
 COPY server.js agent-server.js config.json ./
 COPY lib ./lib
 COPY widgets ./widgets
+COPY supervisions ./supervisions
 COPY public ./public
 # Host scripts: Dashmon reads the version each one carries to flag an older
 # copy installed on a host (lib/host/script-versions.js).

@@ -1,0 +1,34 @@
+{
+  "id": "my-card",
+  "version": "1.0.0",
+  "label": { "fr": "Charge système", "en": "System load" },
+  "description": {
+    "fr": "Charge moyenne et durée de fonctionnement de la machine.",
+    "en": "Load average and uptime of the machine."
+  },
+  "icon": "fa-solid fa-gauge-high",
+  "server": "server.js",
+  "client": "client.mjs",
+  "strings": {
+    "fr": {
+      "idle": "Charge normale",
+      "busy": "Machine chargée",
+      "perCore": "par cœur",
+      "uptime": "En fonctionnement depuis",
+      "load1": "Charge 1 min",
+      "load5": "Charge 5 min",
+      "load15": "Charge 15 min",
+      "cores": "Cœurs"
+    },
+    "en": {
+      "idle": "Normal load",
+      "busy": "Machine under load",
+      "perCore": "per core",
+      "uptime": "Up for",
+      "load1": "Load 1 min",
+      "load5": "Load 5 min",
+      "load15": "Load 15 min",
+      "cores": "Cores"
+    }
+  }
+}

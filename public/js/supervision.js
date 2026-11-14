@@ -22,6 +22,8 @@ import { layoutMasonry } from "./supervision/masonry.js";
 import { speedtestCard } from "./supervision/speedtest-card.js";
 import { scriptNotice } from "./supervision/script-notice.js";
 import { restore, selectionInside, snapshot } from "./supervision/preserve.js";
+import { pluginCard } from "./supervision/plugin-card.js";
+import { listSupervisionPlugins, supervisionRenderer } from "./supervision-registry.js";
 
 // A card whose report comes from an older host script ends with the command
 // that updates it.
@@ -178,6 +180,20 @@ export function renderSupervision() {
       const field = source.field;
       if (metrics?.ok && metrics[field] && host.monitoring?.[field]?.enabled !== false)
         grid.appendChild(withScriptNotice(usageCard(host, metrics, source), metrics, field));
+    });
+  }
+  // Cards of the supervision plugins (supervisions/<id>/): one per host whose
+  // metrics carry the plugin's report. A host switch hides them, as for the
+  // built-in reports; a plugin not installed here draws nothing.
+  for (const meta of listSupervisionPlugins()) {
+    const module = supervisionRenderer(meta.id);
+    if (!module) continue;
+    monitored.forEach(host => {
+      const metrics = byId.get(host.id);
+      const report = metrics?.ok ? metrics.plugins?.[meta.id] : null;
+      if (!report || host.monitoring?.plugins?.[meta.id]?.enabled === false) return;
+      const card = pluginCard(host, meta, module, report, state.language === "en" ? "en" : "fr");
+      if (card) grid.appendChild(card);
     });
   }
   supervisionList.append(grid);

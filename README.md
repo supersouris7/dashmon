@@ -174,7 +174,8 @@ PNG logos for many self-hosted apps.
 | **[docs/SMART.md](docs/SMART.md)** / **[docs/APT_UPDATES.md](docs/APT_UPDATES.md)** | SMART and APT supervision, local or on an agent. |
 | **[docs/OPENCODE.md](docs/OPENCODE.md)** / **[docs/CLAUDE_CODE.md](docs/CLAUDE_CODE.md)** | OpenCode and Claude Code statistics: models, tokens, tools. |
 | **[CUSTOMIZATION.md](CUSTOMIZATION.md)** | Themes and icons. |
-| **[docs/EXTENDING.md](docs/EXTENDING.md)** | Widget development. |
+| **[docs/EXTENDING.md](docs/EXTENDING.md)** | Write a widget or a Supervision card plugin. |
+| **[CONTRIBUTING.md](CONTRIBUTING.md)** | Propose a change or a plugin. |
 | **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | Code organization, for contributors. |
 | **[deploy/MAINTAINER.md](deploy/MAINTAINER.md)** | Image build and publication, screenshots. |
 
@@ -190,6 +191,8 @@ Everything goes through the issue tracker:
   version, how you deployed it, and anything relevant from `docker logs dashmon`.
 - **Icon requests** — the exact Font Awesome 6 free class you'd like per service.
 - **Feature ideas** — describe the use case, not just the feature.
+- **New widgets or Supervision cards** — you can write them yourself: see
+  [docs/EXTENDING.md](docs/EXTENDING.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Support & contact
 

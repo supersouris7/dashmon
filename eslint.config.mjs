@@ -40,14 +40,14 @@ export default [
       ]
     }
   },
-  // Server, agent, widget backends and tests: CommonJS on Node.
+  // Server, agent, plugin backends and tests: CommonJS on Node.
   {
     files: ["**/*.js"],
     languageOptions: { sourceType: "commonjs", globals: globals.node }
   },
-  // Browser modules and widget renderers.
+  // Browser modules, widget renderers and supervision card renderers.
   {
-    files: ["public/js/**/*.js", "widgets/**/*.mjs"],
+    files: ["public/js/**/*.js", "widgets/**/*.mjs", "supervisions/**/*.mjs"],
     languageOptions: { sourceType: "module", globals: globals.browser }
   },
   // The browser test drives Chromium and runs code inside the page.

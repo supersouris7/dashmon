@@ -24,12 +24,20 @@ async function freePort() {
   await new Promise(resolve => server.close(resolve));
   return port;
 }
-async function start(mode, port, folder) {
+// A supervision plugin installed on the agent only, from the template: its
+// report must reach the primary through the agent protocol.
+const pluginRoot = path.join(dir, "supervision-plugins");
+fs.cpSync(path.join(root, "supervisions", "_template"), path.join(pluginRoot, "my-card"), {
+  recursive: true
+});
+
+async function start(mode, port, folder, extraEnv = {}) {
   const child = spawn(process.execPath, ["server.js"], {
     cwd: root,
     env: {
       SPEEDTEST_SCHEDULE: "off",
       ...process.env,
+      ...extraEnv,
       PORT: String(port),
       DATA_DIR: folder,
       CONFIG_FILE: path.join(folder, "config.json"),
@@ -76,7 +84,10 @@ async function main() {
       finishedAt: Math.floor(Date.now() / 1000)
     })
   );
-  const agent = await start("agent", await freePort(), agentDir);
+  const agent = await start("agent", await freePort(), agentDir, {
+    DASHMON_SUPERVISION_DIR: pluginRoot,
+    DASHMON_ALLOW_UNSAFE_PLUGINS: "1"
+  });
   let response = await fetch(agent + "/api/sync/metrics");
   assert.equal(response.status, 401);
   response = await fetch(agent + "/api/sync/metrics", {
@@ -84,8 +95,10 @@ async function main() {
   });
   assert.equal(response.status, 200);
   let data = await response.json();
-  assert.deepEqual(data.protocol, { major: 1, minor: 0 });
+  assert.deepEqual(data.protocol, { major: 1, minor: 1 });
   assert.ok(data.agent.id && data.agent.capabilities.includes("host-metrics"));
+  assert.ok(data.agent.capabilities.includes("supervision-plugins"));
+  assert.ok(data.hosts[0].plugins["my-card"].cores >= 1, "rapport du plugin de supervision");
   assert.equal(data.collection.status, "available");
   assert.ok(Date.parse(data.collection.collectedAt));
   const agentId = data.agent.id;
@@ -394,6 +407,8 @@ async function main() {
   assert.ok(data.instances[0].lastSuccessAt);
   assert.equal(data.instances[0].hosts[0].speedtest.last, null);
   assert.equal(data.instances[0].hosts[0].speedtest.server, "librespeed");
+  // A plugin report travels as is: the primary renders it if it has the plugin.
+  assert.ok(Number.isFinite(data.instances[0].hosts[0].plugins["my-card"].uptime));
   // Speed test on the agent, asked through the primary: saved peers only.
   const speedtestCall = url =>
     fetch(primary + "/api/agents/speedtest", {

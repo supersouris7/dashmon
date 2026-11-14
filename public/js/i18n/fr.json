@@ -314,6 +314,7 @@
   "tabSmart": "SMART",
   "tabAptUpdates": "Mises à jour APT",
   "aptUpdatesShow": "Afficher le rapport APT",
+  "supervisionPluginShow": "Afficher la carte",
   "aptUpdatesHint": "Hôte local : apt-updates.sh écrit le rapport après chaque mise à jour planifiée.",
   "aptUpdatesHelp": "Le script met à jour les paquets de l’hôte (apt-get upgrade) et écrit son rapport. Il installe vraiment les mises à jour : son premier passage a lieu à l’heure choisie.",
   "supervisionOpencodeTitle": "OpenCode",

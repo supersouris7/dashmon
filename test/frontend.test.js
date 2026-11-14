@@ -775,6 +775,7 @@ async function main() {
       "supervisionOpencodeExpanded",
       "supervisionClaudeExpanded",
       "supervisionSpeedtestExpanded",
+      "supervisionPluginExpanded",
       "categoryColumns",
       "tileColumns",
       "supervisionColumns"
@@ -862,6 +863,7 @@ async function main() {
         supervisionOpencodeExpanded: [],
         supervisionClaudeExpanded: [],
         supervisionSpeedtestExpanded: [],
+        supervisionPluginExpanded: [],
         categoryColumns: "auto",
         tileColumns: "auto",
         supervisionColumns: "auto"

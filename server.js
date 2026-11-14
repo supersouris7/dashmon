@@ -10,7 +10,8 @@
 //   lib/config/   settings (environment), config.json, validation, migrations
 //   lib/http/     outgoing HTTP client, security middleware, logging, errors
 //   lib/routes/   every HTTP endpoint, one file per topic
-//   lib/widgets/  widget registry and core (widgets themselves live in widgets/)
+//   lib/widgets/  plugin registry and widget core (widgets live in widgets/)
+//   lib/supervisions/  core of the supervision plugins (cards in supervisions/)
 //   lib/status/   status loop of the monitored services
 //   lib/host/     metrics of the machine running Dashmon
 //   lib/agent/    agent protocol, identity and pairing
@@ -45,13 +46,14 @@ const { agentApiFilter } = require("./lib/http/agent-mode");
 const { requestLog } = require("./lib/http/request-log");
 const { notFound, errorHandler } = require("./lib/http/errors");
 const { WidgetCore } = require("./lib/widgets/core");
+const { SupervisionCore } = require("./lib/supervisions/core");
 const { createStatusMonitor } = require("./lib/status/monitor");
 const { createHostMetrics } = require("./lib/host/metrics");
 const { createUsageSource } = require("./lib/host/usage-source");
 const { readUsageReport } = require("./lib/host/usage-report");
 const { registerSessionRoutes } = require("./lib/routes/session");
 const { registerSystemRoutes } = require("./lib/routes/system");
-const { registerWidgetRoutes } = require("./lib/routes/widgets");
+const { registerWidgetRoutes, registerSupervisionRoutes } = require("./lib/routes/widgets");
 const { registerAgentRoutes } = require("./lib/routes/agents");
 const { registerConfigRoutes } = require("./lib/routes/config");
 const { registerIconRoutes } = require("./lib/routes/icons");
@@ -115,8 +117,18 @@ function createServices(settings) {
     sanitizeReplication: pairing.sanitizeReplication
   });
 
+  // Supervision cards contributed as plugins (supervisions/): like the
+  // widgets, adding one never requires changing this file. Loaded in both
+  // modes: an agent collects their reports for the main dashboard.
+  const supervisionCore = new SupervisionCore({
+    root: settings.rootDir,
+    dataDir: settings.dataDir,
+    log: message => log.info(message),
+    sanitizeText
+  });
+
   const statusMonitor = createStatusMonitor({ widgetCore, statusCache, readConfig, log });
-  const hostMetrics = createHostMetrics({ settings, readConfig, agentId, log });
+  const hostMetrics = createHostMetrics({ settings, readConfig, agentId, log, supervisionCore });
   const auth = createAuth({
     password: settings.password,
     sessions: new SessionStore(path.join(settings.dataDir, "sessions.json"))
@@ -127,6 +139,7 @@ function createServices(settings) {
 
   return {
     widgetCore,
+    supervisionCore,
     configRepository,
     readConfig,
     pairing,
@@ -197,6 +210,7 @@ function applySecurity(app, settings, { auth, failures, limits }) {
 function registerRoutes(app, settings, version, services) {
   const {
     widgetCore,
+    supervisionCore,
     configRepository,
     readConfig,
     pairing,
@@ -208,6 +222,7 @@ function registerRoutes(app, settings, version, services) {
   const { agentMode } = settings;
   registerSystemRoutes(app, { settings, version, readConfig });
   registerWidgetRoutes(app, { widgetCore });
+  registerSupervisionRoutes(app, { supervisionCore });
 
   const { readAgents } = registerAgentRoutes(app, {
     readConfig,
@@ -260,7 +275,7 @@ function createApp() {
   const settings = readSettings(process.env, { root: __dirname });
   const version = describeVersion(settings);
   const services = createServices(settings);
-  const { widgetCore, configRepository, readConfig, statusMonitor } = services;
+  const { widgetCore, supervisionCore, configRepository, readConfig, statusMonitor } = services;
 
   const app = express();
   applySecurity(app, settings, services);
@@ -292,6 +307,7 @@ function createApp() {
         app,
         settings,
         widgetCore,
+        supervisionCore,
         statusMonitor,
         log,
         onWidgetsLoaded: encryptStoredSecrets,

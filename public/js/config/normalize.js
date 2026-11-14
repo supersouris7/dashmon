@@ -73,6 +73,7 @@ export const VIEW_PREF_KEYS = Object.freeze([
   "supervisionOpencodeExpanded",
   "supervisionClaudeExpanded",
   "supervisionSpeedtestExpanded",
+  "supervisionPluginExpanded",
   "categoryColumns",
   "tileColumns",
   "supervisionColumns"
@@ -127,6 +128,7 @@ export function normalizeViewPrefs(cfg = {}) {
     supervisionOpencodeExpanded: normalizeExpandedKeys(cfg.supervisionOpencodeExpanded),
     supervisionClaudeExpanded: normalizeExpandedKeys(cfg.supervisionClaudeExpanded),
     supervisionSpeedtestExpanded: normalizeExpandedKeys(cfg.supervisionSpeedtestExpanded),
+    supervisionPluginExpanded: normalizeExpandedKeys(cfg.supervisionPluginExpanded),
     categoryColumns: normalizeGridColumns(cfg.categoryColumns),
     tileColumns: normalizeGridColumns(cfg.tileColumns),
     supervisionColumns: normalizeGridColumns(cfg.supervisionColumns)
@@ -221,8 +223,23 @@ export function normalizeHostMonitoring(raw) {
     aptUpdates: normalizeAptUpdatesPrefs(raw.aptUpdates),
     directorySizes: normalizeDirectoryPrefs(raw.directorySizes),
     opencode: normalizeAptUpdatesPrefs(raw.opencode),
-    claude: normalizeAptUpdatesPrefs(raw.claude)
+    claude: normalizeAptUpdatesPrefs(raw.claude),
+    plugins: normalizePluginPrefs(raw.plugins)
   };
+}
+
+// Supervision plugin cards turned off on a host: { <id>: { enabled: false } }.
+// Only the off switches are kept, whatever plugins are installed. Same rules
+// as lib/config/fields.js.
+const PLUGIN_ID_PATTERN = /^[a-z][a-z0-9-]{0,31}$/;
+export function normalizePluginPrefs(raw) {
+  const out = {};
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return out;
+  for (const [id, prefs] of Object.entries(raw).slice(0, 50)) {
+    if (!PLUGIN_ID_PATTERN.test(id)) continue;
+    if (prefs && typeof prefs === "object" && prefs.enabled === false) out[id] = { enabled: false };
+  }
+  return out;
 }
 
 // Display preference of a host's WireGuard peers. When absent, the section is

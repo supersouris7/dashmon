@@ -86,7 +86,12 @@ const FIXTURES = {
             ]
           },
           opencode: { enabled: false },
-          claude: { enabled: true }
+          claude: { enabled: true },
+          plugins: {
+            "carte-masquee": { enabled: false },
+            "carte-visible": { enabled: true },
+            Majuscules: { enabled: false }
+          }
         }
       },
       { id: "host-b", name: "Nas", icon: "fa-solid fa-hard-drive", color: "#ef476f" }
@@ -191,6 +196,7 @@ async function main() {
         "speedtest",
         "opencode",
         "path",
+        "plugins",
         "smart",
         "type",
         "wireguard"

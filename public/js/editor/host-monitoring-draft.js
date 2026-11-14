@@ -2,7 +2,8 @@ import {
   HOST_MONITORING_TYPES,
   SPEEDTEST_DEFAULT_INTERVAL,
   normalizeSpeedtestPrefs,
-  normalizeDirectoryPrefs
+  normalizeDirectoryPrefs,
+  normalizePluginPrefs
 } from "../config/normalize.js";
 
 // Working values: no monitoring is enabled without an explicit action.
@@ -17,7 +18,8 @@ export function blankMonitoring() {
     aptUpdates: { enabled: true },
     directorySizes: { enabled: true, entries: [] },
     opencode: { enabled: true },
-    claude: { enabled: true }
+    claude: { enabled: true },
+    plugins: {}
   };
 }
 
@@ -67,7 +69,10 @@ export function serializeHostMonitoring(m) {
     out.claude = { enabled: false };
   const directories = normalizeDirectoryPrefs(m.directorySizes);
   if (!directories.enabled || directories.entries.length) out.directorySizes = directories;
+  const plugins = normalizePluginPrefs(m.plugins);
+  if (Object.keys(plugins).length) out.plugins = plugins;
   const meaningful =
+    out.plugins ||
     out.directorySizes ||
     out.path ||
     out.wireguard ||

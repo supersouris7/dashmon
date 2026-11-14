@@ -1,5 +1,7 @@
 // Same monitoring form for the primary and agents; only their save differs.
 import { t } from "../i18n.js";
+import { state } from "../state.js";
+import { listSupervisionPlugins, pluginLabel } from "../supervision-registry.js";
 import { SPEEDTEST_DEFAULT_INTERVAL, SPEEDTEST_INTERVALS } from "../config/normalize.js";
 import { moveItem } from "./drag.js";
 import { setIconButton, setDeleteIcon } from "./icon-button.js";
@@ -19,6 +21,8 @@ function hint(key) {
   return text;
 }
 
+// title: an interface text key, or { text } for a label already translated
+// (supervision plugins carry their own).
 function section(form, key, icon) {
   const box = document.createElement("fieldset");
   box.className = "host-settings-section";
@@ -26,7 +30,8 @@ function section(form, key, icon) {
   const symbol = document.createElement("i");
   symbol.className = icon;
   symbol.setAttribute("aria-hidden", "true");
-  legend.append(symbol, document.createTextNode(" " + t(key)));
+  const title = typeof key === "object" ? key.text : t(key);
+  legend.append(symbol, document.createTextNode(" " + title));
   box.appendChild(legend);
   form.appendChild(box);
   return box;
@@ -328,6 +333,35 @@ const REPORT_SECTIONS = [
   ]
 ];
 
+// One switch per installed supervision plugin (supervisions/<id>/), stored
+// as monitoring.plugins.<id>.enabled. The plugin's description, from its
+// manifest, says what the card needs.
+function pluginSections(form, monitoring) {
+  const lang = state.language === "en" ? "en" : "fr";
+  for (const meta of listSupervisionPlugins()) {
+    const box = section(
+      form,
+      { text: pluginLabel(meta, lang) },
+      meta.icon || "fa-solid fa-puzzle-piece"
+    );
+    const control = document.createElement("input");
+    control.type = "checkbox";
+    control.name = "plugin-" + meta.id;
+    control.checked = monitoring.plugins?.[meta.id]?.enabled !== false;
+    control.addEventListener("change", () => {
+      monitoring.plugins = { ...monitoring.plugins, [meta.id]: { enabled: control.checked } };
+    });
+    field(box, "supervisionPluginShow", control);
+    const description = meta.description?.[lang] || meta.description?.fr || "";
+    if (description) {
+      const text = document.createElement("p");
+      text.className = "host-monitor-hint";
+      text.textContent = description;
+      box.appendChild(text);
+    }
+  }
+}
+
 export function renderHostSettings(container, { config, metrics, onRename = () => {} }) {
   container.replaceChildren();
   const form = document.createElement("div");
@@ -345,6 +379,7 @@ export function renderHostSettings(container, { config, metrics, onRename = () =
     toggle(box, monitoring, key, label);
     help(box, helpKey, file, script);
   }
+  pluginSections(form, monitoring);
   container.appendChild(form);
 }
 

@@ -9,8 +9,8 @@ guides.
 ```text
 Browser: state and drafts -> HTTP API -> main server
                                            |-- configuration and storage
-                                           |-- local supervision
-                                           |-- widgets
+                                           |-- local supervision (+ supervision plugins)
+                                           |-- widgets (plugins)
                                            `-- remote agents (measurements only)
 ```
 
@@ -42,7 +42,10 @@ lib/
                      interface (public/js/api-error.js)
   routes/            all HTTP routes, one file per topic; each header lists
                      its routes
-  widgets/           widget registry, schema, storage and core
+  widgets/           plugin registry (shared by both plugin kinds), widget
+                     schema, storage and core
+  supervisions/      core of the supervision plugins: runs collect(), bounds
+                     and isolates their reports
   status/            status loop of the monitored services
   host/              machine measurements (CPU, RAM, disk, scheduled
                      speed test) and WireGuard, SMART, APT, OpenCode
@@ -53,6 +56,9 @@ lib/
   lifecycle.js       startup, status loop and clean shutdown
   log.js             timestamped logs
 widgets/<id>/        one folder per widget (see EXTENDING.md)
+supervisions/<id>/   one folder per supervision card plugin (see EXTENDING.md)
+scripts/
+  check-plugin.js    npm run plugin:check: loads one plugin as the registry does
 ```
 
 A few rules guide this split:
@@ -105,6 +111,8 @@ public/js/
   language-ui.js       applies the language to the page and re-renders
   element.js           element(tag, class, text), the brick of the cards
   widget-registry.js   loads the widgets published by the server
+  supervision-registry.js  loads the supervision card plugins; their cards are
+                       drawn by supervision/plugin-card.js
   pages.js, themes.js, view-prefs.js, images.js, fortune.js, metrics.js...
   preload.js           theme applied before the first paint (dashboard and login)
   login.js             login page
@@ -128,9 +136,44 @@ public/js/
 - Texts are added to both `i18n/fr.json` and `i18n/en.json`: a test checks that
   both files have the same keys.
 
+## Extension points
+
+Community contributions go through two plugin kinds, described in
+[`EXTENDING.md`](EXTENDING.md). Both rely on one engine,
+`lib/widgets/registry.js`: folder discovery, manifest validation, loading of
+the server module (`check` or `collect`), serving of the browser files, and
+refusal of anything that does not validate, without stopping the startup.
+
+| Kind | Server core | Browser | Data path |
+| --- | --- | --- | --- |
+| tile widget | `lib/widgets/core.js` (status loop) | `widget-registry.js` | status cache -> `/api/status` |
+| supervision card | `lib/supervisions/core.js` (host metrics) | `supervision-registry.js`, `supervision/plugin-card.js` | `host.plugins.<id>` -> `/api/host-metrics`, agent protocol 1.1 |
+
+What a plugin cannot do, on purpose:
+
+- add an HTTP route, a configuration field outside its own schema, or a
+  setting outside `monitoring.plugins.<id>`: the API surface and
+  `config.json` stay owned by the core;
+- write outside its storage folder, or read the data folder other than through
+  `ctx.readDataFile` (bare file names);
+- reach the browser with secrets: a widget's secrets are decrypted for its
+  `check()` only, a supervision report is sent as is and must hold none.
+
+Plugins run in the main process: the registry bounds mistakes (timeouts, sizes,
+names), it is not a sandbox. That is why external plugin folders need
+`DASHMON_ALLOW_UNSAFE_PLUGINS=1`.
+
+The built-in Supervision cards (host, WireGuard, SMART, APT, directories, speed
+test, OpenCode, Claude Code) predate the plugin kind and stay in the core: they
+have dedicated settings forms, host scripts versioned with the image
+(`lib/host/script-versions.js`) and fields of their own in the agent protocol.
+A new card should be a plugin; moving a built-in card to a plugin is possible
+once it only needs an on/off switch.
+
 ## Checks
 
-`npm test` runs the tests without a browser, `npm run lint` the static analysis
+`npm test` runs the tests without a browser, `npm run plugin:check -- <folder>`
+checks one plugin, `npm run lint` the static analysis
 (ESLint: undefined names, unused variables and imports) and
 `npm run format:check` checks the formatting (Prettier; `npm run format` fixes
 it). The browser and server normalizations of the config are written twice:

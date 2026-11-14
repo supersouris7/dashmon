@@ -52,6 +52,7 @@ import { renderWebLinksEditor } from "./editor/web-links.js";
 import { renderServiceEditor } from "./editor/services.js";
 import { closeImageLibrary } from "./images.js";
 import { loadWidgetRegistry } from "./widget-registry.js";
+import { loadSupervisionRegistry } from "./supervision-registry.js";
 import { menuRightOffset } from "./toolbar.js";
 import { updateFortuneBar, showFortuneAgain } from "./dashboard/fortune-bar.js";
 import {
@@ -124,6 +125,7 @@ async function loadConfig() {
     state.supervisionOpencodeExpanded = viewPrefs.supervisionOpencodeExpanded;
     state.supervisionClaudeExpanded = viewPrefs.supervisionClaudeExpanded;
     state.supervisionSpeedtestExpanded = viewPrefs.supervisionSpeedtestExpanded;
+    state.supervisionPluginExpanded = viewPrefs.supervisionPluginExpanded;
     state.categoryColumns = viewPrefs.categoryColumns;
     state.tileColumns = viewPrefs.tileColumns;
     state.supervisionColumns = viewPrefs.supervisionColumns;
@@ -480,7 +482,7 @@ async function init() {
   try {
     // The registry MUST be loaded before the config: state normalisation and the
     // first render rely on the widget schemas.
-    await Promise.all([loadThemes(), loadWidgetRegistry()]);
+    await Promise.all([loadThemes(), loadWidgetRegistry(), loadSupervisionRegistry()]);
     await loadConfig();
     setupVisibilityPause();
     startStatusLoop();

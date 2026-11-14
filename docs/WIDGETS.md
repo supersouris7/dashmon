@@ -258,6 +258,7 @@ cp -r widgets/_template widgets/my-widget   # then edit manifest.json, server.js
 ```
 
 → **[docs/EXTENDING.md](EXTENDING.md)** — the full guide (manifest, contexts,
-security rules, tests).
+security rules, tests). The same guide covers **Supervision cards**, the other
+plugin kind.
 
 Missing a widget for a tool you self-host? [Open an issue](https://github.com/supersouris7/dashmon/issues).

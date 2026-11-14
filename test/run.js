@@ -15,6 +15,7 @@ const SUITES = [
   "widgets-links.test.js",
   "widgets-renderers.test.js",
   "widgets-status.test.js",
+  "supervisions.test.js",
   "frontend.test.js",
   "agent.test.js",
   "apt.test.js",
