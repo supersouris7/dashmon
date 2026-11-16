@@ -289,7 +289,12 @@ function normalizeReplication(raw) {
     agentIcons: associated(source.agentIcons, sanitizeIconClass),
     // Each pairing points to a host of the editor: its colour and icon dress the
     // remote tile. The match uses the stable id, never the name.
-    agentHosts: associated(source.agentHosts, value => sanitizeText(value, 64))
+    agentHosts: associated(source.agentHosts, value => sanitizeText(value, 64)),
+    // Token of each agent: typed in clear, or the mask of a saved one. The
+    // server encrypts it and only ever sends the mask back.
+    agentTokens: associated(source.agentTokens, value =>
+      typeof value === "string" ? value.trim().slice(0, 2000) : ""
+    )
   };
 }
 

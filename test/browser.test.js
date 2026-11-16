@@ -12,6 +12,7 @@ const root = path.join(__dirname, "..");
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-browser-"));
 const password = crypto.randomBytes(24).toString("hex");
 const token = crypto.randomBytes(24).toString("hex");
+const agentToken = crypto.randomBytes(24).toString("hex");
 const children = [];
 const loopback = [127, 0, 0, 1].join(".");
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -79,7 +80,8 @@ async function main() {
         CONFIG_FILE: path.join(agentData, "config.json"),
         DASHMON_MODE: "agent",
         DASHMON_PASSWORD: "",
-        DASHMON_SYNC_TOKEN: token,
+        // Its own token, entered in the pairing panel: not the primary's.
+        DASHMON_SYNC_TOKEN: agentToken,
         DASHMON_MASTER_KEY: ""
       },
       stdio: "ignore"
@@ -704,7 +706,7 @@ async function main() {
   assert.ok(linked.host && linked.hosts.includes(linked.host));
   await evaluate("document.querySelector('[data-panel=replicationPanel]').click()");
   await evaluate(
-    `(()=>{const i=document.querySelector('.agent-editor-item input');i.value=${JSON.stringify(agentBase)};i.dispatchEvent(new Event('input',{bubbles:true}));})()`
+    `(()=>{const i=document.querySelector('.agent-editor-item input');i.value=${JSON.stringify(agentBase)};i.dispatchEvent(new Event('input',{bubbles:true}));const k=document.querySelector('.agent-editor-item input[type=password]');k.value=${JSON.stringify(agentToken)};k.dispatchEvent(new Event('input',{bubbles:true}));})()`
   );
   assert.equal(
     await evaluate("document.querySelectorAll('#settingsAgentTree > button').length"),
@@ -720,6 +722,11 @@ async function main() {
     await evaluate("document.querySelector('#settingsAgentTree button').disabled"),
     false
   );
+  // The token typed for this agent comes back as a mask only.
+  const savedToken = await evaluate(
+    `fetch('/api/config').then(r=>r.json()).then(c=>c.replication.agentTokens[${JSON.stringify(agentBase + "/")}])`
+  );
+  assert.match(savedToken, /^aes1\.masked\./);
   await evaluate("document.querySelector('#settingsAgentTree button').click()");
   await wait(700);
   assert.equal(

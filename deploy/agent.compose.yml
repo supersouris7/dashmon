@@ -1,4 +1,5 @@
-# Portainer: set DASHMON_SYNC_TOKEN in stack environment.
+# Portainer: set this agent's own DASHMON_SYNC_TOKEN in stack environment
+# (openssl rand -base64 32), then enter it on the main dashboard when pairing.
 # Restrict the published port to a trusted network or use a TLS reverse proxy.
 services:
   dashmon-agent:

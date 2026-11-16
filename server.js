@@ -107,10 +107,14 @@ function createServices(settings) {
   const agentId = agentMode ? loadAgentIdentity(settings.dataDir) : "";
 
   // Pairing: the agents this dashboard reads metrics from.
+  // Each agent's token is encrypted with the widget secrets' key.
   const pairing = createReplicationConfig({
     sanitizeUrl,
     sanitizeText,
-    defaultName: os.hostname().slice(0, 100)
+    defaultName: os.hostname().slice(0, 100),
+    encryptSecret: settings.masterKey ? secrets.encryptSecret : null,
+    decryptSecret: secrets.decryptSecret,
+    fallbackToken: agentMode ? "" : settings.syncToken
   });
   // Supervision cards contributed as plugins (supervisions/): like the
   // widgets, adding one never requires changing this file. Loaded in both
@@ -232,7 +236,8 @@ function registerRoutes(app, settings, version, services) {
     sanitizeSyncUrl: pairing.sanitizeSyncUrl,
     request: httpClient.apiRequest,
     assess: agentProtocol.assess,
-    token: settings.syncToken,
+    tokenFor: pairing.tokenFor,
+    tokenForTest: pairing.tokenForTest,
     timeout: STATUS_TIMEOUT,
     cacheMs: settings.hostMetricsInterval
   });
@@ -242,8 +247,9 @@ function registerRoutes(app, settings, version, services) {
     revision: config => configRepository.revision(config),
     normalize: config => configRepository.ensureLocalHost(normalizeConfig(config)),
     ensureHostIds: () => ensureHostIds(configRepository),
-    forBrowser: config => widgetCore.forBrowser(config),
-    restoreSecrets: (incoming, current) => widgetCore.restoreSecrets(incoming, current),
+    forBrowser: config => pairing.maskTokens(widgetCore.forBrowser(config)),
+    restoreSecrets: (incoming, current) =>
+      pairing.restoreTokens(widgetCore.restoreSecrets(incoming, current), current),
     logger: log
   });
   registerIconRoutes(app, { iconsDir: settings.iconsDir, agentMode, log });

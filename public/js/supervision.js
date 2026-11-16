@@ -21,6 +21,13 @@ import {
   supervisionRenderer
 } from "./supervision-registry.js";
 
+// Why an agent tab has no data, when the main dashboard knows.
+const OFFLINE_REASONS = {
+  incompatible_protocol: "agentIncompatible",
+  token_missing: "agentTokenMissing",
+  unauthorized: "agentUnauthorized"
+};
+
 // A card whose report comes from an older host script ends with the command
 // that updates it (metrics.scriptUpdates, keyed by plugin id).
 function withScriptNotice(card, metrics, id) {
@@ -62,9 +69,7 @@ export function renderSupervision() {
   if (selected?.error) {
     const status = document.createElement("p");
     status.className = "supervision-empty";
-    status.textContent = t(
-      selected.reason === "incompatible_protocol" ? "agentIncompatible" : "agentOffline"
-    );
+    status.textContent = t(OFFLINE_REASONS[selected.reason] || "agentOffline");
     supervisionList.append(status);
     updateSmartCollapseButton();
     return;
