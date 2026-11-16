@@ -1,6 +1,6 @@
 "use strict";
-// Login routes on a real Express app: protected images, logged failures and
-// the block after repeated wrong passwords.
+// Login routes on a real Express app: protected images and plugin browser
+// files, logged failures and the block after repeated wrong passwords.
 const assert = require("assert");
 const express = require("express");
 const fs = require("fs");
@@ -11,6 +11,14 @@ const { SessionStore } = require("../lib/http/session-store");
 const { createAuthFailures } = require("../lib/http/auth-failures");
 const { registerSessionRoutes } = require("../lib/routes/session");
 const { registerIconRoutes } = require("../lib/routes/icons");
+const { registerWidgetRoutes, registerSupervisionRoutes } = require("../lib/routes/widgets");
+
+// Serves one browser file for any plugin id.
+const fakeCore = {
+  publicList: () => [],
+  clientAsset: () => ({ body: "export {};" }),
+  asset: () => ({ type: "text/javascript", body: "export {};" })
+};
 
 async function main() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-session-"));
@@ -30,6 +38,8 @@ async function main() {
     log
   });
   registerIconRoutes(app, { iconsDir, log });
+  registerWidgetRoutes(app, { widgetCore: fakeCore });
+  registerSupervisionRoutes(app, { supervisionCore: fakeCore });
   const server = app.listen(0, "127.0.0.1");
   await new Promise(resolve => server.once("listening", resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
@@ -48,6 +58,28 @@ async function main() {
     assert.equal(image.status, 200);
     assert.match(image.headers.get("cache-control"), /private/);
 
+    // Plugin browser code tells which plugins are installed: session too.
+    for (const url of ["/widget-client/demo.js", "/supervision-client/demo/client.mjs"]) {
+      assert.equal((await fetch(base + url)).status, 401, url);
+      const asset = await fetch(base + url, { headers: { Authorization: basic } });
+      assert.equal(asset.status, 200, url);
+      assert.match(asset.headers.get("cache-control"), /private/);
+    }
+
+    // An agent has no web interface: no plugin browser file at all.
+    const agent = express();
+    registerWidgetRoutes(agent, { widgetCore: fakeCore, agentMode: true });
+    registerSupervisionRoutes(agent, { supervisionCore: fakeCore, agentMode: true });
+    const agentServer = agent.listen(0, "127.0.0.1");
+    await new Promise(resolve => agentServer.once("listening", resolve));
+    try {
+      const agentBase = `http://127.0.0.1:${agentServer.address().port}`;
+      assert.equal((await fetch(agentBase + "/widget-client/demo.js")).status, 404);
+      assert.equal((await fetch(agentBase + "/supervision-client/demo/client.mjs")).status, 404);
+    } finally {
+      agentServer.close();
+    }
+
     // Each wrong password is logged; the third one blocks and says so.
     for (let i = 0; i < 3; i++) assert.equal((await login("bad")).status, 401);
     assert.equal(warnings.filter(line => /^Login failed from /.test(line)).length, 3);
@@ -60,7 +92,7 @@ async function main() {
     server.close();
     fs.rmSync(dir, { recursive: true, force: true });
   }
-  console.log("PASS connexion : images protegees, echecs journalises, blocage");
+  console.log("PASS connexion : images et code des plugins proteges, echecs journalises, blocage");
 }
 
 main().catch(error => {

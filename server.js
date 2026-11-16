@@ -223,8 +223,8 @@ function registerRoutes(app, settings, version, services) {
   } = services;
   const { agentMode } = settings;
   registerSystemRoutes(app, { settings, version, readConfig });
-  registerWidgetRoutes(app, { widgetCore });
-  registerSupervisionRoutes(app, { supervisionCore });
+  registerWidgetRoutes(app, { widgetCore, agentMode });
+  registerSupervisionRoutes(app, { supervisionCore, agentMode });
 
   const { readAgents } = registerAgentRoutes(app, {
     readConfig,

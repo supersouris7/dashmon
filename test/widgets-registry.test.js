@@ -156,6 +156,26 @@ async function main() {
   await copied.load();
   check("modele : la copie de _template se charge hors de widgets/", copied.failures, []);
   ok("modele : la copie de _template a un backend", !!copied.get(template.id)?.check);
+
+  // "." and ".." match the allowed characters but name the plugin folder or
+  // its parent: the plugin is rejected, nothing is loaded.
+  for (const value of [".", ".."]) {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-dotdot-"));
+    fs.mkdirSync(path.join(root, "demo"));
+    fs.writeFileSync(
+      path.join(root, "demo", "manifest.json"),
+      JSON.stringify({ id: "demo", label: { fr: "Demo", en: "Demo" }, server: value })
+    );
+    const registry = new Registry({ kind: "widget", roots: [root], logger: () => {} });
+    await registry.load();
+    ok(`securite : server "${value}" refuse`, !registry.get("demo"));
+    ok(
+      `securite : server "${value}" signale`,
+      registry.failures.some(f => /file name not allowed/.test(JSON.stringify(f))),
+      JSON.stringify(registry.failures)
+    );
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 }
 
 run(main);

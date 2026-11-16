@@ -429,8 +429,8 @@ npm test                           # the whole suite
 - The `secret` type is encrypted on write (`aes1.`) and never returned in clear
   text by the API; the editor shows "saved password" and only rewrites the value
   if you enter a new one.
-- Declared file names cannot contain `/` or `..`: the registry rejects the
-  plugin, it never serves a file outside its folder. The server module is
+- Declared file names are bare names: no `/`, and neither `.` nor `..`. The
+  registry rejects the plugin, it never serves a file outside its folder. The server module is
   never served to the browser.
 - `ctx.api` caps the response body (2 MB) and uses the same timeout as the rest
   of Dashmon: do not build your own HTTP client. To read a larger HTML page, ask
@@ -439,6 +439,11 @@ npm test                           # the whole suite
 - `ctx.storage` and `ctx.readDataFile` accept a bare file name only: a plugin
   cannot read or write outside the data folder through them, and the paths
   of `ctx.files` come from the administrator, never from the web interface.
+  The data folder also holds `config.json` and `sessions.json`, so these
+  helpers can read them: they keep a plugin from straying by mistake, they do
+  not shield Dashmon's own files from it.
+- The browser files of a plugin are served only to a logged-in session, and
+  never by an agent.
 
 **A plugin is code that runs inside the Dashmon process, with its rights.** The
 bounds above protect against mistakes, not against malicious code. Only install
