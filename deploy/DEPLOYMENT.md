@@ -89,8 +89,8 @@ See `.env.example`. The most important:
 | `TRUST_PROXY` | `0` | `1` only if nginx terminates HTTPS in front of the container |
 | `DASHBOARD_INSECURE_TLS` | empty | `1` if your monitored hosts use self-signed certificates |
 | `DASHMON_MASTER_KEY` | **required** (main dashboard) | AES-256-GCM master key encrypting widget secrets (e.g. Duplicati password) in `config.json`. Not needed by agents |
-| `DASHMON_SYNC_TOKEN` | empty | On an agent: its own secret, entered on the main dashboard when pairing it. On the main dashboard: optional token for agents paired without their own |
-| `DASHMON_MODE` | empty | `agent` runs a supervision agent instead of the dashboard (requires `DASHMON_SYNC_TOKEN`) |
+| `DASHMON_SYNC_TOKEN` | empty | Optional pairing key: set on an agent and on the main dashboard, only that dashboard may pair the agent. Each agent generates its own token at the pairing |
+| `DASHMON_MODE` | empty | `agent` runs a supervision agent instead of the dashboard |
 | `HOST_METRICS_INTERVAL` | `60` | Seconds between two reads of the host resources (minimum 5, maximum 3600) |
 | `DOCKER_SOCKET` | `/var/run/docker.sock` | Socket read by the Docker widget in local mode |
 | `DOCKER_API_VERSION` | `v1.41` | Docker Engine API version used by the Docker widget |
@@ -168,9 +168,9 @@ Update the image and redeploy the stack to pick up a newer build.
 
 Create `DASHMON_PASSWORD` and `DASHMON_MASTER_KEY` (both required)
 in Portainer's stack environment. The master key encrypts widget credentials;
-keep a backup of it separately from the data volume. `DASHMON_SYNC_TOKEN` can
-stay empty: each agent has its own token, entered in its pairing and stored
-encrypted with the master key.
+keep a backup of it separately from the data volume. Agents need no token: each
+one generates its own when paired, and the main dashboard keeps it encrypted
+with the master key (`agent-tokens.json` in the data volume).
 
 ```yaml
 services:
@@ -204,11 +204,12 @@ access.
 
 ### Supervision agents
 
-Deploy this separate stack on each monitored host. In its Portainer environment,
-set `DASHMON_SYNC_TOKEN` to a long random value of its own
-(`openssl rand -base64 32`), different on each agent, and enter it on the main
-dashboard in that agent's pairing. Agents have no web interface and need no
-password; their API requires the token.
+Deploy this separate stack on each monitored host. It needs no variable: the
+agent accepts the first main dashboard that pairs it, generates its own token
+and then only answers that dashboard. Pair it right after deploying it, or set
+the same `DASHMON_SYNC_TOKEN` on the agent and on the main dashboard to choose
+which dashboard may pair it. Agents have no web interface and need no password;
+their API requires the token.
 
 ```yaml
 services:
@@ -225,7 +226,6 @@ services:
       - "8080:8080"
     environment:
       DASHMON_MODE: agent
-      DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:?Set DASHMON_SYNC_TOKEN}
     volumes:
       - dashmon-agent-data:/app/data
       # Optional: mount the host filesystem read-only, then select /host
@@ -252,8 +252,7 @@ filesystem. To monitor a host filesystem, mount it read-only and set its
 container path in the agent configuration on the primary.
 
 On the main instance, open **Settings → Agents → Pairing** and click **Add
-agent** for each agent: enter its base URL and its own token, optionally a tab
-name, and pick an
+agent** for each agent: enter its base URL, optionally a tab name, and pick an
 **Associated host** (created beforehand in **Settings → Dashboard → Hosts**).
 The agent's supervision cards reuse that host's color and icon. Without a host,
 the pairing still works but the cards keep their default appearance. Without a
@@ -261,7 +260,7 @@ name, the tab uses the address's hostname. The Supervision page can then select 
 main instance fetches metrics on demand; it never sends dashboard
 configuration to an agent. Configure HTTPS or a trusted private network: the
 agent's token travels in an HTTP header. Restrict access to the published port.
-For each address, **Test connection** checks access and the token typed for that agent from the
+For each address, **Test connection** pairs the agent if needed and checks access from the
 main server, even before saving. Once saved, the agent appears by name under
 **Supervision**, alongside **Local** (the primary). Select a host to open the
 same general, WireGuard, SMART and APT settings form inside the primary.
@@ -276,7 +275,7 @@ mounts and dropped capabilities remain unchanged. There is no remote command
 execution. A leftover `DASHMON_PASSWORD` on an agent is ignored.
 
 Existing secondary configurations are retained. To convert one, back up its
-data volume, start it with `DASHMON_MODE=agent` and `DASHMON_SYNC_TOKEN`,
+data volume, start it with `DASHMON_MODE=agent`,
 then review its configuration on the primary. The first existing local host is reused. The
 old replication endpoint no longer accepts configuration; legacy secondary
 roles no longer lock the dashboard when running in normal mode.

@@ -24,7 +24,7 @@ import {
 // Why an agent tab has no data, when the main dashboard knows.
 const OFFLINE_REASONS = {
   incompatible_protocol: "agentIncompatible",
-  token_missing: "agentTokenMissing",
+  already_paired: "agentAlreadyPaired",
   unauthorized: "agentUnauthorized"
 };
 

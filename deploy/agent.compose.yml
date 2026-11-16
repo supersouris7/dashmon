@@ -1,5 +1,5 @@
-# Portainer: set this agent's own DASHMON_SYNC_TOKEN in stack environment
-# (openssl rand -base64 32), then enter it on the main dashboard when pairing.
+# No token to set: the agent generates its own when the main dashboard pairs
+# it (the first one to do so). Optional pairing key: DASHMON_SYNC_TOKEN.
 # Restrict the published port to a trusted network or use a TLS reverse proxy.
 services:
   dashmon-agent:
@@ -14,7 +14,8 @@ services:
       - "8080:8080"
     environment:
       DASHMON_MODE: agent
-      DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:?Set DASHMON_SYNC_TOKEN}
+      # Optional pairing key (see the header).
+      DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:-}
     volumes:
       - dashmon-agent-data:/app/data
       # Optional host filesystem: set /host in the agent settings on the primary.

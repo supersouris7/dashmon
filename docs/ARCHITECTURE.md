@@ -15,7 +15,10 @@ Browser: state and drafts -> HTTP API -> main server
 ```
 
 The agent mode exposes its local supervision. The primary queries its agents; it
-does not send them its dashboard configuration. Browser-owned layout preferences
+does not send them its dashboard configuration. Pairing is automatic: on first
+contact the agent generates its own token (`agent-token` in its data folder)
+and hands it to the primary, which keeps it encrypted in `agent-tokens.json`
+(`lib/agent/agent-token.js`, `pairing.js`, `token-store.js`). Browser-owned layout preferences
 are distinct from the server configuration.
 
 ## Server

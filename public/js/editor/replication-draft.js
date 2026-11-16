@@ -19,16 +19,13 @@ export function replicationEntries(replication) {
   return (replication.secondaries || []).map(url => ({
     url,
     name: (replication.agentNames || {})[url] || "",
-    host: (replication.agentHosts || {})[url] || "",
-    // Mask of the saved token, or a token typed in clear.
-    token: (replication.agentTokens || {})[url] || ""
+    host: (replication.agentHosts || {})[url] || ""
   }));
 }
 export function serializeReplicationEntries(entries, validHostIds) {
   const urls = [],
     names = {},
-    hosts = {},
-    tokens = {};
+    hosts = {};
   for (const entry of entries) {
     const url = agentUrl(entry.url);
     if (!url) continue;
@@ -37,13 +34,6 @@ export function serializeReplicationEntries(entries, validHostIds) {
     if (name) names[url] = name;
     const host = String(entry.host || "").trim();
     if (host && validHostIds.has(host)) hosts[url] = host;
-    const token = String(entry.token || "").trim();
-    if (token) tokens[url] = token;
   }
-  return {
-    secondaries: urls.slice(0, 20),
-    agentNames: names,
-    agentHosts: hosts,
-    agentTokens: tokens
-  };
+  return { secondaries: urls.slice(0, 20), agentNames: names, agentHosts: hosts };
 }

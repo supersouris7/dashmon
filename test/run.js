@@ -18,6 +18,7 @@ const SUITES = [
   "supervisions.test.js",
   "frontend.test.js",
   "agent.test.js",
+  "agent-pairing.test.js",
   "apt.test.js",
   "security-headers.test.js",
   "request-origin.test.js",

@@ -1,7 +1,6 @@
 // List of paired agents in the pairing panel.
 import { agentUrl } from "./replication-draft.js";
 import { t } from "../i18n.js";
-import { isEncryptedSecret } from "../widget-registry.js";
 
 function setStatus(status, state, text) {
   status.className = "agent-test-status" + (state ? " " + state : "");
@@ -17,7 +16,7 @@ function setStatus(status, state, text) {
 }
 
 const TEST_FAILURES = {
-  token_missing: "agentTokenMissing",
+  already_paired: "agentAlreadyPaired",
   unauthorized: "agentUnauthorized",
   not_agent: "agentNotAgent",
   invalid_url: "agentInvalidUrl",
@@ -25,8 +24,8 @@ const TEST_FAILURES = {
   incompatible_protocol: "agentIncompatible"
 };
 
-// Asks the server to reach the agent with the token of its row (typed, or the
-// mask of the saved one), and shows the outcome next to the button.
+// Asks the server to reach the agent, pairing it first if this dashboard has
+// no token for it yet, and shows the outcome next to the button.
 async function testAgent(entry, button, status) {
   const target = agentUrl(entry.url);
   if (!target) {
@@ -39,7 +38,7 @@ async function testAgent(entry, button, status) {
     const response = await fetch("/api/agents/test", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url: target, token: entry.token || "" })
+      body: JSON.stringify({ url: target })
     });
     const result = await response.json();
     setStatus(
@@ -132,33 +131,6 @@ function agentUrlInput(entry, syncPairs, status) {
   return { input, invalid, plain, validate };
 }
 
-// Mask of the token saved for each row, kept out of the entry (the draft
-// snapshot compares entries) so that emptying the field restores it.
-const savedTokens = new WeakMap();
-
-// Token of the agent (its DASHMON_SYNC_TOKEN). Never shown in clear once
-// saved: the field stays empty and says so; typing replaces it. Typing also
-// clears the result of a previous test.
-function agentTokenInput(entry, syncPairs, status) {
-  const input = document.createElement("input");
-  input.className = "edit-input";
-  input.type = "password";
-  input.autocomplete = "new-password";
-  input.maxLength = 500;
-  const saved = isEncryptedSecret(entry.token);
-  if (saved) savedTokens.set(entry, entry.token);
-  input.placeholder = saved ? t("agentTokenSaved") : t("agentTokenPlaceholder");
-  input.value = saved ? "" : entry.token || "";
-  input.addEventListener("input", () => {
-    // Emptied: back to the saved token, if any.
-    entry.token = input.value || savedTokens.get(entry) || "";
-    syncPairs();
-    status.className = "agent-test-status";
-    status.replaceChildren();
-  });
-  return input;
-}
-
 // Rows of the pairing list. The draft and the save remain the responsibility
 // of the editor, which provides the callbacks.
 export function createPairingList({
@@ -177,7 +149,6 @@ export function createPairingList({
     status.className = "agent-test-status";
     status.setAttribute("role", "status");
     const url = agentUrlInput(entry, syncPairs, status);
-    const tokenInput = agentTokenInput(entry, syncPairs, status);
 
     const nameInput = document.createElement("input");
     nameInput.className = "edit-input";
@@ -207,7 +178,6 @@ export function createPairingList({
       monitoringField(t("agentUrlLabel"), url.input),
       url.invalid,
       url.plain,
-      monitoringField(t("agentTokenLabel"), tokenInput),
       monitoringField(t("agentTabName"), nameInput),
       monitoringField(t("agentHostLabel"), agentHostSelect(entry, hostChoices, syncPairs)),
       actions

@@ -32,13 +32,15 @@ const { runStartupMigrations, ensureHostIds } = require("./lib/config/migrations
 const { createConfigNormalizer } = require("./lib/config/normalize");
 const { createSecretCodec } = require("./lib/config/secrets");
 const { loadAgentIdentity } = require("./lib/agent/identity");
+const { createAgentToken } = require("./lib/agent/agent-token");
+const { AgentTokenStore, importConfigTokens } = require("./lib/agent/token-store");
+const { createAgentPairing } = require("./lib/agent/pairing");
 const agentProtocol = require("./lib/agent/protocol");
 const { createReplicationConfig } = require("./lib/agent/replication-config");
 const httpClient = require("./lib/http/client");
 const { createAuth } = require("./lib/http/auth");
 const { createAuthFailures } = require("./lib/http/auth-failures");
 const { SessionStore } = require("./lib/http/session-store");
-const { createSyncTokenCheck } = require("./lib/http/sync-token");
 const { securityHeaders } = require("./lib/http/security-headers");
 const { verifyRequestOrigin } = require("./lib/http/request-origin");
 const { createRequestLimits } = require("./lib/http/rate-limit");
@@ -107,15 +109,40 @@ function createServices(settings) {
   const agentId = agentMode ? loadAgentIdentity(settings.dataDir) : "";
 
   // Pairing: the agents this dashboard reads metrics from.
-  // Each agent's token is encrypted with the widget secrets' key.
   const pairing = createReplicationConfig({
     sanitizeUrl,
     sanitizeText,
-    defaultName: os.hostname().slice(0, 100),
-    encryptSecret: settings.masterKey ? secrets.encryptSecret : null,
-    decryptSecret: secrets.decryptSecret,
-    fallbackToken: agentMode ? "" : settings.syncToken
+    defaultName: os.hostname().slice(0, 100)
   });
+  // Tokens, both ways, obtained by the pairing itself (lib/agent/pairing.js):
+  // an agent keeps the one it generated, the main dashboard keeps each
+  // agent's, encrypted with the widget secrets' key.
+  const agentToken = agentMode
+    ? createAgentToken({ dataDir: settings.dataDir, pairingKey: settings.syncToken, log })
+    : null;
+  if (agentToken && !agentToken.paired() && !settings.syncToken) {
+    log.warn(
+      "Agent not paired yet: the first dashboard that pairs it becomes its owner. Pair it from your dashboard now, or set DASHMON_SYNC_TOKEN as a pairing key."
+    );
+  }
+  let agentPairing = null;
+  if (!agentMode) {
+    const tokenStore = new AgentTokenStore({
+      dataDir: settings.dataDir,
+      encryptSecret: secrets.encryptSecret,
+      decryptSecret: secrets.decryptSecret
+    });
+    const moved = importConfigTokens(configRepository, tokenStore);
+    if (moved) log.info(`Moved ${moved} agent token(s) out of config.json.`);
+    agentPairing = createAgentPairing({
+      store: tokenStore,
+      request: httpClient.apiRequest,
+      timeout: STATUS_TIMEOUT,
+      fallbackToken: settings.syncToken,
+      peers: () => pairing.sanitizeReplication(readConfig().replication).secondaries,
+      log
+    });
+  }
   // Supervision cards contributed as plugins (supervisions/): like the
   // widgets, adding one never requires changing this file. Loaded in both
   // modes: an agent collects their reports for the main dashboard.
@@ -149,6 +176,8 @@ function createServices(settings) {
     configRepository,
     readConfig,
     pairing,
+    agentToken,
+    agentPairing,
     normalizeConfig,
     statusMonitor,
     hostMetrics,
@@ -178,7 +207,7 @@ function warnUntrustedProxy() {
 // Parsing, security headers, origin check, rate limits, then the
 // authentication of the mode: sync token on an agent, session on the main
 // dashboard.
-function applySecurity(app, settings, { auth, failures, limits }) {
+function applySecurity(app, settings, { auth, failures, limits, agentToken }) {
   const { agentMode } = settings;
   if (settings.trustProxy > 0) app.set("trust proxy", settings.trustProxy);
   app.disable("x-powered-by");
@@ -195,10 +224,13 @@ function applySecurity(app, settings, { auth, failures, limits }) {
 
   // Agents expose only token-authenticated APIs, never browser sessions.
   if (agentMode) {
-    const validToken = createSyncTokenCheck(settings.syncToken);
     app.use("/api", agentApiFilter);
+    // The pairing route checks the token itself (lib/agent/agent-token.js).
+    app.post("/api/sync/pair", agentToken.pairHandler);
     app.use("/api", (req, res, next) => {
-      if (!validToken(req)) return res.status(401).json({ ...apiError("agent_auth_required") });
+      if (!agentToken.valid(req)) {
+        return res.status(401).json({ ...apiError("agent_auth_required") });
+      }
       next();
     });
   } else {
@@ -220,6 +252,8 @@ function registerRoutes(app, settings, version, services) {
     configRepository,
     readConfig,
     pairing,
+    agentToken,
+    agentPairing,
     normalizeConfig,
     statusMonitor,
     hostMetrics,
@@ -236,8 +270,7 @@ function registerRoutes(app, settings, version, services) {
     sanitizeSyncUrl: pairing.sanitizeSyncUrl,
     request: httpClient.apiRequest,
     assess: agentProtocol.assess,
-    tokenFor: pairing.tokenFor,
-    tokenForTest: pairing.tokenForTest,
+    agentPairing,
     timeout: STATUS_TIMEOUT,
     cacheMs: settings.hostMetricsInterval
   });
@@ -247,9 +280,8 @@ function registerRoutes(app, settings, version, services) {
     revision: config => configRepository.revision(config),
     normalize: config => configRepository.ensureLocalHost(normalizeConfig(config)),
     ensureHostIds: () => ensureHostIds(configRepository),
-    forBrowser: config => pairing.maskTokens(widgetCore.forBrowser(config)),
-    restoreSecrets: (incoming, current) =>
-      pairing.restoreTokens(widgetCore.restoreSecrets(incoming, current), current),
+    forBrowser: config => widgetCore.forBrowser(config),
+    restoreSecrets: (incoming, current) => widgetCore.restoreSecrets(incoming, current),
     logger: log
   });
   registerIconRoutes(app, { iconsDir: settings.iconsDir, agentMode, log });
@@ -269,7 +301,7 @@ function registerRoutes(app, settings, version, services) {
   registerHostMetricsRoutes(app, {
     hostMetrics,
     agentMode,
-    validSyncToken: createSyncTokenCheck(settings.syncToken)
+    validSyncToken: req => Boolean(agentToken?.valid(req))
   });
   registerAgentConfigRoutes(app, {
     agentMode,

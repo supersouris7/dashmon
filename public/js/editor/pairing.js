@@ -56,8 +56,7 @@ export function renderPairingEditor({
       secondaries: [],
       agentNames: {},
       agentIcons: {},
-      agentHosts: {},
-      agentTokens: {}
+      agentHosts: {}
     };
   if (!state.replication.agentHosts || typeof state.replication.agentHosts !== "object")
     state.replication.agentHosts = {};

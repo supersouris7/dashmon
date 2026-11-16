@@ -67,7 +67,7 @@ integrations and configuration.
 ## Quick start
 
 **[Step-by-step guide: primary, agent, Portainer and Docker Compose](docs/GETTING_STARTED.md)**
-— includes ready-to-paste stacks, per-agent token setup and links to integration guides.
+— includes ready-to-paste stacks, automatic agent pairing and links to integration guides.
 
 ### Docker (recommended)
 

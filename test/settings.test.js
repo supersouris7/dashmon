@@ -33,10 +33,8 @@ assert.equal(custom.hostMetricsInterval, 3600 * 1000);
 assert.equal(read({ HOST_METRICS_INTERVAL: "2" }).hostMetricsInterval, 60000);
 
 // Refused combinations stop the start-up.
-assert.throws(
-  () => read({ DASHMON_MODE: "agent", DASHMON_PASSWORD: PASSWORD }),
-  /DASHMON_SYNC_TOKEN/
-);
+// An agent starts without a token: the pairing generates it.
+assert.equal(read({ DASHMON_MODE: "agent" }, true).syncToken, "");
 assert.throws(() => read({}, true), /DASHMON_PASSWORD/);
 assert.equal(read({ DASHMON_PASSWORD: PASSWORD }, true).password, PASSWORD);
 assert.equal(

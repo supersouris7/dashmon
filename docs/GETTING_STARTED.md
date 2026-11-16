@@ -22,19 +22,17 @@ openssl rand -base64 32
 openssl rand -base64 32
 ```
 
-Also pick a password for the primary. Agents have no login page: each agent
-has its own token, which you enter on the primary when pairing it. Never publish
-these values.
+Also pick a password for the primary. Agents have no login page and need no
+value: the primary pairs them by itself. Never publish these values.
 
 | Variable | Primary | Agent |
 | --- | --- | --- |
 | `DASHMON_PASSWORD` | Dashboard password | Not needed |
 | `DASHMON_MASTER_KEY` | Widget secret encryption key, **required** | Not needed |
-| `DASHMON_SYNC_TOKEN` | Optional: token used for an agent paired without its own | **Required, a different value on each agent** |
+| `DASHMON_SYNC_TOKEN` | Not needed | Optional pairing key (see below) |
 
 Keep a backup of the master key: if it changes, previously encrypted widget
-secrets become unreadable. Generate it with `openssl rand -hex 32`. On the
-primary, leave the token empty: each agent's token is entered in its pairing.
+secrets become unreadable. Generate it with `openssl rand -hex 32`.
 
 ### Where to enter the values
 
@@ -51,13 +49,12 @@ touch .env
 nano .env
 ```
 
-Enter the names below with your values. For the agent, the master key may be
-omitted. Never commit `.env`.
+Enter the names below with your values (primary only: an agent needs none).
+Never commit `.env`.
 
 ```dotenv
 DASHMON_PASSWORD=
 DASHMON_MASTER_KEY=
-DASHMON_SYNC_TOKEN=
 ```
 
 ## 2. Install the primary
@@ -108,9 +105,8 @@ copy-paste configuration, Let's Encrypt or local certificate, and checks.
 
 ## 3. Install an agent
 
-On the machine to monitor, create **another stack** and give it **its own**
-`DASHMON_SYNC_TOKEN`, generated with `openssl rand -base64 32`. Use a different
-value for each agent: a token that leaks then opens a single agent.
+On the machine to monitor, create **another stack**. It needs no variable: the
+agent generates its own token when the primary pairs it.
 
 ```yaml
 services:
@@ -127,7 +123,6 @@ services:
       - "8081:8080"
     environment:
       DASHMON_MODE: agent
-      DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:?Set DASHMON_SYNC_TOKEN}
     volumes:
       - dashmon-agent-data:/app/data
       # Optional: host disk, read-only.
@@ -148,15 +143,15 @@ The named volume keeps the agent settings. To use a host folder instead, replace
 writable by the container UID `1000`.
 
 1. On the primary: **Settings → Agents → Pairing**, then **Add agent**. Enter
-   the agent full address, for example `http://exemple.lan:8081`, and in
-   **Agent token** the `DASHMON_SYNC_TOKEN` of that agent, then name the tab if
-   you want. Once saved, the token is stored encrypted with the master key and
-   never shown again: the field only says **token saved**. Pick an **Associated host** (created beforehand in
+   the agent full address, for example `http://exemple.lan:8081`, then name the
+   tab if you want. Pick an **Associated host** (created beforehand in
    **Settings → Dashboard → Hosts**): the agent's supervision cards reuse its
    color and icon. Without a host, the pairing still works but the cards keep
    their default appearance.
-2. Click **Test connection**, then **Save**. The test first checks, without
-   the token, that the address answers as a Dashmon agent; the token is
+2. Click **Test connection**, then **Save**. The first test (or the first save)
+   pairs the agent: it generates its own token, which the primary keeps,
+   encrypted with the master key. Nothing to copy. The test first checks,
+   without any token, that the address answers as a Dashmon agent; the token is
    sent only then, so a typo never hands it to another machine. An `http://`
    address shows a warning: the token then crosses the network in clear,
    prefer HTTPS ([docs/HTTPS.md](HTTPS.md)). This agent appears by name under
@@ -221,28 +216,29 @@ Back up the primary data volume and its master key separately. Each agent has
 its own configuration volume. Upgrading an image does not upgrade the scripts
 installed on the hosts.
 
-## Changing an agent token
+## Pairing and its token
 
-Change an agent's `DASHMON_SYNC_TOKEN` when it may have been seen: printed in a
-terminal or a log, shared by mistake, or after someone left. The other agents
-keep theirs.
+An agent accepts **the first primary that pairs it**, then only that one. Pair
+it right after deploying it. Its log says so as long as it is not paired.
 
-1. Generate a new value: `openssl rand -base64 32`.
-2. Put it in the stack of **that agent**, then redeploy it.
-3. On the primary, open **Settings → Agents → Pairing**, type the new value in
-   that agent's **Agent token**, click **Test connection**, then **Save**.
+To choose in advance which primary may pair an agent, set the same
+`DASHMON_SYNC_TOKEN` (`openssl rand -base64 32`) on that agent and on the
+primary: the agent then only accepts a pairing from a primary presenting it.
+Once paired, the agent uses its own token and this key no longer opens it.
 
-Between steps 2 and 3, that agent is shown with a rejected token: that is
-expected. `docker inspect` shows a container's environment, the token included:
-keep its output private.
+To pair an agent again (new primary, primary data lost, token that may have
+been seen), release it, then test it again from the primary:
+
+```sh
+docker exec dashmon-agent rm /app/data/agent-token
+```
 
 ### Moving from a shared token
 
 Earlier versions used one `DASHMON_SYNC_TOKEN`, identical on the primary and on
-every agent. It keeps working: an agent paired without its own token still
-receives the primary's. To give each agent its own, follow the steps above for
-each one, then remove `DASHMON_SYNC_TOKEN` from the primary stack and redeploy
-it.
+every agent. Nothing to do: on its next contact with each agent, the primary
+pairs it with that token, and the agent switches to a token of its own. The
+variable can then be removed from the stacks.
 
 ## Quick troubleshooting
 
@@ -250,7 +246,7 @@ it.
 | --- | --- |
 | Port already in use | `sudo ss -ltnp`; change the left-hand port in `ports`. |
 | Agent unreachable | Check its port, the firewall and the address from the primary. |
-| Token rejected | Type the agent's `DASHMON_SYNC_TOKEN` again in its pairing row, then **Test connection**. |
+| Agent already paired with another dashboard | Release it (`docker exec <agent> rm /app/data/agent-token`), then **Test connection**. |
 | Certificate or DNS error | See [DNS and certificates](../deploy/DEPLOYMENT.md#7-monitoring-lan-domains-lan-local). |
 | No SMART, APT or WireGuard data | Check the script and the container name on the host concerned. |
 | Mounted folder not writable | The container uses UID `1000`; check the folder owner and permissions. |

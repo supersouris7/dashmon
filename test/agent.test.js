@@ -43,7 +43,7 @@ async function start(mode, port, folder, extraEnv = {}) {
       CONFIG_FILE: path.join(folder, "config.json"),
       DASHMON_MODE: mode,
       DASHMON_PASSWORD: mode === "agent" ? "" : password,
-      DASHMON_SYNC_TOKEN: extraEnv.DASHMON_SYNC_TOKEN ?? token,
+      DASHMON_SYNC_TOKEN: token,
       DASHMON_MASTER_KEY: crypto.randomBytes(32).toString("hex"),
       // Shortest interval: the agent metrics cached by the primary expire fast.
       HOST_METRICS_INTERVAL: "5"
@@ -229,11 +229,7 @@ async function main() {
       services: [{ name: "Service", url: "https://service.exemple.lan/", monitor: false }]
     })
   );
-  // No shared token on the primary: the agent's own token, saved with its
-  // pairing, is the only way in.
-  const primary = await start("dashboard", await freePort(), primaryDir, {
-    DASHMON_SYNC_TOKEN: ""
-  });
+  const primary = await start("dashboard", await freePort(), primaryDir);
   response = await fetch(primary + "/api/config", { headers: { Authorization: auth } });
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("x-content-type-options"), "nosniff");
@@ -259,21 +255,43 @@ async function main() {
     body: JSON.stringify({ url: agent })
   });
   assert.equal(response.status, 401);
-  const testAgent = body =>
-    fetch(primary + "/api/agents/test", {
-      method: "POST",
-      headers: { Authorization: auth, "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-  // Not paired yet, no token typed: nothing to send.
-  response = await testAgent({ url: agent });
-  assert.equal(response.status, 400);
-  assert.equal((await response.json()).reason, "token_missing");
-  response = await testAgent({ url: agent, token: token + "x" });
-  assert.equal((await response.json()).reason, "unauthorized");
-  response = await testAgent({ url: agent, token });
+  // Both still hold the shared token of earlier versions: the first test
+  // pairs the agent, which switches to a token of its own on the way.
+  response = await fetch(primary + "/api/agents/test", {
+    method: "POST",
+    headers: { Authorization: auth, "Content-Type": "application/json" },
+    body: JSON.stringify({ url: agent })
+  });
   assert.equal(response.status, 200);
   assert.equal((await response.json()).ok, true);
+  const agentToken = fs.readFileSync(path.join(agentDir, "agent-token"), "utf8").trim();
+  assert.match(agentToken, /^[A-Za-z0-9_-]{43}$/);
+  assert.equal(
+    (await fetch(agent + "/api/sync/metrics", { headers: { "X-Dashmon-Sync-Token": token } }))
+      .status,
+    401,
+    "the shared token no longer opens a paired agent"
+  );
+  const primaryTokens = fs.readFileSync(path.join(primaryDir, "agent-tokens.json"), "utf8");
+  assert.equal(primaryTokens.includes(agentToken), false, "token encrypted at rest");
+  assert.equal(
+    fs.readFileSync(path.join(primaryDir, "config.json"), "utf8").includes(agentToken),
+    false
+  );
+  // Another dashboard, even holding the shared token, cannot take it over.
+  response = await fetch(agent + "/api/sync/pair", {
+    method: "POST",
+    headers: { "X-Dashmon-Sync-Token": token }
+  });
+  assert.equal(response.status, 409);
+  // A second test reuses the saved token: no new pairing.
+  response = await fetch(primary + "/api/agents/test", {
+    method: "POST",
+    headers: { Authorization: auth, "Content-Type": "application/json" },
+    body: JSON.stringify({ url: agent })
+  });
+  assert.equal((await response.json()).ok, true);
+  assert.equal(fs.readFileSync(path.join(agentDir, "agent-token"), "utf8").trim(), agentToken);
   response = await fetch(primary + "/api/agents/test", {
     method: "POST",
     headers: { Authorization: auth, "Content-Type": "application/json" },
@@ -281,17 +299,22 @@ async function main() {
   });
   assert.equal(response.status, 400);
   assert.equal((await response.json()).reason, "invalid_url");
-  // A fake agent: /readyz says "agent", the metrics answer fakeStatus. With
-  // fakeRole set to something else, the address is not an agent and must
-  // never receive the sync token.
+  // A fake agent: /readyz says fakeRole, the metrics answer fakeStatus. An
+  // address that is not an agent must never receive any token: checked first,
+  // before the address has ever proven to be an agent.
   let fakeStatus = 401;
-  let fakeRole = "agent";
+  let fakeRole = "primary";
   const tokensSeen = [];
   const fake = http.createServer((req, res) => {
     if (req.headers["x-dashmon-sync-token"]) tokensSeen.push(req.url);
     if (req.url === "/readyz") {
       res.writeHead(200, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({ ok: true, role: fakeRole }));
+    }
+    // An agent older than the pairing: reached with the shared token.
+    if (req.url === "/api/sync/pair") {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      return res.end("{}");
     }
     res.writeHead(fakeStatus, { "Content-Type": "application/json" });
     res.end("{}");
@@ -302,18 +325,17 @@ async function main() {
     const options = {
       method: "POST",
       headers: { Authorization: auth, "Content-Type": "application/json" },
-      body: JSON.stringify({ url, token })
+      body: JSON.stringify({ url })
     };
+    response = await fetch(primary + "/api/agents/test", options);
+    assert.equal((await response.json()).reason, "not_agent");
+    assert.deepEqual(tokensSeen, []);
+    fakeRole = "agent";
     response = await fetch(primary + "/api/agents/test", options);
     assert.equal((await response.json()).reason, "unauthorized");
     fakeStatus = 200;
     response = await fetch(primary + "/api/agents/test", options);
     assert.equal((await response.json()).reason, "invalid_response");
-    fakeRole = "primary";
-    tokensSeen.length = 0;
-    response = await fetch(primary + "/api/agents/test", options);
-    assert.equal((await response.json()).reason, "not_agent");
-    assert.deepEqual(tokensSeen, []);
   } finally {
     await new Promise(resolve => fake.close(resolve));
   }
@@ -336,8 +358,7 @@ async function main() {
     instanceName: "Dashmon",
     secondaries: [agent],
     agentNames: { [agent]: "Supervision distante" },
-    agentHosts: { [agent]: "local" },
-    agentTokens: { [agent]: token }
+    agentHosts: { [agent]: "local" }
   };
   response = await fetch(primary + "/api/usage", {
     method: "POST",
@@ -371,17 +392,6 @@ async function main() {
   assert.equal(saved.usageCounts["https://service.exemple.lan/"], 1);
   assert.equal(saved.replication.agentNames[new URL(agent).href], "Supervision distante");
   assert.equal(saved.replication.agentHosts[new URL(agent).href], "local");
-  // The token is encrypted on disk and only its mask reaches the browser.
-  const savedMask = saved.replication.agentTokens[new URL(agent).href];
-  assert.match(savedMask, /^aes1\.masked\./);
-  assert.equal(JSON.stringify(saved).includes(token), false);
-  assert.equal(
-    fs.readFileSync(path.join(primaryDir, "config.json"), "utf8").includes(token),
-    false
-  );
-  // The mask of a saved token is enough to test the agent again.
-  response = await testAgent({ url: agent, token: savedMask });
-  assert.equal((await response.json()).ok, true);
   const remoteEndpoint = primary + "/api/agents/config?url=" + encodeURIComponent(agent);
   assert.equal((await fetch(remoteEndpoint)).status, 401);
   assert.equal(
@@ -504,9 +514,10 @@ async function main() {
   assert.equal(data.instances[0].status, "unavailable");
   assert.ok(data.instances[0].lastSuccessAt);
   assert.equal((await fetch(primary + "/readyz")).status, 200);
+  // The pairing survives a restart.
   const restarted = await start("agent", await freePort(), agentDir);
   response = await fetch(restarted + "/api/sync/metrics", {
-    headers: { "X-Dashmon-Sync-Token": token }
+    headers: { "X-Dashmon-Sync-Token": agentToken }
   });
   assert.equal((await response.json()).agent.id, agentId);
   console.log("PASS agent : authentification, migration, configuration et collecte principale");
