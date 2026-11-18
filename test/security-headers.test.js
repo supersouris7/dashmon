@@ -23,6 +23,7 @@ function headers({ secure = false, forwarded = "" } = {}) {
 const plain = headers();
 assert.equal(plain["X-Content-Type-Options"], "nosniff");
 assert.equal(plain["X-Frame-Options"], "DENY");
+assert.equal(plain["X-XSS-Protection"], "0");
 assert.equal(plain["Referrer-Policy"], "no-referrer");
 assert.match(plain["Content-Security-Policy"], /default-src 'none'/);
 assert.match(plain["Content-Security-Policy"], /frame-ancestors 'none'/);

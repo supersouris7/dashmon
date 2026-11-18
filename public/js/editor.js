@@ -538,7 +538,9 @@ async function applyEditorChanges() {
         if (stuck.length) {
           alert(t("saveNotPersisted").replace("{names}", stuck.join(", ")));
         }
-      } catch (_error) {}
+      } catch (_error) {
+        // Check only: the save itself succeeded and was already reported.
+      }
     }
     refreshEditorDrafts();
     editorBaseline = editorSnapshot();
