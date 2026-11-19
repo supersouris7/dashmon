@@ -10,6 +10,13 @@ Collapsed, the card shows today's tokens and a summary of the last 30 days.
 Click it to choose a period (today, 7 days, 30 days, all time) and see the
 details. It appears only once a report exists.
 
+**Tokens / reply** is the average input + output + reasoning tokens per model
+call, excluding cache tokens. **Output / reply** counts only the generated reply
+tokens, without reasoning. The collapsed card uses the 30-day period (all time
+if absent); the details follow the selected period. With no replies, both show
+`—`. A reply includes intermediate model calls, not just the final answer to a
+prompt: these are consumption measures, not quality scores.
+
 Dashmon never runs OpenCode itself: a cron job of the user who works with
 OpenCode runs `opencode stats --json` and writes the result into the container
 data, next to the SMART and APT reports. Only counters are written, never the

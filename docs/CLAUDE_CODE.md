@@ -11,6 +11,12 @@ Collapsed, the card shows today's tokens and a summary of the last 30 days.
 Click it to choose a period (today, 7 days, 30 days, all time) and see the
 details. It appears only once a report exists.
 
+**Tokens / reply** averages input + output + reasoning tokens per model reply,
+excluding cache tokens. **Output / reply** counts only reply tokens, without
+reasoning. Both use 30 days in the collapsed summary and the selected period in
+the details (`—` when there are no replies). Intermediate replies count too:
+these measures describe consumption, not the quality of the final answer.
+
 No cost is shown: the session logs do not record any price, and with a
 subscription the API price would not match what you pay.
 

@@ -76,16 +76,35 @@ function sectionTitle(key) {
   return element("h4", "usage-section-title", t(key));
 }
 
+function responseMetrics(data) {
+  const steps = Number(data?.steps);
+  const hasReplies = Number.isFinite(steps) && steps > 0;
+  return [
+    [
+      "opencodeTokensPerResponse",
+      hasReplies ? tokensText(Math.round(usedTokens(data.tokens) / steps)) : "—"
+    ],
+    [
+      "opencodeOutputPerResponse",
+      hasReplies ? tokensText(Math.round((Number(data.tokens?.output) || 0) / steps)) : "—"
+    ]
+  ];
+}
+
 function figures(data) {
   const grid = element("div", "usage-figures");
   for (const [key, value] of [
     ["opencodeSessions", smartNumberText(data.sessions)],
     ["opencodePrompts", smartNumberText(data.prompts)],
     ["opencodeSteps", smartNumberText(data.steps)],
-    data.cost > 0 ? ["opencodeCost", costText(data.cost)] : null
+    data.cost > 0 ? ["opencodeCost", costText(data.cost)] : null,
+    ...responseMetrics(data)
   ].filter(Boolean)) {
     const cell = element("div", "usage-figure");
     cell.append(element("strong", "", value), element("span", "", t(key)));
+    if (key === "opencodeTokensPerResponse" || key === "opencodeOutputPerResponse") {
+      cell.title = t("opencodePerResponseHint");
+    }
     grid.appendChild(cell);
   }
   return grid;
@@ -285,6 +304,11 @@ function usageSummary(card, periods, today, month) {
       main ? t("opencodeMainModel") + " : " + main.id : ""
     ].filter(Boolean))
       facts.appendChild(element("span", "", text));
+    for (const [key, value] of responseMetrics(month)) {
+      const fact = element("span", "", t(key) + " : " + value);
+      fact.title = t("opencodePerResponseHint");
+      facts.appendChild(fact);
+    }
     card.appendChild(facts);
   }
 }

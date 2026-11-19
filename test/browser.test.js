@@ -156,6 +156,34 @@ async function main() {
   assert.equal(login, 200);
   await call("Page.navigate", { url: base + "/" });
   await wait(1800);
+  const averages = await evaluate(`(async () => {
+    const { usageCard } = await import('/js/supervision/usage-card.js');
+    const { t } = await import('/js/i18n.js');
+    const period = { steps: 4, tokens: { input: 600, output: 120, reasoning: 80, cacheRead: 10000, cacheWrite: 10000 }, models: [] };
+    const read = card => ['opencodeTokensPerResponse', 'opencodeOutputPerResponse'].map(key =>
+      [...card.querySelectorAll('.usage-figure')].find(cell => cell.querySelector('span').textContent === t(key)).querySelector('strong').textContent);
+    return ['opencode', 'claude'].map(field => {
+      const source = { field, title: field === 'claude' ? 'supervisionClaudeTitle' : 'supervisionOpencodeTitle', pref: field === 'claude' ? 'supervisionClaudeExpanded' : 'supervisionOpencodeExpanded', keyName: field + 'Key' };
+      const report = { fetchedAt: Date.now() / 1000, periods: { month: period, today: { ...period, steps: 0 } } };
+      const card = usageCard({ id: crypto.randomUUID() }, report, source);
+      const normal = read(card);
+      const summary = card.querySelector('.usage-facts').textContent.includes(t('opencodeOutputPerResponse') + ' : 30');
+      card.querySelector('[data-period=today]').click();
+      const noReplies = read(card);
+      const empty = usageCard({ id: crypto.randomUUID() }, { periods: { month: { steps: 1, tokens: {} } } }, source);
+      const missing = usageCard({ id: crypto.randomUUID() }, { periods: { month: { tokens: period.tokens } } }, source);
+      return { normal, summary, noReplies, empty: read(empty), missing: read(missing) };
+    });
+  })()`);
+  for (const result of averages) {
+    assert.deepEqual(result, {
+      normal: ["200", "30"],
+      summary: true,
+      noReplies: ["—", "—"],
+      empty: ["0", "0"],
+      missing: ["—", "—"]
+    });
+  }
   assert.deepEqual(
     await evaluate("[...document.querySelector('#themeSelect').options].map(option=>option.value)"),
     ["dark", "light", "polar", "matrix", "high-contrast"]
