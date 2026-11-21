@@ -1,0 +1,5 @@
+# Faux positifs Gitleaks examinés (fabrique). Format : fichier:règle:ligne
+# Clés de traduction des fréquences cron (ex. cronEvery6Hours), pas des secrets.
+public/js/supervision/script-commands.js:generic-api-key:64
+public/js/supervision/script-commands.js:generic-api-key:65
+public/js/supervision/script-commands.js:generic-api-key:70
