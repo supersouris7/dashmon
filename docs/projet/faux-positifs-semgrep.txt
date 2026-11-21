@@ -1,0 +1,2 @@
+# Faux positifs Semgrep examinés (fabrique, 2026-11-21). Format : chemin règle # raison
+lib/routes/config.js remote-property-injection # clés __proto__/constructor/prototype déjà écartées avant l'affectation
