@@ -18,7 +18,8 @@
 - `npm test`
 
 ## Environnements
-- Test (déploiement autorisé aux agents, sauvegarde avant migration) : aucun (à définir)
+- Test (déploiement autorisé aux agents, sauvegarde avant mise à jour) : instance auto-hébergée du client ;
+  détails et procédure dans `CLAUDE.local.md` (local, non versionné : dépôt public).
 - Production : uniquement avec accord explicite du client.
 
 ## Suivi
