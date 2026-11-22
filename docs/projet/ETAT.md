@@ -8,9 +8,9 @@
 - Environnement de test : instance auto-hébergée du client (décision du 22/11), détails dans
   `CLAUDE.local.md` (hors dépôt).
 
-## En cours
-- #6 Carte « Équipe Claude » : réalisée, testée, revue sécurité faite → PR #7 ouverte.
-  En attente : recette client puis accord de fusion.
+## Dernières livraisons
+- 2026-11-22 · #6 Carte « Équipe Claude » (PR #7) fusionnée, image `unstable` publiée,
+  agent local à jour et relevé chaque minute installé. À voir sur le tableau principal après re-pull.
 
 ## Prochaine action
-- Recette de la carte sur l'instance de test (image construite depuis la branche), puis fusion.
+- Aucune en cours : attendre le retour du client sur la carte.
