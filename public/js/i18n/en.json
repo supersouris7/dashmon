@@ -74,6 +74,8 @@
   "agentIncompatible": "Incompatible agent protocol version.",
   "agentOffline": "Agent offline.",
   "agentStale": "Agent data is stale.",
+  "agentVersionDifferent": "Different version: this agent runs {agent}, this dashboard {own}. Update the older one, or some cards or settings may be missing.",
+  "agentVersionUnknown": "Unknown agent version: it is probably older than this dashboard ({own}). Update it, or some cards or settings may be missing.",
   "tabWebLinks": "Web links",
   "tabImages": "Images",
   "tabImportExport": "Import / Export",

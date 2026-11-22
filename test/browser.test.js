@@ -670,6 +670,24 @@ async function main() {
     },
     "equipe Claude : titres en texte, etat ecrit, rapport perime signale, sans debordement a 220 px"
   );
+  // Agent on another build than the dashboard (#8): a written notice with
+  // both builds; nothing when the builds match or cannot be told.
+  assert.deepEqual(
+    await evaluate(`Promise.all([import('/js/supervision.js'),import('/js/i18n.js')]).then(([{versionNotice},{t}])=>{
+    const own={version:'unstable',commit:'a208de4'};
+    const different=versionNotice({status:'different',own,agent:{version:'<b>v1</b>',commit:'94378d0'}});
+    const unknown=versionNotice({status:'unknown',own});
+    return {
+      different:different.textContent.includes('94378d0') && different.textContent.includes('unstable · a208de4'),
+      markupDropped:!different.querySelector('b') && !different.textContent.includes('<b>'),
+      written:different.getAttribute('role')==='status' && different.textContent.trim().length>40,
+      unknown:unknown.textContent.includes(t('agentVersionUnknown').split('{own}')[0].trim()),
+      none:versionNotice(null)===null && versionNotice({status:'other'})===null
+    };
+  })`),
+    { different: true, markupDropped: true, written: true, unknown: true, none: true },
+    "version de l'agent : avertissement ecrit avec les deux versions, rien si identique"
+  );
   assert.equal(
     await evaluate("document.querySelectorAll('#localHostEditor .smart-disk-choice').length"),
     2

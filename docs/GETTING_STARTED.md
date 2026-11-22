@@ -174,6 +174,11 @@ volumes are preserved; `DASHMON_PASSWORD` on an agent is no longer used. The
 container and host mounts remain read-only; only the agent data volume stores
 its settings. No host command can be launched from this interface.
 
+Keep the primary and its agents on the same image. When an agent runs another
+build, its Supervision tab says so and shows both versions: a card or a setting
+added in the newer build is missing until the older one is updated. An agent
+too old to tell its version is reported as such.
+
 ## 4. Add WireGuard, SMART, APT or usage statistics
 
 Install the scripts **on every host concerned**, not inside the agent. The

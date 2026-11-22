@@ -74,6 +74,8 @@
   "agentIncompatible": "Version du protocole agent incompatible.",
   "agentOffline": "Agent hors ligne.",
   "agentStale": "Données de l’agent anciennes.",
+  "agentVersionDifferent": "Version différente : cet agent tourne en {agent}, ce tableau de bord en {own}. Mettez à jour le plus ancien, sinon des cartes ou des réglages peuvent manquer.",
+  "agentVersionUnknown": "Version de l’agent inconnue : il est probablement plus ancien que ce tableau de bord ({own}). Mettez-le à jour, sinon des cartes ou des réglages peuvent manquer.",
   "tabWebLinks": "Liens web",
   "tabImages": "Images",
   "tabImportExport": "Import / Export",
