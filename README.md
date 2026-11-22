@@ -28,7 +28,8 @@ you stop guessing whether *that* thing is working.
 - **Host supervision** — a dedicated page per machine: CPU, memory, disk and
   temperature, an hourly speed test of each host's link (download, upload,
   latency), WireGuard peers, SMART health of each disk, the last APT updates,
-  and your OpenCode and Claude Code usage (models, tokens, tools).
+  your OpenCode and Claude Code usage (models, tokens, tools), and the
+  Claude Code sessions and agents at work.
   → [screenshots](#screenshots)
 - **Supervision agents** — deploy a lightweight agent on another host and view
   its local metrics from the main dashboard, without copying its configuration.
@@ -173,6 +174,7 @@ PNG logos for many self-hosted apps.
 | **[docs/WIREGUARD.md](docs/WIREGUARD.md)** | WireGuard dump and cron script. |
 | **[docs/SMART.md](docs/SMART.md)** / **[docs/APT_UPDATES.md](docs/APT_UPDATES.md)** | SMART and APT supervision, local or on an agent. |
 | **[docs/OPENCODE.md](docs/OPENCODE.md)** / **[docs/CLAUDE_CODE.md](docs/CLAUDE_CODE.md)** | OpenCode and Claude Code statistics: models, tokens, tools. |
+| **[docs/CLAUDE_TEAM.md](docs/CLAUDE_TEAM.md)** | Claude team card: open sessions, agents at work, tasks of the last 24 hours. |
 | **[CUSTOMIZATION.md](CUSTOMIZATION.md)** | Themes and icons. |
 | **[docs/EXTENDING.md](docs/EXTENDING.md)** | Write a widget or a Supervision card plugin. |
 | **[CONTRIBUTING.md](CONTRIBUTING.md)** | Propose a change or a plugin. |

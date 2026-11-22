@@ -11,7 +11,8 @@ export const SCRIPT_NAMES = Object.freeze([
   "wireguard-dump",
   "opencode-stats",
   "claude-stats",
-  "directory-sizes"
+  "directory-sizes",
+  "claude-team"
 ]);
 
 // Installs the setup tool; it then installs the others with their cron line.
@@ -57,6 +58,12 @@ export const SCRIPT_FREQUENCIES = Object.freeze({
     { cron: "*/5 * * * *", key: "cronEvery5" },
     { cron: "*/15 * * * *", key: "cronEvery15", recommended: true },
     { cron: "0 * * * *", key: "cronHourly" }
+  ],
+  // Claude Code sessions and agents: light enough to run every minute.
+  "claude-team": [
+    { cron: "* * * * *", key: "cronEveryMinute", recommended: true },
+    { cron: "*/5 * * * *", key: "cronEvery5" },
+    { cron: "*/15 * * * *", key: "cronEvery15" }
   ],
   // The automatic update (dashmon-setup.sh auto).
   setup: [

@@ -12,6 +12,7 @@ primary and every agent) and run by cron. Updating the Dashmon container does
 | `dashmon-opencode-stats.sh` | OpenCode | your user | [OPENCODE.md](OPENCODE.md) |
 | `dashmon-claude-stats.sh` | Claude Code | your user | [CLAUDE_CODE.md](CLAUDE_CODE.md) |
 | `dashmon-directory-sizes.sh` | Directories | root | [DIRECTORIES.md](DIRECTORIES.md) |
+| `dashmon-claude-team.sh` | Claude team | your user | [CLAUDE_TEAM.md](CLAUDE_TEAM.md) |
 
 All of them live in `/usr/local/bin`. The same commands work on the primary
 and on an agent.
@@ -58,7 +59,7 @@ the menu back. For each installation it asks:
   `dashmon-agent` on an agent installed with the startup guide);
 - for APT, whether the host may **reboot** after an update that requires it
   (no by default);
-- for OpenCode and Claude Code, whether to install it anyway when the user
+- for OpenCode, Claude Code and the Claude team, whether to install it anyway when the user
   does not seem to use the tool on this machine;
 - whether to **run it once now**, so the card appears without waiting (never
   for APT, which really installs the updates).
@@ -81,7 +82,7 @@ sudo dashmon-setup.sh auto off                      # stop the automatic update
 | `--frequency 1\|2\|3` | One of the three schedules of the script, in the order of the table below. |
 | `--cron "M H D M W"` | Any schedule instead of the three offered, for example `--cron "0 3 * * 4"` (Thursday at 03:00) so that two hosts do not run APT, and reboot, at the same time. |
 | `--container NAME` | Dashmon container to write to, when it cannot be found by itself. |
-| `--user NAME` | OpenCode and Claude Code: whose crontab and statistics. Default: the user who ran `sudo`. |
+| `--user NAME` | OpenCode, Claude Code and Claude team: whose crontab and statistics. Default: the user who ran `sudo`. |
 | `--reboot` | APT: allow the reboot after an update that requires it. |
 | `--run` | Run the script once right after installing it. |
 | `--yes` | Ask nothing; replace a cron line written by hand. |
@@ -137,7 +138,7 @@ Dashmon has read a report from the new script.
 its installation, or update with this single command:
 
 ```sh
-for n in setup apt-updates smart-dump wireguard-dump opencode-stats claude-stats directory-sizes; do f=/usr/local/bin/dashmon-$n.sh; [ -f "$f" ] || continue; sudo curl -fsSL "https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/$n.sh" -o "$f.new" && sudo chmod 755 "$f.new" && sudo mv "$f.new" "$f" && echo "OK $n"; done
+for n in setup apt-updates smart-dump wireguard-dump opencode-stats claude-stats directory-sizes claude-team; do f=/usr/local/bin/dashmon-$n.sh; [ -f "$f" ] || continue; sudo curl -fsSL "https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy/$n.sh" -o "$f.new" && sudo chmod 755 "$f.new" && sudo mv "$f.new" "$f" && echo "OK $n"; done
 ```
 
 ## Automatic update
@@ -179,6 +180,7 @@ shows and from what a run costs:
 | WireGuard | **`* * * * *` every minute** | `*/5 * * * *` every 5 minutes | `*/15 * * * *` every 15 minutes | A peer shows online while its last handshake is under 3 minutes old: only a dump every minute keeps that state right. 5 or 15 minutes are enough to see who connected. The dump costs nothing. |
 | OpenCode | `*/5 * * * *` every 5 minutes | **`*/15 * * * *` every 15 minutes** | `0 * * * *` every hour | Today's tokens stay current; the card flags a report older than 6 hours. |
 | Claude Code | `*/5 * * * *` every 5 minutes | **`*/15 * * * *` every 15 minutes** | `0 * * * *` every hour | Same as OpenCode. |
+| Claude team | **`* * * * *` every minute** | `*/5 * * * *` every 5 minutes | `*/15 * * * *` every 15 minutes | Sessions and agents change in minutes; the card flags a report older than 10 minutes. The run only reads the sessions and the files of the last 24 hours, and the end of their logs. |
 | Automatic update | `0 */6 * * *` every 6 hours | **`30 4 * * *` every night at 04:30** | `30 4 * * 0` every Sunday at 04:30 | After the nightly APT and directory runs; every night is enough for scripts that change a few times a month. |
 | Directories | `0 * * * *` every hour | `0 */6 * * *` every 6 hours | **`30 3 * * *` every night at 03:30** | `du` reads every file entry: once a night, after APT. The card flags a report older than 2 days. |
 
@@ -202,7 +204,7 @@ The times are those of the host. Each user has a crontab:
 
 - `sudo crontab -l` lists the **root** crontab (APT, SMART, WireGuard,
   directories), `sudo crontab -e` edits it;
-- `crontab -l` lists **your** crontab (OpenCode, Claude Code), `crontab -e`
+- `crontab -l` lists **your** crontab (OpenCode, Claude Code, Claude team), `crontab -e`
   edits it.
 
 The setup tool keeps your own lines first, as they are, then groups its lines
@@ -272,7 +274,7 @@ By hand, for each script installed on a machine:
 1. Install the new copy with the commands above.
 2. Point the cron line to the new path: `sudo crontab -e` for the root scripts
    (APT, SMART, WireGuard, directories), `crontab -e` for your own user
-   (OpenCode, Claude Code). Keep the variables and arguments of the line as
+   (OpenCode, Claude Code, Claude team). Keep the variables and arguments of the line as
    they are; only the path changes.
 3. Remove the former copy, for example
    `sudo rm /usr/local/sbin/apt-updates.sh`.

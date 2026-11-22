@@ -3,7 +3,14 @@
 > Point de reprise de toute session. Court, daté, mis à jour en fin d'intervention.
 > Le détail opérationnel est dans les tickets GitHub ; ici, seulement la synthèse.
 
-- Mis à jour : 2026-11-21
+- Mis à jour : 2026-11-22
 - Maturité : mature — Node.js, tests, lint, CI Docker multi-architecture, 11 versions étiquetées.
 - Environnement de test : instance auto-hébergée du client (décision du 22/11), détails dans
   `CLAUDE.local.md` (hors dépôt).
+
+## En cours
+- #6 Carte « Équipe Claude » : réalisée, testée, revue sécurité faite → PR #7 ouverte.
+  En attente : recette client puis accord de fusion.
+
+## Prochaine action
+- Recette de la carte sur l'instance de test (image construite depuis la branche), puis fusion.

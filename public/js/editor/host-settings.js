@@ -138,7 +138,7 @@ function help(box, intro, file, script) {
       hint("scriptFrequencies"),
       frequencyList(script),
       hint(
-        script === "opencode-stats" || script === "claude-stats"
+        script === "opencode-stats" || script === "claude-stats" || script === "claude-team"
           ? "scriptCronUser"
           : "scriptCronRoot"
       ),

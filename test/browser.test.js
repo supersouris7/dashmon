@@ -623,6 +623,53 @@ async function main() {
     },
     "APT : titre, replie par defaut, depliage memorise, clavier, sortie en texte"
   );
+  // Claude team card: titles shown as text, the active agent marked by a word,
+  // a stale report flagged, nothing overflowing on a narrow screen.
+  assert.deepEqual(
+    await evaluate(`(async()=>{
+    if(!document.querySelector('link[data-supervision-style="claude-team"]')){
+      const link=document.createElement('link');link.rel='stylesheet';link.dataset.supervisionStyle='claude-team';
+      link.href='/supervision-client/claude-team/client.css';
+      await new Promise(done=>{link.onload=link.onerror=done;document.head.append(link);});
+    }
+    const {element}=await import('/supervision-client/claude-team/client.mjs');
+    const now=Math.floor(Date.now()/1000);
+    const report={version:1,scriptVersion:1,generatedAt:now-30,
+      sessions:[{project:'demo-project',status:'busy',model:'claude-test-model',since:now-600,statusSince:now-60}],
+      team:[{name:'reviewer',declared:true,configuredModel:'sonnet',active:true,tasks24h:2,
+        task:{title:'<b>Relire</b> '+'une tache tres longue '.repeat(5),project:'demo-project',model:'claude-test-model',since:now-120}},
+        {name:'builder',declared:true,configuredModel:'opus',active:false,tasks24h:0,task:null}],
+      recent:[]};
+    const ctx=report=>({report,host:{id:'claude-team-test'},t:key=>key});
+    const card=element(ctx(report));
+    card.style.cssText='position:fixed;top:0;left:0;width:220px';
+    document.body.append(card);
+    const right=card.getBoundingClientRect().right+1;
+    const taskTitle=card.querySelector('.claude-team-task-title');
+    const flags=[...card.querySelectorAll('.claude-team-flag')].map(e=>e.textContent);
+    const result={
+      titleAsText:taskTitle.textContent.startsWith('<b>Relire</b>') && !taskTitle.querySelector('b'),
+      flags,
+      oneTask:card.querySelectorAll('.claude-team-task').length,
+      fits:[...card.querySelectorAll('*')].every(e=>e.getBoundingClientRect().right<=right),
+      healthy:card.classList.contains('is-healthy'),
+      stale:element(ctx({...report,generatedAt:now-3600})).classList.contains('is-warning'),
+      noReport:element(ctx(null))===null
+    };
+    card.remove();
+    return result;
+  })()`),
+    {
+      titleAsText: true,
+      flags: ["active", "inactive"],
+      oneTask: 1,
+      fits: true,
+      healthy: true,
+      stale: true,
+      noReport: true
+    },
+    "equipe Claude : titres en texte, etat ecrit, rapport perime signale, sans debordement a 220 px"
+  );
   assert.equal(
     await evaluate("document.querySelectorAll('#localHostEditor .smart-disk-choice').length"),
     2

@@ -195,6 +195,7 @@ guides provide the full commands:
 - [APT: install and schedule the updates](APT_UPDATES.md)
 - [OpenCode: schedule the usage statistics](OPENCODE.md), on the hosts running OpenCode
 - [Claude Code: schedule the usage statistics](CLAUDE_CODE.md), on the hosts running Claude Code
+- [Claude team: follow the sessions and agents](CLAUDE_TEAM.md), on the hosts running Claude Code
 - [Directories: measure selected directories](DIRECTORIES.md)
 
 The reports stay optional. APT **actually installs updates**; its automatic

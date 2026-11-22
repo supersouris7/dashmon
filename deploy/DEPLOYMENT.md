@@ -98,9 +98,9 @@ See `.env.example`. The most important:
 
 Supervision reports are read from fixed paths, never chosen in the interface:
 `WIREGUARD_DUMP_FILE`, `SMART_DUMP_FILE`, `APT_UPDATES_REPORT_FILE`,
-`OPENCODE_REPORT_FILE` and `CLAUDE_REPORT_FILE` default to `wireguard.dump`,
-`smart.json`, `apt-updates.json`, `opencode.json` and `claude.json` in
-`/app/data`. Their guides are listed in [Host supervision](#9-host-supervision).
+`OPENCODE_REPORT_FILE`, `CLAUDE_REPORT_FILE` and `CLAUDE_TEAM_REPORT_FILE`
+default to `wireguard.dump`, `smart.json`, `apt-updates.json`, `opencode.json`,
+`claude.json` and `claude-team.json` in `/app/data`. Their guides are listed in [Host supervision](#9-host-supervision).
 
 ### Widget secrets (Duplicati…)
 

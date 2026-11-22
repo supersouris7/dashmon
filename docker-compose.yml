@@ -40,6 +40,7 @@ services:
       APT_UPDATES_REPORT_FILE: ${APT_UPDATES_REPORT_FILE:-}
       OPENCODE_REPORT_FILE: ${OPENCODE_REPORT_FILE:-}
       CLAUDE_REPORT_FILE: ${CLAUDE_REPORT_FILE:-}
+      CLAUDE_TEAM_REPORT_FILE: ${CLAUDE_TEAM_REPORT_FILE:-}
     volumes:
       - dashmon-data:/app/data
     # DNS resolution of local names (.lan, .home…) for the status dots and the
