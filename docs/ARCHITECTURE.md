@@ -156,7 +156,7 @@ refusal of anything that does not validate, without stopping the startup.
 | Kind | Server core | Browser | Data path |
 | --- | --- | --- | --- |
 | tile widget | `lib/widgets/core.js` (status loop) | `widget-registry.js` | status cache -> `/api/status` |
-| supervision card | `lib/supervisions/core.js` (host metrics) | `supervision-registry.js`, `supervision/plugin-card.js` | `host.plugins.<id>` -> `/api/host-metrics`, agent protocol 1.2 |
+| supervision card | `lib/supervisions/core.js` (host metrics) | `supervision-registry.js`, `supervision/plugin-card.js` | `host.plugins.<id>` -> `/api/host-metrics`, agent protocol 1.2+ (1.3 adds `agent.version`) |
 
 What a plugin cannot do, on purpose:
 

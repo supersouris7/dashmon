@@ -270,6 +270,8 @@ function registerRoutes(app, settings, version, services) {
     sanitizeSyncUrl: pairing.sanitizeSyncUrl,
     request: httpClient.apiRequest,
     assess: agentProtocol.assess,
+    compareVersion: agentProtocol.compareVersion,
+    ownVersion: version,
     agentPairing,
     timeout: STATUS_TIMEOUT,
     cacheMs: settings.hostMetricsInterval

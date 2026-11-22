@@ -95,7 +95,8 @@ async function main() {
   });
   assert.equal(response.status, 200);
   let data = await response.json();
-  assert.deepEqual(data.protocol, { major: 1, minor: 2 });
+  assert.deepEqual(data.protocol, { major: 1, minor: 3 });
+  assert.equal(typeof data.agent.version.version, "string", "version de l'agent transmise");
   assert.ok(data.agent.id && data.agent.capabilities.includes("host-metrics"));
   assert.ok(data.agent.capabilities.includes("supervision-plugins"));
   assert.ok(data.hosts[0].plugins["my-card"].cores >= 1, "rapport du plugin de supervision");
@@ -480,6 +481,25 @@ async function main() {
   speedServer.close();
   const now = Date.now();
   assert.equal(protocol.assess({ hosts: [] }, { now }).legacy, true);
+  // Version of the agent against this dashboard (#8).
+  const own = { version: "unstable", commit: "a208de4e6362be1c41cd2110dbb8b01acfc21edd" };
+  assert.equal(protocol.compareVersion(own, { version: "unstable", commit: "a208de4" }), null);
+  assert.deepEqual(protocol.compareVersion(own, { version: "v1.4.0", commit: "94378d0aaaa" }), {
+    status: "different",
+    own: { version: "unstable", commit: "a208de4" },
+    agent: { version: "v1.4.0", commit: "94378d0" }
+  });
+  assert.equal(protocol.compareVersion(own, undefined).status, "unknown", "agent ancien");
+  assert.equal(protocol.compareVersion(own, { version: "unstable", commit: "" }), null);
+  assert.equal(
+    protocol.compareVersion({ version: "unstable", commit: "unknown" }, undefined),
+    null
+  );
+  assert.equal(
+    protocol.compareVersion(own, { version: "<b>x</b>", commit: "94378d0" }).agent.version,
+    "",
+    "etiquette inattendue ecartee"
+  );
   const old = {
     hosts: [],
     protocol: { major: 1, minor: 10 },

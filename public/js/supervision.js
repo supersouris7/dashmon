@@ -36,6 +36,31 @@ function withScriptNotice(card, metrics, id) {
   return card;
 }
 
+// The agent runs another build than this dashboard: a card or a setting may
+// be missing on one side. Written, not only coloured.
+const BUILD = /^[0-9A-Za-z.+-]{1,40}$/;
+function buildText(build) {
+  const parts = [build?.version, build?.commit].filter(part => BUILD.test(part || ""));
+  return parts.join(" · ") || "?";
+}
+export function versionNotice(check) {
+  if (!check || !["different", "unknown"].includes(check.status)) return null;
+  const notice = document.createElement("p");
+  notice.className = "supervision-empty supervision-version-notice";
+  notice.setAttribute("role", "status");
+  const icon = document.createElement("i");
+  icon.className = "fa-solid fa-circle-exclamation";
+  icon.setAttribute("aria-hidden", "true");
+  const text =
+    check.status === "unknown"
+      ? t("agentVersionUnknown").replace("{own}", buildText(check.own))
+      : t("agentVersionDifferent")
+          .replace("{agent}", buildText(check.agent))
+          .replace("{own}", buildText(check.own));
+  notice.append(icon, " ", text);
+  return notice;
+}
+
 // Interval injected by the server (HOST_METRICS_INTERVAL). HTML served
 // without substitution (tests, local file) falls back to 60 s.
 function metricsInterval() {
@@ -90,6 +115,8 @@ export function renderSupervision() {
     warning.textContent = t("agentStale");
     supervisionList.append(warning);
   }
+  const versionWarning = selected && versionNotice(selected.versionCheck);
+  if (versionWarning) supervisionList.append(versionWarning);
   const agentHosts = state.replication?.agentHosts || {};
   const monitored = selected
     ? selected.hosts.map(metric => {
@@ -219,7 +246,8 @@ export async function refreshHostMetrics() {
         hosts: instance.hosts || [],
         error: instance.error,
         status: instance.status,
-        reason: instance.reason
+        reason: instance.reason,
+        versionCheck: instance.versionCheck || null
       }));
     } else {
       remoteInstances = (state.replication?.secondaries || []).map(url => ({
