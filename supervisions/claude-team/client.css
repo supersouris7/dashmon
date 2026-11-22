@@ -1,0 +1,164 @@
+/* Claude team card: lists of sessions and agents, history shown when the
+   card is open. Colours come from the theme variables only. */
+.supervision-card-claude-team {
+  cursor: pointer;
+}
+.supervision-card-claude-team:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.supervision-card-claude-team.is-healthy .supervision-health-state i {
+  color: var(--success);
+}
+.supervision-card-claude-team.is-warning .supervision-health-state i {
+  color: var(--warning);
+}
+.supervision-card-claude-team.expanded > .supervision-head .supervision-smart-chevron {
+  transform: rotate(180deg);
+}
+.supervision-card-claude-team .claude-team-age {
+  margin-left: auto;
+  color: var(--muted);
+}
+.claude-team-block {
+  margin-top: 12px;
+}
+.claude-team-title {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.claude-team-list,
+.claude-team-counts,
+.claude-team-recent {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.claude-team-session,
+.claude-team-member,
+.claude-team-recent li {
+  display: grid;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-2);
+  min-width: 0;
+  font-size: 12px;
+}
+.claude-team-session {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
+}
+.claude-team-session .claude-team-facts {
+  grid-column: 1 / -1;
+}
+.claude-team-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.claude-team-state,
+.claude-team-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.claude-team-session.is-working .claude-team-state {
+  color: var(--accent);
+}
+.claude-team-member-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+}
+.claude-team-dot i {
+  font-size: 10px;
+  color: var(--muted);
+}
+.claude-team-member.is-active {
+  border-color: var(--accent);
+}
+.claude-team-member.is-active .claude-team-dot i,
+.claude-team-member.is-active .claude-team-flag {
+  color: var(--accent);
+}
+.claude-team-member:not(.is-active) .claude-team-name,
+.claude-team-member:not(.is-active) .claude-team-flag {
+  color: var(--muted);
+}
+.claude-team-facts {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 11px;
+}
+.claude-team-member-head .claude-team-facts {
+  margin-left: auto;
+}
+.claude-team-task {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  padding-left: 18px;
+}
+.claude-team-task-title {
+  overflow-wrap: anywhere;
+}
+.claude-team-empty,
+.claude-team-date {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.claude-team-details {
+  display: none;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  cursor: default;
+}
+.supervision-card-claude-team.expanded .claude-team-details {
+  display: grid;
+}
+.claude-team-counts {
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+}
+.claude-team-counts li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-2);
+}
+.claude-team-recent li {
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 8px;
+}
+.claude-team-recent .claude-team-facts {
+  grid-column: 1 / -1;
+}
+@media (max-width: 480px) {
+  .claude-team-session {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .claude-team-member-head .claude-team-facts {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+}

@@ -38,6 +38,7 @@ const SUITES = [
   "apt-report.test.js",
   "opencode-report.test.js",
   "claude-stats.test.js",
+  "claude-team.test.js",
   "smart-report.test.js",
   "directory-report.test.js",
   "wireguard-report.test.js",

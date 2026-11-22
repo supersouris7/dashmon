@@ -1,0 +1,90 @@
+{
+  "id": "claude-team",
+  "version": "1.0.0",
+  "label": {
+    "fr": "Équipe Claude",
+    "en": "Claude team"
+  },
+  "description": {
+    "fr": "Sessions et agents Claude Code, résumés par deploy/claude-team.sh.",
+    "en": "Claude Code sessions and agents, summarised by deploy/claude-team.sh."
+  },
+  "icon": "fa-solid fa-people-group",
+  "order": 65,
+  "script": "claude-team",
+  "guide": "CLAUDE_TEAM.md",
+  "files": {
+    "report": {
+      "env": "CLAUDE_TEAM_REPORT_FILE",
+      "default": "claude-team.json"
+    }
+  },
+  "server": "server.js",
+  "client": "client.mjs",
+  "css": "client.css",
+  "modules": ["view.mjs"],
+  "settings": {
+    "show": "show",
+    "help": "help"
+  },
+  "strings": {
+    "fr": {
+      "title": "Équipe Claude",
+      "show": "Afficher l'équipe Claude",
+      "help": "Le script lit les sessions Claude Code de votre utilisateur et ses sous-agents (résumés seulement, jamais les conversations). La carte apparaît avec le premier rapport.",
+      "badge": "Claude",
+      "stale": "Rapport périmé : vérifiez la tâche cron",
+      "summary": "{sessions} session(s) · {agents} agent(s) actif(s)",
+      "idle": "Aucune activité en cours",
+      "sessions": "Sessions",
+      "team": "Équipe",
+      "history": "Historique 24 h",
+      "noSession": "Aucune session ouverte",
+      "noAgent": "Aucun agent connu",
+      "noTask": "Aucune tâche sur 24 h",
+      "working": "En travail",
+      "waiting": "En attente",
+      "unknownState": "État inconnu",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "since": "depuis",
+      "tasks": "tâche(s)",
+      "tasksPerAgent": "Tâches par agent",
+      "recent": "Dernières tâches",
+      "inProgress": "en cours",
+      "configured": "modèle configuré",
+      "session": "Session",
+      "unknown": "inconnu",
+      "reportDate": "Rapport"
+    },
+    "en": {
+      "title": "Claude team",
+      "show": "Show the Claude team",
+      "help": "The script reads your user's Claude Code sessions and subagents (summaries only, never the conversations). The card appears with the first report.",
+      "badge": "Claude",
+      "stale": "Old report: check the cron job",
+      "summary": "{sessions} session(s) · {agents} active agent(s)",
+      "idle": "No activity right now",
+      "sessions": "Sessions",
+      "team": "Team",
+      "history": "Last 24 h",
+      "noSession": "No open session",
+      "noAgent": "No known agent",
+      "noTask": "No task in the last 24 h",
+      "working": "Working",
+      "waiting": "Waiting",
+      "unknownState": "Unknown state",
+      "active": "Active",
+      "inactive": "Inactive",
+      "since": "for",
+      "tasks": "task(s)",
+      "tasksPerAgent": "Tasks per agent",
+      "recent": "Latest tasks",
+      "inProgress": "in progress",
+      "configured": "configured model",
+      "session": "Session",
+      "unknown": "unknown",
+      "reportDate": "Report"
+    }
+  }
+}

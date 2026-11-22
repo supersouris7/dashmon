@@ -268,9 +268,10 @@ async function bundledCards() {
       env === "OPENCODE_REPORT_FILE" ? custom : path.join(dataDir, fallback)
   });
   await bundled.load();
-  check("integrees : les six cartes sont des plugins", bundled.ids(), [
+  check("integrees : les sept cartes sont des plugins", bundled.ids(), [
     "apt-updates",
     "claude",
+    "claude-team",
     "directories",
     "opencode",
     "smart",
@@ -311,6 +312,7 @@ async function bundledCards() {
   check("integrees : chaque carte annonce son script hote", bundled.scripts(), {
     "apt-updates": "apt-updates",
     claude: "claude-stats",
+    "claude-team": "claude-team",
     directories: "directory-sizes",
     opencode: "opencode-stats",
     smart: "smart-dump",

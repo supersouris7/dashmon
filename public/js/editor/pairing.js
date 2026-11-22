@@ -39,7 +39,8 @@ export function renderPairingEditor({
     ["SMART.md", "SMART"],
     ["APT_UPDATES.md", "APT"],
     ["OPENCODE.md", "OpenCode"],
-    ["CLAUDE_CODE.md", "Claude Code"]
+    ["CLAUDE_CODE.md", "Claude Code"],
+    ["CLAUDE_TEAM.md", "Claude team"]
   ]) {
     const link = document.createElement("a");
     link.href = "https://github.com/supersouris7/dashmon/blob/main/docs/" + file;

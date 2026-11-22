@@ -28,11 +28,11 @@ set -eu
 
 # Version of this script. It writes no report, so Dashmon never flags it:
 # `update` refreshes it with the others. Raise it on every change.
-SCRIPT_VERSION=9
+SCRIPT_VERSION=10
 
 RAW="${DASHMON_RAW_URL:-https://raw.githubusercontent.com/supersouris7/dashmon/main/deploy}"
 BIN="${DASHMON_BIN_DIR:-/usr/local/bin}"
-COMPONENTS="apt-updates smart-dump wireguard-dump opencode-stats claude-stats directory-sizes"
+COMPONENTS="apt-updates smart-dump wireguard-dump opencode-stats claude-stats directory-sizes claude-team"
 
 case "${DASHMON_LANG:-${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}}" in fr*) FR=1 ;; *) FR=0 ;; esac
 # say "English" "Français"
@@ -47,6 +47,7 @@ label() {
     wireguard-dump) echo "WireGuard" ;;
     opencode-stats) echo "OpenCode" ;;
     claude-stats) echo "Claude Code" ;;
+    claude-team) say "Claude team" "Équipe Claude" ;;
     directory-sizes) say "Directories" "Répertoires" ;;
     setup) echo "dashmon-setup" ;;
   esac
@@ -66,12 +67,14 @@ purpose() {
     claude-stats) say "Claude Code usage of a user" "utilisation de Claude Code par un utilisateur" ;;
     directory-sizes) say "size of the directories chosen in Dashmon" \
       "taille des répertoires choisis dans Dashmon" ;;
+    claude-team) say "Claude Code sessions and agents of a user" \
+      "sessions et agents Claude Code d'un utilisateur" ;;
   esac
 }
 
 # OpenCode and Claude Code read the home of the user who works with them;
 # the others need root (apt, smartctl, wg, every directory).
-user_script() { case "$1" in opencode-stats | claude-stats) return 0 ;; esac; return 1; }
+user_script() { case "$1" in opencode-stats | claude-stats | claude-team) return 0 ;; esac; return 1; }
 
 # Three schedules per script, the recommended one marked. Same list in
 # public/js/editor/script-help.js (checked by test/setup-script.test.js).
@@ -97,6 +100,11 @@ frequencies() {
       echo "*/5 * * * *||every 5 minutes|toutes les 5 minutes|"
       echo "*/15 * * * *||every 15 minutes|toutes les 15 minutes|1"
       echo "0 * * * *||every hour|toutes les heures|"
+      ;;
+    claude-team)
+      echo "* * * * *||every minute|toutes les minutes|1"
+      echo "*/5 * * * *||every 5 minutes|toutes les 5 minutes|"
+      echo "*/15 * * * *||every 15 minutes|toutes les 15 minutes|"
       ;;
     setup)
       echo "0 */6 * * *||every 6 hours|toutes les 6 heures|"
@@ -480,7 +488,7 @@ user_has_tool() {
   home=$(getent passwd "$2" 2>/dev/null | cut -d: -f6)
   [ -n "$home" ] || return 1
   case "$1" in
-    claude-stats) [ -d "${CLAUDE_CONFIG_DIR:-$home/.claude}/projects" ] ;;
+    claude-stats | claude-team) [ -d "${CLAUDE_CONFIG_DIR:-$home/.claude}/projects" ] ;;
     opencode-stats) [ -d "$home/.local/share/opencode" ] || [ -x "$home/.opencode/bin/opencode" ] ;;
   esac
 }
