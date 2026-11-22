@@ -55,7 +55,16 @@
       "configured": "modèle configuré",
       "session": "Session",
       "unknown": "inconnu",
-      "reportDate": "Rapport"
+      "reportDate": "Rapport",
+      "lead": "Chef de projet",
+      "leadHint": "La session principale, qui confie les tâches aux agents",
+      "roleExplore": "Exploration du code",
+      "rolePlan": "Planification",
+      "roleGeneralPurpose": "Agent polyvalent",
+      "roleGuide": "Guide Claude Code",
+      "roleStatusline": "Barre d'état",
+      "roleWebFetch": "Lecture web",
+      "roleFork": "Copie de la session"
     },
     "en": {
       "title": "Claude team",
@@ -84,7 +93,16 @@
       "configured": "configured model",
       "session": "Session",
       "unknown": "unknown",
-      "reportDate": "Report"
+      "reportDate": "Report",
+      "lead": "Project lead",
+      "leadHint": "The main session, which hands tasks to the agents",
+      "roleExplore": "Code explorer",
+      "rolePlan": "Planner",
+      "roleGeneralPurpose": "General-purpose agent",
+      "roleGuide": "Claude Code guide",
+      "roleStatusline": "Status line setup",
+      "roleWebFetch": "Web reader",
+      "roleFork": "Session fork"
     }
   }
 }

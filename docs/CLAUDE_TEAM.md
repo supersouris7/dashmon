@@ -5,7 +5,8 @@ The **Claude team** card on the Supervision page shows what
 
 - the **sessions** that are open, with their project, their state (*working* or
   *waiting*), the model they use and for how long;
-- the **team**: each agent you declared in `~/.claude/agents` (and the built-in
+- the **team**, led by the **project lead** (the main session, which hands
+  tasks to the agents: active while a session works): each agent you declared in `~/.claude/agents` (and the built-in
   ones, such as `Explore`, once they have been used), with its configured
   model, an *active* or *inactive* mark and, for an active one, the task it
   works on, its project and the model really used;
@@ -108,6 +109,13 @@ The card flags a report older than 10 minutes: the job has probably stopped.
   for a long command shows as inactive until it writes again. Its model is the
   one of its last reply, not the alias set in its definition. The project is
   the folder it works in.
+- **Names**: an agent shows under its role, the first sentence of its
+  `description` when it is a short job title (`description: Security expert.
+  Use it to…` shows *Security expert*), with its identifier next to it. The
+  built-in agents (`Explore`, `Plan`, `general-purpose`…) have a translated
+  name. Without such a sentence, the identifier is shown.
+- **Project lead**: the main Claude Code session itself. It is *active* while a
+  session is working, with the model and the project of that session.
 - **Declared agents** that were never launched show as *inactive* with their
   configured model (`model` of their `~/.claude/agents/*.md` file); `—` when
   the file sets none.
@@ -125,7 +133,7 @@ instead of being guessed.
 Task titles are free text and may be sensitive. To write none, set
 `DASHMON_CLAUDE_TEAM_TITLES=0`: the report then holds the project only (the
 title, the session name and the agent descriptions are not written at all,
-not merely hidden):
+not merely hidden). The role, a job title of 40 characters at most, is kept:
 
 ```cron
 * * * * * DASHMON_CLAUDE_TEAM_TITLES=0 /usr/local/bin/dashmon-claude-team.sh >/dev/null 2>&1

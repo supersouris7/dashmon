@@ -43,6 +43,43 @@ export function health(report, now = Date.now() / 1000) {
     : { level: "unknown", key: "idle" };
 }
 
+// Built-in Claude Code agents: no description to read a role from, so a
+// translated name (manifest strings).
+const BUILT_IN_ROLES = {
+  Explore: "roleExplore",
+  Plan: "rolePlan",
+  "general-purpose": "roleGeneralPurpose",
+  "claude-code-guide": "roleGuide",
+  "statusline-setup": "roleStatusline",
+  "web-fetch": "roleWebFetch",
+  fork: "roleFork"
+};
+
+// Name shown for an agent: its role ("Security expert"), else the translated
+// built-in name, else its identifier.
+export function roleOf(member, t) {
+  if (member.role) return member.role;
+  const key = BUILT_IN_ROLES[member.name];
+  return key ? t(key) : member.name;
+}
+
+// The project lead is the main session itself, which hands tasks to the
+// agents: active while a session works, with its model and projects.
+export function leadMember(report, now = Date.now() / 1000) {
+  const working = report.sessions.filter(session => sessionState(session.status) === "working");
+  const pick = working.length ? working : report.sessions;
+  const models = [...new Set(pick.map(session => session.model).filter(Boolean))];
+  const projects = [...new Set(pick.map(session => session.project).filter(Boolean))];
+  const since = Math.min(...working.map(session => session.statusSince || session.since || now));
+  return {
+    lead: true,
+    active: working.length > 0,
+    model: models.join(", ") || null,
+    projects,
+    since: working.length ? since : null
+  };
+}
+
 // Active agents first, then the declared ones, then the others, each by name.
 export function orderedTeam(team) {
   return [...team].sort(

@@ -24,7 +24,7 @@ set -eu
 
 # Version of this script, written into its report: Dashmon flags a report
 # made by an older script (docs/SCRIPTS.md). Raise it on every change.
-SCRIPT_VERSION=1
+SCRIPT_VERSION=2
 
 CONT_NAME="${DASHMON_CONTAINER:-dashmon}"
 CONT_PATH="${DASHMON_CLAUDE_TEAM_CONTAINER_PATH:-/app/data/claude-team.json}"
@@ -195,6 +195,7 @@ async function main() {
     team.set(name, {
       name,
       configuredModel: null,
+      role: null,
       description: null,
       declared: false,
       active: false,
@@ -207,7 +208,11 @@ async function main() {
     const member = entry(name);
     member.declared = true;
     member.configuredModel = clean(item.fields.model, 80) || null;
-    // The description is free text too: dropped with the titles.
+    // The role is the first sentence of the description when it is a short
+    // job title ("Security expert."): a name, kept even without titles.
+    const first = String(item.fields.description || "").split(/\.(\s|$)/)[0];
+    member.role = first.length <= 40 ? clean(first, 40) || null : null;
+    // The rest of the description is free text: dropped with the titles.
     member.description = TITLES ? clean(item.fields.description, TITLE_MAX) || null : null;
   }
   for (const task of tasks) {

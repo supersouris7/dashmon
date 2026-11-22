@@ -12,7 +12,15 @@ import {
 } from "/js/supervision/cards.js";
 import { relativeAge, reportDateText } from "/js/supervision/format.js";
 import { element as node } from "/js/element.js";
-import { counts, durationText, health, orderedTeam, sessionState } from "./view.mjs";
+import {
+  counts,
+  durationText,
+  health,
+  leadMember,
+  orderedTeam,
+  roleOf,
+  sessionState
+} from "./view.mjs";
 
 const STATE_ICONS = {
   working: "fa-solid fa-gear",
@@ -54,6 +62,30 @@ function sessionRow(ctx, session) {
   return row;
 }
 
+// The project lead: the main session, first of the team.
+function leadRow(ctx, report) {
+  const lead = leadMember(report);
+  const row = node("li", "claude-team-member claude-team-lead" + (lead.active ? " is-active" : ""));
+  const dot = node("span", "claude-team-dot");
+  dot.append(icon(lead.active ? "fa-solid fa-circle" : "fa-regular fa-circle"));
+  const head = node("div", "claude-team-member-head");
+  const name = node("strong", "claude-team-name", ctx.t("lead"));
+  name.title = ctx.t("leadHint");
+  head.append(
+    dot,
+    name,
+    node("span", "claude-team-flag", ctx.t(lead.active ? "active" : "inactive")),
+    node("span", "claude-team-facts", lead.model || "")
+  );
+  row.appendChild(head);
+  if (lead.active) {
+    const line = node("div", "claude-team-task");
+    line.append(facts([lead.projects.join(", "), since(ctx, lead.since)]));
+    row.appendChild(line);
+  }
+  return row;
+}
+
 // The dot is doubled by a word and a different shape: the state does not
 // depend on the colour.
 function memberRow(ctx, member) {
@@ -61,10 +93,17 @@ function memberRow(ctx, member) {
   const dot = node("span", "claude-team-dot");
   dot.append(icon(member.active ? "fa-solid fa-circle" : "fa-regular fa-circle"));
   const head = node("div", "claude-team-member-head");
-  const name = node("strong", "claude-team-name", member.name);
-  if (member.description) name.title = member.description;
+  const role = roleOf(member, ctx.t);
+  const name = node("strong", "claude-team-name", role);
+  name.title = [member.name, member.description].filter(Boolean).join(" — ");
   const state = node("span", "claude-team-flag", ctx.t(member.active ? "active" : "inactive"));
-  const model = node("span", "claude-team-facts", member.configuredModel || "");
+  // The identifier stays visible when the role replaced it: it is what a
+  // task names and what the files are called.
+  const model = node(
+    "span",
+    "claude-team-facts",
+    [role !== member.name ? member.name : "", member.configuredModel].filter(Boolean).join(" · ")
+  );
   if (member.configuredModel) model.title = ctx.t("configured");
   head.append(dot, name, state, model);
   row.appendChild(head);
@@ -90,18 +129,23 @@ function historyList(ctx, report) {
   counters.setAttribute("aria-label", ctx.t("tasksPerAgent"));
   for (const member of perAgent) {
     const item = node("li", "");
-    item.append(node("span", "", member.name), node("strong", "", String(member.tasks24h)));
+    item.append(
+      node("span", "", roleOf(member, ctx.t)),
+      node("strong", "", String(member.tasks24h))
+    );
     counters.appendChild(item);
   }
   box.appendChild(counters);
   if (report.recent.length) {
+    const byName = new Map(report.team.map(member => [member.name, member]));
+    const label = name => roleOf(byName.get(name) || { name }, ctx.t);
     box.appendChild(title(ctx.t("recent")));
     const recent = node("ul", "claude-team-recent");
     for (const task of report.recent) {
       const item = node("li", "");
       const when = task.end ? ctx.relativeAge(task.end) : ctx.t("inProgress");
       item.append(
-        node("strong", "", task.agent),
+        node("strong", "", label(task.agent)),
         node("span", "claude-team-task-title", task.title || ""),
         facts([task.project, task.model, when])
       );
@@ -187,11 +231,11 @@ export function element(ctx) {
 
   const teamBox = node("section", "claude-team-block");
   teamBox.appendChild(title(ctx.t("team")));
-  if (report.team.length) {
-    const list = node("ul", "claude-team-list");
-    for (const member of orderedTeam(report.team)) list.appendChild(memberRow(ctx, member));
-    teamBox.appendChild(list);
-  } else teamBox.appendChild(node("p", "claude-team-empty", ctx.t("noAgent")));
+  const list = node("ul", "claude-team-list");
+  list.appendChild(leadRow(ctx, report));
+  for (const member of orderedTeam(report.team)) list.appendChild(memberRow(ctx, member));
+  teamBox.appendChild(list);
+  if (!report.team.length) teamBox.appendChild(node("p", "claude-team-empty", ctx.t("noAgent")));
 
   const details = node("div", "claude-team-details");
   details.append(historyList(ctx, report));
