@@ -153,7 +153,7 @@ try {
   assert.ok(!raw.includes(LIVE) && !raw.includes(GONE), "identifiant de session non exporte");
   const source = JSON.parse(raw);
   assert.equal(source.version, 1);
-  assert.equal(source.scriptVersion, 1);
+  assert.equal(source.scriptVersion, 2);
   assert.ok(Math.abs(source.generatedAt - nowSeconds()) < 5);
 
   // Sessions: only the one whose process lives, with the model of its log.
@@ -174,6 +174,9 @@ try {
   assert.equal(byName.builder.configuredModel, "opus", "fin de ligne CRLF toleree");
   assert.equal(byName["idle-one"].configuredModel, null, "champ absent = inconnu");
   assert.ok(byName.reviewer.description.length <= 80);
+  assert.equal(byName.reviewer.role, "Reviews a change", "role = premiere phrase courte");
+  assert.equal(byName["idle-one"].role, "No name, no model");
+  assert.equal(byName.builder.role, null, "sans description, pas de role");
   assert.equal(byName.Explore.declared, false);
   assert.equal(byName.Explore.tasks24h, 1, "agent integre liste quand il a servi");
 
@@ -228,7 +231,12 @@ try {
     "demo-project"
   );
   assert.equal(hiddenReport.sessions[0].name, null);
-  assert.ok(!hidden.includes("Reviews a change"), "description des agents retiree aussi");
+  assert.equal(
+    hiddenReport.team.find(member => member.name === "reviewer").role,
+    "Reviews a change",
+    "le role (un intitule de poste) reste sans les titres"
+  );
+  assert.ok(!hidden.includes("Long text"), "description des agents retiree aussi");
   assert.ok(hiddenReport.recent.every(item => item.title === null && item.project));
 
   // Default mode: the summary is built in the Dashmon container; a fake
@@ -361,5 +369,26 @@ import("../supervisions/claude-team/view.mjs").then(view => {
       .map(member => member.name),
     ["y", "a", "z", "b"]
   );
+  // Names shown: role, translated built-in, identifier.
+  const t = key => "<" + key + ">";
+  assert.equal(view.roleOf({ name: "securite", role: "Expert sécurité" }, t), "Expert sécurité");
+  assert.equal(view.roleOf({ name: "Explore" }, t), "<roleExplore>");
+  assert.equal(view.roleOf({ name: "custom" }, t), "custom");
+  // Project lead: the main session.
+  const sessions = [
+    { status: "busy", model: "m1", project: "p1", statusSince: now - 60 },
+    { status: "idle", model: "m2", project: "p2" }
+  ];
+  assert.deepEqual(view.leadMember(report(now, [], sessions), now), {
+    lead: true,
+    active: true,
+    model: "m1",
+    projects: ["p1"],
+    since: now - 60
+  });
+  const idle = view.leadMember(report(now, [], [sessions[1]]), now);
+  assert.equal(idle.active, false);
+  assert.equal(idle.model, "m2");
+  assert.equal(view.leadMember(report(now), now).active, false);
   console.log("PASS Equipe Claude : lecture de l'etat par la carte");
 });

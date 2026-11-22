@@ -636,7 +636,7 @@ async function main() {
     const now=Math.floor(Date.now()/1000);
     const report={version:1,scriptVersion:1,generatedAt:now-30,
       sessions:[{project:'demo-project',status:'busy',model:'claude-test-model',since:now-600,statusSince:now-60}],
-      team:[{name:'reviewer',declared:true,configuredModel:'sonnet',active:true,tasks24h:2,
+      team:[{name:'reviewer',role:'Relecteur',declared:true,configuredModel:'sonnet',active:true,tasks24h:2,
         task:{title:'<b>Relire</b> '+'une tache tres longue '.repeat(5),project:'demo-project',model:'claude-test-model',since:now-120}},
         {name:'builder',declared:true,configuredModel:'opus',active:false,tasks24h:0,task:null}],
       recent:[]};
@@ -650,7 +650,9 @@ async function main() {
     const result={
       titleAsText:taskTitle.textContent.startsWith('<b>Relire</b>') && !taskTitle.querySelector('b'),
       flags,
-      oneTask:card.querySelectorAll('.claude-team-task').length,
+      oneTask:card.querySelectorAll('.claude-team-member:not(.claude-team-lead) .claude-team-task').length,
+      names:[...card.querySelectorAll('.claude-team-member .claude-team-name')].map(e=>e.textContent),
+      identifierKept:card.querySelector('.claude-team-member:not(.claude-team-lead) .claude-team-facts').textContent==='reviewer · sonnet',
       fits:[...card.querySelectorAll('*')].every(e=>e.getBoundingClientRect().right<=right),
       healthy:card.classList.contains('is-healthy'),
       stale:element(ctx({...report,generatedAt:now-3600})).classList.contains('is-warning'),
@@ -661,8 +663,10 @@ async function main() {
   })()`),
     {
       titleAsText: true,
-      flags: ["active", "inactive"],
+      flags: ["active", "active", "inactive"],
       oneTask: 1,
+      names: ["lead", "Relecteur", "builder"],
+      identifierKept: true,
       fits: true,
       healthy: true,
       stale: true,

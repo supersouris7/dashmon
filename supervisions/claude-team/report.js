@@ -10,6 +10,7 @@ const MAX_BYTES = 200_000;
 const TITLE_MAX = 80;
 const SHORT_MAX = 60;
 const MODEL_MAX = 80;
+const ROLE_MAX = 40;
 
 function seconds(value) {
   const n = Number(value);
@@ -56,6 +57,7 @@ function member(raw) {
   return {
     name,
     configuredModel: text(raw.configuredModel, MODEL_MAX),
+    role: text(raw.role, ROLE_MAX),
     description: text(raw.description, TITLE_MAX),
     declared: raw.declared === true,
     active: raw.active === true,
