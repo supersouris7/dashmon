@@ -9,8 +9,13 @@
   `CLAUDE.local.md` (hors dépôt).
 
 ## Dernières livraisons
-- 2026-11-22 · #6 Carte « Équipe Claude » (PR #7) fusionnée, image `unstable` publiée,
-  agent local à jour et relevé chaque minute installé. À voir sur le tableau principal après re-pull.
+- 2026-11-22 · #8 Avertissement « version différente » entre agent et tableau principal (PR #9).
+- 2026-11-22 · #6 Carte « Équipe Claude » (PR #7) ; relevé chaque minute installé sur ce serveur.
+- Agent local à jour (f185fd6). Tableau principal : à mettre à jour (re-pull `unstable`).
+
+## Fonctionnement convenu (22/11)
+- Serveur = lab : pas de recette intermédiaire ; fusion autorisée en permanence (autorisations.conf).
 
 ## Prochaine action
-- Aucune en cours : attendre le retour du client sur la carte.
+- Accès API Portainer (jeton dans ~/.claude/fabrique/secrets/portainer.env, fourni par le client)
+  pour mettre à jour le tableau principal sans manipulation manuelle.
