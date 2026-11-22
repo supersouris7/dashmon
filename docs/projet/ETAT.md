@@ -9,9 +9,10 @@
   `CLAUDE.local.md` (hors dépôt).
 
 ## Dernières livraisons
+- 2026-11-22 · #10 Équipe Claude : noms parlants (rôles) et « Chef de projet » (PR #11), script v2.
 - 2026-11-22 · #8 Avertissement « version différente » entre agent et tableau principal (PR #9).
 - 2026-11-22 · #6 Carte « Équipe Claude » (PR #7) ; relevé chaque minute installé sur ce serveur.
-- Agent local à jour (f185fd6). Tableau principal : à mettre à jour (re-pull `unstable`).
+- Agent local à jour (9d37793), script v2 installé. Tableau principal : à mettre à jour (re-pull `unstable`).
 
 ## Fonctionnement convenu (22/11)
 - Serveur = lab : pas de recette intermédiaire ; fusion autorisée en permanence (autorisations.conf).
