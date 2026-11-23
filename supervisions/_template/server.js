@@ -4,7 +4,7 @@
 // is never loaded. Full guide: docs/EXTENDING.md.
 //
 // collect(ctx) runs for the monitored local host on every metrics refresh
-// (HOST_METRICS_INTERVAL, 60 s by default). It returns a small JSON object,
+// (HOST_METRICS_INTERVAL, 5 min by default). It returns a small JSON object,
 // the report your client.mjs turns into a card, or null for "nothing to
 // show on this host" (no card is drawn).
 //

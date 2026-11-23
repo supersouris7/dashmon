@@ -34,7 +34,7 @@ services:
       # token of earlier versions).
       DASHMON_SYNC_TOKEN: ${DASHMON_SYNC_TOKEN:-}
       # Host supervision and local reports (see deploy/DEPLOYMENT.md).
-      HOST_METRICS_INTERVAL: ${HOST_METRICS_INTERVAL:-60}
+      HOST_METRICS_INTERVAL: ${HOST_METRICS_INTERVAL:-300}
       WIREGUARD_DUMP_FILE: ${WIREGUARD_DUMP_FILE:-}
       SMART_DUMP_FILE: ${SMART_DUMP_FILE:-}
       APT_UPDATES_REPORT_FILE: ${APT_UPDATES_REPORT_FILE:-}

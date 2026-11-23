@@ -46,7 +46,8 @@ async function start(mode, port, folder, extraEnv = {}) {
       DASHMON_SYNC_TOKEN: token,
       DASHMON_MASTER_KEY: crypto.randomBytes(32).toString("hex"),
       // Shortest interval: the agent metrics cached by the primary expire fast.
-      HOST_METRICS_INTERVAL: "5"
+      HOST_METRICS_INTERVAL: "5",
+      DASHMON_TEST_FAST_METRICS: "1"
     },
     stdio: "ignore"
   });

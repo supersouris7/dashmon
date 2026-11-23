@@ -18,7 +18,7 @@ assert.equal(defaults.port, 8080);
 assert.equal(defaults.bindAddress, "127.0.0.1");
 assert.equal(defaults.configFile, path.join(root, "data", "config.json"));
 assert.equal(defaults.themesNativeDir, path.join(root, "public", "themes"));
-assert.equal(defaults.hostMetricsInterval, 60000);
+assert.equal(defaults.hostMetricsInterval, 300000);
 assert.equal(defaults.agentMode, false);
 
 // A password opens the server to the network; DATA_DIR moves every data file.
@@ -30,7 +30,9 @@ const custom = read({
 assert.equal(custom.bindAddress, "0.0.0.0");
 assert.equal(custom.iconsDir, path.join("/data", "icons"));
 assert.equal(custom.hostMetricsInterval, 3600 * 1000);
-assert.equal(read({ HOST_METRICS_INTERVAL: "2" }).hostMetricsInterval, 60000);
+assert.equal(read({ HOST_METRICS_INTERVAL: "2" }).hostMetricsInterval, 300000);
+assert.equal(read({ HOST_METRICS_INTERVAL: "120" }).hostMetricsInterval, 300000);
+assert.equal(read({ HOST_METRICS_INTERVAL: "600" }).hostMetricsInterval, 600000);
 
 // Refused combinations stop the start-up.
 // An agent starts without a token: the pairing generates it.

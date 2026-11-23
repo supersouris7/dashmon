@@ -63,6 +63,9 @@ export async function manualRefresh() {
   }
 }
 
+// Page refresh of the statuses: same period as the server checks (lifecycle.js).
+const STATUS_REFRESH = 5 * 60 * 1000;
+
 function pageHidden() {
   return typeof document !== "undefined" && document.visibilityState === "hidden";
 }
@@ -71,7 +74,7 @@ export function startStatusLoop() {
   refreshStatus();
   state.statusTimer = setInterval(() => {
     if (!pageHidden()) refreshStatus();
-  }, 60000);
+  }, STATUS_REFRESH);
 }
 
 export function setupVisibilityPause() {
