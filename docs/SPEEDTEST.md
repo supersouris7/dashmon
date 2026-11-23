@@ -37,7 +37,17 @@ graph; the next one runs at the usual time.
 
 Results are kept 7 days in `speedtest.json`, in the data volume: a restart
 neither loses the history nor runs an extra test. The first automatic test of
-a new install runs a minute or two after start-up.
+a new install runs within a quarter of an hour after start-up.
+
+## Several hosts on one Internet link
+
+The hosts of one site share its public address, and Cloudflare refuses tests
+that come all at once from one address (error 429, *too many requests*). Each
+instance therefore picks its own slot in the interval, at random, and keeps
+it: with one test an hour, one host may test at :12 and another at :47, even
+after they were all restarted together. After a 429, the next automatic test
+waits at least 3 hours. If 429 errors keep coming, choose every 6 hours on
+some hosts, or a LibreSpeed server.
 
 ## Data used
 
