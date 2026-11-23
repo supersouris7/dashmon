@@ -97,10 +97,12 @@ const { sanitizeSpeedtest, sanitizeHostMonitoring } = require("../lib/config/fie
   const refused = await runMeasure("http://127.0.0.1:1/", { phaseMs: 300, warmupMs: 50 });
   assert.equal(refused.error, "unreachable");
 
-  // Schedule: due when no test exists or the interval has passed.
+  // Schedule: the first test at once (phase 0), then one per interval, in
+  // this instance's slot.
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dashmon-speedtest-"));
   const file = path.join(dir, "speedtest.json");
-  let clock = 1_000_000_000_000;
+  const HOUR = 3600000;
+  let clock = 277778 * HOUR; // on an hour boundary
   let prefs = { interval: 60 };
   const runs = [];
   const measure = async target => {
@@ -121,6 +123,7 @@ const { sanitizeSpeedtest, sanitizeHostMonitoring } = require("../lib/config/fie
     readPrefs: () => prefs,
     measure,
     now: () => clock,
+    phase: 0,
     onResult: () => {
       notified += 1;
     }
@@ -152,7 +155,8 @@ const { sanitizeSpeedtest, sanitizeHostMonitoring } = require("../lib/config/fie
   assert.equal(report.server, "cloudflare");
   assert.equal(report.history.length, 3);
   assert.deepEqual(report.history[0].slice(1), [1e8, 2e7, 12]);
-  assert.equal(report.nextAt, report.last.at + 60 * 60000);
+  // Next slot of phase 0 at least half an interval after the last test.
+  assert.equal(report.nextAt, 277778 * HOUR + 2 * HOUR);
 
   // Interval 0: no automatic test, a manual one still runs.
   prefs = { interval: 0 };
@@ -200,6 +204,48 @@ const { sanitizeSpeedtest, sanitizeHostMonitoring } = require("../lib/config/fie
   release();
   assert.equal(await first.result, await second.result);
   assert.equal(slow.report().history[0][1], null);
+
+  // Hosts of one site test in different slots, which stay put whatever the
+  // time a test took; after a 429 the next automatic test waits 3 hours.
+  {
+    let at = 500 * HOUR;
+    let answer = { ok: true };
+    const fake = () => async () => ({ at, server: "cloudflare", ...answer });
+    const a = createSpeedtest({
+      readPrefs: () => ({}),
+      measure: fake(),
+      now: () => at,
+      phase: 0.25
+    });
+    const b = createSpeedtest({
+      readPrefs: () => ({}),
+      measure: fake(),
+      now: () => at,
+      phase: 0.75
+    });
+    // First test within a quarter of an hour, spread by the phase.
+    assert.equal(a.report().nextAt, at + 0.25 * 15 * 60000);
+    assert.equal(b.report().nextAt, at + 0.75 * 15 * 60000);
+    at += 20 * 60000;
+    a.tick();
+    b.tick();
+    await new Promise(setImmediate);
+    assert.equal(a.report().nextAt, 501 * HOUR + 15 * 60000);
+    assert.equal(b.report().nextAt, 501 * HOUR + 45 * 60000);
+    at = 501 * HOUR + 15 * 60000 + 50000; // started 50 s late
+    a.tick();
+    await new Promise(setImmediate);
+    assert.equal(a.report().nextAt, 502 * HOUR + 15 * 60000, "the slot does not drift");
+    answer = { ok: false, error: "http_429" };
+    at = 502 * HOUR + 15 * 60000;
+    a.tick();
+    await new Promise(setImmediate);
+    assert.equal(a.report().nextAt, 505 * HOUR + 15 * 60000, "3 hours after a 429");
+    at += 2 * HOUR;
+    a.tick();
+    await new Promise(setImmediate);
+    assert.equal(a.report().history.length, 3, "no test during the back-off");
+  }
 
   // Without a schedule (SPEEDTEST_SCHEDULE=off) nothing runs on its own.
   const off = createSpeedtest({ readPrefs: () => ({}), scheduled: false, measure });
