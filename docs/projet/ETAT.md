@@ -9,10 +9,10 @@
   `CLAUDE.local.md` (hors dépôt).
 
 ## Dernières livraisons
-- 2026-11-23 · Supervision de l'atelier (serveur distant de la fabrique) : agent Dashmon local (port publié
-  sur 127.0.0.1 seulement), relevés Équipe Claude (5 min) et Claude Code (15 min) ; accès depuis le LAN par
-  tunnel SSH ouvert par le Lenovo (script fabrique `tunnel-dashmon.sh`). APT non installé (installerait
-  les mises à jour sans contrôle). Aucune modification de code.
+- 2026-11-23 · #16 Speed test : créneau propre à chaque hôte, pause de 3 h après un 429 (hôtes d'un même site
+  bloqués ensemble par Cloudflare).
+- 2026-11-23 · Décision client : Dashmon reste la supervision du réseau local ; l'atelier OVH (fabrique) a sa
+  propre supervision, hors Dashmon (agent installé puis retiré le même jour).
 - 2026-11-22 · #10 Équipe Claude : noms parlants (rôles) et « Chef de projet » (PR #11), script v2.
 - 2026-11-22 · #8 Avertissement « version différente » entre agent et tableau principal (PR #9).
 - 2026-11-22 · #6 Carte « Équipe Claude » (PR #7) ; relevé chaque minute installé sur ce serveur.
