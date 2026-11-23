@@ -6,7 +6,7 @@
     "fr": "Derniere notification recue",
     "en": "Latest received notification"
   },
-  "interval": 300000,
+  "interval": 900000,
   "cacheKey": "service",
   "server": "server.js",
   "client": "client.mjs",

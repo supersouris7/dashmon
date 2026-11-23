@@ -81,18 +81,19 @@ crontab ([cron in short](SCRIPTS.md#cron-in-short)):
 
 | Schedule | Cron line |
 | --- | --- |
-| **Every minute (recommended)** | `* * * * * /usr/local/bin/dashmon-claude-team.sh >/dev/null 2>&1` |
-| Every 5 minutes | `*/5 * * * * /usr/local/bin/dashmon-claude-team.sh >/dev/null 2>&1` |
+| Every minute | `* * * * * /usr/local/bin/dashmon-claude-team.sh >/dev/null 2>&1` |
+| **Every 5 minutes (recommended)** | `*/5 * * * * /usr/local/bin/dashmon-claude-team.sh >/dev/null 2>&1` |
 | Every 15 minutes | `*/15 * * * * /usr/local/bin/dashmon-claude-team.sh >/dev/null 2>&1` |
 
-Every minute shows a new session or a started agent within two minutes. The run
+Every 5 minutes shows a new session or a started agent within ten minutes, and
+the page itself only re-reads its data every 5 minutes. The run
 is light: it reads the sessions and the files modified in the last 24 hours,
 and of those only the beginning and the end. It takes well under a second.
 
 For an **agent**:
 
 ```cron
-* * * * * DASHMON_CONTAINER=dashmon-agent /usr/local/bin/dashmon-claude-team.sh >/dev/null 2>&1
+*/5 * * * * DASHMON_CONTAINER=dashmon-agent /usr/local/bin/dashmon-claude-team.sh >/dev/null 2>&1
 ```
 
 The card flags a report older than 10 minutes: the job has probably stopped.
@@ -136,7 +137,7 @@ title, the session name and the agent descriptions are not written at all,
 not merely hidden). The role, a job title of 40 characters at most, is kept:
 
 ```cron
-* * * * * DASHMON_CLAUDE_TEAM_TITLES=0 /usr/local/bin/dashmon-claude-team.sh >/dev/null 2>&1
+*/5 * * * * DASHMON_CLAUDE_TEAM_TITLES=0 /usr/local/bin/dashmon-claude-team.sh >/dev/null 2>&1
 ```
 
 ## Enable or hide the card
@@ -166,7 +167,7 @@ services:
 The cron line then becomes:
 
 ```cron
-* * * * * DASHMON_CLAUDE_TEAM_REPORT=/srv/dashmon-reports/claude-team.json /usr/local/bin/dashmon-claude-team.sh >/dev/null 2>&1
+*/5 * * * * DASHMON_CLAUDE_TEAM_REPORT=/srv/dashmon-reports/claude-team.json /usr/local/bin/dashmon-claude-team.sh >/dev/null 2>&1
 ```
 
 The folder must be writable by your user. The read path stays fixed by the

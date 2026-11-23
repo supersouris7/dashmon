@@ -102,8 +102,8 @@ frequencies() {
       echo "0 * * * *||every hour|toutes les heures|"
       ;;
     claude-team)
-      echo "* * * * *||every minute|toutes les minutes|1"
-      echo "*/5 * * * *||every 5 minutes|toutes les 5 minutes|"
+      echo "* * * * *||every minute|toutes les minutes|"
+      echo "*/5 * * * *||every 5 minutes|toutes les 5 minutes|1"
       echo "*/15 * * * *||every 15 minutes|toutes les 15 minutes|"
       ;;
     setup)

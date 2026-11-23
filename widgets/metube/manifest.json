@@ -6,7 +6,7 @@
     "fr": "Telechargements actifs et en attente",
     "en": "Active and queued downloads"
   },
-  "interval": 300000,
+  "interval": 900000,
   "cacheKey": "service",
   "server": "server.js",
   "client": "client.mjs",

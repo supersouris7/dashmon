@@ -31,7 +31,7 @@ async function main() {
   check(
     "core : intervalle par defaut pour un widget inconnu",
     core.interval({ widget: { type: "inconnu" } }),
-    300000
+    900000
   );
 
   // Un service sans widget est un lien : c'est le plugin du slot "link" qui le
@@ -40,7 +40,7 @@ async function main() {
   check('core : un lien nu est couvert par le plugin "link"', core.pluginFor(plainLink).id, "web");
   ok("core : le plugin de lien est signale", core.linkPlugin().id === "web");
   ok("core : un lien nu est surveillable", core.handles(plainLink));
-  check("core : la periode d'un lien nu vient du plugin de lien", core.interval(plainLink), 300000);
+  check("core : la periode d'un lien nu vient du plugin de lien", core.interval(plainLink), 900000);
   check(
     "core : la cle d'un lien nu reste son URL",
     core.cacheKey(plainLink),

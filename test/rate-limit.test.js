@@ -37,3 +37,22 @@ now += 120001;
 limiter.cleanup();
 assert.equal(request("a").status, 200);
 console.log("PASS sécurité : limitation par client et expiration");
+
+// Reads: 120 per minute and per client; the page makes about 3 reads per
+// 5 minutes and per open tab (status, host metrics, replication), so even
+// 20 tabs stay far below the limit.
+{
+  const clock = 0;
+  const reads = createRateLimiter({ windowMs: 60000, max: 120, now: () => clock });
+  const read = () => {
+    let status = 200;
+    const res = { set() {}, status: code => ({ json: () => (status = code) }) };
+    reads.middleware({ ip: "tabs", method: "GET" }, res, () => {});
+    return status;
+  };
+  const perTabPerMinute = 3 / 5;
+  assert.ok(20 * perTabPerMinute < 120 / 5);
+  for (let i = 0; i < 120; i++) assert.equal(read(), 200);
+  assert.equal(read(), 429);
+}
+console.log("PASS sécurité : limite de lectures par client");

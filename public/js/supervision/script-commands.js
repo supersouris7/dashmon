@@ -59,10 +59,10 @@ export const SCRIPT_FREQUENCIES = Object.freeze({
     { cron: "*/15 * * * *", key: "cronEvery15", recommended: true },
     { cron: "0 * * * *", key: "cronHourly" }
   ],
-  // Claude Code sessions and agents: light enough to run every minute.
+  // Claude Code sessions and agents: every 5 minutes is enough.
   "claude-team": [
-    { cron: "* * * * *", key: "cronEveryMinute", recommended: true },
-    { cron: "*/5 * * * *", key: "cronEvery5" },
+    { cron: "* * * * *", key: "cronEveryMinute" },
+    { cron: "*/5 * * * *", key: "cronEvery5", recommended: true },
     { cron: "*/15 * * * *", key: "cronEvery15" }
   ],
   // The automatic update (dashmon-setup.sh auto).

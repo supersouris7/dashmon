@@ -40,7 +40,18 @@ async function main() {
     // s'afficher dans le menu des widgets de l'editeur.
     if (!item.hidden) ok("registre : " + id + " a un renderer", typeof item.client === "string");
     ok("registre : " + id + " declare une periode", Number(item.interval) > 0);
+    ok("registre : " + id + " respecte le plancher de 15 min", item.interval >= 15 * 60 * 1000);
     ok("registre : " + id + " a des libelles fr+en", !!(item.label.fr && item.label.en));
+  }
+
+  for (const [given, expected] of [
+    [60000, 900000],
+    [0, 900000],
+    [undefined, 900000],
+    [7200000, 7200000]
+  ]) {
+    const manifest = validateManifest("rapide", { interval: given }, []);
+    check("registre : periode " + given + " ramenee au plancher", manifest.interval, expected);
   }
 
   check(

@@ -6,7 +6,7 @@
     "fr": "Une ligne par page de statut : vert si tout est en ligne, rouge sinon",
     "en": "One line per status page: green if everything is up, red otherwise"
   },
-  "interval": 60000,
+  "interval": 900000,
   "cacheKey": "config",
   "server": "server.js",
   "client": "client.mjs",

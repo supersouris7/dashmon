@@ -227,7 +227,7 @@ and show the rest of the API on real cases:
 | `smart` | filter with a `choices` setting fed by the report (`detect`) |
 | `directories` | a `list` setting (name + path per row) that a host script also reads |
 | `opencode`, `claude` | two cards sharing one report format |
-| `claude-team` | a custom body (`element(ctx)`), the report bounded again on the server, a host script run every minute |
+| `claude-team` | a custom body (`element(ctx)`), the report bounded again on the server, a host script run every 5 minutes |
 
 They build their card with Dashmon's own interface modules (`/js/...`), which
 is reserved to the cards shipped with Dashmon: a third-party card uses `ctx`
@@ -242,8 +242,8 @@ collect(ctx) on the host  ->  host metrics: plugins.<id> = report
                        card(ctx) in the browser -> descriptor -> card drawn by Dashmon
 ```
 
-- `collect` runs for the local monitored host on every metrics refresh (60 s by
-  default), on the main instance and on agents alike.
+- `collect` runs for the local monitored host on every metrics refresh (5 min by
+  default and at least), on the main instance and on agents alike.
 - Its report is placed under `plugins.<id>` of the host metrics: its own
   namespace, it can never overwrite a core field.
 - Each host has a section per installed plugin in

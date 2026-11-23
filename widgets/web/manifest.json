@@ -6,7 +6,7 @@
     "fr": "Sonde HTTP du lien : la tuile garde son point d'état vert ou rouge",
     "en": "HTTP probe for the link: the tile keeps its green or red status dot"
   },
-  "interval": 300000,
+  "interval": 900000,
   "cacheKey": "service",
   "defaultFor": "link",
   "hidden": true,

@@ -180,7 +180,7 @@ shows and from what a run costs:
 | WireGuard | **`* * * * *` every minute** | `*/5 * * * *` every 5 minutes | `*/15 * * * *` every 15 minutes | A peer shows online while its last handshake is under 3 minutes old: only a dump every minute keeps that state right. 5 or 15 minutes are enough to see who connected. The dump costs nothing. |
 | OpenCode | `*/5 * * * *` every 5 minutes | **`*/15 * * * *` every 15 minutes** | `0 * * * *` every hour | Today's tokens stay current; the card flags a report older than 6 hours. |
 | Claude Code | `*/5 * * * *` every 5 minutes | **`*/15 * * * *` every 15 minutes** | `0 * * * *` every hour | Same as OpenCode. |
-| Claude team | **`* * * * *` every minute** | `*/5 * * * *` every 5 minutes | `*/15 * * * *` every 15 minutes | Sessions and agents change in minutes; the card flags a report older than 10 minutes. The run only reads the sessions and the files of the last 24 hours, and the end of their logs. |
+| Claude team | `* * * * *` every minute | **`*/5 * * * *` every 5 minutes** | `*/15 * * * *` every 15 minutes | Sessions and agents change in minutes; the card flags a report older than 10 minutes. The run only reads the sessions and the files of the last 24 hours, and the end of their logs. |
 | Automatic update | `0 */6 * * *` every 6 hours | **`30 4 * * *` every night at 04:30** | `30 4 * * 0` every Sunday at 04:30 | After the nightly APT and directory runs; every night is enough for scripts that change a few times a month. |
 | Directories | `0 * * * *` every hour | `0 */6 * * *` every 6 hours | **`30 3 * * *` every night at 03:30** | `du` reads every file entry: once a night, after APT. The card flags a report older than 2 days. |
 

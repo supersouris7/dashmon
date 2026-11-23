@@ -91,7 +91,7 @@ See `.env.example`. The most important:
 | `DASHMON_MASTER_KEY` | **required** (main dashboard) | AES-256-GCM master key encrypting widget secrets (e.g. Duplicati password) in `config.json`. Not needed by agents |
 | `DASHMON_SYNC_TOKEN` | empty | Optional pairing key: set on an agent and on the main dashboard, only that dashboard may pair the agent. Each agent generates its own token at the pairing |
 | `DASHMON_MODE` | empty | `agent` runs a supervision agent instead of the dashboard |
-| `HOST_METRICS_INTERVAL` | `60` | Seconds between two reads of the host resources (minimum 5, maximum 3600) |
+| `HOST_METRICS_INTERVAL` | `300` | Seconds between two reads of the host resources (minimum 300, maximum 3600) |
 | `DOCKER_SOCKET` | `/var/run/docker.sock` | Socket read by the Docker widget in local mode |
 | `DOCKER_API_VERSION` | `v1.41` | Docker Engine API version used by the Docker widget |
 | `SPEEDTEST_SCHEDULE` | `on` | `off` turns off the automatic speed tests; tests asked by hand still run ([guide](../docs/SPEEDTEST.md)) |

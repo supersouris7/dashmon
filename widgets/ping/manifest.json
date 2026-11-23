@@ -6,7 +6,7 @@
     "fr": "Teste si un hôte répond : résolution du nom puis connexion TCP",
     "en": "Tests whether a host answers: name resolution then TCP connection"
   },
-  "interval": 60000,
+  "interval": 900000,
   "cacheKey": "config",
   "probe": true,
   "server": "server.js",

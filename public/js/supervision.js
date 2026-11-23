@@ -62,12 +62,12 @@ export function versionNotice(check) {
 }
 
 // Interval injected by the server (HOST_METRICS_INTERVAL). HTML served
-// without substitution (tests, local file) falls back to 60 s.
+// without substitution (tests, local file) falls back to 5 min, which is also the floor.
 function metricsInterval() {
-  if (typeof document === "undefined") return 60000;
+  if (typeof document === "undefined") return 300000;
   const meta = document.querySelector('meta[name="host-metrics-interval"]');
   const value = Number(meta && meta.content);
-  return Number.isFinite(value) && value >= 5000 ? Math.min(value, 3600000) : 60000;
+  return Number.isFinite(value) ? Math.min(Math.max(value, 300000), 3600000) : 300000;
 }
 const HOST_METRICS_INTERVAL = metricsInterval();
 let remoteInstances = [];
